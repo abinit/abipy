@@ -55,7 +55,7 @@ tolwfr2     1.0d-10
 #Parameter for the screening calculation
 optdriver3    3
 gwcalctyp3    2
-getkss3       2
+getwfk3       2
 nband3       30
 ecuteps3     4.0
 ecutwfn3     4.0
@@ -75,7 +75,7 @@ gwcalctyp4    2
 nband4       30
 ecutsigx4    4.0
 ecutwfn4     4.0
-getkss4       2
+getwfk4       2
 getscr4       3
 
 nfreqsp4    200

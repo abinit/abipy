@@ -9,6 +9,7 @@ import os
 import argparse
 
 from pprint import pprint
+from monty.functools import prof_main
 from abipy.core.release import __version__
 from abipy.abilab import abinit_help
 from abipy.abio.abivars_db import get_abinit_variables
@@ -24,14 +25,16 @@ def print_vlist(vlist, options):
         print("\nUse -v for more info")
 
 
+@prof_main
 def main():
     def str_examples():
         examples = """\
 Usage example:
-    abidoc.py man ecut      --> Show documentation for ecut input variable.
-    abidoc.py apropos ecut  --> To search in the database for the variables related to ecut.
-    abidoc.py find paw      --> To search in the database for the variables whose name contains paw 
-    abidoc.py list          --> Print full list of variables 
+    abidoc.py man ecut        --> Show documentation for ecut input variable.
+    abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
+    abidoc.py find paw        --> To search in the database for the variables whose name contains paw
+    abidoc.py list            --> Print full list of variables
+    abidoc.py withdim natom   --> Print arrays depending on natom.
 """
         return examples
 
@@ -44,12 +47,14 @@ Usage example:
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='verbose, can be supplied multiple times to increase verbosity')
+
+    # Parent parser for common options.
+    copts_parser = argparse.ArgumentParser(add_help=False)
+    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                              help='verbose, can be supplied multiple times to increase verbosity')
+    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     var_parser = argparse.ArgumentParser(add_help=False)
     var_parser.add_argument('varname', help="ABINIT variable")
@@ -58,27 +63,34 @@ Usage example:
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for man.
-    p_man = subparsers.add_parser('man', parents=[base_parser, var_parser], help="Show documentation for varname.")
+    p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
 
     # Subparser for apropos.
-    p_apropos = subparsers.add_parser('apropos', parents=[base_parser, var_parser], help="Find variables related to varname.")
+    p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser], help="Find variables related to varname.")
 
     # Subparser for find.
-    p_find = subparsers.add_parser('find', parents=[base_parser, var_parser], help="Find all variables whose name contains varname.")
+    p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],
+                                   help="Find all variables whose name contains varname.")
 
     # Subparser for require.
-    #p_require = subparsers.add_parser('require', parents=[base_parser], help="Find all variables required by varname.")
+    #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
+
+    # Subparser for withdim.
+    p_withdim = subparsers.add_parser('withdim', parents=[copts_parser],
+                                      help="Find all arrays depending on the given dimension.")
+    p_withdim.add_argument("dimname", help="Dimension name")
 
     # Subparser for list.
-    p_list = subparsers.add_parser('list', parents=[base_parser], help="List all variables.")
-    p_list.add_argument('--mode', default="a", help="Sorte mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
+    p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
+    p_list.add_argument('--mode', default="a",
+                        help="Sorte mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
 
     try:
         options = parser.parse_args()
-    except Exception as exc: 
+    except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument. 
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -123,21 +135,14 @@ Usage example:
         else:
             raise ValueError("Wrong mode %s" % options.mode)
 
+    elif options.command == "withdim":
+        for var in database.values():
+            if var.isarray and options.dimname in str(var.dimensions):
+                print(repr(var), "\n", str(var.dimensions), "\n") # type(var.dimensions)
+
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)
 
 
 if __name__ == "__main__":
-    try:
-        do_prof = sys.argv[1] == "prof"
-        if do_prof: sys.argv.pop(1)
-    except Exception: 
-        do_prof = False
-
-    if do_prof:
-        import pstats, cProfile
-        cProfile.runctx("main()", globals(), locals(), "Profile.prof")
-        s = pstats.Stats("Profile.prof")
-        s.strip_dirs().sort_stats("time").print_stats()
-    else:
-        sys.exit(main())
+    sys.exit(main())

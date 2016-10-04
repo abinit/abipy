@@ -12,8 +12,9 @@ from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
 from pymatgen.io.abinit.events import EventsParser
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle, Relaxation
+from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
+from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [
@@ -21,16 +22,23 @@ __all__ = [
     "Has_Structure",
     "Has_ElectronBands",
     "Has_PhononBands",
+    "NotebookWriter",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
 class _File(object):
     """
-    Abstract base class defining the methods that must be implemented 
+    Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath):
         self._filepath = os.path.abspath(filepath)
+
+        # Save stat values
+        stat = os.stat(filepath)
+        self._last_atime = stat.st_atime
+        self._last_mtime = stat.st_mtime
+        self._last_ctime = stat.st_ctime
 
     def __repr__(self):
         return "<%s, %s>" % (self.__class__.__name__, self.relpath)
@@ -73,20 +81,34 @@ class _File(object):
         """String defining the filetype."""
         return self.__class__.__name__
 
-    def filestat(self):
-        """Dictionary with file metadata"""
-        return get_filestat(self.filepath)
+    def filestat(self, as_string=False):
+        """
+        Dictionary with file metadata
+        if `as_string` is True, a string is returned.
+        """
+        d = get_filestat(self.filepath)
+        if not as_string: return d
+        return "\n".join("%s: %s" % (k, v) for k, v in d.items())
 
     @abc.abstractmethod
     def close(self):
         """Close file."""
-    
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
+
+    #def __del__(self):
+    #    """
+    #    Called when the instance is about to be destroyed.
+    #    """
+    #    try:
+    #        self.close()
+    #    finally:
+    #        super(_File, self).__close__(self)
 
 
 class TextFile(_File):
@@ -118,15 +140,27 @@ class TextFile(_File):
 class AbinitTextFile(TextFile):
     """Class for the ABINIT main output file and the log file."""
 
-    @lazy_property
+    @property
     def events(self):
-        """List of ABINIT events reported in the file."""
-        return EventsParser().parse(self.filepath)
+        """
+        List of ABINIT events reported in the file.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_events"):
+            self._events = EventsParser().parse(self.filepath)
+        return self._events
 
-    @lazy_property
+    @property
     def timer_data(self):
-        """Timer data."""
-        return AbinitTimerParser().parse(self.filepath)
+        """
+        Timer data.
+        """
+        # Parse the file the first time the property is accessed or when mtime is changed.
+        stat = os.stat(self.filepath)
+        if stat.st_mtime != self._last_mtime or not hasattr(self, "_timer_data"):
+            self._timer_data = AbinitTimerParser().parse(self.filepath)
+        return self._timer_data
 
 
 class AbinitLogFile(AbinitTextFile):
@@ -136,17 +170,27 @@ class AbinitLogFile(AbinitTextFile):
 class AbinitOutputFile(AbinitTextFile):
     """Class representing the main output file."""
 
+    #ndtset
+    #offset_dataset
+    #dims_dataset
+    #vars_dataset
+    #pseudos
+
     def next_gs_scf_cycle(self):
-        """Return the next :class:`GroundStateScfCycle` in the file. None if not found."""
+        """
+        Return the next :class:`GroundStateScfCycle` in the file. None if not found.
+        """
         return GroundStateScfCycle.from_stream(self)
 
     def next_d2de_scf_cycle(self):
-        """:class:`GroundStateScfCycle` with information on the GS iterations. None if not found."""
+        """
+        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
+        """
         return D2DEScfCycle.from_stream(self)
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
-        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent 
+        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent
         cycle in self with the ones in others.
 
         Args:
@@ -155,19 +199,21 @@ class AbinitOutputFile(AbinitTextFile):
         """
         for i, other in enumerate(others):
             if is_string(other): others[i] = self.__class__.from_file(other)
-        
+
         fig, figures = None, []
         while True:
             cycle = self.next_gs_scf_cycle()
-            if cycle is None: break 
+            if cycle is None: break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
                 other_cycle = other.next_gs_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)
@@ -175,9 +221,9 @@ class AbinitOutputFile(AbinitTextFile):
 
     def compare_d2de_scf_cycles(self, others, show=True):
         """
-        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent 
+        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent
         cycle in self with the ones in others.
-                                                                                                   
+
         Args:
             others: list of `AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
@@ -188,20 +234,36 @@ class AbinitOutputFile(AbinitTextFile):
         fig, figures = None, []
         while True:
             cycle = self.next_d2de_scf_cycle()
-            if cycle is None: break 
+            if cycle is None: break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
                 other_cycle = other.next_d2de_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(fig=fig, show=show and last)
-                if last: figures.append(fig)
+                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                if last:
+                    fig.tight_layout()
+                    figures.append(fig)
 
         self.seek(0)
         for other in others: other.seek(0)
         return figures
-                                                                                                   
+
+
+class AbinitOutNcFile(NetcdfReader):
+    """
+    Class representing the _OUT.nc file.
+    """
+
+    def get_vars(self, vars, strict=False):
+        # TODO: add a check on the variable names ?
+        default = NO_DEFAULT if strict else None
+        var_values = {}
+        for var in vars:
+            var_values[var] = self.read_value(varname=var, default=default)
+        return var_values
+
 
 @six.add_metaclass(abc.ABCMeta)
 class AbinitNcFile(_File):
@@ -214,6 +276,48 @@ class AbinitNcFile(_File):
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
 
+class OutNcFile(AbinitNcFile):
+    """
+    Class representing the _OUT.nc file containing the dataset results
+    produced at the end of the run. The netcdf variables can be accessed
+    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
+    """
+    def __init__(self, filepath):
+        super(OutNcFile, self).__init__(filepath)
+        self.reader = NetcdfReader(filepath)
+        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+
+    def __dir__(self):
+        """Ipython integration."""
+        return sorted(list(self._varscache.keys()))
+
+    def __getattribute__(self, name):
+        try:
+            return super(OutNcFile, self).__getattribute__(name)
+        except AttributeError:
+            # Look in self._varscache
+            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            if name not in varscache:
+                raise AttributeError("Cannot find attribute %s" % name)
+            reader = super(OutNcFile, self).__getattribute__("reader")
+            if varscache[name] is None:
+                varscache[name] = reader.read_value(name)
+            return varscache[name]
+
+    def close(self):
+        self.reader.close()
+
+    def get_allvars(self):
+        """
+        Read all netcdf variables present in the file.
+        Return dictionary varname --> value
+        """
+        for k, v in self._varscache.items():
+            if v is not None: continue
+            self._varscache[k] = self.reader.read_value(k)
+        return self._varscache
+
+
 @six.add_metaclass(abc.ABCMeta)
 class Has_Structure(object):
     """Mixin class for :class:`AbinitNcFile` containing crystallographic data."""
@@ -222,11 +326,11 @@ class Has_Structure(object):
     def structure(self):
         """Returns the :class:`Structure` object."""
 
-    def show_bz(self):
+    def show_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.structure.hsym_kpath.get_kpath_plot()
+        return self.structure.show_bz(**kwargs)
 
     def export_structure(self, filepath):
         """
@@ -295,14 +399,14 @@ class Has_ElectronBands(object):
         return self.ebands.nelect
 
     @property
+    def nkpt(self):
+        """Number of k-points."""
+        return self.ebands.nkpt
+
+    @property
     def kpoints(self):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
-
-    @property
-    def nkpts(self):
-        """Number of k-points."""
-        return len(self.kpoints)
 
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
@@ -381,3 +485,102 @@ def get_filestat(filepath):
         ("Modification Time", ctime(stat.st_mtime)),
         ("Change Time", ctime(stat.st_ctime)),
     ])
+
+
+@six.add_metaclass(abc.ABCMeta)
+class NotebookWriter(object):
+    """
+    Mixin class for objects that are able to generate jupyter notebooks.
+    Subclasses must provide a concrete implementation of `write_notebook`.
+
+    See also:
+        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
+    """
+    def make_and_open_notebook(self, nbpath=None, daemonize=False):
+        """
+        Generate an ipython notebook and open it in the browser.
+
+        Args:
+            nbpath: If nbpath is None, a temporay file is created.
+            daemonize:
+
+        Return:
+            system exit code.
+
+        Raise:
+            RuntimeError if jupyter is not in $PATH
+        """
+        nbpath = self.write_notebook(nbpath=nbpath)
+
+        if which("jupyter") is None:
+            raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
+
+        cmd = "jupyter notebook %s" % nbpath
+        if not daemonize:
+            return os.system(cmd)
+        else:
+            import daemon
+            with daemon.DaemonContext():
+                return os.system(cmd)
+
+    def get_nbformat_nbv_nb(self, title=None):
+        """
+        """
+        import nbformat
+        nbv = nbformat.v4
+        nb = nbv.new_notebook()
+
+        if title is not None:
+            nb.cells.append(nbv.new_markdown_cell("## %s" % title))
+
+        nb.cells.extend([
+            nbv.new_code_cell("""\
+from __future__ import print_function, division, unicode_literals, absolute_import
+
+import sys
+import os
+
+%matplotlib notebook
+from IPython.display import display
+#import seaborn as sns
+
+from abipy import abilab""")
+        ])
+
+        return nbformat, nbv, nb
+
+    @abc.abstractmethod
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
+        Return path to the notebook. A typical template is given below.
+        """
+        # Preable.
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        #####################
+        # Put your code here
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("a = 1"),
+        ])
+        #####################
+
+        # Call _write_nb_nbpath
+        return self._write_nb_nbpath(nb, nbpath)
+
+    @staticmethod
+    def _write_nb_nbpath(nb, nbpath):
+        """
+        This method must be called at the end of `write_notebook`.
+        nb is the ipython notebook and nbpath the argument passed to `write_notebook`.
+        """
+        import io, os, tempfile
+        if nbpath is None:
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+
+        # Write notebook
+        import nbformat
+        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+            nbformat.write(nb, fh)
+            return nbpath

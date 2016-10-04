@@ -9,7 +9,7 @@ from monty.bisect import find_gt
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.iotools import ETSF_Reader
-from abipy.core.mixins import AbinitNcFile #, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -56,13 +56,13 @@ def rescale(arr, scale=1.0):
 
 class PspsFile(AbinitNcFile):
     """
-    Netcdf file with the tables used in Abinit to apply the 
-    pseudopotential part of the KS Hamiltonian. 
+    Netcdf file with the tables used in Abinit to apply the
+    pseudopotential part of the KS Hamiltonian.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with PspsFile("foo_PSPS.nc") as psps:
             psps.plot_tcore_rspace()
     """
@@ -92,7 +92,6 @@ class PspsFile(AbinitNcFile):
         Return: matplotlb Figure
         """
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
 
         methods = [
             "plot_tcore_rspace",
@@ -100,6 +99,8 @@ class PspsFile(AbinitNcFile):
             "plot_ffspl",
             "plot_vlocq",
         ]
+
+        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
 
         ecut_ffnl = kwargs.pop("ecut_ffnl", None)
         for m, ax in zip(methods, ax_list.ravel()):
@@ -125,19 +126,18 @@ class PspsFile(AbinitNcFile):
         linewidth = kwargs.pop("linewidth", 2.0)
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
 
-        for rmesh, mcores in zip(rmeshes, coresd): 
+        for rmesh, mcores in zip(rmeshes, coresd):
             for der, values in enumerate(mcores):
                 if der not in ders: continue
                 yvals, fact, = rescale(values)
-                ax.plot(rmesh, yvals, color=self.color_der[der], linewidth=linewidth, 
-                        linestyle=self.linestyles_der[der], 
+                ax.plot(rmesh, yvals, color=self.color_der[der], linewidth=linewidth,
+                        linestyle=self.linestyles_der[der],
                         label=mklabel("\\tilde{n}_c", der, "r") + " x %.4f" % fact)
 
         ax.grid(True)
         ax.set_xlabel("r [Bohr]")
         ax.set_title("Model core in r-space")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="upper right")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -163,7 +163,7 @@ class PspsFile(AbinitNcFile):
         #print(qmesh, tcore_spl)
         ecuts = 2 * (np.pi * qmesh)**2
         lines = []
-        for atype, tcore_atype in enumerate(tcore_spl): 
+        for atype, tcore_atype in enumerate(tcore_spl):
             for der, values in enumerate(tcore_atype):
                 if der == 1: der = 2
                 if der not in ders: continue
@@ -172,13 +172,13 @@ class PspsFile(AbinitNcFile):
                 label = mklabel("\\tilde{n}_{c}", der, "q")
                 if with_fact: label += " x %.4f" % fact
 
-                line, = ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
+                line, = ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                                 linestyle=self.linestyles_der[der], label=label)
                 lines.append(line)
 
                 if with_qn and der == 0:
                     yvals, fact = rescale(qmesh * values)
-                    line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
+                    line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                                   label=mklabel("q f", der, "q") + " x %.4f" % fact)
 
                     lines.append(line)
@@ -186,8 +186,7 @@ class PspsFile(AbinitNcFile):
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Model core in q-space")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="upper right")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -211,7 +210,7 @@ class PspsFile(AbinitNcFile):
 
         qmesh, vlspl = self.reader.read_vlspl()
         ecuts = 2 * (np.pi * qmesh)**2
-        for atype, vl_atype in enumerate(vlspl): 
+        for atype, vl_atype in enumerate(vlspl):
             for der, values in enumerate(vl_atype):
                 if der == 1: der = 2
                 if der not in ders: continue
@@ -220,20 +219,18 @@ class PspsFile(AbinitNcFile):
                 label = mklabel("v_{loc}", der, "q")
                 if with_fact: label += " x %.4f" % fact
 
-                ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
+                ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                         linestyle=self.linestyles_der[der], label=label)
 
                 if with_qn and der == 0:
                     yvals, fact = rescale(qmesh * values)
-                    ax.plot(ecuts, yvals, color=color, linewidth=linewidth, 
+                    ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                             label="q*f(q) x %2.f" % fact)
 
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("Vloc(q)")
-        if kwargs.get("with_legend", True):
-            #ax.legend(loc="upper right")
-            ax.legend(loc="best")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         return fig
 
@@ -264,7 +261,7 @@ class PspsFile(AbinitNcFile):
         qmesh, vlspl = self.reader.read_vlspl()
 
         all_projs = self.reader.read_projectors()
-        for itypat, projs_type in enumerate(all_projs): 
+        for itypat, projs_type in enumerate(all_projs):
             # Loop over the projectors for this atom type.
             for p in projs_type:
                 for der, values in enumerate(p.data):
@@ -284,14 +281,13 @@ class PspsFile(AbinitNcFile):
                     values = vlspl[itypat, 0, :] + p.sign_sqrtekb * p.values
 
                     #print(values.min(), values.max())
-                    ax.plot(p.ecuts[:stop], values[:stop], color=color_l[p.l], linewidth=linewidth, 
+                    ax.plot(p.ecuts[:stop], values[:stop], color=color_l[p.l], linewidth=linewidth,
                             linestyle=linestyles_n[p.n], label=label)
 
         ax.grid(True)
         ax.set_xlabel("Ecut [Hartree]")
         ax.set_title("ffnl(q)")
-        if kwargs.get("with_legend", True):
-            ax.legend(loc="best")
+        if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
 
@@ -350,7 +346,7 @@ class PspsReader(ETSF_Reader):
         # Get important quantities.
         self.usepaw, self.useylm = self.read_value("usepaw"), self.read_value("useylm")
         assert self.usepaw == 0 and self.useylm == 0
-        self.ntypat = self.read_dimvalue("ntypat") 
+        self.ntypat = self.read_dimvalue("ntypat")
         self.lmnmax = self.read_dimvalue("lmnmax")
         self.indlmn = self.read_value("indlmn")
 
@@ -387,9 +383,9 @@ class PspsReader(ETSF_Reader):
         pseudo-core charge with respect to the radial distance.
         """
 
-        xcccrc = self.read_value("xcccrc") 
+        xcccrc = self.read_value("xcccrc")
         try:
-            all_coresd = self.read_value("xccc1d") 
+            all_coresd = self.read_value("xccc1d")
         except self.Error:
             # model core may not be present!
             return self.ntypat * [np.linspace(0, 6, num=100)], self.ntypat * [np.zeros((2, 100))]
@@ -399,7 +395,7 @@ class PspsReader(ETSF_Reader):
         for itypat, rc in enumerate(xcccrc):
             rvals, step = np.linspace(0, rc, num=npts, retstep=True)
             ir_stop = -1
-            if rmax is not None: 
+            if rmax is not None:
                 # Truncate mesh
                 ir_stop = min(int(rmax / step), npts) + 1
                 #print(rmax, step, ir_stop, npts)
@@ -416,7 +412,7 @@ class PspsReader(ETSF_Reader):
             tcorespl:
 
         tcorespl[ntypat, 2, mqgrid_vl]
-        Gives the pseudo core density in reciprocal space on a regular grid. 
+        Gives the pseudo core density in reciprocal space on a regular grid.
         Only if has_tcore
         """
         return self.read_value("qgrid_vl"), self.read_value("nc_tcorespl")
@@ -510,4 +506,3 @@ class VnlProjector(object):
     @property
     def sign_sqrtekb(self):
         return np.sign(self.ekb) * np.sqrt(np.abs(self.ekb))
-        

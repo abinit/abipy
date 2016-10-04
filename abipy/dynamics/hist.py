@@ -2,15 +2,15 @@
 """DDB File."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-#import os
 import numpy as np
 
 from monty.functools import lazy_property
 from monty.collections import AttrDict
+from monty.string import marquee # is_string, list_strings,
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile
+from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.iotools import ETSF_Reader
 
 import logging
@@ -21,16 +21,16 @@ __all__ = [
 ]
 
 
-class HistFile(AbinitNcFile):
+class HistFile(AbinitNcFile, NotebookWriter):
     """
     File with the history of a structural relaxation or molecular dynamics calculation.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with HistFile("foo_HIST") as hist:
-            hist.plot_geo_hist()
+            hist.plot()
     """
     @classmethod
     def from_file(cls, filepath):
@@ -39,15 +39,31 @@ class HistFile(AbinitNcFile):
 
     def __init__(self, filepath):
         super(HistFile, self).__init__(filepath)
-
         self.reader = HistReader(filepath)
 
     def close(self):
         self.reader.close()
 
     def __str__(self):
-        return "File: %s\nStructure formula:%s, Number of steps: %d" % (
-            self.filepath, self.structures[-1].formula, self.num_steps)
+        return self.to_string()
+
+    def to_string(self):
+        """Return string representation."""
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Final structure", mark="="))
+        app("Number of relaxation steps performed: %d" % self.num_steps)
+        app(str(self.final_structure))
+        app("")
+
+        cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
+        app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % cart_stress_tensors[-1])
+        app("Pressure: %.3f [GPa]" % pressures[-1])
+
+        return "\n".join(lines)
 
     @property
     def num_steps(self):
@@ -58,6 +74,10 @@ class HistFile(AbinitNcFile):
     def steps(self):
         """step indices."""
         return list(range(self.num_steps))
+
+    @property
+    def final_structure(self):
+        return self.structures[-1]
 
     @lazy_property
     def structures(self):
@@ -71,7 +91,7 @@ class HistFile(AbinitNcFile):
 
     def export(self, filename, visu=None):
         """
-        Export the crystalline structure on file filename. 
+        Export the crystalline structure on file filename.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -89,8 +109,6 @@ class HistFile(AbinitNcFile):
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s: " % filename)
 
-        #import tempfile
-        #_, tmpfile = tempfile.mkstemp(suffix='', prefix='.xsf', text=True)
         from abipy.iotools.xsf import xsf_write_structure
         with open(filename, "w") as fh:
             xsf_write_structure(fh, self.structures)
@@ -98,7 +116,7 @@ class HistFile(AbinitNcFile):
     @add_fig_kwargs
     def plot(self, **kwargs):
         """
-        Plot the evolution of importan structural parameters (lattice lengths, angles and volume)
+        Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
 
         Returns:
@@ -122,7 +140,7 @@ class HistFile(AbinitNcFile):
         ax1.set_ylabel('Lattice Angles [degree]')
         ax1.legend(loc='best', shadow=True)
 
-        ax2.plot(self.steps, [s.lattice.volume for s in self.structures], marker="o") 
+        ax2.plot(self.steps, [s.lattice.volume for s in self.structures], marker="o")
         ax2.set_ylabel('Lattice volume [A^3]')
 
         stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
@@ -140,25 +158,25 @@ class HistFile(AbinitNcFile):
             fmin_steps.append(fmods.min())
             fmax_steps.append(fmods.max())
 
-        ax4.plot(self.steps, fmin_steps, marker="o", label="min |F|") 
-        ax4.plot(self.steps, fmax_steps, marker="o", label="max |F|") 
-        ax4.plot(self.steps, fmean_steps, marker="o", label="mean |F|") 
-        ax4.plot(self.steps, fstd_steps, marker="o", label="std |F|") 
+        ax4.plot(self.steps, fmin_steps, marker="o", label="min |F|")
+        ax4.plot(self.steps, fmax_steps, marker="o", label="max |F|")
+        ax4.plot(self.steps, fmean_steps, marker="o", label="mean |F|")
+        ax4.plot(self.steps, fstd_steps, marker="o", label="std |F|")
         ax4.set_ylabel('Force stats [eV/A]')
         ax4.legend(loc='best', shadow=True)
         ax4.set_xlabel('Step')
 
         # Total energy.
-        ax5.plot(self.steps, self.etotals, marker="o", label="Energy") 
+        ax5.plot(self.steps, self.etotals, marker="o", label="Energy")
         ax5.set_ylabel('Total energy [eV]')
         ax5.set_xlabel('Step')
 
         return fig
 
     @add_fig_kwargs
-    def plot_energies(self, **kwargs):
+    def plot_energies(self, ax=None, **kwargs):
         """
-        Plot the evolution of the different contributions to the total energy.
+        Plot the total energies as function of the iteration step.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -167,7 +185,7 @@ class HistFile(AbinitNcFile):
             `matplotlib` figure
         """
         # TODO max force and pressure
-        ax, fig, plt = get_ax_fig_plt(None)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         terms = self.reader.read_eterms()
         for key, values in terms.items():
@@ -180,6 +198,23 @@ class HistFile(AbinitNcFile):
         ax.legend(loc='best', shadow=True)
 
         return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("hist = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(hist)"),
+            nbv.new_code_cell("fig = hist.plot_energies()"),
+            nbv.new_code_cell("fig = hist.plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class HistReader(ETSF_Reader):
@@ -209,6 +244,8 @@ class HistReader(ETSF_Reader):
         znucl, typat = self.read_value("znucl"), self.read_value("typat")
         #print(znucl.dtype, typat)
 
+        cart_forces_step = self.read_cart_forces(unit="eV ang^-1")
+
         structures = []
         for step in range(self.num_steps):
             s = Structure.from_abivars(
@@ -219,6 +256,7 @@ class HistReader(ETSF_Reader):
                 znucl=znucl,
                 typat=typat,
             )
+            s.add_site_property("cartesian_forces", cart_forces_step[step])
             structures.append(s)
 
         return structures
@@ -231,11 +269,17 @@ class HistReader(ETSF_Reader):
         )
 
     def read_cart_forces(self, unit="eV ang^-1"):
-        """Read and return a numpy array with the cartesian forces. Shape (num_steps, natom, 3)"""
+        """
+        Read and return a numpy array with the cartesian forces in unit `unit`.
+        Shape (num_steps, natom, 3)
+        """
         return ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
 
     def read_reduced_forces(self):
-        """Read and return a numpy array with the forces in reduced coordinates, shape (num_steps, natom, 3)"""
+        """
+        Read and return a numpy array with the forces in reduced coordinates
+        Shape (num_steps, natom, 3)
+        """
         return self.read_value("fred")
 
     def read_cart_stress_tensors(self):
@@ -251,7 +295,7 @@ class HistReader(ETSF_Reader):
         for step in range(self.num_steps):
             for i in range(3): tensors[step, i,i] = c[step, i]
             for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
-                tensors[step, i,j] = c[step, 3+p] 
+                tensors[step, i,j] = c[step, 3+p]
                 tensors[step, j,i] = c[step, 3+p]
 
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa

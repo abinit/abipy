@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to plot the phonon fatbands of AlAs.
-# See tutorial/lesson_rf2.html
+"""
+This example shows how to plot the phonon fatbands of AlAs.
+See tutorial/lesson_rf2.html
+"""
 from abipy.abilab import abiopen
 import abipy.data as abidata
 

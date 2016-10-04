@@ -1,6 +1,8 @@
 """Tests for input  module"""
 from __future__ import print_function, division, unicode_literals
 
+import tempfile
+import os
 import numpy as np
 import abipy.data as abidata
 
@@ -20,7 +22,7 @@ class TestAbinitInput(AbipyTest):
         """Test AbinitInput API."""
         # Build simple input with structure and pseudos
         unit_cell = {
-            "acell": 3*[10.217],       
+            "acell": 3*[10.217],
             'rprim': [[.0, .5, .5],
                       [.5, .0, .5],
                       [.5, .5, .0]],
@@ -35,7 +37,7 @@ class TestAbinitInput(AbipyTest):
         inp = AbinitInput(structure=unit_cell, pseudos=abidata.pseudos("14si.pspnc"))
 
         print(repr(inp))
-        assert len(inp) == 0 and not inp 
+        assert len(inp) == 0 and not inp
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
         inp.set_comment("This is a comment")
@@ -58,6 +60,12 @@ class TestAbinitInput(AbipyTest):
         inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
 
         inp.set_vars(ecut=5, toldfe=1e-6)
+        assert inp["ecut"] == 5
+        inp.set_vars_ifnotin(ecut=-10)
+        assert inp["ecut"] == 5
+
+        _, tmp_file = tempfile.mkstemp()
+        inp.write(filepath=tmp_file)
 
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
@@ -73,8 +81,13 @@ class TestAbinitInput(AbipyTest):
         removed = inp.pop_tolerances()
         assert len(removed) == 1 and removed["toldfe"] == 1e-6
 
-        # Test set_structure 
-        new_structure = inp.structure.copy() 
+        # Test set_spin_mode
+        old_vars = inp.set_spin_mode("polarized")
+        assert "nsppol" in inp and inp["nspden"] == 2 and inp["nspinor"] == 1
+        inp.set_vars(old_vars)
+
+        # Test set_structure
+        new_structure = inp.structure.copy()
         new_structure.perturb(distance=0.1)
         inp.set_structure(new_structure)
         assert inp.structure == new_structure
@@ -112,6 +125,10 @@ class TestAbinitInput(AbipyTest):
         """Testing AbinitInput helper functions."""
         inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
 
+        nval_atoms = inp.valence_electrons_per_atom
+        assert len(nval_atoms) == 2
+        assert nval_atoms == [4, 4]
+
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
 
@@ -132,7 +149,7 @@ class TestAbinitInput(AbipyTest):
 
         prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
         #prod_inps = inp.product([("ngkpt", [[2,2,2], [4,4,4]]), ("tsmear", [0.1, 0.2, 0.3])])
-        assert len(prod_inps) == 6 
+        assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
 
@@ -142,35 +159,33 @@ class TestAbinitInput(AbipyTest):
         inp.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
 
         # The code below invokes Abinit.
-        if self.has_abinit():
+        # Test validate with wrong input
+        inp.set_vars(ecut=-1)
+        v = inp.abivalidate()
+        assert v.retcode != 0 and v.log_file.read()
 
-            # Test validate with wrong input
-            inp.set_vars(ecut=-1)
-            v = inp.abivalidate()
-            assert v.retcode != 0 and v.log_file.read()
+        # Test validate with correct input
+        inp.set_vars(ecut=2, toldfe=1e-6)
+        v = inp.abivalidate()
+        assert v.retcode == 0
 
-            # Test validate with correct input
-            inp.set_vars(ecut=2, toldfe=1e-6)
-            v = inp.abivalidate()
-            assert v.retcode == 0
+        # Test abiget_ibz
+        ibz = inp.abiget_ibz()
+        assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
+        assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
-            # Test abiget_ibz
-            ibz = inp.abiget_ibz()
-            assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
-            assert np.all(ibz.weights == [0.125,  0.5,  0.375])
+        # Test abiget_irred_phperts
+        # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
+        irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
+        assert len(irred_perts) == 1
+        pert = irred_perts[0]
+        assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
 
-            # Test abiget_irred_phperts
-            # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
-            irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
-            assert len(irred_perts) == 1
-            pert = irred_perts[0]
-            assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
-
-            # Test abiget_autoparal_pconfs
-            inp["paral_kgb"] = 0
-            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
-            inp["paral_kgb"] = 1
-            pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        # Test abiget_autoparal_pconfs
+        inp["paral_kgb"] = 0
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        inp["paral_kgb"] = 1
+        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
 
     def test_dict_methods(self):
         """ Testing AbinitInput dict methods """
@@ -188,8 +203,8 @@ class TestAbinitInput(AbipyTest):
                              pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"))
 
         gs_inp.set_vars(
-            nband=4,             
-            ecut=2,         
+            nband=4,
+            ecut=2,
             ngkpt=[4, 4, 4],
             nshiftk=4,
             shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
@@ -216,10 +231,9 @@ class TestAbinitInput(AbipyTest):
         assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
         assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
 
-        if self.has_abinit():
-            # Validate
-            vs = phg_inputs.abivalidate()
-            assert all(v.retcode == 0 for v in vs)
+        # Validate
+        vs = phg_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
 
         #############
         # DDK methods
@@ -233,28 +247,45 @@ class TestAbinitInput(AbipyTest):
         assert all(inp["iscf"] == -3 for inp in ddk_inputs)
         assert all(inp["rfelfd"] == 2 for inp in ddk_inputs)
 
-        if self.has_abinit():
-            # Validate
-            vs = ddk_inputs.abivalidate()
-            assert all(v.retcode == 0 for v in vs)
-            #assert 0
+        # Validate
+        vs = ddk_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
+
+        #################
+        # Strain methods
+        #################
+        strain_inputs = gs_inp.make_strain_perts_inputs(tolerance=None)
+        print("STRAIN inputs\n", strain_inputs)
+        assert all(inp["tolvrs"] == 1e-12 for inp in strain_inputs)
+
+        vs = strain_inputs.abivalidate()
+        assert all(v.retcode == 0 for v in vs)
+
+    def TestInputCheckSum(self):
+        """Testing the hash method of AbinitInput"""
+        inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
+        inp_cs = inp.variable_checksum()
+        ecut = inp.pop('ecut')
+        inp.set_vars({'ecut': ecut})
+        self.assertEqual(inp_cs, inp.variable_checksum())
 
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
+
     def test_api(self):
         """Test MultiDataset API."""
         structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         multi = MultiDataset(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
-        assert len(multi) == 1 and multi.ndtset == 1 
+        assert len(multi) == 1 and multi.ndtset == 1
         for i, inp in enumerate(multi):
             assert inp.keys() == multi[i].keys()
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
         assert multi[0].structure ==  multi[1].structure
-        assert not multi[0].structure is multi[1].structure
+        assert multi[0].structure is not multi[1].structure
 
         multi.set_vars(ecut=2)
         assert all(inp["ecut"] == 2 for inp in multi)
@@ -278,6 +309,10 @@ class TestMultiDataset(AbipyTest):
         print(multi)
         #print(dir(multi))
         #assert 0
+
+        tmp_dir = tempfile.mkdtemp()
+        tmp_file = os.path.join(tmp_dir, "run.abi")
+        inp.write(filepath=tmp_file)
 
         new_multi = MultiDataset.from_inputs([inp for inp in multi])
         assert new_multi.ndtset == multi.ndtset
@@ -365,6 +400,16 @@ class AnaddbInputTest(AbipyTest):
         anaddb_input = AnaddbInput.modes(self.structure)
         self.assertTrue(str(anaddb_input))
         for flag in ('ifcflag', 'dieflag'):
+            self.assertEqual(anaddb_input[flag], 1)
+
+        self.serialize_with_pickle(anaddb_input, test_eq=False)
+        anaddb_input.deepcopy()
+
+    def test_ifc(self):
+        """Test the ifc constructor"""
+        anaddb_input = AnaddbInput.ifc(self.structure, ngqpt=[4,4,4])
+        self.assertTrue(str(anaddb_input))
+        for flag in ('ifcflag', 'dipdip'):
             self.assertEqual(anaddb_input[flag], 1)
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)

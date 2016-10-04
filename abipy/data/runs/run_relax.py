@@ -14,7 +14,7 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 
 
-def make_ion_ioncell_inputs(paral_kgb=1):
+def make_ion_ioncell_inputs(paral_kgb=0):
 
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
@@ -70,7 +70,7 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
 
     # Create the flow
     flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)

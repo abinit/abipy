@@ -17,7 +17,8 @@ if sys.version[0:3] < '2.7':
     sys.exit(1)
 
 # Install ipython with notebook support.
-with_ipython = True
+with_ipython = False
+#with_ipython = True
 if '--with-ipython' in sys.argv:
     with_ipython = True
     sys.argv.remove('--with-ipython')
@@ -169,30 +170,35 @@ def cleanup():
 install_requires = [
     "six",
     "prettytable",
+    "tabulate",
     "apscheduler==2.1.0",
     "pydispatcher>=2.0.3",
+    "tqdm",
     "wxmplot",
     "html2text",
     "pigments",
     #"orderedset",
     "pyyaml>=3.11",
     "pandas",
-    "numpy>=1.8",  
+    "numpy>=1.8",
     "scipy>=0.10",
     "pymatgen>=3.0.8",
     "netCDF4",
-    #"matplotlib>=1.1",
+    "python-daemon",
+    #"matplotlib",
     #"seaborn",
     #"psutil",
     #"fabric",
     #"paramiko",
 ]
 
-if False and with_ipython:
+if with_ipython:
     install_requires += [
-        "ipython>=1.1.0",
-        "pyzmq",     # for the notebook
-        "jinja2",    
+        "ipython",
+        "jupyter",
+        "nbformat",
+        #"pyzmq",
+        #"jinja2",
     ]
 
 #if with_cython:
@@ -241,27 +247,28 @@ setup_args = dict(
 if __name__ == "__main__":
     setup(**setup_args)
 
-    print('!! Please read the following if you are about to use abipy for the first time: !!\n')
-    print('1 :\n'
-          '\n'
-          'abipy needs to know about the cluster / computer you are running on this infomation\n'
-          'is provided via the manager.yml and scheduler.yml files. These files need to be located\n'
-          'in ~/.abinit/abipy or in the working directory. Examples are provided in \n'
-          'abipy/data/managers\n'
-          '\n'
-          '2:\n'
-          '\n'
-          'If you are completely new to abipy you could follow the lessons. The simplest way is to\n'
-          'move to an empty working folder, start an ipython session and type:\n'
-          '\n'
-          'from abipy.lessons.lesson_kpoint_convergence import Lesson()\n'
-          '\n'
-          'followed by:\n'
-          '\n'
-          'Lesson()\n'
-          '\n'
-          'This will print the lessons text and further instructions\n'
-          '\n'
-          'have fun\n')
+    msg = """
+Please read the following if you are about to use abipy for the first time:
+
+[1]
+    abipy needs to know about the cluster/computer you are running on. This information
+    is provided via the manager.yml and scheduler.yml files. These files must be located
+    in ~/.abinit/abipy or in the working directory in which you execute the flow.
+    Examples are provided in abipy/data/managers
+
+[2]
+    If you are completely new to abipy you may want to start from the abipy lessons.
+    The simplest way is to move to an empty directory, start an ipython session and type:
+
+    In [1]: from abipy.lessons.lesson_kpoint_convergence import Lesson()
+
+followed by:
+
+    In [2]: Lesson()
+
+This will print the lessons documentation with further instructions.
+Have fun!
+"""
+    print(msg)
 
     cleanup()

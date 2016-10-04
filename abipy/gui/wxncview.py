@@ -4,7 +4,6 @@ import os
 import collections
 import wx
 import netCDF4
-
 import numpy as np
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
@@ -12,13 +11,7 @@ import wx.lib.agw.flatnotebook as fnb
 import wx.lib.dialogs as wxdg
 import wx.lib.newevent
 
-
-try:
-    from wxmplot import PlotFrame, ImageFrame
-except ImportError:
-    pass
-
-from monty.string import list_strings 
+from monty.string import list_strings
 
 
 #def ndcontract_var(var):
@@ -64,7 +57,7 @@ class SimpleTextViewer(awx.Frame):
         wx.TextCtrl(self, -1, text, style=wx.TE_MULTILINE|wx.TE_LEFT|wx.TE_READONLY)
 
 
-# Command event used to signal that the value of the selected variable/dimension 
+# Command event used to signal that the value of the selected variable/dimension
 # should be plotted as function of the file index.
 CompareEvent, EVT_COMPARE = wx.lib.newevent.NewCommandEvent()
 
@@ -89,7 +82,7 @@ def getColumnText(wxlist, index, col):
 
 class NcViewerFrame(wx.Frame):
     """
-    This frame allows the user to inspect the dimensions 
+    This frame allows the user to inspect the dimensions
     and the variables reported in  a netcdf file.
     """
     def __init__(self, parent, filepaths=(), **kwargs):
@@ -107,7 +100,7 @@ class NcViewerFrame(wx.Frame):
         super(NcViewerFrame, self).__init__(parent, id=-1, **kwargs)
 
         # This combination of options for config seems to work on my Mac.
-        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
+        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini",
                                     style=wx.CONFIG_USE_LOCAL_FILE)
 
         # Build menu, toolbar and status bar.
@@ -311,20 +304,20 @@ class NcViewerFrame(wx.Frame):
             notebook.SetSelection(notebook.GetPageCount())
             self.AddFileToHistory(filepath)
         except:
-            raise 
+            raise
 
     def OnOpen(self, event):
         """Open FileDialog to allow the user to select a netcdf file."""
         dialog = wx.FileDialog(self, wildcard="*.nc")
-        if dialog.ShowModal() == wx.ID_CANCEL: return 
+        if dialog.ShowModal() == wx.ID_CANCEL: return
 
         filepath = os.path.abspath(dialog.GetPath())
         self.read_file(filepath)
 
     def OnClose(self, event):
         """
-        Remove the active tab from the notebook and 
-        close the corresponding netcdf file, 
+        Remove the active tab from the notebook and
+        close the corresponding netcdf file,
         """
         notebook = self.notebook
         if notebook.GetPageCount() == 0: return
@@ -367,11 +360,11 @@ class NcViewerFrame(wx.Frame):
 
         # Define the function to use the get the value of the dimension/variable.
         if isinstance(obj, netCDF4.Variable):
-            def extract(dataset, name): 
+            def extract(dataset, name):
                 return dataset.variables[name][:]
 
         elif isinstance(obj, netCDF4.Dimension):
-            def extract(dataset, name): 
+            def extract(dataset, name):
                 return np.array(len(dataset.dimensions[name]))
 
         else:
@@ -393,6 +386,7 @@ class NcViewerFrame(wx.Frame):
         is_scalar = not shape or (len(shape) == 1 and shape[0] == 1)
         #print(shape)
 
+        from wxmplot import PlotFrame
         if is_scalar:
             frame = PlotFrame(parent=self)
             xx = range(len(self.datasets))
@@ -480,7 +474,7 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
 
     def GetPlotOptions(self):
         """
-        Dictionary with the options for the plots taken from 
+        Dictionary with the options for the plots taken from
         the MenuBar of the parent `NcViewerFrame`
         """
         frame = self.ncview_frame
@@ -493,12 +487,12 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
             return self._ncview_frame
 
         except AttributeError:
-            parent = self.GetParent() 
-            while True: 
+            parent = self.GetParent()
+            while True:
                 if parent is None:
                     raise RuntimeError("Cannot find NcViewerFrame, got None parent!")
 
-                if isinstance(parent, NcViewerFrame): 
+                if isinstance(parent, NcViewerFrame):
                     break
                 else:
                     parent = parent.GetParent()
@@ -513,13 +507,13 @@ class BasePanel(wx.Panel, listmix.ColumnSorterMixin):
         Raises:
             RuntimeError if we have reached the head of the linked list.
         """
-        parent = self.GetParent() 
+        parent = self.GetParent()
 
-        while True: 
+        while True:
             if parent is None:
                 raise RuntimeError("Cannot find parent with class %s, reached None parent!" % cls)
 
-            if isinstance(parent, cls): 
+            if isinstance(parent, cls):
                 return parent
             else:
                 parent = parent.GetParent()
@@ -555,10 +549,10 @@ class DimsPanel(BasePanel):
             self.list.Append(entry)
             self.list.SetItemData(idx, idx)
             self.id2entry[idx] = entry
-                                                                                      
+
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
-                                                                                      
+
         for index, col in enumerate(columns):
             self.list.SetColumnWidth(index, column_widths[index])
 
@@ -574,7 +568,7 @@ class DimsPanel(BasePanel):
 
         # Connect the events.
         self.list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)               
+        self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def OnItemActivated(self, event):
         """NoP"""
@@ -584,7 +578,7 @@ class DimsPanel(BasePanel):
         item = getSelected(self.list)[0]
         name = getColumnText(self.list, item, 0)
         dim = self.dataset.dimensions[name]
-                                                                      
+
         # Create and post the event to trigger the refresh of the GUI
         event = CompareEvent(id=-1, name=name, obj=dim)
         wx.PostEvent(self.viewer_frame, event)
@@ -592,14 +586,14 @@ class DimsPanel(BasePanel):
     def OnGetInfo(self, event):
         """Show extra information on the selected variables."""
         selected = getSelected(self.list)
-        
+
         lines = []
         for item in selected:
             var_name = getColumnText(self.list, item, 0)
             var = self.dataset.dimensions[var_name]
             lines.append(str(var))
             #lines.append(ncvar_info(var))
-                                                                                           
+
         wxdg.ScrolledMessageDialog(self, "\n".join(lines), caption="Variable Metadata", style=wx.MAXIMIZE_BOX).Show()
 
 
@@ -643,10 +637,10 @@ class VarsPanel(BasePanel):
             self.list.Append(entry)
             self.list.SetItemData(idx, idx)
             self.id2entry[idx] = entry
-                                                                                      
+
             w = [awx.get_width_height(self, s)[0] for s in entry]
             column_widths = map(max, zip(w, column_widths))
-                                                                                      
+
         for index, col in enumerate(columns):
             self.list.SetColumnWidth(index, column_widths[index])
 
@@ -662,11 +656,11 @@ class VarsPanel(BasePanel):
 
         # Connect the events whose callback will be set by the client code.
         self.list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick)
-        self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)               
+        self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
 
     def makePopupMenu(self):
         """
-        Creates a popup menu containing the list of 
+        Creates a popup menu containing the list of
         supported actions for local file objects.
         """
         # Menu of the base class
@@ -691,11 +685,11 @@ class VarsPanel(BasePanel):
             (self.idPOPUP_VAR_SHOW, self.onVarShow),
             (self.idPOPUP_VAR_EXPORT, self.onVarExport),
         ]
-                                                            
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
-                                                     
+
         return menu
 
     #def GetNameVarFromEvent(self, event):
@@ -707,7 +701,7 @@ class VarsPanel(BasePanel):
     def OnGetInfo(self, event):
         """Show extra information on the selected variables."""
         selected = getSelected(self.list)
-        
+
         lines = []
         for item in selected:
             name = getColumnText(self.list, item, 0)
@@ -730,7 +724,7 @@ class VarsPanel(BasePanel):
         name = getColumnText(self.list, item, 0)
         var = self.dataset.variables[name]
 
-        dialog = wx.FileDialog(self, message="Save text file", defaultDir="", defaultFile="", 
+        dialog = wx.FileDialog(self, message="Save text file", defaultDir="", defaultFile="",
                                wildcard="", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dialog.ShowModal() == wx.ID_CANCEL: return
@@ -810,6 +804,7 @@ class VarsPanel(BasePanel):
             dim_name = dimensions[0]
             xx = range(len(dataset.dimensions[dim_name]))
 
+            from wxmplot import PlotFrame
             frame = PlotFrame(parent=self)
             if opts.plot_mode == "line":
                 frame.plot(xx, data)
@@ -839,6 +834,7 @@ class VarsPanel(BasePanel):
                 ax.plot_surface(X, Y, data) # rstride=8, cstride=8, alpha=0.3)
                 plt.show()
 
+            from wxmplot import ImageFrame
             frame = ImageFrame(parent=self)
             frame.display(data, title=var_name, style=mode, x=xx, y=yy, xlabel=dim_namex, ylabel=dim_namey)
             frame.Show()
@@ -877,24 +873,25 @@ class ArrayComparisonFrame(wx.Frame):
 
     def onPlotData(self, event):
         operators = self.panel.GetSelectedOperators()
-                                                        
+
+        from wxmplot import PlotFrame
         frame = PlotFrame(parent=self)
-                                                        
+
         xx = range(len(self.data))
-                                                        
+
         for oname, op in operators.items():
             #print(oname)
             values = [op(arr) for arr in self.data]
-                                                        
+
             frame.oplot(xx, values, label=oname)
             #if opts.plot_mode == "line":
             #    frame.oplot(xx, values)
             #else:
             #    frame.scatterplot(xx, values)
-                                          
+
         frame.set_xlabel("File index")
         frame.set_ylabel(self.name)
-                                          
+
         frame.Show()
 
 
@@ -935,7 +932,7 @@ class ArrayComparisonPanel(wx.Panel):
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         all_button = wx.Button(self, -1, "Select all")
-        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll) 
+        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll)
         hsizer.Add(all_button, 0, wx.ALL, 5)
 
         deselect_button = wx.Button(self, -1, "Deselect all")

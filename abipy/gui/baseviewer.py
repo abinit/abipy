@@ -168,9 +168,14 @@ class MultiViewerFrame(awx.Frame):
 
     def OnOpen(self, event):
         """Open FileDialog to allow the user to select a file."""
+        # intercept possible problems when determining the current directory (e.g. it has been deleted)
+        try:
+            def_dir = os.getcwd()
+        except OSError:
+            def_dir = os.path.expanduser('~')
         # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
-        dialog = wx.FileDialog(self, message="Choose a netcdf file", defaultDir=os.getcwd(),
+        dialog = wx.FileDialog(self, message="Choose a netcdf file", defaultDir=def_dir,
                                wildcard="Netcdf files (*.nc)|*.nc",
                                style=wx.OPEN | wx.CHANGE_DIR)
 

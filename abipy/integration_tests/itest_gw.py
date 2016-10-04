@@ -105,7 +105,7 @@ def itest_g0w0_flow(fwp, tvars):
     flow = abilab.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
     # Will remove output files at run-time.
     flow.set_garbage_collector()
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
 
     for task in flow[0]:
         task.start_and_wait()
@@ -183,7 +183,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
         assert not sigma_task.depends_on(bands_work.scf_task)
         assert sigma_task.depends_on(scr_work)
 
-    flow.build_and_pickle_dump()
+    flow.build_and_pickle_dump(abivalidate=True)
     flow.show_dependencies()
     # This call is needed to connect the node and enable
     # the callbacks, otherwise the scheduler enters a deadlock.
@@ -252,7 +252,7 @@ def itest_htc_g0w0(fwp, tvars):
     flow.allocate()
     flow.connect_signals()
 
-    #flow.build_and_pickle_dump()
+    #flow.build_and_pickle_dump(abivalidate=True)
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
@@ -300,7 +300,7 @@ def itest_htc_g0w0(fwp, tvars):
 #
 #    flow.register_work(work)
 #    flow.allocate()
-#    flow.build_and_pickle_dump()
+#    flow.build_and_pickle_dump(abivalidate=True)
 #
 #    for task in flow:
 #        task.start_and_wait()

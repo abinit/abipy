@@ -23,7 +23,7 @@ znucl   14
 ecut   6
 nband   8
 timopt   -1
-accesswff   3
+iomode   3
 istwfk   *1
 
 #################

@@ -15,10 +15,33 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 
 
 __all__ = [
+    "set_axlims",
     "plot_array",
     "ArrayPlotter"
 ]
 
+def set_axlims(ax, lims, axname):
+    """
+    Set the data limits for the axis ax.
+
+    Args:
+        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
+        axname: "x" for x-axis, "y" for y-axis.
+
+    Return: (left, right)
+    """
+    left, right = None, None
+    if lims is None: return (left, right)
+    if len(lims) == 2:
+        left, right = lims[0], lims[1]
+    elif len(lims) == 1:
+        left = lims[0]
+    else:
+        left = float(lims)
+
+    set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
+    set_lim(left, right)
+    return left, right
 
 def data_from_cplx_mode(cplx_mode, arr):
     """
@@ -61,7 +84,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     """
     # Handle vectors
     array = np.atleast_2d(array)
-    array = data_from_cplx_mode(cplx_mode, array) 
+    array = data_from_cplx_mode(cplx_mode, array)
 
     import matplotlib as mpl
     from matplotlib import pyplot as plt
@@ -138,7 +161,7 @@ class ArrayPlotter(object):
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
-        # use origin to place the [0,0] index of the array in the lower left corner of the axes. 
+        # use origin to place the [0,0] index of the array in the lower left corner of the axes.
         for n, (label, arr) in enumerate(self.items()):
             fig.add_subplot(nrows, ncols, n)
             data = data_from_cplx_mode(cplx_mode, arr)
@@ -161,11 +184,15 @@ class Marker(collections.namedtuple("Marker", "x y s")):
     def __new__(cls, *xys):
         """Extends the base class adding consistency check."""
         assert len(xys) == 3
+        x = np.asarray(xys[0])
+        y = np.asarray(xys[1])
+        s = np.asarray(xys[2])
+        xys = (x, y, s)
 
         for s in xys[-1]:
             if np.iscomplex(s):
                 raise ValueError("Found ambiguous complex entry %s" % str(s))
-                                                                          
+
         return super(cls, Marker).__new__(cls, *xys)
 
     def __bool__(self):
@@ -191,7 +218,7 @@ class Marker(collections.namedtuple("Marker", "x y s")):
         """
         pos_x, pos_y, pos_s = [], [], []
         neg_x, neg_y, neg_s = [], [], []
-                                                             
+
         for (x, y, s) in zip(self.x, self.y, self.s):
             if s >= 0.0:
                 pos_x.append(x)

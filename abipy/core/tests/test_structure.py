@@ -28,6 +28,9 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)
 
+            geodict = structure.get_dict4frame()
+            assert geodict["abispg_num"] is not None
+
             if self.which("xcrysden") is not None:
                 # Export data in Xcrysden format.
                 structure.export(".xsf")
@@ -39,7 +42,9 @@ class TestStructure(AbipyTest):
         """Test utilities for the generation of Abinit inputs."""
         structure = data.structure_from_ucell("MgB2")
         structure.abi_sanitize()
+        structure.get_conventional_standard_structure()
         print(structure.abi_string)
+        #print(structure._repr_html_())
 
         self.serialize_with_pickle(structure)
 

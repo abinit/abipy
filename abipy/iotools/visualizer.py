@@ -82,7 +82,7 @@ class Visualizer(object):
     # True if its a Mac OsX applications (default is unix executable).
     # If we have a Mac OsX application we have to run it with "open -a app_name --args"
     is_macosx_app = False
-    
+
     Error = VisualizerError
 
     def __init__(self, filepath):
@@ -178,7 +178,7 @@ class Visualizer(object):
     @classmethod
     def from_name(cls, visu_name):
         """Return the visualizer class from the name of the application."""
-        for visu in cls.__subclasses__(): 
+        for visu in cls.__subclasses__():
             if visu.name == visu_name:
                 return visu
 
@@ -219,7 +219,7 @@ class Vesta(Visualizer):
 
     name = "vesta"
     bin = find_loc(name)
-        
+
     EXTS = [
         ("xsf", ""),
     ]
@@ -229,7 +229,7 @@ class Vesta(Visualizer):
 #
 #    name = "avogadro"
 #    bin = find_loc(name)
-#        
+#
 #    EXTS = [
 #    ]
 

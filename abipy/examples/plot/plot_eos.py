@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to compute the equation of state by 
-# fitting the total energy as function of the unit cell volume.
+"""
+This example shows how to compute the equation of state by 
+fitting the total energy as function of the unit cell volume.
+"""
 from abipy.abilab import EOS
 
 # Extract volumes and energies from the output files of the calculation.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# This example shows how to visualize the convergence of the 
-# QP results stored in the SIGRES produced by the GW code (sigma run).
+"""
+This example shows how to visualize the convergence of the 
+QP results stored in the SIGRES produced by the GW code (sigma run).
+"""
 from abipy.abilab import SigresPlotter
 import abipy.data as abidata
 

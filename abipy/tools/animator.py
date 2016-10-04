@@ -19,13 +19,15 @@ __all__ = [
 class FilesAnimator(object):
     """
     This object wraps the animate tool of ImageMagick.
-    If received a list of files and/or a list of `matplotlib` figures 
-    and creates an animation. 
+    If received a list of files and/or a list of `matplotlib` figures
+    and creates an animation.
 
     .. note:
-        The module `matplotlib.animation` provides a much more powerful API for the 
-        creation of animation. `FilesAnimator` should only be used when we already 
+        The module `matplotlib.animation` provides a much more powerful API for the
+        creation of animation. `FilesAnimator` should only be used when we already
         have a list of files and figures and we want to create a simple animation.
+
+        See http://visvis.googlecode.com/hg/vvmovie/images2gif.py for a (much better) approach
     """
     DEFAULT_OPTIONS = {
         "-delay": "100", # display the next image after pausing <1/100ths of a second>
@@ -35,7 +37,6 @@ class FilesAnimator(object):
         self._figures = collections.OrderedDict()
 
         self.animate_bin = which("animate")
-
         if self.animate_bin is None:
             raise RuntimeError("Cannot find animate executable in $PATH.\n Please install the ImageMagick suite of tools.")
 
@@ -48,8 +49,7 @@ class FilesAnimator(object):
             figure:
         """
         if label in self._figures:
-            raise ValueError("label %s is already in %s" % (label, self._figures.keys()))
-
+            raise ValueError("label %s is already in %s" % (label, list(self._figures.keys())))
         self._figures[label] = figure
 
     def add_figures(self, labels, figure_list):
@@ -85,7 +85,7 @@ class FilesAnimator(object):
                 options.extend([k, v])
 
         # We have to create files before calling animate.
-        # If we have a matplotlib figure we call savefig 
+        # If we have a matplotlib figure we call savefig
         tmp_dirname = tempfile.mkdtemp()
         files = figs
 
@@ -104,12 +104,26 @@ class FilesAnimator(object):
             files.append(fname)
 
         command = [self.animate_bin] + options + files
-        msg = "will execute command: %s" % command
-        logger.info(msg)
+        print("will execute command: %s" % command)
         retcode = subprocess.call(command)
 
         # Remove the temporary directory.
         #os.rmdir(tmp_dirname)
-
         return retcode
 
+
+#def animate_files(self, **kwargs):
+#    """
+#    See http://visvis.googlecode.com/hg/vvmovie/images2gif.py for a (much better) approach
+#    """
+#    from abipy.tools.animator import FilesAnimator
+#    animator = FilesAnimator()
+#    figures = OrderedDict()
+#    for label, bands in self.bands_dict.items():
+#        if self.edoses_dict:
+#            fig = bands.plot_with_edos(self.edoses_dict[label], show=False)
+#        else:
+#            fig = bands.plot(show=False)
+#        figures[label] = fig
+#    animator.add_figures(labels=figures.keys(), figure_list=figures.values())
+#    return animator.animate(**kwargs)

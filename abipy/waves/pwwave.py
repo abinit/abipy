@@ -18,11 +18,6 @@ __all__ = [
 ]
 
 
-# Handy aliases used to speedup a bit the CPU critical parts.
-#_exp = np.exp
-#_dot = np.dot
-
-
 class WaveFunction(object):
     """
     Abstract class defining base and abstract methods for wavefunction objects.
@@ -49,7 +44,7 @@ class WaveFunction(object):
         return str(self)
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
     @property
     def shape(self):
@@ -172,7 +167,7 @@ class WaveFunction(object):
         ug_mesh = self.ug_mesh(mesh)
         return mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
-    def tostring(self, prtvol=0):
+    def to_string(self, prtvol=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -183,7 +178,7 @@ class WaveFunction(object):
             app(self.gsphere.tostring(prtvol))
 
         if hasattr(self, "mesh"):
-            app(self.mesh.tostring(prtvol))
+            app(self.mesh.to_string(prtvol))
 
         return "\n".join(lines)
 
@@ -242,12 +237,12 @@ class PWWaveFunction(WaveFunction):
 
         Args:
             filename: String specifying the file path and the file format.
-                The format is defined by the file extension. filename="prefix.xsf", for example, 
+                The format is defined by the file extension. filename="prefix.xsf", for example,
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
             structure: :class:`Structure` object.
             visu: :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of 
+                instance of visu is returned. See :class:`Visualizer` for the list of
                 applications and formats supported.
 
         Returns:
@@ -314,11 +309,11 @@ class PWWaveFunction(WaveFunction):
             space:  Integration space. Possible values ["g", "gsphere", "r"]
                 if "g" or "r" the scalar product is computed in G- or R-space on the FFT box.
                 if space="gsphere" the integration is done on the G-sphere. Note that
-                this option assumes that self and other have the same list of G-vectors. 
+                this option assumes that self and other have the same list of G-vectors.
         """
         space = space.lower()
 
-        if space == "g":  
+        if space == "g":
             ug1_mesh = self.gsphere.tofftmesh(self.mesh, self.ug)
             ug2_mesh = other.gsphere.tofftmesh(self.mesh, other.ug)
             return np.vdot(ug1_mesh, ug2_mesh)
@@ -382,7 +377,7 @@ class PWWaveFunction(WaveFunction):
         """
         if self.nspinor != 1:
             raise ValueError("Spinor rotation not available yet.")
-                                                                                                                 
+
         rot_gsphere = self.gsphere.rotate(symmop)
         #rot_istwfk = istwfk(rot_kpt)
 
@@ -396,11 +391,11 @@ class PWWaveFunction(WaveFunction):
             for ig in range(self.npw):
                 rot_ug[:, ig] = ug[:, ig] * np.exp(-2j * np.pi * (np.dot(rot_gvecs[ig] + rot_kpt, symmop.tau)))
         else:
-            rot_ug = self.ug.copy() 
-                                                                                                                 
+            rot_ug = self.ug.copy()
+
         # Invert the collinear spin if we have an AFM operation
         rot_spin = self.spin
-        if self.nspinor == 1: 
+        if self.nspinor == 1:
             rot_spin = self.spin if symmop.is_fm else (self.spin + 1) % 2
 
         # Build new wave and set the mesh.
@@ -409,29 +404,7 @@ class PWWaveFunction(WaveFunction):
         return new
 
 
-class PAW_Wavefunction(WaveFunction):
+class PAW_WaveFunction(WaveFunction):
     """
     All the methods that are related to the all-electron representation should start with ae.
     """
-#    def __init__(self, nspinor, spin, band, gsphere, ug, structure, onsite_terms, cprj=None):
-#        """
-#        cprj[nspinor, natom] = <tprj|tPsi>
-#        """
-#        PWWaveFunction.__init__(self, nspinor, spin, band, gsphere, ug):
-#
-#        self.structure = structure 
-#        self.onsite_terms = onsite_terms
-#
-#        self.cprj = cprj
-#        if cprj is None:
-#            # Have to compute the tprj here.
-#            raise NotImplementedError()
-#
-#    def ae_ur(self, dense_mesh):
-#        # Compute smooth part on the dense FFT mesh.
-#        ug_mesh = self.gsphere.tofftmesh(dense_mesh, self.ug)
-#        ur_dense = dense_mesh.fft_g2r(ug_mesh, fg_ishifted=False)
-#
-#        # Add the on-site terms.
-#
-#        return self._ae_ur

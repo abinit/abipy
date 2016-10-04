@@ -6,14 +6,15 @@ import numpy as np
 import pymatgen.core.units as units
 
 from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings
+from tabulate import tabulate
+from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.fields import DensityReader
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from prettytable import PrettyTable
-from .ebands import ElectronsReader
+from abipy.electrons.ebands import ElectronsReader
 
 import logging
 logger = logging.getLogger(__name__)
@@ -25,14 +26,14 @@ __all__ = [
 ]
 
 
-class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
+class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     File containing the results of a ground-state calculation.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with GsrFile("foo_GSR.nc") as gsr:
             print("energy: ", gsr.energy)
             gsr.ebands.plot()
@@ -51,12 +52,42 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         self._ebands = r.read_ebands()
 
         # Add forces to structure
-        self.structure.add_site_property("cartesian_forces", self.cart_forces)
+        if self.is_scf_run:
+            self.structure.add_site_property("cartesian_forces", self.cart_forces)
+
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self):
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+        if self.is_scf_run:
+            app("")
+            app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
+            app("Pressure: %.3f [GPa]" % self.pressure)
+        app("")
+        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+
+        return "\n".join(lines)
 
     @property
     def ebands(self):
         """:class:`ElectronBands` object."""
         return self._ebands
+
+    @property
+    def is_scf_run(self):
+        """True if the GSR has been produced by a SCF run."""
+        # NOTE: We use kptopt to understand if we have a SCF/NSCF run
+        # In principle one should use iscf but it's not available in the GSR.
+        #return self.ebands.kpoints.ksampling.kptopt >= 0
+        return abs(self.cart_stress_tensor[0,0] - 9.9999999999e+99) > 0.1
 
     #FIXME
     @property
@@ -94,6 +125,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     @lazy_property
     def cart_forces(self):
+        """Cartesian forces in eV / Ang"""
         return self.reader.read_cart_forces()
 
     @property
@@ -102,7 +134,9 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return fmods.max()
 
     def force_stats(self, **kwargs):
-        """Return a string with information on the forces."""
+        """
+        Return a string with information on the forces.
+        """
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
@@ -113,19 +147,21 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             "maximum at site %s, cart force: %s" % (self.structure.sites[imax], self.cart_forces[imax]),
         ])
 
-        table = PrettyTable(["Site", "Cartesian Force", "Length"])
+        table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            table.add_row([self.structure.sites[i], self.cart_forces[i], fmod])
+            table.append([self.structure.sites[i], self.cart_forces[i], fmod])
+        s += "\n" + tabulate(table)
 
-        s += "\n" + str(table)
         return s
 
     @lazy_property
     def cart_stress_tensor(self):
+        """Stress tensor in Ha/Bohr**3"""
         return self.reader.read_cart_stress_tensor()
 
-    @lazy_property 
+    @lazy_property
     def pressure(self):
+        """Pressure in Gpa"""
         HaBohr3_GPa = 29421.033 # 1 Ha/Bohr^3, in GPa
         pressure = - (HaBohr3_GPa/3) * self.cart_stress_tensor.trace()
         return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
@@ -136,17 +172,9 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return self.reader.read_value("residm")
 
     @lazy_property
-    def density(self):
-        """:class:`Density` object."""
-        return self.reader.read_density()
-
-    @property
-    def magnetization(self):
-        return self.density.magnetization
-
-    @property
-    def nelect_updown(self):
-        return self.density.nelect_updown
+    def xc(self):
+        """:class:`XcFunc object with info on the exchange-correlation functional."""
+        return self.reader.read_abinit_xcfunc()
 
     def close(self):
         self.reader.close()
@@ -180,15 +208,15 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         params, data = {}, {}
 
         if inc_structure:
-            return ComputedStructureEntry(self.structure, self.energy, 
+            return ComputedStructureEntry(self.structure, self.energy,
                                           parameters=params, data=data)
         else:
-            return ComputedEntry(self.structure.composition, self.energy,   
+            return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=params, data=data)
 
     def as_dict(self, **kwargs):
         # TODO: Add info depending on the run_type e.g. max_resid is NSCF
-        return dict( 
+        return dict(
             structure=self.structure.as_dict(),
             final_energy=self.energy,
             final_energy_per_atom=self.energy_per_atom,
@@ -196,6 +224,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             cart_stress_tensor=self.cart_stress_tensor,
             pressure=self.pressure,
             number_of_electrons=self.nelect,
+        )
             # FIXME: this call raises
             #>       if kpointcbm.label is not None:
             #E       AttributeError: 'NoneType' object has no attribute 'label'
@@ -211,7 +240,24 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             #band_gap:
             #optical_gap:
             #efermi:
-        )
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gsr)"),
+            nbv.new_code_cell("fig = gsr.ebands.plot()"),
+            nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
+            nbv.new_code_cell("fig = gsr.ebands.get_edos().plot()"),
+            nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class EnergyTerms(AttrDict):
@@ -228,12 +274,12 @@ class EnergyTerms(AttrDict):
         ("e_corepspdc", "psp core-core energy double-counting"),
         ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
         ("e_nonlocalpsp", "Nonlocal pseudopotential part of total energy."),
-        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" + 
+        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" +
                       "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n." +
                       "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
         ("entropy", "Entropy term"),
         ("e_xc", "Exchange-correlation energy"),
-        ("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
+        #("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
         ("e_xcdc", "enxcdc=exchange-correlation double-counting energy"),
         ("e_paw", "PAW spherical part energy"),
         ("e_pawdc", "PAW spherical part double-counting energy"),
@@ -245,11 +291,12 @@ class EnergyTerms(AttrDict):
         ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
         ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
         ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
-        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" + 
+        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" +
                                 "(if calctype=1, energy due to electrons only)\n" +
                                 "(if calctype=2, energy due to positron only)\n"),
         ("e_monopole", "Monopole correction to the total energy for charged supercells"),
-        ("e_xc_vdw", "vdW-DF correction to the XC energy"),
+        # FIXME: Some names have been changed in Abinit8, I should recheck the code.
+        #("e_xc_vdw", "vdW-DF correction to the XC energy"),
     ])
 
     ALL_KEYS = _NAME2DOC.keys()
@@ -276,14 +323,17 @@ class EnergyTerms(AttrDict):
         return "\n".join(lines)
 
 
-class GsrReader(ElectronsReader, DensityReader):
+class GsrReader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
     """
-    def read_cart_forces(self):
-        """Return the cartesian forces."""
-        return self.read_value("cartesian_forces")
+    def read_cart_forces(self, unit="eV ang^-1"):
+        """
+        Read and return a numpy array with the cartesian forces in unit `unit`.
+        Shape (natom, 3)
+        """
+        return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 
     def read_cart_stress_tensor(self):
         """
@@ -295,7 +345,7 @@ class GsrReader(ElectronsReader, DensityReader):
         tensor = np.empty((3,3), dtype=np.float)
         for i in range(3): tensor[i,i] = c[i]
         for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
-            tensor[i,j] = c[3+p] 
+            tensor[i,j] = c[3+p]
             tensor[j,i] = c[3+p]
 
         return tensor
@@ -310,15 +360,16 @@ class GsrReader(ElectronsReader, DensityReader):
         return EnergyTerms(**d)
 
 
+# TODO: Remove
 class GsrPlotter(Iterable):
     """
     This object receives a list of `GsrFile` objects and provides
     methods to inspect/analyze the results (useful for convergence studies)
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         plotter = GsrPlotter()
         plotter.add_file("foo_GSR.nc")
         plotter.add_file("bar_GSR.nc")
@@ -375,7 +426,7 @@ class GsrPlotter(Iterable):
     @property
     def param_name(self):
         """The name of the parameter whose value is checked for convergence."""
-        try: 
+        try:
             return self._param_name
 
         except AttributeError:
@@ -385,7 +436,7 @@ class GsrPlotter(Iterable):
     def _get_param_list(self):
         """Return a dictionary with the values of the parameters extracted from the GSR files."""
         param_list = defaultdict(list)
-                                                               
+
         for gsr in self:
             for pname in gsr.params.keys():
                 param_list[pname].append(gsr.params[pname])
@@ -395,7 +446,7 @@ class GsrPlotter(Iterable):
     def set_param_name(self, param_name):
         """
         Set the name of the parameter whose value is checked for convergence.
-        if param_name is None, we try to find its name by inspecting 
+        if param_name is None, we try to find its name by inspecting
         the values in the gsr.params dictionaries.
         """
         self._param_name = param_name
@@ -415,7 +466,7 @@ class GsrPlotter(Iterable):
                     param_name = key
                 else:
                     problem = True
-                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" + 
+                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" +
                                    "Found multiple parameters with different values. Will use filepaths as plot labels.")
 
         self.set_param_name(param_name if not problem else None)
@@ -425,18 +476,18 @@ class GsrPlotter(Iterable):
             xvalues = range(len(self))
         else:
             xvalues = param_list[self.param_name]
-                                                  
+
             # Sort xvalues and rearrange the files.
             items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
             indices = [item[0] for item in items]
-                                                                                             
+
             files = self._gsr_files.values()
-                                                                                             
+
             newd = OrderedDict()
             for i in indices:
                 gsr = files[i]
                 newd[gsr.filepath] = gsr
-                                                                                             
+
             self._gsr_files = newd
 
             # Use sorted xvalues for the plot.
@@ -448,7 +499,7 @@ class GsrPlotter(Iterable):
     @property
     def xvalues(self):
         """The values used for the X-axis."""
-        return self._xvalues 
+        return self._xvalues
 
     def set_xvalues(self, xvalues):
         """xvalues setter."""
@@ -465,8 +516,8 @@ class GsrPlotter(Iterable):
 
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-                                                                                 
-        # Set ticks and labels. 
+
+        # Set ticks and labels.
         if self.param_name is None:
             # Could not figure the name of the parameter ==> Use the basename of the files
             ticks, labels = range(len(self)), [f.basename for f in self]
@@ -505,5 +556,5 @@ class GsrPlotter(Iterable):
         if title is not None: fig.suptitle(title)
         if show: plt.show()
         if savefig is not None: fig.savefig(savefig)
-                                 
+
         return fig

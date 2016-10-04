@@ -34,17 +34,17 @@ class GSRReaderTestCase(AbipyTest):
             print(r.read_varnames())
 
             # Test dimensions.
-            for (dimname, int_ref) in ref_dims.items():
+            for dimname, int_ref in ref_dims.items():
                 value = r.read_dimvalue(dimname)
                 self.assert_equal(value, int_ref)
 
             # Test int variables
-            for (varname, int_ref) in ref_int_values.items():
+            for varname, int_ref in ref_int_values.items():
                 value = r.read_value(varname)
                 self.assert_equal(value, int_ref)
 
             # Test float variables
-            for (varname, float_ref) in ref_float_values.items():
+            for varname, float_ref in ref_float_values.items():
                 value = r.read_value(varname)
                 self.assert_almost_equal(value, float_ref)
 
@@ -60,6 +60,7 @@ class GSRReaderTestCase(AbipyTest):
             structure = r.read_structure()
             self.assertTrue(isinstance(structure, abipy.core.Structure))
 
+
 class GSRFileTestCase(AbipyTest):
 
     def test_gsr_silicon(self):
@@ -67,11 +68,12 @@ class GSRFileTestCase(AbipyTest):
         almost_equal = self.assertAlmostEqual
 
         with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
+            assert gsr.filestat()
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)
             assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
-            assert gsr.nsppol == 1 
+            assert gsr.nsppol == 1
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
             almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
@@ -85,9 +87,9 @@ class GSRFileTestCase(AbipyTest):
             almost_equal(eterm.e_fermie.to("Ha"), 0.205739364929368)
 
             # Forces and stress
-            self.assert_almost_equal(gsr.cart_forces.flat,
-                [-5.98330096024095e-30, -5.64111024387213e-30, 1.49693284867669e-29,
-                  5.98330096024095e-30,  5.64111024387213e-30, -1.49693284867669e-29])
+            self.assert_almost_equal(gsr.cart_forces.to("Ha bohr^-1").flat,
+               [-1.14726679671674e-28, -3.76037290483622e-29, 5.65937773808884e-29,
+                 1.14726679671674e-28, 3.76037290483622e-29, -5.65937773808884e-29])
 
             almost_equal(gsr.max_force, 0)
             print(gsr.force_stats())
@@ -98,10 +100,6 @@ class GSRFileTestCase(AbipyTest):
             #  sigma(2 2)=  1.77139311E-04  sigma(3 1)=  0.00000000E+00
             #  sigma(3 3)=  1.77139311E-04  sigma(2 1)=  2.67294316E-15
             almost_equal(gsr.pressure, -5.21162150)
-
-            # Test gsr.density.
-            print(gsr.density)
-            almost_equal(gsr.magnetization, 0)
 
             # Test as_dict
             pprint(gsr.as_dict())
@@ -118,8 +116,3 @@ class GSRFileTestCase(AbipyTest):
                 assert gsr.energy == e.energy
 
             #assert 0
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

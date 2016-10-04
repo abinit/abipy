@@ -9,19 +9,20 @@ import numpy as np
 from collections import OrderedDict
 
 from six.moves import map, zip, StringIO
+from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.dev import get_ncpus
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.tasks import AnaddbTask
-from abipy.core.mixins import TextFile, Has_Structure
+from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import SpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
-from abipy.dfpt.phonons import PhononDosPlotter
+from abipy.dfpt.phonons import PhononDosPlotter, InteratomicForceConstants
 
 import logging
 logger = logging.getLogger(__name__)
@@ -46,20 +47,25 @@ class AnaddbError(DdbError):
         lines = ["\nworkdir = %s" % self.task.workdir]
         app = lines.append
 
-        if self.report.errors: 
+        if self.report.errors:
             app("Found %d errors" % len(self.report.errors))
             lines += [str(err) for err in self.report.errors]
 
         return "\n".join(lines)
 
 
-class DdbFile(TextFile, Has_Structure):
+class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the DDB file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
     """
     Error = DdbError
     AnaddbError = AnaddbError
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Needed for the `AbinitFile` abstract interface."""
+        return cls(filepath)
 
     def __init__(self, filepath, read_blocks=False):
         super(DdbFile, self).__init__(filepath)
@@ -73,33 +79,36 @@ class DdbFile(TextFile, Has_Structure):
         self._structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
         frac_coords = self._read_qpoints()
-        self._qpoints = KpointList(self.structure.reciprocal_lattice, frac_coords, weights=None, names=None)
+        self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
 
         self.blocks = []
         if read_blocks:
             self.blocks = self._read_blocks()
 
         # Guess q-mesh
-        self._guessed_ngqpt = self._guess_ngqpt()
+        #self._guessed_ngqpt = self._guess_ngqpt()
+
+    def close(self):
+        """Needed for the `AbinitFile` abstract interface."""
 
     def __str__(self):
         """String representation."""
+        return self.to_string()
+
+    def to_string(self):
         lines = []
-        append, extend = lines.append, lines.extend
-        extend(super(DdbFile, self).__str__().splitlines())
+        app, extend = lines.append, lines.extend
+        #extend(super(DdbFile, self).__str__().splitlines())
 
-        append(" ")
-        append("@@Structure")
-        extend(str(self.structure).splitlines())
-        append(" ")
-        append("@@q-points")
-        extend(str(self.qpoints).splitlines())
-        append("guessed_ngqpt: %s" % self.guessed_ngqpt)
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
 
-        width = max(len(l) for l in lines)
-        for i, line in enumerate(lines):
-            if line.startswith("@@"):
-                lines[i] = (" " + line[2:] + " ").center(width, "=")
+        app(marquee("Q-points", mark="="))
+        app(str(self.qpoints))
+        app("guessed_ngqpt: %s" % self.guessed_ngqpt)
 
         return "\n".join(lines)
 
@@ -110,7 +119,7 @@ class DdbFile(TextFile, Has_Structure):
     @property
     def header(self):
         """
-        Dictionary with the values reported in the header section. 
+        Dictionary with the values reported in the header section.
         Use ddb.header.ecut to access its values
         """
         return self._header
@@ -139,7 +148,7 @@ class DdbFile(TextFile, Has_Structure):
 
             # header starts here
             if i >= 6:
-                # Python does not support exp format with D 
+                # Python does not support exp format with D
                 line = line.replace("D+", "E+").replace("D-", "E-")
                 tokens = line.split()
                 key = None
@@ -182,7 +191,7 @@ class DdbFile(TextFile, Has_Structure):
 
         # Transpose symrel because Abinit write matrices by colums.
         h.symrel = np.array([s.T for s in h.symrel])
-        
+
         return h
 
     def _read_qpoints(self):
@@ -210,8 +219,6 @@ class DdbFile(TextFile, Has_Structure):
         return np.reshape(qpoints, (-1,3))
 
     def _read_blocks(self):
-        qpoints, weights = [], []
-        derivatives = tree()
         self.seek(0)
 
         # skip until the beginning of the db
@@ -261,24 +268,25 @@ class DdbFile(TextFile, Has_Structure):
         else:
             return self.qpoints.index(qpoint)
 
-    @property
+    @lazy_property
     def guessed_ngqpt(self):
         """
-        Guess for the q-mesh divisions (ngqpt) inferred from the list of 
+        Guess for the q-mesh divisions (ngqpt) inferred from the list of
         q-points found in the DDB file.
 
         .. warning::
-            
-            The mesh may not be correct if the DDB file contains points belonging 
+
+            The mesh may not be correct if the DDB file contains points belonging
             to different meshes and/or the Q-mesh is shifted.
         """
-        return self._guessed_ngqpt
+        return self._guess_ngqpt()
 
     def _guess_ngqpt(self):
         """
-        This function tries to figure out the value of ngqpt from the list of 
+        This function tries to figure out the value of ngqpt from the list of
         points reported in the DDB file.
         """
+        if not self.qpoints: return None
         # Build the union of the stars of the q-points.
         all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
         count = 0
@@ -288,7 +296,7 @@ class DdbFile(TextFile, Has_Structure):
                 count += 1
 
         # Replace zeros with np.inf
-        for q in all_qpoints: 
+        for q in all_qpoints:
             q[q == 0] = np.inf
 
         # Compute the minimum of the fractional coordinates along the 3 directions and invert
@@ -338,9 +346,9 @@ class DdbFile(TextFile, Has_Structure):
             :class:`PhononBands` object.
         """
         if qpoint is None:
-            qpoint = self.qpoints[0] 
+            qpoint = self.qpoints[0]
             if len(self.qpoints) != 1:
-                raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n" 
+                raise ValueError("%s contains %s qpoints and the choice is ambiguous.\n"
                                  "Please specify the qpoint." % (self, len(self.qpoints)))
 
         # Check if qpoint is in the DDB.
@@ -355,7 +363,7 @@ class DdbFile(TextFile, Has_Structure):
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -366,33 +374,28 @@ class DdbFile(TextFile, Has_Structure):
             raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as ncfile:
-
             if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
-                with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
-                    directions = r.read_value("non_analytical_directions")
-                    non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
+                ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-                    ncfile.phbands.non_anal_directions = directions
-                    ncfile.phbands.non_anal_phfreqs = non_anal_phfreq
             return ncfile.phbands
 
-    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1, 
+    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1,
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
-    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra" 
+    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra"
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                                        ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
-                                       anaddb_kwargs=None):
+                                       qptbounds=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
         Args:
-            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions 
+            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector.
             ndivsm: Number of division used for the smallest segment of the q-path
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
@@ -400,6 +403,8 @@ class DdbFile(TextFile, Has_Structure):
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb
 
         Returns:
@@ -409,13 +414,13 @@ class DdbFile(TextFile, Has_Structure):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=None,
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0,0,0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -427,22 +432,16 @@ class DdbFile(TextFile, Has_Structure):
             raise self.AnaddbError(task=task, report=report)
 
         phbst = task.open_phbst()
-
         if lo_to_splitting:
-            with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
-                directions = r.read_value("non_analytical_directions")
-                non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
-
-                phbst.phbands.non_anal_directions = directions
-                phbst.phbands.non_anal_phfreqs = non_anal_phfreq
+            phbst.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
         return phbst, task.open_phdos()
 
-    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None, 
-                         num_cpus=None, stream=sys.stdout): 
+    def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
+                         num_cpus=None, stream=sys.stdout):
         """
         Args:
-            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives 
+            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
             the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
@@ -465,7 +464,7 @@ class DdbFile(TextFile, Has_Structure):
         def do_work(nqsmall):
             _, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
-            return phdos_file.phdos                                                                                          
+            return phdos_file.phdos
 
         if num_cpus == 1:
             # Sequential version
@@ -499,15 +498,15 @@ class DdbFile(TextFile, Has_Structure):
                 q.put((nqsmall, i))
 
             # block until all tasks are done
-            q.join()       
-    
-        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined 
-        # on different frequency meshes ==> spline on the mesh of the last DOS. 
+            q.join()
+
+        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined
+        # on different frequency meshes ==> spline on the mesh of the last DOS.
         last_mesh, converged = phdoses[-1].mesh, False
         for i, phdos in enumerate(phdoses[:-1]):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
-            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" % 
+            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" %
                 (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
@@ -527,13 +526,13 @@ class DdbFile(TextFile, Has_Structure):
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
-            emacro, becs 
+            emacro, becs
         """
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
 
-        if verbose: 
+        if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
 
@@ -572,7 +571,7 @@ class DdbFile(TextFile, Has_Structure):
 
     #    task = AnaddbTask.temp_shell_task(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
 
-    #    if verbose: 
+    #    if verbose:
     #        print("ANADDB INPUT:\n", inp)
     #        print("workdir:", task.workdir)
 
@@ -582,11 +581,48 @@ class DdbFile(TextFile, Has_Structure):
     #    if not report.run_completed:
     #        raise self.AnaddbError(task=task, report=report)
 
+    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
+                   verbose=0, anaddb_kwargs=None):
+        """
+        Execute anaddb to compute the interatomic forces.
+
+        Args:
+            ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            anaddb_kwargs: additional kwargs for anaddb
+
+        Returns:
+            :class:`InteratomicForceConstants` with the calculated ifc.
+        """
+        if ngqpt is None: ngqpt = self.guessed_ngqpt
+
+        inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
+                              dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise self.AnaddbError(task=task, report=report)
+
+        return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
+
     def write(self, filepath):
         """
         Writes the DDB file in filepath.
         Requires the blocks data.
-        Only the onformation stored in self.header.lines and in self.blocks will be used to produce the file
+        Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         if not self.blocks:
             raise ValueError("Blocks information are required to write the DDB file")
@@ -635,6 +671,38 @@ class DdbFile(TextFile, Has_Structure):
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
                 b["data"] = data
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("ddb = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ddb)"),
+            nbv.new_code_cell("display(ddb.header)"),
+            nbv.new_code_cell("""\
+bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                                   ngqpt=None, lo_to_splitting=False,
+                                   qptbounds=None, anaddb_kwargs=None)
+phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
+            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos)"),
+
+            nbv.new_code_cell("""\
+emacro, becs = ddb.anaget_emacro_and_becs()
+print(emacro)
+print(becs)
+"""),
+
+            nbv.new_code_cell("""\
+ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)
+"""),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
 class Becs(Has_Structure):
     """This object stores the Born effective charges and provides simple tools for data analysis."""
 
@@ -643,7 +711,7 @@ class Becs(Has_Structure):
         Args:
             becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
             structure: Structure object.
-            chneut: Option used for the treatment of the Charge Neutrality requirement 
+            chneut: Option used for the treatment of the Charge Neutrality requirement
                 for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
@@ -717,12 +785,18 @@ class ElasticComplianceTensor(Has_Structure):
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
         with NetcdfReader(ec_nc_file) as nc_reader:
             if tensor_type == 'relaxed_ion':
-                ec_relaxed =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl_relaxed =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+            elif tensor_type == 'clamped_ion':
+                ec =  np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
+            elif tensor_type == 'relaxed_ion_stress_corrected':
+                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
+                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
             else:
                 raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
-        return cls(elastic_tensor=ec_relaxed, compliance_tensor=compl_relaxed, structure=None,
+        return cls(elastic_tensor=ec, compliance_tensor=compl, structure=None,
                    additional_info={'tensor_type': tensor_type})
 
     def as_dict(self):

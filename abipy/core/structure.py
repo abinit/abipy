@@ -7,12 +7,16 @@ import collections
 import pymatgen
 import numpy as np
 
-from monty.collections import AttrDict
+from pprint import pprint
+from warnings import warn
+from collections import OrderedDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
+from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.symmetries import SpaceGroup
@@ -26,27 +30,37 @@ __all__ = [
 
 class Structure(pymatgen.Structure):
     """
-    Extends :class:`pymatgen.Structure` with methods that allows one
-    to construct a Structure object from ABINIT variables.
+    Extends :class:`pymatgen.Structure` with Abinit-specific methods.
+
     """
     @classmethod
     def as_structure(cls, obj):
-        """Convert obj into a structure."""
+        """
+        Convert obj into a structure. Accepts:
+
+            - Structure instances
+            - Filenames
+            - Dictionaries (JSON format or dictionaries with abinit variables).
+            - Objects with a `structure` attribute.
+        """
         if isinstance(obj, cls): return obj
-        if isinstance(obj, pymatgen.Structure): 
+        if isinstance(obj, pymatgen.Structure):
             obj.__class__ = cls
             return obj
 
         if is_string(obj): return cls.from_file(obj)
 
-        if isinstance(obj, collections.Mapping): 
+        if isinstance(obj, collections.Mapping):
             try:
                 return Structure.from_abivars(obj)
             except:
                 try:
                     return Structure.from_dict(obj)
                 except:
-                    raise TypeError("Don't know how to convert dict %s into a structure" % obj)
+                    raise TypeError("Don't know how to convert dict %s into a structure" % str(obj))
+
+        if hasattr(obj, "structure"):
+            return cls.as_structure(obj.structure)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
@@ -59,7 +73,7 @@ class Structure(pymatgen.Structure):
         vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures.
 
         Netcdf files supported:
-            All files produced by ABINIT with info of the crystalline geometry 
+            All files produced by ABINIT with info of the crystalline geometry
             HIST_FILEs, in this case the last structure of the history is returned.
 
         Args:
@@ -82,10 +96,20 @@ class Structure(pymatgen.Structure):
         elif filepath.endswith(".nc"):
             from pymatgen.io.abinit.netcdf import as_etsfreader
             file, closeit = as_etsfreader(filepath)
-                                                                  
+
             new = file.read_structure(cls=cls)
             new.set_spacegroup(SpaceGroup.from_file(file))
             if closeit: file.close()
+
+        elif filepath.endswith(".abi") or filepath.endswith(".in"):
+            from abipy.abio.abivars import AbinitInputFile
+            # Here I assume that the input file contains a single structure.
+            return AbinitInputFile.from_file(filepath).structure
+
+        elif filepath.endswith("_DDB"):
+            from abipy.abilab import abiopen
+            with abiopen(filepath) as abifile:
+                return abifile.structure
 
         else:
             # TODO: Spacegroup is missing here.
@@ -96,7 +120,8 @@ class Structure(pymatgen.Structure):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None, endpoint="https://www.materialsproject.org/rest/v2"):
+    def from_material_id(cls, material_id, final=True, api_key=None,
+                         endpoint="https://www.materialsproject.org/rest/v2"):
         """
         Get a Structure corresponding to a material_id.
 
@@ -106,9 +131,9 @@ class Structure(pymatgen.Structure):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a "MAPI_KEY"
-                environment variable set. If so, it will use that environment
-                variable. This makes easier for heavy users to simply add
+                If this is None, the code will check if there is a "MAPI_KEY" in
+                your .pmgrc.yaml. If so, it will use that environment
+                This makes easier for heavy users to simply add
                 this environment variable to their setups and MPRester can
                 then be called without any arguments.
             endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
@@ -118,9 +143,13 @@ class Structure(pymatgen.Structure):
         Returns:
             Structure object.
         """
+        from pymatgen import SETTINGS
         if api_key is None:
-            # Check if MP_KEY is defined, otherwise fallback to MAPI_KEY.
-            api_key = os.environ.get('MP_KEY', None)
+            api_key = SETTINGS.get("MAPI_KEY")
+            if api_key is None:
+                raise RuntimeError(
+                    "Cannot find MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
+                )
 
         # Get pytmatgen structure and convert it to abipy structure
         from pymatgen.matproj.rest import MPRester, MPRestError
@@ -164,13 +193,10 @@ class Structure(pymatgen.Structure):
             acell: Lengths of the box in *Bohr*
         """
         cart_coords = np.atleast_2d(cart_coords)
-
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
-
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
         structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-
         return cls(structure)
 
     @classmethod
@@ -244,7 +270,7 @@ class Structure(pymatgen.Structure):
     def rocksalt(cls, a, species, **kwargs):
         """
         Build a primitive fcc crystal structure.
-                                                                                          
+
         Args:
             a: Lattice parameter in Angstrom.
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
@@ -268,9 +294,8 @@ class Structure(pymatgen.Structure):
        Peroviskite structures.
        """
        lattice = float(a) * np.eye(3)
-
        frac_coords = np.reshape([
-          0,     0,   0,  # A (2a)  
+          0,     0,   0,  # A (2a)
           0.5, 0.5, 0.5,  # B (2a)
           0.5, 0.5, 0.0,  # O (6b)
           0.5, 0.0, 0.5,  # O (6b)
@@ -279,51 +304,106 @@ class Structure(pymatgen.Structure):
 
        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
-    #@classmethod
-    #def half_heusler(cls, a, species, **kwargs)
-    #    # fcc lattice with 3 atoms as basis 
-    #    # XYZ, C1_b
-    #    # see http://arxiv.org/pdf/cond-mat/0510276v1.pdf
-    #    lattice = 0.5 * float(a) * np.array([
-    #        0,  1,  1,
-    #        1,  0,  1,
-    #        1,  1,  0])
+    @classmethod
+    def from_abivars(cls, *args, **kwargs):
+        """
+        Build a :class:`Structure` object from a dictionary with ABINIT variables.
 
-    #    frac_coords = np.reshape([
-    #       0,   0,   0,    # X
-    #       1/4, 1/4, 1/4,  # Y
-    #       #0.5, 0.5, 0.5, # Y
-    #       3/4, 3/4, 3/4,  # Z
-    #      ], (3, 3))
+        example:
 
-    #    return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+            al_structure = Structure.from_abivars(
+                acell=3*[7.5],
+                rprim=[0.0, 0.5, 0.5,
+                       0.5, 0.0, 0.5,
+                       0.5, 0.5, 0.0],
+                typat=1,
+                xred=[0.0, 0.0, 0.0],
+                ntypat=1,
+                znucl=13,
+            )
+
+        `xred` can be replaced with `xcart` or `xangst`.
+        """
+        from pymatgen.io.abinit.abiobjects import structure_from_abivars
+        return structure_from_abivars(cls, *args, **kwargs)
+
+    def to_abivars(self, **kwargs):
+        """Returns a dictionary with the ABINIT variables."""
+        from pymatgen.io.abinit.abiobjects import structure_to_abivars
+        return structure_to_abivars(self, **kwargs)
 
     @property
     def abi_string(self):
-        """Return a string with the ABINIT input associated to this structure.""" 
+        """Return a string with the ABINIT input associated to this structure."""
         from abipy.htc.variable import InputVariable
         lines = []
         app = lines.append
         abivars = self.to_abivars()
         for varname, value in abivars.items():
             app(str(InputVariable(varname, value)))
-                                                    
+
         return("\n".join(lines))
-    
+
+    def get_conventional_standard_structure(self, international_monoclinic=True,
+                                            symprec=1e-3, angle_tolerance=5):
+        """
+        Gives a structure with a conventional cell according to certain
+        standards. The standards are defined in Setyawan, W., & Curtarolo,
+        S. (2010). High-throughput electronic band structure calculations:
+        Challenges and tools. Computational Materials Science,
+        49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010
+        They basically enforce as much as possible
+        norm(a1)<norm(a2)<norm(a3)
+
+        Returns:
+            The structure in a conventional standardized cell
+        """
+        spga = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
+        new = spga.get_conventional_standard_structure(international_monoclinic=international_monoclinic)
+        new.__class__ = self.__class__
+        return new
+
+    def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
+        # to be considered in February 2016
+        from pymatgen.io.ase import AseAtomsAdaptor
+        try:
+            import spglib
+            version = spglib.get_version()
+            if version != (1, 9, 0):
+                raise ValueError('abi_primitive requires spglib version 1.9.0 '
+                                 'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
+        except ImportError:
+            raise ValueError('abi_primitive requires spglib')
+
+        try:
+            from ase.atoms import Atoms
+        except ImportError:
+            raise ValueError('Could not import Atoms from ase')
+
+        s = self.get_sorted_structure()
+        ase_adaptor = AseAtomsAdaptor()
+        ase_atoms = ase_adaptor.get_atoms(structure=s)
+        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=no_idealize,
+                                               symprec=symprec, angle_tolerance=angle_tolerance)
+        standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
+        standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
+        standardized_structure.__class__ = self.__class__
+        return standardized_structure
+
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
         Returns a new structure in which:
 
             * Structure is refined.
             * Reduced to primitive settings.
-            * Lattice vectors are exchanged if the triple product is negative 
+            * Lattice vectors are exchanged if the triple product is negative
 
         Args:
             symprec: Symmetry precision used to refine the structure.
                 if `symprec` is None, so structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell.
         """
-
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
         structure = self.__class__.from_sites(self)
@@ -353,6 +433,97 @@ class Structure(pymatgen.Structure):
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
         return structure
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        try:
+            from nbjsmol import nbjsmol_display
+            return nbjsmol_display(self.to(fmt="cif"), ext=".cif", html=True)
+        except ImportError as exc:
+            # Write warning only once.
+            cls = self.__class__
+            if not hasattr(cls, "_repr_html_num_warns"): cls._repr_html_num_warns = 0
+            if cls._repr_html_num_warns == 0:
+                cls._repr_html_num_warns += 1
+                warn(str(exc) +
+                     "\n_repr_html_ requires nbjsmol package\n."
+                     "Install it with `pip install nbjsmol.`\n"
+                     "See also https://github.com/gmatteo/nbjsmol.\n"
+                     "Returning `str(self)` in HTML form.")
+            return str(self).replace("\n", "<br>")
+
+    @property
+    def reciprocal_lattice(self):
+        """
+        Reciprocal lattice of the structure.
+        """
+        return self._lattice.reciprocal_lattice
+
+    def lattice_vectors(self, space="r"):
+        """
+        Returns the vectors of the unit cell in Angstrom.
+
+        Args:
+            space: "r" for real space vectors, "g" for reciprocal space basis
+                vectors.
+        """
+        if space.lower() == "r":
+            return self.lattice.matrix
+        if space.lower() == "g":
+            return self.lattice.reciprocal_lattice.matrix
+        raise ValueError("Wrong value for space: %s " % space)
+
+    def spglib_summary(self, verbose=0):
+        """
+        Return string with full information about crystalline structure i.e.
+        space group, point group, wyckoff positions, equivalent sites.
+
+        Args:
+            verbose: Verbosity level.
+        """
+        spgan = SpacegroupAnalyzer(self)
+        spgdata = spgan.get_symmetry_dataset()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+
+        # Print lattice info
+        outs = ["Full Formula ({s})".format(s=self.composition.formula),
+                "Reduced Formula: {}".format(self.composition.reduced_formula)]
+        app = outs.append
+        to_s = lambda x: "%0.6f" % x
+        outs.append("abc   : " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.abc]))
+        outs.append("angles: " + " ".join([to_s(i).rjust(10)
+                                           for i in self.lattice.angles]))
+        app("Space group info (note that magnetic symmetries are not taken into account).")
+        app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
+             spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
+        app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
+            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
+        app("")
+
+        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+        table = [["Idx", "Symbol", "Reduced_Coords", "Wyck", "EqIdx"]]
+        for i, site in enumerate(self):
+            table.append([
+                i,
+                site.specie.symbol,
+                "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                "%s" % wickoffs[i],
+                "%d" % equivalent_atoms[i],
+            ])
+
+        from tabulate import tabulate
+        app(tabulate(table, headers="firstrow"))
+
+        # Print entire dataset.
+        if verbose:
+            from six.moves import StringIO
+            stream = StringIO()
+            pprint(spgdata, stream=stream)
+            app(stream.getvalue())
+
+        return "\n".join(outs)
 
     @property
     def spacegroup(self):
@@ -389,7 +560,8 @@ class Structure(pymatgen.Structure):
     @lazy_property
     def hsym_kpath(self):
         """
-        Returns an instance of :class:`HighSymmKpath`. (Database of high symmetry k-points and high symmetry lines).
+        Returns an instance of :class:`HighSymmKpath`.
+        (Database of high symmetry k-points and high symmetry lines).
         """
         from pymatgen.symmetry.bandstructure import HighSymmKpath
         return HighSymmKpath(self)
@@ -410,7 +582,7 @@ class Structure(pymatgen.Structure):
 
         # Build KpointList instance.
         from .kpoints import KpointList
-        return KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names) 
+        return KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names)
 
     @lazy_property
     def hsym_stars(self):
@@ -426,7 +598,8 @@ class Structure(pymatgen.Structure):
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint):
-        """Returns the name of the special k-point, None if kpoint is unknown.""" 
+        """Returns the name of the special k-point, None if kpoint is unknown."""
+        if self.spacegroup is None: return None
         for star in self.hsym_stars:
             if star.find(kpoint) != -1:
                 return star.name
@@ -435,7 +608,7 @@ class Structure(pymatgen.Structure):
 
     def get_symbol2coords(self):
         """Return a dictionary mapping chemical symbols to coordinates."""
-        # TODO: 
+        # TODO:
         #use structure.frac_coords but add reshape in pymatgen.
         #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
         coords = {}
@@ -479,25 +652,57 @@ class Structure(pymatgen.Structure):
         return np.sqrt(self.dot(coords, coords, space=space,
                                 frac_coords=frac_coords))
 
-    def show_bz(self, **kwargs):
+    def get_dict4frame(self, with_spglib=True):
+        """
+        Return a :class:`OrderedDict` with the most important structural parameters:
+
+            - Chemical formula and number of atoms.
+            - Lattice lengths, angles and volume.
+            - The spacegroup number computed by Abinit (set to None if not available).
+            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+
+        Useful to construct pandas DataFrames
+
+        Args:
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        """
+        abc, angles = self.lattice.abc, self.lattice.angles
+        # Get spacegroup info from spglib.
+        spglib_symbol, spglib_number = None, None
+        if with_spglib: spglib_symbol, spglib_number = self.get_space_group_info()
+        # Get spacegroup number computed by Abinit if available.
+        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+
+        return OrderedDict([
+            ("formula", self.formula), ("natom", self.num_sites),
+            ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
+            ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
+            ("abispg_num", abispg_number),
+            ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
+        ])
+
+    @add_fig_kwargs
+    def show_bz(self, ax=None, pmg_path=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
 
-        Returns: `matplotlib` figure.
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            pmg_path: True if the default path used in pymatgen should be show.
 
-        ================  ==============================================================
-        kwargs            Meaning
-        ================  ==============================================================
-        show              True to show the figure (Default).
-        savefig           'abc.png' or 'abc.eps'* to save the figure to a file.
-        ================  ==============================================================
+        Returns: `matplotlib` figure.
         """
-        #print(self.hsym_kpath.name)
-        return self.hsym_kpath.get_kpath_plot(**kwargs)
+        from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
+        labels = self.hsym_kpath.kpath["kpoints"]
+        pprint(labels)
+        if pmg_path:
+            return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
+        else:
+            return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
     def export(self, filename, visu=None):
         """
-        Export the crystalline structure on file filename. 
+        Export the crystalline structure on file filename.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -510,26 +715,22 @@ class Structure(pymatgen.Structure):
         Returns: Instance of :class:`Visualizer`
         """
         if "." not in filename:
-            raise ValueError("Cannot detect extension in filename %s: " % filename)
+            raise ValueError("Cannot detect extension in filename %s:" % filename)
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
 
-        if not tokens[0]: 
+        if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
+            # dir=os.getcwd() is needed when we invoke the method from a notebook.
             import tempfile
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
-
-        # with open(filename, mode="w") as fh:
-        #     if ext == "xsf":
-        #         # xcrysden
-        #         xsf.xsf_write_structure(fh, structures=[self])
-        #     else:
-        #         raise Visualizer.Error("extension %s is not supported." % ext)
+            _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
 
         if ext == "xsf":
             # xcrysden
-            self.to(filename=filename)
+            print("Writing data to:", filename)
+            s = self.to(fmt="xsf", filename=filename)
+            #print(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -541,6 +742,11 @@ class Structure(pymatgen.Structure):
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
+        # Code for VTK.
+        #from pymatgen.vis.structure_vtk import StructureVis
+        #vis = StructureVis()
+        #vis.set_structure(self)
+        #vis.show()
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(visu_name)
 
@@ -554,29 +760,6 @@ class Structure(pymatgen.Structure):
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
-
-    def molecular_viewer(self, **kwargs):
-        #from chemview import enable_notebook, MolecularViewer
-        from chemview import MolecularViewer
-
-        #from pymatgen.core.bonds import CovalentBond, get_bond_length
-        #bonds = []
-        #for j, site1 in enumerate(self): 
-        #    for i, site2 in enumerate(self): 
-        #        if j <= i: continue
-        #        if CovalentBond.is_bonded(site1, site2, tol=0.2):
-        #            bonds.append((i, j))
-
-        #bonds = self.get_covalent_bonds(tol=0.2)
-        #bonds=[(0, 1), (1, 0)]
-        bonds = [(0, 0), (1, 1)]
-
-        topology = dict(
-            atom_types=[site.specie.symbol for site in self],
-            bonds=bonds,
-        )
-        v = MolecularViewer(self.cart_coords, topology, **kwargs)
-        return v
 
     def write_structure(self, filename):
         """Write structure fo file."""
@@ -596,14 +779,14 @@ class Structure(pymatgen.Structure):
         # FIXME:
         # Do we need symmetry operations here?
         # perhaps if the CIF file is used.
-        suffix_dict = { 
+        suffix_dict = {
             "cif": ".cif",
             "cssr": ".cssr",
             "json": ".json",
             "mson": ".mson",
         }
 
-        if format not in prefix_dict.keys() and format not in suffix_dict.keys():
+        if format not in prefix_dict and format not in suffix_dict:
             raise ValueError("Unknown format %s" % format)
 
         prefix = prefix_dict.get(format, "tmp")
@@ -617,7 +800,7 @@ class Structure(pymatgen.Structure):
         tmp_file.seek(0)
         return tmp_file.read()
 
-    #def to_xsf_string(self):
+    #def to_xsf(self):
     #    """
     #    Returns a string with the structure in XSF format
     #    See http://www.xcrysden.org/doc/XSF.html
@@ -627,7 +810,7 @@ class Structure(pymatgen.Structure):
 
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:
-    #    # 1) Get the radius of the pseudopotential sphere 
+    #    # 1) Get the radius of the pseudopotential sphere
     #    # 2) Get the neighbors of the site (considering the periodic images).
 
     #    max_overlap, ovlp_sites = 0.0, None
@@ -638,7 +821,7 @@ class Structure(pymatgen.Structure):
     #        sitedist_list = self.get_neighbors(site, r, include_index=False)
 
     #        if sitedist_list:
-    #            # Spheres are overlapping: compute overlap and update the return values 
+    #            # Spheres are overlapping: compute overlap and update the return values
     #            # if the new overlap is larger than the previous one.
     #            for (other_site, dist) in sitedist_list:
     #                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html
@@ -654,8 +837,8 @@ class Structure(pymatgen.Structure):
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement 
-        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
+        The displacement vector is first rescaled so that the maxium atomic displacement
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
@@ -811,7 +994,8 @@ class Structure(pymatgen.Structure):
 
         return tvects
 
-    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True,
+                       scale_matrix=None, max_supercell=None):
         """
         write into the file descriptor xyz_file the positions and displacements of the atoms
 
@@ -860,9 +1044,11 @@ class Structure(pymatgen.Structure):
                 new_fcoords = np.mod(new_fcoords, 1)
                 coords = new_lattice.get_cartesian_coords(new_fcoords)
 
-                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]))
+                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2],
+                               new_displ[0], new_displ[1], new_displ[2]))
 
-    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True,
+                       scale_matrix=None, max_supercell=None):
         """
         Compute the supercell needed for a given qpoint and add the displacement.
 
@@ -878,7 +1064,6 @@ class Structure(pymatgen.Structure):
         """
         # I've copied code from make_supercell since the loop over supercell images
         # is inside make_supercell and I don't want to create a mapping
-
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided, please provide max_supercell !")
@@ -899,7 +1084,7 @@ class Structure(pymatgen.Structure):
         new_sites = []
         for at,site in enumerate(self):
             for t in tvects:
-                if(do_real1):
+                if do_real1:
                     new_displ1[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
                 else:
                     new_displ1[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ1[at,:])
@@ -907,14 +1092,13 @@ class Structure(pymatgen.Structure):
                     # Convert to fractional coordinates.
                     new_displ1 = self.lattice.get_fractional_coords(new_displ1)
 
-                if(do_real2):
+                if do_real2:
                     new_displ2[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
                 else:
                     new_displ2[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ2[at,:])
                 if not frac_coords:
                     # Convert to fractional coordinates.
                     new_displ2 = self.lattice.get_fractional_coords(new_displ2)
-
 
                 # We don't normalize here !!!
                 fcoords = site.frac_coords + t + new_displ1 + new_displ2
@@ -985,6 +1169,83 @@ class Structure(pymatgen.Structure):
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
+    def ksampling_from_jhudb(self, precalc, format="vasp",
+                             url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet"):
+        """
+        Generate k-point grid for Brillouin zone integration.
+
+        Args:
+            INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.
+                AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.
+            MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.
+            HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written
+                to the header of the file. The default is SIMPLE.
+            MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.
+            KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.
+                The use of this parameter for systems with less than three periodic dimensions is not recommended.
+            GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,
+                and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided
+                structure, the k-point density in the corresponding direction will be reduced accordingly.
+                The default value is 7 Å.
+
+        Note:
+            If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or
+            KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.
+
+        Returns:
+
+        See also:
+            http://muellergroup.jhu.edu/K-Points.html
+
+            Efficient generation of generalized Monkhorst-Pack grids through the use of informatics
+            Pandu Wisesa, Kyle A. McGill, and Tim Mueller
+            Phys. Rev. B 93, 155109
+        """
+        from six.moves import StringIO
+
+        # Prepare PRECALC file.
+        precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
+        wrong_vars = [k for k in precalc if k not in precalc_names]
+        if wrong_vars:
+            raise ValueError("The following keys are not valid PRECALC variables:\n  %s" % wrong_vars)
+
+        precalc_fobj = StringIO()
+        precalc_fobj.write("MINDISTANCE=28.1\n")
+        for k, v in precalc.items():
+            precalc_fobj.write("%s=%s" % (k, v))
+        precalc_fobj.seek(0)
+
+        # Get string with structure in POSCAR format.
+        string = self.convert(format="POSCAR")
+        poscar_fobj = StringIO()
+        poscar_fobj.write(string)
+        poscar_fobj.seek(0)
+
+        #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet
+        #       --form "fileupload=@PRECALC" --form "fileupload=@POSCAR")
+
+        # See http://docs.python-requests.org/en/latest/user/advanced/#advanced
+        import requests
+        files = [
+            ('fileupload', ('PRECALC', precalc_fobj)),
+            ('fileupload', ('POSCAR', poscar_fobj)),
+        ]
+
+        r = requests.post(url, files=files)
+        #print(r.url, r.request)
+        print(r.text)
+
+        r.raise_for_status()
+        if r.status_code != requests.codes.ok:
+            raise RuntimeError("Request status code: %s" % r.status_code)
+
+        # Parse Vasp Kpoints
+        from pymatgen.io.vasp.inputs import Kpoints
+        vasp_kpoints = Kpoints.from_string(r.text)
+        #print(vasp_kpoints.style)
+        #return kptrlatt, shiftk
+        #return ksamp
+
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
         Return the k-point sampling from the number of divisions to be used for
@@ -995,7 +1256,7 @@ class Structure(pymatgen.Structure):
 
         return AttrDict(ngkpt=ngkpt, shiftk=shiftk)
 
-    def calc_ngkpt(self, nksmall): 
+    def calc_ngkpt(self, nksmall):
         """
         Compute the ABINIT variable `ngkpt` from the number of divisions used for the smallest lattice vector.
 
@@ -1017,9 +1278,9 @@ class Structure(pymatgen.Structure):
         """
         Find the values of `shiftk` and `nshiftk` appropriated for the sampling of the Brillouin zone.
 
-        When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice, 
-        the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 . 
-        This is often the preferred k point sampling. For a non-shifted Monkhorst-Pack grid, 
+        When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice,
+        the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 .
+        This is often the preferred k point sampling. For a non-shifted Monkhorst-Pack grid,
         use `nshiftk=1` and `shiftk 0.0 0.0 0.0`, but there is little reason to do that.
 
         When the primitive vectors of the lattice form a FCC lattice, with rprim::
@@ -1055,15 +1316,15 @@ class Structure(pymatgen.Structure):
                 0.0  0.0       1.0
 
         one can use nshiftk= 1 and shiftk 0.0 0.0 0.5
-        In rhombohedral axes, e.g. using angdeg 3*60., this corresponds to shiftk 0.5 0.5 0.5, 
-        to keep the shift along the symmetry axis. 
+        In rhombohedral axes, e.g. using angdeg 3*60., this corresponds to shiftk 0.5 0.5 0.5,
+        to keep the shift along the symmetry axis.
 
         Returns:
             Suggested value of shiftk.
         """
         # Find lattice type.
         sym = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
-        lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_spacegroup_symbol()
+        lattice_type, spg_symbol = sym.get_lattice_type(), sym.get_space_group_symbol()
 
         # Check if the cell is primitive
         is_primitve = len(sym.find_primitive()) == len(self)
@@ -1100,6 +1361,7 @@ class Structure(pymatgen.Structure):
 
                 shiftk = [0.0, 0.0, 0.0]
                 shiftk[hex_ax] = 0.5
+
             elif lattice_type == "tetragonal":
                 if "I" in spg_symbol:
                     # BCT
@@ -1126,20 +1388,84 @@ class Structure(pymatgen.Structure):
 
         return nval
 
+    def valence_electrons_per_atom(self, pseudos):
+        """
+        Returns the number of valence electrons for each atom in the structure.
+
+        Args:
+            pseudos: List of :class:`Pseudo` objects or list of filenames.
+        """
+        table = PseudoTable.as_table(pseudos)
+        psp_valences = []
+        for site in self:
+            pseudo = table.pseudo_with_symbol(site.species_string)
+            psp_valences.append(pseudo.Z_val)
+
+        return psp_valences
+
+
+def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
+    """
+    Build two pandas dataframes with the most important geometrical paramaters associated to
+    a list of structures or a list of objects that can be converted into structures.
+
+    Args:
+        struct_objects: List of objects that can be converted to structure.
+            Support filenames, structure objects, Abinit input files, dicts and many more types.
+            See `Structure.as_structure` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
+            instead of Reduced coordinates.
+
+    Return:
+        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the lattice parameters,
+        `coords` the atomic positions. The list of structures is available in the `structures` entry:
+
+    Example:
+        dfs = frames_from_structures(files)
+        dfs.lattice
+        dfs.coords
+        for structure in dfs.structures:
+            print(structure)
+    """
+    structures = [Structure.as_structure(obj) for obj in struct_objects]
+    # Build Frame with lattice parameters.
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
+
+    import pandas as pd
+    lattice_frame = pd.DataFrame(odict_list, index=index,
+                                 columns=list(odict_list[0].keys()) if odict_list else None)
+
+    # Build Frame with atomic positions.
+    max_numsite = max(len(s) for s in structures)
+    odict_list = []
+    for structure in structures:
+        if cart_coords:
+            odict_list.append({i: (site.species_string, site.coords) for i, site in enumerate(structure)})
+        else:
+            odict_list.append({i: (site.species_string, site.frac_coords) for i, site in enumerate(structure)})
+
+    coords_frame = pd.DataFrame(odict_list, index=index,
+                                columns=list(range(max_numsite)) if odict_list else None)
+
+    return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)
+
 
 class StructureModifier(object):
     """
-    This object provides an easy-to-use interface for 
+    This object provides an easy-to-use interface for
     generating new structures according to some algorithm.
 
     The main advantages of this approach are:
-        
+
         *) Client code does not have to worry about the fact
            that many methods of Structure modify the object in place.
 
-        *) One can render the interface more user-friendly. For example 
+        *) One can render the interface more user-friendly. For example
            some arguments might have a unit that can be specified in input.
-           For example one can pass a length in Bohr that will be automatically 
+           For example one can pass a length in Bohr that will be automatically
            converted into Angstrom before calling the pymatgen methods
     """
     def __init__(self, structure):
@@ -1147,7 +1473,7 @@ class StructureModifier(object):
         Args:
             structure: Structure object.
         """
-        # Get a copy to avoid any modification of the input. 
+        # Get a copy to avoid any modification of the input.
         self._original_structure = structure.copy()
 
     def copy_structure(self):
@@ -1201,8 +1527,8 @@ class StructureModifier(object):
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement 
-        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move 
+        The displacement vector is first rescaled so that the maxium atomic displacement
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
@@ -1231,7 +1557,8 @@ class StructureModifier(object):
 
         return new_structure
 
-    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True, scale_matrix=None, max_supercell=None):
+    def frozen_2phonon(self, qpoint, displ1, displ2, do_real1=True, do_real2=True, frac_coords=True,
+                       scale_matrix=None, max_supercell=None):
 
         new_structure = self.copy_structure()
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)

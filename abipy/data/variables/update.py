@@ -1,17 +1,26 @@
 #!/usr/bin/env python
 """This script fetches the official yaml files from the ABINIT source tree."""
+from __future__ import print_function, division, unicode_literals
 
 import sys
 import os
 import shutil
 
-
-try:
-    doc_dir = sys.argv[1]
-except IndexError:
+if "-h" in sys.argv or "--help" in sys.argv:
     print("usage: update ~abinit/doc/input_variables/")
     sys.exit(1)
 
+
+if len(sys.argv) > 1:
+    doc_dir = sys.argv[1]
+else:
+    doc_dir = os.path.expanduser("~/git/abinit/doc/input_variables/")
+    if not os.path.exists(doc_dir):
+        print("usage: update ~abinit/doc/input_variables/")
+        sys.exit(1)
+
+
+print("Will get abinit variables from:", doc_dir)
 yaml_basenames = ["abinit_vars.yml", "characteristics.yml", "sections.yml"]
 
 yaml_paths = [os.path.join(doc_dir, f) for f in yaml_basenames] 

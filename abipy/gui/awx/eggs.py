@@ -127,7 +127,7 @@ class Board(wx.Panel):
 
         keycode = event.GetKeyCode()
 
-        if keycode == ord('P') or keycode == ord('p'):
+        if keycode in (ord('P'), ord('p')):
             self.pause()
             return
         if self.isPaused:

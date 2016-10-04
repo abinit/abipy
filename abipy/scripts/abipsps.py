@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Script to plot pseudopotential data and/or compare multiple pseudopotentials.
-It invokes Abinit to produce the PSPS.nc files with form-factors, model core charges 
+It invokes Abinit to produce the PSPS.nc files with form-factors, model core charges
 and other quantities used by Abinit to apply the non-local part of the KS Hamiltonian.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
@@ -16,8 +16,7 @@ from abipy import abilab
 def main():
     def str_examples():
         return  """\
-Usage example:\n
-
+Usage example:
     abipsps.py pseudo            => Visualize data relative to a single pseudo.
     abipsps.py pseudo1 pseudo2   => Compare pseudo1 with pseudo2 (accept an arbitrary number of pseudos).
 """
@@ -32,6 +31,8 @@ Usage example:\n
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                        help='verbose, can be supplied multiple times to increase verbosity')
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
@@ -43,10 +44,10 @@ Usage example:\n
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc: 
+    except Exception as exc:
         show_examples_and_exit(error_code=1)
-                                                                                              
-    # loglevel is bound to the string value obtained from the command line argument. 
+
+    # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -57,7 +58,7 @@ Usage example:\n
     if options.seaborn:
         import seaborn as sns
         #sns.set(style='ticks', palette='Set2')
-        sns.set(style="dark", palette="Set2")
+        #sns.set(style="dark", palette="Set2")
         #And to remove "chartjunk", do:
         #sns.despine()
         #plt.tight_layout()

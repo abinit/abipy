@@ -5,11 +5,6 @@ import wx
 import collections
 import abipy.gui.awx as awx
 
-try:
-    from wxmplot import PlotApp, PlotFrame
-except ImportError:
-    pass
-
 from monty.collections import AttrDict
 from abipy.electrons import ElectronBands
 
@@ -120,7 +115,7 @@ class ElectronDosDialog(wx.Dialog):
 
 class EbandsDosDialog(wx.Dialog):
     """
-    Dialog that asks the user to select two files with Ebands and Edos 
+    Dialog that asks the user to select two files with Ebands and Edos
     and enter the parameters for the electron DOS.
     """
     def __init__(self, parent, filepaths, **kwargs):
@@ -133,7 +128,7 @@ class EbandsDosDialog(wx.Dialog):
         choices = map(os.path.relpath, filepaths)
 
         band_label = wx.StaticText(self, -1, "File for bands:"); band_label.Wrap(-1)
-        self.bandsfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+        self.bandsfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)
 
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(band_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
@@ -141,7 +136,7 @@ class EbandsDosDialog(wx.Dialog):
         main_sizer.Add(hbox0, proportion=0, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         dos_label = wx.StaticText(self, -1, "File for DOS:"); dos_label.Wrap(-1)
-        self.dosfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+        self.dosfile_cbox = wx.ComboBox(self, id=-1, name='Bands file', choices=choices, value=choices[0], style=wx.CB_READONLY)
 
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(dos_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
@@ -169,7 +164,7 @@ class EbandsDosDialog(wx.Dialog):
     def getBandsDosIndex(self):
         """Return the index of the files for Bands and Dos selected by the user`."""
         ipath = self.bandsfile_cbox.GetSelection()
-        imesh = self.dosfile_cbox.GetSelection() 
+        imesh = self.dosfile_cbox.GetSelection()
         # Default values if no item is selected.:
         if ipath == wx.NOT_FOUND: ipath = 0
         if imesh == wx.NOT_FOUND: imesh = 0
@@ -239,6 +234,11 @@ class ElectronDosFrame(awx.Frame):
         tot_dos, tot_idos = edos.dos_idos()
         label = "$\sigma = %s, step = %s$" % (p.width, p.step)
 
+        try:
+            from wxmplot import PlotApp, PlotFrame
+        except ImportError:
+            pass
+
         plotframe = None
         if self.replot_checkbox.GetValue() and len(self._pframes):
             plotframe = self._pframes[-1]
@@ -254,7 +254,7 @@ class ElectronDosFrame(awx.Frame):
 
 class ElectronJdosPanel(awx.Panel):
     """
-    This panel allows the user to specify the parameters for the 
+    This panel allows the user to specify the parameters for the
     calculation of the Electron JDOS.
     """
     DEFAULT_STEP = 0.1

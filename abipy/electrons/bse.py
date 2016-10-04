@@ -9,12 +9,14 @@ import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.string import marquee
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
-from abipy.core.mixins import AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
+
 
 __all__ = [
     "DielectricTensor",
@@ -52,8 +54,8 @@ class DielectricTensor(object):
         self._all_tensors = all_tensors
 
     def to_array(self, red_coords=True):
-       
-        table = [] 
+
+        table = []
         for tensor in self._all_tensors:
             if red_coords:
                 table.append(tensor.reduced_tensor)
@@ -63,7 +65,7 @@ class DielectricTensor(object):
         return np.array(table)
 
     def symmetrize(self, structure):
-     
+
         for tensor in self._all_tensors:
             tensor.symmetrize(structure)
 
@@ -72,7 +74,7 @@ class DielectricTensor(object):
         table = self.to_array(red_coords)
 
         all_funcs = []
- 
+
         for i in np.arange(3):
             for j in np.arange(3):
                 all_funcs.append(Function1D(self._wmesh, table[:,i,j]))
@@ -107,7 +109,7 @@ class DielectricTensor(object):
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the 6 independent components
-        for icomponent in [0,4,8,1,2,5]: 
+        for icomponent in [0,4,8,1,2,5]:
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
         return fig
@@ -118,7 +120,7 @@ class DielectricTensor(object):
 
         Args:
             ax: plot axis
-            what: Sequential index of the tensor matrix element. 
+            what: Sequential index of the tensor matrix element.
             args: Positional arguments passed to ax.plot
             kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
@@ -128,7 +130,7 @@ class DielectricTensor(object):
         cplx_mode:      string defining the data to print (case-insensitive).
                         Possible choices are:
 
-                            - "re"  for real part 
+                            - "re"  for real part
                             - "im" for imaginary part only.
                             - "abs' for the absolute value
 
@@ -168,7 +170,7 @@ class DielectricFunction(object):
 
         """
         self.wmesh = np.array(wmesh)
-        self.qpoints = qpoints 
+        self.qpoints = qpoints
         assert len(self.qpoints) == len(emacros_q)
         self.info = info
 
@@ -263,9 +265,9 @@ class DielectricFunction(object):
 
                 cplx_mode:
                     string defining the data to print (case-insensitive).
-                    Possible choices are 
+                    Possible choices are
 
-                        - "re"  for real part 
+                        - "re"  for real part
                         - "im" for imaginary part only.
                         - "abs' for the absolute value
 
@@ -288,12 +290,12 @@ class DielectricFunction(object):
         return f.plot_ax(ax, **kwargs)
 
 
-class MdfFile(AbinitNcFile, Has_Structure):
+class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         with MdfFile("foo_MDF.nc") as mdf:
             mdf.plot_mdfs()
     """
@@ -308,6 +310,25 @@ class MdfFile(AbinitNcFile, Has_Structure):
 
         # TODO Add electron Bands.
         #self._ebands = r.read_ebands()
+
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self):
+        """String representation."""
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+
+        app(marquee("Q-points", mark="="))
+        app(str(self.qpoints))
+
+        return "\n".join(lines)
 
     def close(self):
         self.reader.close()
@@ -367,9 +388,9 @@ class MdfFile(AbinitNcFile, Has_Structure):
         Args:
             cplx_mode:
                 string defining the data to print (case-insensitive).
-                Possible choices are 
-                                                                      
-                    - "re"  for real part 
+                Possible choices are
+
+                    - "re"  for real part
                     - "im" for imaginary part only.
                     - "abs' for the absolute value
 
@@ -377,7 +398,7 @@ class MdfFile(AbinitNcFile, Has_Structure):
 
             mdf_type:
                 Select the type of macroscopic dielectric function.
-                Possible choices are 
+                Possible choices are
 
                     - "exc" for the excitonic MDF.
                     - "rpa" for RPA MDF.
@@ -409,13 +430,33 @@ class MdfFile(AbinitNcFile, Has_Structure):
         if "gwrpa" in mdf_type or plot_all:
             plotter.add_mdf("GW-RPA", self.gwnlf_mdf)
 
-        # Plot spectra 
-        plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
+        # Plot spectra
+        return plotter.plot(cplx_mode=cplx_mode, qpoint=qpoint, **kwargs)
 
     def get_tensor(self, mdf_type="exc"):
         """Get the macroscopic dielectric tensor from the MDF."""
         return DielectricTensor(self.get_mdf(mdf_type), self.structure)
-        
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(mdf_file)"),
+            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Re')"),
+            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Im')"),
+            # TODO:
+            #nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
+            #tensor_exc.symmetrize(mdf_file.structure)
+            #tensor_exc.plot(title=title)
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 # TODO Add band energies to MDF file.
 #from abipy.electrons import ElectronsReader
@@ -482,9 +523,9 @@ class MdfPlotter(object):
     Class for plotting multiple MDFs.
 
     Usage example:
-                                                                  
+
     .. code-block:: python
-        
+
         plotter = MdfPlotter()
         plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
         plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
@@ -521,7 +562,7 @@ class MdfPlotter(object):
         if label is None:
             label = mdf_type + ncfile.filepath
         self.add_mdf(label, mdf)
-                
+
     @add_fig_kwargs
     def plot(self, ax=None, cplx_mode="Im", qpoint=None, **kwargs):
         """
@@ -557,8 +598,7 @@ class MdfPlotter(object):
         qtag = "avg" if qpoint is None else repr(qpoint)
 
         lines, legends = [], []
-        for (label, mdf) in self._mdfs.items():
-
+        for label, mdf in self._mdfs.items():
             # Plot the q-points
             #for (iq, qpoint) in enumerate(self.qpoints):
             #    self.plot_ax(ax, iq, **kwargs)
@@ -566,7 +606,6 @@ class MdfPlotter(object):
             for cmode in cmodes:
                 # Plot the average value
                 l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
-
                 lines.append(l)
                 legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 

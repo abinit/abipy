@@ -24,14 +24,14 @@ __all__ = [
     "gs_input",
     "ebands_input",
     "g0w0_with_ppmodel_inputs",
-    "g0w0_extended_inputs",
+    "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
     "ion_ioncell_relax_input",
     "scf_phonons_inputs",
 ]
 
 
-# TODO: To be discussed: 
+# TODO: To be discussed:
 #    1) extra_abivars is more similar to a hack. The factory functions are designed for
 #       HPC hence we cannot allow the user to inject something we cannot control easily
 #       Shall we remove it?
@@ -114,7 +114,7 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     if electrons.nband is not None: return electrons.nband
 
     nsppol, smearing = electrons.nsppol, electrons.smearing
-    
+
     # Number of valence electrons including possible extra charge
     nval = structure.num_valence_electrons(pseudos)
     nval -= electrons.charge
@@ -133,14 +133,15 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
         nband = max(np.ceil(nband*1.1), nband+4)
 
     # Increase number of bands based on the starting magnetization
-    if nsppol==2 and spinat is not None:
+    if nsppol == 2 and spinat is not None:
         nband += np.ceil(max(np.sum(spinat, axis=0))/2.)
 
+    # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
     return int(nband)
 
 
-def gs_input(structure, pseudos, 
+def gs_input(structure, pseudos,
              kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
@@ -161,20 +162,20 @@ def gs_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
-    multi = ebands_input(structure, pseudos, 
-                 kppa=kppa, 
+    multi = ebands_input(structure, pseudos,
+                 kppa=kppa,
                  ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
                  smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
     return multi[0]
 
 
-def ebands_input(structure, pseudos, 
-                 kppa=None, nscf_nband=None, ndivsm=15, 
+def ebands_input(structure, pseudos,
+                 kppa=None, nscf_nband=None, ndivsm=15,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
-    Returns a :class:`AbinitInput` for band structure calculations.
+    Returns a :class:`MultiDataset` for band structure calculations.
 
     Args:
         structure: :class:`Structure` object.
@@ -208,10 +209,10 @@ def ebands_input(structure, pseudos,
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         multi[0].set_autospinat()
 
     if scf_electrons.nband is None:
@@ -237,7 +238,7 @@ def ebands_input(structure, pseudos,
             dos_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
             #dos_ksampling = aobj.KSampling.monkhorst(dos_ngkpt, shiftk=dos_shiftk, chksymbreak=0)
             dos_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                           charge=charge, nband=nscf_nband) 
+                                           charge=charge, nband=nscf_nband)
             dt = 2 + i
             multi[dt].set_vars(dos_ksampling.to_abivars())
             multi[dt].set_vars(dos_electrons.to_abivars())
@@ -246,12 +247,12 @@ def ebands_input(structure, pseudos,
     return multi
 
 
-def ion_ioncell_relax_input(structure, pseudos, 
+def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, force_gamma_centered=False):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
+    Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
 
     Args:
@@ -263,7 +264,7 @@ def ion_ioncell_relax_input(structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=2)
@@ -272,11 +273,14 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    if force_gamma_centered:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    else:
+        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         spinat_dict = multi[0].set_autospinat()
         multi[1].set_vars(spinat_dict)
 
@@ -298,13 +302,20 @@ def ion_ioncell_relax_input(structure, pseudos,
     return multi
 
 
-def ion_ioncell_relax_and_ebands_input(structure, pseudos, 
-                                        kppa=None, nband=None,
-                                        ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+def ion_ioncell_relax_and_ebands_input(structure, pseudos,
+                                       kppa=None, nband=None,
+                                       ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for a structural relaxation. The first dataset optmizes the 
-    atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
+    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
+    The first dataset optmizes the atomic positions at fixed unit cell.
+    The second datasets optimizes both ions and unit cell parameters.
+    The other datasets perform a band structure calculation.
+
+    .. warning::
+
+        Client code is responsible for propagating the relaxed structure obtained with the
+        second dataset to the inputs used for the band structure calculation.
 
     Args:
         structure: :class:`Structure` object.
@@ -319,27 +330,27 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     """
     structure = Structure.as_structure(structure)
 
-    relax_multi = ion_ioncell_relax_input(structure, pseudos, 
+    relax_multi = ion_ioncell_relax_input(structure, pseudos,
                                           kppa=kppa, nband=nband,
                                           ecut=ecut, pawecutdg=pawecutdg, accuracy=accuracy, spin_mode=spin_mode,
                                           smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
-    ebands_multi = ebands_input(structure, pseudos, 
-                                kppa=kppa, nscf_nband=None, ndivsm=15, 
+    ebands_multi = ebands_input(structure, pseudos,
+                                kppa=kppa, nscf_nband=None, ndivsm=15,
                                 ecut=ecut, pawecutdg=pawecutdg, scf_nband=None, accuracy=accuracy, spin_mode=spin_mode,
                                 smearing=smearing, charge=charge, scf_algorithm=scf_algorithm, dos_kppa=None)
 
     return relax_multi + ebands_multi
 
 
-def g0w0_with_ppmodel_inputs(structure, pseudos, 
+def g0w0_with_ppmodel_inputs(structure, pseudos,
                             kppa, nscf_nband, ecuteps, ecutsigx,
                             ecut=None, pawecutdg=None,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                             sigma_nband=None, gw_qprange=1):
     """
-    Returns a :class:`AbinitInput` object that performs G0W0 calculations with the plasmon pole approximation.
+    Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
 
     Args:
         structure: Pymatgen structure.
@@ -349,7 +360,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
-        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized 
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized
             from the pseudos according to accuracy)
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
@@ -371,7 +382,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
@@ -417,17 +428,20 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
     return multi
 
-#TODO
-def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, accuracy="normal",
-                       spin_mode="polarized", smearing="fermi_dirac:0.1 eV", response_models=["godby"], charge=0.0,
-                       inclvkb=2, scr_nband=None, sigma_nband=None, workdir=None, manager=None, gamma=True, nksmall=20,
-                       work_class=None, scf_algorithm=None, **extra_abivars):
+
+def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
+                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                            response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                            sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
     """
-    Returns a :class:`multi` object to generate a G0W0 work for the given the material.
+    Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.
 
     Args:
         structure: Pymatgen structure.
         pseudos: List of `Pseudo` objects.
+        kppa: k poits per reciprocal atom
+        scf_nband: number of scf bands
+        ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -435,97 +449,188 @@ def g0w0_extended_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
-        ppmodel: Plasmonpole technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
         inclvkb: Treatment of the dipole matrix elements (see abinit variable).
         scr_nband: Number of bands used to compute the screening (default is nscf_nband)
         sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
-        workdir: Working directory.
-        manager: :class:`TaskManager` instance.
-        nksamll: if not None, a DFT bandstucture calculation will be added after the sc run
-        extra_abivars: Dictionary with extra variables passed to ABINIT.
+        response_models: List of response models
+        gw_qprange: selectpr for the qpoint mesh
+        gamma: is true a gamma centered mesh is enforced
+        nksmall: Kpoint division for additional band and dos calculations
+        extra_abivars: Dictionary with extra variables passed to ABINIT for all tasks.
+
+    extra abivars that are provided with _s appended will be take as a list of values to be tested a scf level
     """
-    print(scf_nband)
-    if gamma:
-        if kppa == 1:
-            scf_ksampling = KSampling.gamma_centered(kpts=(1, 1, 1))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(1, 1, 1))
-        elif kppa == 2:
-            scf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
-        elif kppa < 0:
-            scf_ksampling = KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
-        elif kppa <= 13: 
-            scf_ksampling = KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
-            nscf_ksampling = KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
-        else:
-            scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
-            nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
-    else:
-        #this is the original behaviour before the devellopment of the gwwrapper
-        scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-        nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    if extra_abivars is None:
+        extra_abivars = {}
 
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                                   charge=charge, nband=scf_nband, fband=None)
-  
-    multis = []
+    if response_models is None:
+        response_models = ["godby"]
 
-    to_add = {}
-
-    if "istwfk" not in extra_abivars:
-        extra_abivars["istwfk"] = "*1"
-
-    scf_diffs = [] 
+    scf_diffs = []
 
     for k in extra_abivars.keys():
         if k[-2:] == '_s':
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)
-            to_add.update({k: values[-1]})
+            #to_add.update({k: values[-1]})
             for value in values:
-		diff_abivars = {}
+                diff_abivars = dict()
                 diff_abivars[var] = value
-                diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
+                if pseudos.allpaw and var == 'ecut':
+                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
                 scf_diffs.append(diff_abivars)
-#                multi_scf.append(ScfStrategy(structure, pseudos, scf_ksampling, accuracy=accuracy,
-#                                                spin_mode=spin_mode, smearing=smearing, charge=charge,
-#                                                scf_algorithm=None, nband=scf_nband, **extra_abivars))
-#
-#    print(scf_diffs)
-#    print(extra_abivars)
-#    print(to_add)
 
-    print(scf_diffs)
+    extra_abivars_all = dict(
+        ecut=ecut,
+        paral_kgb=1,
+        istwfk="*1",
+        timopt=-1,
+        nbdbuf=8,
+    )
 
-    multi_scf = MultiDataset(structure, pseudos, ndtset=len(scf_diffs))
-   
+    extra_abivars_all.update(extra_abivars)
+
+    if pseudos.allpaw:
+        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
+
+    extra_abivars_gw = dict(
+        inclvkb=2,
+        gwpara=2,
+        gwmem='10',
+        prtsuscep=0
+    )
+
+
+    # all these too many options are for development only the current idea for the final version is
+    #if gamma:
+    #    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
+    #    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+    #    if kppa <= 13:
+    #        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
+    #    else:
+    #        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
+    #else:
+    #    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+
+    if gamma:
+        if kppa == 1:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(1, 1, 1))
+        elif kppa == 2:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+        elif kppa < 0:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(-kppa, -kppa, -kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
+        elif kppa <= 13:
+            scf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+            nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(kppa, kppa, kppa))
+        else:
+            scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+            nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
+    else:
+        # this is the original behaviour before the devellopment of the gwwrapper
+        scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+        nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+                                   charge=charge, nband=scf_nband, fband=None)
+    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
+                                    charge=charge, nband=nscf_nband, fband=None)
+
+    multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
+
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
+    multi_scf.set_vars(extra_abivars_all)
+    multi_scf.set_vars(_stopping_criterion(runlevel="scf", accuracy=accuracy))
     multi_scf.set_vars(extra_abivars)
-    for vars, abinput in zip(scf_diffs, multi_scf):
-	print(type(vars), type(abinput))
-        abinput.set_vars(vars)   
- 
-#multi_scf.set_vars(smearing.to_abivars())
 
-    multis.append(multi_scf)
+    for variables, abinput in zip(scf_diffs, multi_scf):
+        abinput.set_vars(variables)
 
-    return multis
+    scf_inputs = multi_scf.split_datasets()
+
+    # create nscf inputs
+    ndtset = 3 if nksmall is not None else 1
+    nscf_multi = MultiDataset(structure=structure, pseudos=pseudos, ndtset=ndtset)
+
+    nscf_multi.set_vars(nscf_electrons.to_abivars())
+    nscf_multi.set_vars(extra_abivars_all)
+    nscf_multi.set_vars(_stopping_criterion(runlevel="nscf", accuracy=accuracy))
+
+    nscf_multi[-1].set_vars(nscf_ksampling.to_abivars())
+
+    if nksmall is not None:
+        # if nksmall add bandstructure and dos calculations as well
+        logger.info('added band structure calculation')
+        bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
+        dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
+        nscf_multi[0].set_vars(bands_ksampling.to_abivars())
+        nscf_multi[0].set_vars({'chksymbreak': 0})
+        nscf_multi[1].set_vars(dos_ksampling.to_abivars())
+        nscf_multi[1].set_vars({'chksymbreak': 0})
+
+    nscf_inputs = nscf_multi.split_datasets()
+
+    # create screening and sigma inputs
+
+    if scr_nband is None:
+        scr_nband = nscf_nband
+    if sigma_nband is None:
+        sigma_nband = nscf_nband
+
+    if 'cd' in response_models:
+        hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
+                                        freqremin=None)
+    scr_inputs = []
+    sigma_inputs = []
+
+    for response_model in response_models:
+        for ecuteps_v in ecuteps:
+            for nscf_nband_v in nscf_nband:
+                scr_nband = nscf_nband_v
+                sigma_nband = nscf_nband_v
+                multi = MultiDataset(structure, pseudos, ndtset=2)
+                multi.set_vars(nscf_ksampling.to_abivars())
+                multi.set_vars(nscf_electrons.to_abivars())
+                multi.set_vars(extra_abivars_all)
+                multi.set_vars(extra_abivars_gw)
+                if response_model == 'cd':
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot", hilbert=hilbert,
+                                               ecutwfn=None, inclvkb=inclvkb)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening)
+                else:
+                    ppmodel = response_model
+                    screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot",
+                                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
+                    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
+                                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
+                multi[0].set_vars(screening.to_abivars())
+                multi[0].set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+                multi[1].set_vars(self_energy.to_abivars())
+                multi[1].set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+
+                scr_input, sigma_input = multi.split_datasets()
+                scr_inputs.append(scr_input)
+                sigma_inputs.append(sigma_input)
+
+    return scf_inputs, nscf_inputs, scr_inputs, sigma_inputs
 
 
-def bse_with_mdf_inputs(structure, pseudos, 
-                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-                        ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf, 
-                        ecut=None, pawecutdg=None, 
-                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized", 
+def bse_with_mdf_inputs(structure, pseudos,
+                        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+                        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
+                        ecut=None, pawecutdg=None,
+                        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` object that performs a GS + NSCF + Bethe-Salpeter calculation.
+    Returns a :class:`MultiDataset` object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
-    The screening in modeled with the model dielectric function.
+    The screening is modeled with the model dielectric function.
 
     Args:
         structure: :class:`Structure` object.
@@ -539,7 +644,7 @@ def bse_with_mdf_inputs(structure, pseudos,
             (ABINIT convention i.e. first band starts at 1).
             Can be scalar or array of shape (nsppol,)
         bs_nband: Highest band idex used for the construction of the e-h basis set.
-        soenergy: Scissor energy in Hartree.
+        mbpt_sciss: Scissor energy in Hartree.
         mdf_epsinf: Value of the macroscopic dielectric function used in expression for the model dielectric function.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -559,10 +664,10 @@ def bse_with_mdf_inputs(structure, pseudos,
     d = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
     multi.set_vars(ecut=d.ecut, ecutwfn=d.ecut, pawecutdg=d.pawecutdg)
 
-    # Ground-state 
+    # Ground-state
     scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm, 
+    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
 
     if scf_electrons.nband is None:
@@ -583,7 +688,7 @@ def bse_with_mdf_inputs(structure, pseudos,
     multi[1].set_vars(_stopping_criterion("nscf", accuracy))
 
     # BSE calculation.
-    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, soenergy, coulomb_mode="model_df", ecuteps=ecuteps, 
+    exc_ham = aobj.ExcHamiltonian(bs_loband, bs_nband, mbpt_sciss, coulomb_mode="model_df", ecuteps=ecuteps,
                                   spin_mode=spin_mode, mdf_epsinf=mdf_epsinf, exc_type=exc_type, algo=bs_algo,
                                   bs_freq_mesh=None, with_lf=True, zcut=None)
 
@@ -601,9 +706,8 @@ def bse_with_mdf_inputs(structure, pseudos,
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
-
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
 
     Args:
@@ -613,7 +717,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
             pseudos according to accuracy)
-        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of 
+        scf_nband: Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of
             pseudos, the structure and the smearing option.
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
@@ -637,7 +741,9 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
-    ph_inputs = MultiDataset(gs_inp.structure, pseudos=gs_inp.pseudos, ndtset=len(qpoints))
+    #ph_inputs = MultiDataset(gs_inp.structure, pseudos=gs_inp.pseudos, ndtset=len(qpoints))
+
+    ph_inputs = MultiDataset.replicate_input(gs_inp, ndtset=len(qpoints))
 
     for ph_inp, qpt in zip(ph_inputs, qpoints):
         # Response-function calculation for phonons.
@@ -658,19 +764,16 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         #    #print(pert)
         #    # TODO this will work for phonons, but not for the other types of perturbations.
         #    ph_inp = q_inp.deepcopy()
-
         #    rfdir = 3 * [0]
         #    rfdir[pert.idir -1] = 1
-
         #    ph_inp.set_vars(
         #        rfdir=rfdir,
         #        rfatpol=[pert.ipert, pert.ipert]
         #    )
-
         #    ph_inputs.append(ph_inp)
 
     # Split input into gs_inp and ph_inputs
-    all_inps = [gs_inp] 
+    all_inps = [gs_inp]
     all_inps.extend(ph_inputs.split_datasets())
 
     return all_inps
@@ -679,12 +782,10 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
                          dde_tol=None):
     """
-    Returns a :class:`AbinitInput` for performing phonon calculations.
+    Returns a :class:`MultiDataset` for performing phonon calculations.
     GS input + the input files for the phonon calculation.
     """
-
     gs_inp = gs_inp.deepcopy()
-
     gs_inp.pop_irdvars()
 
     if with_dde:
@@ -700,7 +801,6 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
         ph_ngqpt = np.array(gs_inp["ngkpt"])
 
     qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
-
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
@@ -727,19 +827,104 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     multi = MultiDataset.from_inputs(multi)
     multi.add_tags(PHONON)
 
-    #FIXME for the time being there could be problems in mergeddb if the kpoints grid is gamma centered or if
-    # if the grid is odd. Remove when mergeddb is fixed
+    #FIXME for the time being there could be problems in mergddb if the kpoints grid is gamma centered or if
+    # if the grid is odd. Remove when mergddb is fixed
     multi.set_vars(kptopt=3)
+
+    return multi
+
+
+def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+    """
+    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    GS input + the input files for the elastic and piezoelectric constants calculation.
+
+    Args:
+        gs_inp: Ground State input to build piezo elastic inputs from.
+        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
+        ddk_split: Whether to split the ddk calculations.
+        rf_split: whether to split the RF calculations.
+    """
+    # Ddk input(s)
+    if ddk_split:
+        multi = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
+    else:
+        ddk_inp = gs_inp.deepcopy()
+
+        ddk_inp.set_vars(
+                    rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                    rfdir=(1,1,1),        # All directions
+                    nqpt=1,               # One wavevector is to be considered
+                    qpt=(0, 0, 0),        # q-wavevector.
+                    kptopt=3,             # Take into account time-reversal symmetry.
+                    iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+                    paral_kgb=0
+                )
+        if ddk_tol is None:
+            ddk_tol = {"tolwfr": 1.0e-20}
+
+        if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
+            raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+        ddk_inp.pop_tolerances()
+        ddk_inp.set_vars(ddk_tol)
+        # Adding buffer to help convergence ...
+        if 'nbdbuf' not in ddk_inp:
+            nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
+            ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+
+        multi = MultiDataset.from_inputs([ddk_inp])
+    multi.add_tags(DDK)
+
+    # Response Function input(s)
+    if rf_split:
+        multi_rf = gs_inp.make_strain_perts_inputs(tolerance=rf_tol)
+    else:
+        rf_inp = gs_inp.deepcopy()
+
+        rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
+                        rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
+                        rfstrs=3,                          # Do the strain perturbations
+                        rfdir=(1,1,1),                     # All directions
+                        nqpt=1,                            # One wavevector is to be considered
+                        qpt=(0, 0, 0),                     # q-wavevector.
+                        kptopt=3,                          # Take into account time-reversal symmetry.
+                        iscf=7,                            # The rfstrs perturbation must be treated in a
+                                                           #  self-consistent way
+                        paral_kgb=0
+                        )
+
+        if rf_tol is None:
+            rf_tol = {"tolvrs": 1.0e-12}
+
+        if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
+            raise ValueError("Invalid tolerance: {}".format(rf_tol))
+        rf_inp.pop_tolerances()
+        rf_inp.set_vars(rf_tol)
+
+        # Adding buffer to help convergence ...
+        if 'nbdbuf' not in rf_inp:
+            nbdbuf = max(int(0.1*rf_inp['nband']), 4)
+            rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+
+        multi_rf = MultiDataset.from_inputs([rf_inp])
+    multi_rf.add_tags([DFPT, STRAIN])
+    for inp in multi_rf:
+        if inp.get('rfphon', 0) == 1:
+            inp.add_tags(PHONON)
+
+    multi.extend(multi_rf)
 
     return multi
 
 
 def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None, scf_nband=None,
                              accuracy="normal", spin_mode="polarized",
-                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, ddk_tol=None, rf_tol=None):
+                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                             ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
 
     """
-    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
@@ -756,79 +941,100 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
-        ddk_tol
+        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
+        ddk_split: Whether to split the ddk calculations.
+        rf_split: whether to split the RF calculations.
     """
     # Build the input file for the GS run.
-    gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
+    gs_inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg,
+                       nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                       scf_algorithm=scf_algorithm, shift_mode="Gamma-centered")
 
-    # Set the cutoff energies.
-    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+    # Adding buffer to help convergence ...
+    nbdbuf = max(int(0.1*gs_inp['nband']), 4)
+    gs_inp.set_vars(nband=gs_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
-    ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
-    gs_inp.set_vars(ksampling.to_abivars())
-    gs_inp.set_vars(tolvrs=1.0e-18)
+    multi = MultiDataset.from_inputs([gs_inp])
 
-    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                                   charge=charge, nband=None, fband=None)
+    piezo_elastic_inputs = piezo_elastic_inputs_from_gsinput(gs_inp=gs_inp, ddk_tol=ddk_tol, rf_tol=rf_tol)
 
-    if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
-    gs_inp.set_vars(scf_electrons.to_abivars())
+    multi.extend(piezo_elastic_inputs)
 
-    all_inps = [gs_inp]
+    return multi
 
-    # Add the ddk input
-    ddk_inp = gs_inp.deepcopy()
+    # gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
+    #
+    # # Set the cutoff energies.
+    # gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+    #
+    # ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
+    # gs_inp.set_vars(ksampling.to_abivars())
+    # gs_inp.set_vars(tolvrs=1.0e-18)
+    #
+    # scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
+    #                                charge=charge, nband=None, fband=None)
+    #
+    # if scf_electrons.nband is None:
+    #     scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
+    # gs_inp.set_vars(scf_electrons.to_abivars())
 
-    ddk_inp.set_vars(
-                rfelfd=2,             # Activate the calculation of the d/dk perturbation
-                rfdir=(1,1,1),        # All directions
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
-                iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
-            )
-    if ddk_tol is None:
-        ddk_tol = {"tolwfr": 1.0e-20}
-
-    if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-        raise ValueError("Invalid tolerance: {0}".format(ddk_tol))
-    ddk_inp.pop_tolerances()
-    ddk_inp.set_vars(ddk_tol)
-
-    ddk_inp.add_tags(DDK)
-    all_inps.append(ddk_inp)
-
-    # Add the Response Function calculation
-    rf_inp = gs_inp.deepcopy()
-
-    rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
-                    rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
-                    rfstrs=3,                          # Do the strain perturbations
-                    rfdir=(1,1,1),                     # All directions
-                    nqpt=1,                            # One wavevector is to be considered
-                    qpt=(0, 0, 0),                     # q-wavevector.
-                    kptopt=2,                          # Take into account time-reversal symmetry.
-                    iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
-                    )
-
-    if rf_tol is None:
-        rf_tol = {"tolvrs": 1.0e-12}
-
-    if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-        raise ValueError("Invalid tolerance: {0}".format(rf_tol))
-    rf_inp.pop_tolerances()
-    rf_inp.set_vars(rf_tol)
-
-    rf_inp.add_tags([DFPT, STRAIN])
-    all_inps.append(rf_inp)
-
-    return MultiDataset.from_inputs(all_inps)
+    #
+    # # Add the ddk input
+    # ddk_inp = gs_inp.deepcopy()
+    #
+    # ddk_inp.set_vars(
+    #             rfelfd=2,             # Activate the calculation of the d/dk perturbation
+    #             rfdir=(1,1,1),        # All directions
+    #             nqpt=1,               # One wavevector is to be considered
+    #             qpt=(0, 0, 0),        # q-wavevector.
+    #             kptopt=2,             # Take into account time-reversal symmetry.
+    #             iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+    #         )
+    # if ddk_tol is None:
+    #     ddk_tol = {"tolwfr": 1.0e-20}
+    #
+    # if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
+    #     raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+    # ddk_inp.pop_tolerances()
+    # ddk_inp.set_vars(ddk_tol)
+    #
+    # ddk_inp.add_tags(DDK)
+    # all_inps.append(ddk_inp)
+    #
+    # # Add the Response Function calculation
+    # rf_inp = gs_inp.deepcopy()
+    #
+    # rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
+    #                 rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
+    #                 rfstrs=3,                          # Do the strain perturbations
+    #                 rfdir=(1,1,1),                     # All directions
+    #                 nqpt=1,                            # One wavevector is to be considered
+    #                 qpt=(0, 0, 0),                     # q-wavevector.
+    #                 kptopt=2,                          # Take into account time-reversal symmetry.
+    #                 iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
+    #                 )
+    #
+    # if rf_tol is None:
+    #     rf_tol = {"tolvrs": 1.0e-12}
+    #
+    # if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
+    #     raise ValueError("Invalid tolerance: {}".format(rf_tol))
+    # rf_inp.pop_tolerances()
+    # rf_inp.set_vars(rf_tol)
+    #
+    # rf_inp.add_tags([DFPT, STRAIN])
+    # all_inps.append(rf_inp)
+    #
+    # return MultiDataset.from_inputs(all_inps)
 
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
               shift_mode="Monkhorst-Pack"):
+    """
+    Returns an :class:`AbinitInput` for standard GS calculations.
+    """
     structure = Structure.as_structure(structure)
 
     abinit_input = AbinitInput(structure, pseudos)
@@ -843,11 +1049,12 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=nband, fband=None)
 
-    if spin_mode=="polarized":
+    if spin_mode == "polarized":
         abinit_input.set_autospinat()
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,abinit_input.get('spinat', None))
+        scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,
+                                              abinit_input.get('spinat', None))
 
     abinit_input.set_vars(scf_ksampling.to_abivars())
     abinit_input.set_vars(scf_electrons.to_abivars())
@@ -858,7 +1065,6 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
 def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     """
-
     :param gsinput:
     :param nband:
     :param ndivsm:
@@ -881,10 +1087,27 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     return bands_input
 
 
+def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=False):
+
+    # create a copy to avoid messing with the previous input
+    dos_input = gsinput.deepcopy()
+
+    dos_input.pop_irdvars()
+
+    dos_ksampling = aobj.KSampling.automatic_density(structure, dos_kppa, chksymbreak=0)
+    dos_input.set_vars(dos_ksampling.to_abivars())
+    dos_input.set_vars(iscf=-2, ionmov=0, )
+    dos_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    if pdos:
+        pass
+
+    return dos_input
+
+
 def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 
     ioncell_input = gsinput.deepcopy()
-
     ioncell_input.pop_irdvars()
 
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
@@ -925,21 +1148,44 @@ def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=
     return hybrid_input
 
 
+def hybrid_scf_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+
+    hybrid_input = hybrid_oneshot_input(gsinput=gsinput, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
+
+    hybrid_input['gwcalctyp'] += 10
+
+    return hybrid_input
+
+
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                     shift_mode="Symmetric"):
-    abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
-                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
-                         scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    symmetric_kpt = False
     # set symmetrized k-point
     if shift_mode[0].lower() == 's':
         # need to convert to abipy structure to get the calc_shiftk method
         structure = Structure.from_sites(structure)
         shiftk = structure.calc_shiftk()
+        kppa = int(kppa/len(shiftk))
+        symmetric_kpt = True
+    abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                         accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
+                         scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+
+    nbdbuf = 4
+    # with no smearing set the minimum number of bands plus some nbdbuf
+    if smearing is None:
+        nval = structure.num_valence_electrons(pseudos)
+        nval -= abiinput['charge']
+        nband = int(nval // 2 + nbdbuf)
+        abiinput.set_vars(nband=nband)
+
+    if symmetric_kpt:
         abiinput.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
+
     # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
-    abiinput.set_vars(chksymbreak=1, nbdbuf=4, tolwfr=1.e-22)
+    abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
 
@@ -999,9 +1245,14 @@ class HybridOneShotFromGsFactory(InputFactory):
     factory_function = staticmethod(hybrid_oneshot_input)
 
 
+class HybridScfFromGsFactory(InputFactory):
+    factory_function = staticmethod(hybrid_scf_input)
+
+
 class ScfFactory(InputFactory):
     factory_function = staticmethod(scf_input)
     input_required = False
+
 
 class ScfForPhononsFactory(InputFactory):
     factory_function = staticmethod(scf_for_phonons)
@@ -1010,3 +1261,12 @@ class ScfForPhononsFactory(InputFactory):
 
 class PhononsFromGsFactory(InputFactory):
     factory_function = staticmethod(phonons_from_gsinput)
+
+
+class PiezoElasticFactory(InputFactory):
+    factory_function = staticmethod(scf_piezo_elastic_inputs)
+    input_required = False
+
+
+class PiezoElasticFromGsFactory(InputFactory):
+    factory_function = staticmethod(piezo_elastic_inputs_from_gsinput)

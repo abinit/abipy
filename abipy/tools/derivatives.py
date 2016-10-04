@@ -90,7 +90,22 @@ for ord, v in forward_fdiff_weights.items():
 
 
 def finite_diff(arr, h, order=1, acc=4):
+    """
+    Compute the derivative of order `order` by finite difference.
+    For each point in arr, the function tries to use central differences
+    and fallbacks to forward/backward approximations for points that are close to the extrema.
+    Note that high accuracy levels can fail and raise `ValueError` if not enough points
+    are available in `arr`.
 
+    Args:
+        arr: Input array with y-values.
+        h: Spacing along x
+        order: Derivative order
+        acc: accuracy level.
+
+    Return:
+        numpy array.
+    """
     arr = np.asarray(arr)
 
     if np.iscomplexobj(arr):
@@ -101,7 +116,6 @@ def finite_diff(arr, h, order=1, acc=4):
         centr_ws = central_fdiff_weights[order][acc]
         forw_ws = forward_fdiff_weights[order][acc]
         back_ws = backward_fdiff_weights[order][acc]
-
     except KeyError:
         raise ValueError("Weights for order %s, accuracy %s are missing!" % (order, acc))
 
@@ -113,15 +127,31 @@ def finite_diff(arr, h, order=1, acc=4):
     for i in range(n):
         start = i - cpad
         stop = i + cpad + 1
+
         if start >= 0 and stop <= n:
+            # Can do central difference.
             ders[i] = npsum(centr_ws * arr[start:stop])
+
         elif start < 0:
+            # Try forward.
             stop = i + len(forw_ws)
+            if stop > n:
+                raise ValueError(
+                    ("Don't have enough points for index=%s in array of len=%s\n"
+                     "to compute foward finite difference with order=%s, and acc=%s (nweights=%s)\n"
+                     "Decrease acc or increase the sampling" % (i, n, order, acc, len(forw_ws))
+                    ))
             ders[i] = npsum(forw_ws * arr[i:stop])
+
         elif stop > n:
+            # Try backward.
             start = i - len(back_ws) + 1
+            if start < 0:
+                raise ValueError(
+                    ("Don't have enough points for index=%s in array of len=%s\n"
+                     "to compute backward finite difference with order=%s, and acc=%s (nweights=%s)\n"
+                     "Decrease acc or increase the sampling" % (i, n, order, acc, len(back_ws))
+                    ))
             ders[i] = npsum(back_ws * arr[start:i+1])
 
     return ders/(h**order)
-
-

@@ -4,10 +4,11 @@ from __future__ import print_function, division
 
 import tempfile
 import numpy as np
-import abipy.data as data 
+import abipy.data as data
 
 from abipy.core.testing import *
 from abipy.iotools.xsf import *
+
 
 class TestXsfUtils(AbipyTest):
     """Unit tests for Density."""
@@ -75,7 +76,7 @@ END_BLOCK_DATAGRID_3D
         tmp_file.seek(0)
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
 
-        # Complex array will raise TypeError since we should specify the type. 
+        # Complex array will raise TypeError since we should specify the type.
         cplx_data = np.array(data, dtype=np.complex)
 
         with self.assertRaises(TypeError):
@@ -90,9 +91,7 @@ END_BLOCK_DATAGRID_3D
         tmp_file = tempfile.TemporaryFile(mode="w+")
 
         nsppol, nband, ndivs, fermie = 1, 2, (2,2,2), 0.0
-
         energies = np.arange(nsppol * nband * np.product(ndivs))
-
         bxsf_write(tmp_file, self.mgb2, nsppol, nband, ndivs, energies, fermie, unit="Ha")
 
         xsf_string = \

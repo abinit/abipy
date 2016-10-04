@@ -57,7 +57,7 @@ through one of the following python distributions::
 
 Anaconda is the recommended approach.
 Additional information on the steps required to install python with anaconda are available
-here :ref:`_howto_anaconda`.
+in the `anaconda howto <http://pythonhosted.org/abipy/users/howto_anaconda.html>`_.
 
 Developmental version
 ---------------------

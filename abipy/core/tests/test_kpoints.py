@@ -8,9 +8,10 @@ import numpy as np
 import abipy.data as data
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader, 
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
                                 as_kpoints, rc_list, kmesh_from_mpdivs,)
 from abipy.core.testing import *
+
 
 class TestWrapWS(AbipyTest):
 
@@ -37,6 +38,7 @@ class TestWrapBZ(AbipyTest):
         self.assertAlmostEqual(wrap_to_bz( 3.2), 0.2)
         self.assertAlmostEqual(wrap_to_bz(-3.2), 0.8)
 
+
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
 
@@ -56,7 +58,6 @@ class TestKpoint(AbipyTest):
         #assert np.all(np.array(X) == X.frac_coords)
 
         self.serialize_with_pickle(X, protocols=[-1])
-
         self.assert_almost_equal(X.versor().norm, 1.0)
 
         self.assertTrue(X[0] == 0.5)
@@ -113,29 +114,39 @@ class TestKpointList(AbipyTest):
 
         klist = KpointList(lattice, frac_coords, weights=weights)
 
-        self.assertTrue(klist.sum_weights() == 1)
-        self.assertTrue(len(klist) == 3)
+        self.serialize_with_pickle(klist, protocols=[-1])
+        self.assertMSONable(klist, test_if_subclass=False)
+
+        assert klist.sum_weights() == 1
+        assert len(klist) == 3
 
         for i, kpoint in enumerate(klist):
-            self.assertTrue(kpoint in klist)
-            self.assertTrue(klist.count(kpoint) == 1)
-            self.assertTrue(klist.find(kpoint) == i)
+            assert kpoint in klist
+            assert klist.count(kpoint) == 1
+            assert klist.find(kpoint) == i
 
         # Changing the weight of the Kpoint object should change the weights of klist.
         for kpoint in klist: kpoint.set_weight(1.0)
-        self.assertTrue(np.all(klist.weights == 1.0))
+        assert np.all(klist.weights == 1.0)
+
+        # Test find_closest
+        iclose, kclose, dist = klist.find_closest([0, 0, 0])
+        assert iclose == 0 and dist == 0.
+
+        iclose, kclose, dist = klist.find_closest(Kpoint([0.001, 0.002, 0.003], klist.reciprocal_lattice))
+        assert iclose == 0
+        self.assert_almost_equal(dist, 0.001984943324127921)
 
         frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
-                                                                  
         other_klist = KpointList(lattice, frac_coords)
 
         # Test __add__
-        add_klist = klist + other_klist 
+        add_klist = klist + other_klist
 
         for k in itertools.chain(klist, other_klist):
-            self.assertTrue(k in add_klist)
+            assert k in add_klist
 
-        self.assertTrue(add_klist.count([0,0,0]) == 2)
+        assert add_klist.count([0,0,0]) == 2
 
         # Remove duplicated k-points.
         add_klist = add_klist.remove_duplicated()
@@ -146,14 +157,13 @@ class TestKpointList(AbipyTest):
 
 class TestKpointsReader(AbipyTest):
 
-    @unittest.expectedFailure
     def test_reading(self):
         """Test the reading of Kpoints from netcdf files."""
 
         filenames = [
             "si_scf_GSR.nc",
             "si_nscf_GSR.nc",
-            "si_scf_WFK-etsf.nc",
+            "si_scf_WFK.nc",
         ]
 
         for fname in filenames:
@@ -162,15 +172,31 @@ class TestKpointsReader(AbipyTest):
 
             with KpointsReader(filepath) as r:
                 kpoints = r.read_kpoints()
+                print(kpoints)
 
                 if "_scf" in fname:
                     # expecting a homogeneous sampling.
-                    self.assertTrue(kpoints.is_homogeneous)
-                    self.assertTrue(kpoints.sum_weights() == 1.0)
+                    assert not kpoints.is_path
+                    assert kpoints.is_ibz
+                    assert kpoints.sum_weights() == 1.0
+                    assert kpoints.ksampling.kptopt == 1
+                    mpdivs, shifts = kpoints.mpdivs_shifts
+                    assert np.all(mpdivs == [8, 8, 8])
+                    assert len(shifts) == 1 and np.all(shifts[0] == [0, 0, 0])
 
                 elif "_nscf" in fname:
                     # expecting a path in k-space.
-                    self.assertTrue(kpoints.is_path)
+                    assert kpoints.is_path
+                    assert not kpoints.is_ibz
+                    assert kpoints.ksampling.kptopt == -2
+                    mpdivs, shifts = kpoints.mpdivs_shifts
+                    assert mpdivs is None
+                    assert len(kpoints.lines) == abs(kpoints.ksampling.kptopt)
+
+            # Test pickle and json
+            self.serialize_with_pickle(kpoints)
+            self.assertMSONable(kpoints, test_if_subclass=False)
+
 
 class KmeshTest(AbipyTest):
     def test_rc_list(self):
@@ -178,13 +204,13 @@ class KmeshTest(AbipyTest):
         # Special case mp=1
         rc = rc_list(mp=1, sh=0.0, pbc=False, order="unit_cell")
         self.assert_equal(rc, [0.0])
-                                                                   
+
         rc = rc_list(mp=1, sh=0.0, pbc=True, order="unit_cell")
         self.assert_equal(rc, [0.0, 1.0])
-                                                                   
+
         rc = rc_list(mp=1, sh=0.0, pbc=False, order="bz")
         self.assert_equal(rc, [0.0])
-                                                                  
+
         rc = rc_list(mp=1, sh=0.0, pbc=True, order="bz")
         self.assert_equal(rc, [0.0, 1.0])
 
@@ -197,16 +223,16 @@ class KmeshTest(AbipyTest):
 
         rc = rc_list(mp=2, sh=0, pbc=False, order="bz")
         self.assert_equal(rc, [-0.5, 0.0])
-                                                                
+
         rc = rc_list(mp=2, sh=0, pbc=True, order="bz")
         self.assert_equal(rc, [-0.5,  0.,  0.5])
 
         rc = rc_list(mp=2, sh=0.5, pbc=False, order="unit_cell")
         self.assert_equal(rc, [0.25, 0.75])
-                                                                 
+
         rc = rc_list(mp=2, sh=0.5, pbc=True, order="unit_cell")
         self.assert_equal(rc, [0.25,  0.75, 1.25])
-        
+
         rc = rc_list(mp=2, sh=0.5, pbc=False, order="bz")
         self.assert_equal(rc, [-0.25,  0.25])
 
@@ -216,25 +242,25 @@ class KmeshTest(AbipyTest):
         # Odd mp
         rc = rc_list(mp=3, sh=0, pbc=False, order="unit_cell")
         self.assert_almost_equal(rc, [0.,  0.33333333,  0.66666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0, pbc=True, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.,  0.33333333,  0.66666667,  1.])
 
         rc = rc_list(mp=3, sh=0, pbc=False, order="bz")
         self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333])
-                                                                
+
         rc = rc_list(mp=3, sh=0, pbc=True, order="bz")
         self.assert_almost_equal(rc, [-0.33333333,  0.,  0.33333333,  0.66666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0.5, pbc=False, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.16666667, 0.5, 0.83333333])
-                                                                 
+
         rc = rc_list(mp=3, sh=0.5, pbc=True, order="unit_cell")
         self.assert_almost_equal(rc, [ 0.16666667, 0.5,  0.83333333, 1.16666667])
-    
+
         rc = rc_list(mp=3, sh=0.5, pbc=False, order="bz")
         self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667])
-                                                                  
+
         rc = rc_list(mp=3, sh=0.5, pbc=True, order="bz")
         self.assert_almost_equal(rc, [-0.5, -0.16666667,  0.16666667,  0.5])
 
@@ -243,7 +269,7 @@ class KmeshTest(AbipyTest):
         mpdivs, shifts = [1,2,3], [0,0,0]
 
         # No shift, no pbc.
-        kmesh = kmesh_from_mpdivs(mpdivs, shifts, order="unit_cell") 
+        kmesh = kmesh_from_mpdivs(mpdivs, shifts, order="unit_cell")
 
         ref_string = \
 """[[ 0.          0.          0.        ]
@@ -255,7 +281,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(kmesh), ref_string)
 
         # No shift, with pbc.
-        pbc_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="unit_cell") 
+        pbc_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="unit_cell")
 
         ref_string = \
 """[[ 0.          0.          0.        ]
@@ -285,7 +311,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(pbc_kmesh), ref_string)
 
         # No shift, no pbc, bz order
-        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz") 
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz")
 
         ref_string = \
 """[[ 0.         -0.5        -0.33333333]
@@ -297,7 +323,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
 
         # No shift, pbc, bz order
-        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="bz") 
+        bz_kmesh = kmesh_from_mpdivs(mpdivs, shifts, pbc=True, order="bz")
 
         ref_string = \
 """[[ 0.         -0.5        -0.33333333]
@@ -325,8 +351,3 @@ class KmeshTest(AbipyTest):
  [ 1.          0.5         0.33333333]
  [ 1.          0.5         0.66666667]]"""
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

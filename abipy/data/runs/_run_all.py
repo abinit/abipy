@@ -37,7 +37,7 @@ def main():
 
     parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
 
-    parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts.")
+    parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts. Comma-separated names")
 
     parser.add_argument('-x', '--execute', default=False, action="store_true", help="Execute flows.")
 
@@ -60,7 +60,7 @@ def main():
 
     # Find scripts.
     if options.exclude:
-        options.exclude = options.exclude.split()
+        options.exclude = options.exclude.split(",")
         print("Will exclude:\n", options.exclude)
 
     dir = os.path.join(os.path.dirname(__file__))
@@ -73,7 +73,7 @@ def main():
                 scripts.append(path)
 
     # Run scripts according to mode.
-    dirpaths, errors, retcode = [], [], 0
+    dirpaths, errors, retcode, cnt = [], [], 0, 0
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             # flow will be produced in a temporary workdir.
@@ -93,10 +93,13 @@ def main():
 
             # Here we execute the flow
             if options.execute:
+                cnt += 1
                 ret = 0
                 try:
                     flow = Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
+                    if not flow.all_ok: retcode += 1
+
                 except Exception as exc:
                     ret += 1
                     s = "Exception raised during flow execution: %s\n:%s" % (flow, exc)
@@ -124,7 +127,7 @@ def main():
             print("[%d] %s" % (i, err))
             print(92 * "=")
 
-    print("retcode %d" % retcode)
+    print("Number of scripts executed %d/%d" % (cnt, len(scripts)), ", final retcode %d" % retcode)
     return retcode
 
 

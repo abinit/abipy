@@ -121,7 +121,7 @@ def get_vasp_environment(calculation_type='standard'):
             'mpi_runner_ntasks_option': get_mpi_runner_ntasks_keyword(vasp_mpi_runner)}
 
 
-class VaspGWTask(FireTaskBase, FWSerializable):
+class VaspGWTask(object):  # (FireTaskBase, FWSerializable):
     """
     Base class for vasp GW tasks
     """
@@ -212,15 +212,15 @@ class VaspGWExecuteTask(VaspGWTask):
     def run_task(self, fw_spec):
         name = self.get_system() + self.job
         logging.basicConfig(filename=os.path.join(self.get_launch_dir(), name + '.log'), level=logging.DEBUG)
-        vasp_exe = get_vasp_environment()['vasp_exe']
-        vasp_mpi_executer = get_vasp_environment()['vasp_mpi_executer']
-        n_tasks = GWG0W0VaspInputSet(self.structure).get_npar(self.structure)
+        # vasp_exe = get_vasp_environment()['vasp_exe']
+        # vasp_mpi_executer = get_vasp_environment()['vasp_mpi_executer']
+        # n_tasks = GWG0W0VaspInputSet(self.structure).get_npar(self.structure)
 
         frontend_serial = True
         custodian = False
 
         if frontend_serial:
-            #fake run, no actual vasp execution
+            # fake run, no actual vasp execution
             base = os.getcwdu()
             abs_work_dir = os.path.join(base, self.get_launch_dir())
             os.chdir(abs_work_dir)
@@ -228,7 +228,7 @@ class VaspGWExecuteTask(VaspGWTask):
             subprocess.call(cmd)
             os.chdir(base)
         elif custodian:
-            mpirunvasp = [vasp_mpi_executer, '-np', n_tasks, vasp_exe]
+            # mpirunvasp = [vasp_mpi_executer, '-np', n_tasks, vasp_exe]
             pass
 
         return FWAction()
@@ -256,7 +256,8 @@ class VaspGWTestConTask(VaspGWTask):
     def __init__(self, parameters):
         VaspGWTask.__init__(self, parameters)
 
-    def get_n_pev_runs(self):
+    @staticmethod
+    def get_n_pev_runs():
         """
         return the number of values that have already been calculated for this convergence parameter
         """

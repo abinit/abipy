@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-from __future__ import print_function
+from __future__ import print_function, unicode_literals, division, absolute_import
 import sys
 
 from abipy.data import AbinitFilesGenerator
+
 
 class MyGenerator(AbinitFilesGenerator):
     """This class generates the output files used in the unit tests and in the examples."""
@@ -16,8 +17,5 @@ class MyGenerator(AbinitFilesGenerator):
     }
 
 
-def main():
-    return MyGenerator().run()
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(MyGenerator().run())
