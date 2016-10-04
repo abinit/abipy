@@ -126,10 +126,12 @@ class PspsFile(AbinitNcFile):
         linewidth = kwargs.pop("linewidth", 2.0)
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
 
+        scale = None
+        scale = 1.0
         for rmesh, mcores in zip(rmeshes, coresd):
             for der, values in enumerate(mcores):
                 if der not in ders: continue
-                yvals, fact, = rescale(values)
+                yvals, fact, = rescale(values, scale=scale)
                 ax.plot(rmesh, yvals, color=self.color_der[der], linewidth=linewidth,
                         linestyle=self.linestyles_der[der],
                         label=mklabel("\\tilde{n}_c", der, "r") + " x %.4f" % fact)
@@ -163,11 +165,13 @@ class PspsFile(AbinitNcFile):
         #print(qmesh, tcore_spl)
         ecuts = 2 * (np.pi * qmesh)**2
         lines = []
+        scale = 1.0
+        scale = None
         for atype, tcore_atype in enumerate(tcore_spl):
             for der, values in enumerate(tcore_atype):
                 if der == 1: der = 2
                 if der not in ders: continue
-                yvals, fact = rescale(values)
+                yvals, fact = rescale(values, scale=scale)
 
                 label = mklabel("\\tilde{n}_{c}", der, "q")
                 if with_fact: label += " x %.4f" % fact
@@ -177,7 +181,7 @@ class PspsFile(AbinitNcFile):
                 lines.append(line)
 
                 if with_qn and der == 0:
-                    yvals, fact = rescale(qmesh * values)
+                    yvals, fact = rescale(qmesh * values, scale=scale)
                     line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                                   label=mklabel("q f", der, "q") + " x %.4f" % fact)
 
@@ -210,12 +214,14 @@ class PspsFile(AbinitNcFile):
 
         qmesh, vlspl = self.reader.read_vlspl()
         ecuts = 2 * (np.pi * qmesh)**2
+        scale = 1.0
+        scale = None
         for atype, vl_atype in enumerate(vlspl):
             for der, values in enumerate(vl_atype):
                 if der == 1: der = 2
                 if der not in ders: continue
 
-                yvals, fact = rescale(values)
+                yvals, fact = rescale(values, scale=scale)
                 label = mklabel("v_{loc}", der, "q")
                 if with_fact: label += " x %.4f" % fact
 
@@ -223,7 +229,7 @@ class PspsFile(AbinitNcFile):
                         linestyle=self.linestyles_der[der], label=label)
 
                 if with_qn and der == 0:
-                    yvals, fact = rescale(qmesh * values)
+                    yvals, fact = rescale(qmesh * values, scale=scale)
                     ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
                             label="q*f(q) x %2.f" % fact)
 
@@ -290,6 +296,7 @@ class PspsFile(AbinitNcFile):
         if kwargs.get("with_legend", False): ax.legend(loc="best")
 
         ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
+        fig.tight_layout()
 
         return fig
 
