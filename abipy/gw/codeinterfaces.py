@@ -348,15 +348,15 @@ class AbinitInterface(AbstractCodeInterface):
             # return the gap at gamma
             data = NetcdfReader(gwrun)
             data.print_tree()
-            if not isinstance(data.read_value('ecuteps'), collections.Iterable):
+            if not isinstance(data.read_value('ecuteps'), (list, tuple)):
                 ecuteps = data.read_value('ecuteps')
-            elif not isinstance(data.read_value('ecuteps')[0], collections.Iterable):
+            elif not isinstance(data.read_value('ecuteps')[0], (list, tuple)):
                 ecuteps = data.read_value('ecuteps')[0]
             else:
                 raise Exception
-            if not isinstance(data.read_value('sigma_nband'), collections.Iterable):
+            if not isinstance(data.read_value('sigma_nband'), (list, tuple)):
                 sigma_nband = data.read_value('sigma_nband')
-            elif not isinstance(data.read_value('sigma_nband')[0], collections.Iterable):
+            elif not isinstance(data.read_value('sigma_nband')[0], (list, tuple)):
                 sigma_nband = data.read_value('sigma_nband')[0]
             else:
                 raise Exception
@@ -374,9 +374,9 @@ class AbinitInterface(AbstractCodeInterface):
             data = NetcdfReader(scfruneig)
             out = NetcdfReader(scfrunout)
             if data.read_value('Eigenvalues')[0][0][-1] < 2.0:  # bad way to select only the scf results ..
-                if not isinstance(out.read_value('ecut'), collections.Iterable):
+                if not isinstance(out.read_value('ecut'), (list, tuple)):
                     ecut = out.read_value('ecut')
-                elif not isinstance(out.read_value('ecut')[0], collections.Iterable):
+                elif not isinstance(out.read_value('ecut')[0], (list, tuple)):
                     ecut = out.read_value('ecut')[0]
                 else:
                     raise Exception

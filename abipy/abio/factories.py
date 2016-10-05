@@ -443,7 +443,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_nband: number of scf bands
         ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
-        nscf_nband: Number of bands included in the NSCF run.
+        nscf_nband: Number of bands included in the NSCF run. A list of values will result in screening and sigma inputs
+        for the individual values
         ecuteps: Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         accuracy: Accuracy of the calculation.
@@ -536,12 +537,20 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
+#    if isinstance(nscf_nband, (list, tuple)):
+#        nscf_nband_nscf = max(nscf_nband)
+#        nscf_nband_list = nscf_nband
+#    else:
+#        nscf_nband_nscf = nscf_nband
+
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                    charge=charge, nband=nscf_nband, fband=None)
+                                    charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
+
+    print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -578,16 +587,19 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # create screening and sigma inputs
 
-    if scr_nband is None:
-        scr_nband = nscf_nband
-    if sigma_nband is None:
-        sigma_nband = nscf_nband
+#    if scr_nband is None:
+#        scr_nband = nscf_nband_nscf
+#   if sigma_nband is None:
+#        sigma_nband = nscf_nband_nscf
 
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
                                         freqremin=None)
     scr_inputs = []
     sigma_inputs = []
+
+    print(ecuteps)
+    print(nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
