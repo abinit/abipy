@@ -235,7 +235,7 @@ class SingleAbinitGWWork:
         if self.spec['converge'] and not self.all_converged:
             # (2x2x2) gamma centered mesh for the convergence test on nbands and ecuteps
             # if kp_in is present in the specs a kp_in X kp_in x kp_in mesh is used for the convergence study
-            if 'kp_in' in self.spec.data.keys():
+            if 'kp_in' in self.spec.keys():
                 if self.spec['kp_in'] > 9:
                     print('WARNING:\nkp_in should be < 13 to generate an n x n x n mesh\nfor larger values a grid with '
                           'density kp_in will be generated')

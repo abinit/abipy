@@ -352,6 +352,11 @@ class GWworksTests(PymatgenTest):
                                    27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27, 30, 27,
                                    30, 27, 30])
 
+        ngkpts = [dict(task.input.as_dict()['abi_args'])['ngkpt'] for task in flow[0]]
+
+        for ngkpt in ngkpts:
+            self.assertEqual(ngkpt, [2, 2, 2])
+
         self.assertEqual(flow.build_and_pickle_dump(), 0)
 
         # some more tests
