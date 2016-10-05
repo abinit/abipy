@@ -235,7 +235,7 @@ class SingleAbinitGWWork:
         if self.spec['converge'] and not self.all_converged:
             # (2x2x2) gamma centered mesh for the convergence test on nbands and ecuteps
             # if kp_in is present in the specs a kp_in X kp_in x kp_in mesh is used for the convergence study
-            if 'kp_in' in self.spec.keys():
+            if 'kp_in' in self.spec.data.keys():
                 if self.spec['kp_in'] > 9:
                     print('WARNING:\nkp_in should be < 13 to generate an n x n x n mesh\nfor larger values a grid with '
                           'density kp_in will be generated')
@@ -355,7 +355,7 @@ class SingleAbinitGWWork:
         logger.info('nscf_nb : %s ' % str(nscf_nband))
         inputs = g0w0_convergence_inputs(abi_structure, self.pseudo_table, kppa, nscf_nband, ecuteps, ecutsigx,
                                          scf_nband, ecut, accuracy="normal", spin_mode="unpolarized", smearing=None,
-                                         response_models=response_models, charge=0.0, sigma_nband=None, scr_nband=None,
+                                         response_models=response_models, charge=0.0,
                                          gamma=gamma, nksmall=nksmall, extra_abivars=extra_abivars)
 
         work = G0W0Work(scf_inputs=inputs[0], nscf_inputs=inputs[1], scr_inputs=inputs[2], sigma_inputs=inputs[3])
