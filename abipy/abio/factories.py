@@ -431,8 +431,8 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
 
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
-                            response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                            sigma_nband=None, gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
+                            response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2,
+                            gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
     """
     Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.
 
@@ -443,8 +443,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_nband: number of scf bands
         ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
-        nscf_nband: Number of bands included in the NSCF run.
-        ecuteps: Cutoff energy [Ha] for the screening matrix.
+        nscf_nband: a list of number of bands included in the screening and sigmaruns. The NSCF run will be done on the
+            maximum
+        ecuteps: list of Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
@@ -452,8 +453,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
         inclvkb: Treatment of the dipole matrix elements (see abinit variable).
-        scr_nband: Number of bands used to compute the screening (default is nscf_nband)
-        sigma_nband: Number of bands used to compute the self-energy (default is nscf_nband)
         response_models: List of response models
         gw_qprange: selectpr for the qpoint mesh
         gamma: is true a gamma centered mesh is enforced
@@ -474,7 +473,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         if k[-2:] == '_s':
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)
-            #to_add.update({k: values[-1]})
+            # to_add.update({k: values[-1]})
             for value in values:
                 diff_abivars = dict()
                 diff_abivars[var] = value
@@ -536,12 +535,15 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
+
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                    charge=charge, nband=nscf_nband, fband=None)
+                                    charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
+
+    print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -578,16 +580,19 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # create screening and sigma inputs
 
-    if scr_nband is None:
-        scr_nband = nscf_nband
-    if sigma_nband is None:
-        sigma_nband = nscf_nband
+#    if scr_nband is None:
+#        scr_nband = nscf_nband_nscf
+#   if sigma_nband is None:
+#        sigma_nband = nscf_nband_nscf
 
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
                                         freqremin=None)
     scr_inputs = []
     sigma_inputs = []
+
+    print(ecuteps)
+    print(nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:

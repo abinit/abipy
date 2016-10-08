@@ -122,17 +122,32 @@ class FactoryTest(AbipyTest):
         self.assertEqual(inputs[2][0]['optdriver'], 3)
         self.assertEqual(inputs[3][0]['optdriver'], 4)
 
-    def test_convergence_inputs_conve(self):
+    def test_convergence_inputs_conv(self):
         """Testing g0w0_convergence_input factory convergence calculation."""
         scf_kppa, scf_nband, nscf_nband = 10, 10, [10, 12, 14]
         ecuteps, ecutsigx = [2, 3, 4], 2
 
         inputs = g0w0_convergence_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         extra_abivars={'ecut_s': [2, 4, 6]}, scf_nband=scf_nband, ecut=2, nksmall=20)
+                                         extra_abivars={'ecut_s': [6, 4, 2]}, scf_nband=scf_nband, ecut=2, nksmall=20)
 
         inputs_flat = [item for sublist in inputs for item in sublist]
 
         self.assertEqual(len(inputs_flat), 24)
+        nbands = [inp['nband'] for inp in inputs_flat]
+        print(nbands)
+        ecuteps = [inp.get('ecuteps', None) for inp in inputs_flat]
+        print(ecuteps)
+        ecuts = [inp.get('ecut', None) for inp in inputs_flat]
+        print(ecuts)
+
+        self.assertEqual(nbands, [10, 10, 10, 14, 14, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14, 10, 12, 14,
+                                  10, 12, 14])
+        self.assertEqual(ecuteps, [None, None, None, None, None, None, 2, 2, 2, 3, 3, 3, 4, 4, 4, 2, 2, 2, 3, 3, 3, 4,
+                                   4, 4])
+        self.assertEqual(ecuts, [6, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+
+        self.assertEqual(inputs_flat[-1]['ecuteps'], 4)
+        self.assertEqual(inputs_flat[-1]['nband'], 14)
 
         for inp in [item for sublist in inputs for item in sublist]:
             val = inp.abivalidate()
