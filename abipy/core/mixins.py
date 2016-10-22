@@ -6,11 +6,14 @@ import abc
 import os
 import six
 import collections
+import tempfile
 
 from time import ctime
 from monty.os.path import which
 from monty.string import is_string
 from monty.functools import lazy_property
+
+from abipy.iotools.cube import cube_read_structure_mesh_data
 from pymatgen.io.abinit.events import EventsParser
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 from pymatgen.io.abinit.abitimer import AbinitTimerParser
@@ -316,6 +319,206 @@ class OutNcFile(AbinitNcFile):
             if v is not None: continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
+
+
+@six.add_metaclass(abc.ABCMeta)
+class AbinitFortranFile(_File):
+    """
+    Abstract class representing a fortran file containing
+    output data from abinit.
+    """
+
+    def close(self):
+        pass
+
+
+class DensityFortranFile(AbinitFortranFile):
+    """
+    Class representing the _DEN fortran file containing density.
+    Provides methods to run Cut3D.
+    """
+
+    def _convert(self, cut3d_input, workdir=None):
+        """
+        Internal function to run a conversion using cut3d.
+        """
+
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
+
+        # local import to avoid circular references
+        from pymatgen.io.abinit.wrappers import Cut3D
+        outfile, converted_file = Cut3D().cut3d(cut3d_input, workdir)
+
+        return converted_file
+
+    def get_cube(self, out_filepath, workdir=None):
+        """
+        Runs cut3d to convert the density to the cube format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (CubeFile) the converted file as a CubeFile object.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return CubeFile(self._convert(cut3d_input=Cut3DInput.den_to_cube(self.filepath, out_filepath),
+                                      workdir=workdir))
+
+    def get_xsf(self, out_filepath, shift=None, workdir=None):
+        """
+        Runs cut3d to convert the density to the xsf format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            shift: a list of three integers defining the shift along the x, y, z axis. None if no shift is required.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (string) path to the converted file.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return self._convert(cut3d_input=Cut3DInput.den_to_xsf(self.filepath, output_filepath=out_filepath, shift=shift),
+                             workdir=workdir)
+
+    def get_tecplot(self, out_filepath, workdir=None):
+        """
+        Runs cut3d to convert the density to the tecplot format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (string) path to the converted file.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return self._convert(cut3d_input=Cut3DInput.den_to_tecplot(self.filepath, out_filepath), workdir=workdir)
+
+    def get_molekel(self, out_filepath, workdir=None):
+        """
+        Runs cut3d to convert the density to the molekel format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (string) path to the converted file.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return self._convert(cut3d_input=Cut3DInput.den_to_molekel(self.filepath, out_filepath), workdir=workdir)
+
+    def get_3d_indexed(self, out_filepath, workdir=None):
+        """
+        Runs cut3d to convert the density to the 3D indexed format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (string) path to the converted file.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath), workdir=workdir)
+
+    def get_3d_formatted(self, out_filepath, workdir=None):
+        """
+        Runs cut3d to convert the density to the 3D formatted format
+
+        Args:
+            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (string) path to the converted file.
+        """
+        from abipy.abio.inputs import Cut3DInput
+        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath), workdir=workdir)
+
+    def get_hirshfeld(self, structure, all_el_dens_paths=None, fhi_all_el_path=None, workdir=None):
+        """
+        Runs cut3d to get the Hirshfeld charges. Requires all-electron density files, so at least one source
+        should be specified (all_el_dens_paths or fhi_all_el_path)
+
+        Args:
+            structure: a Structure object representing the structure used to generate the density
+            all_el_dens_paths: a list of paths to the all-electron density files correspinding to the elements defined
+                in the abinit input.
+            fhi_all_el_path: path to the folder containing the fhi all-electron density files that will be used
+                to automatically determine the path of the required densities.
+            workdir: directory where cut3d is executed.
+
+        Returns:
+            (HirshfeldCharges) the calculated Hirshfeld charges.
+        """
+        if all_el_dens_paths is None and fhi_all_el_path is None:
+            raise ValueError("At least one source of all electron densities should be provided")
+
+        # local import to avoid circular references
+        from pymatgen.io.abinit.wrappers import Cut3D
+        from abipy.abio.inputs import Cut3DInput
+
+        if all_el_dens_paths is not None:
+            cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
+        else:
+            cut3d_input = Cut3DInput.hirshfeld_from_fhi_path(self.filepath, structure, fhi_all_el_path)
+
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
+
+        cut3d = Cut3D()
+
+        outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
+
+        from abipy.electrons.charges import HirshfeldCharges
+
+        hc = HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
+
+        return hc
+
+
+class CubeFile(_File):
+    """
+
+    .. attribute:: structure
+
+        :class:`Structure` object
+
+    .. attribute:: mesh
+
+        :class:`Mesh3d` object with information on the uniform 3d mesh.
+
+    .. attribute:: data
+
+        numpy array of shape [nx, ny, nz] with numerical values on the real-space mesh.
+    """
+    def __init__(self, filepath):
+        from abipy.iotools.cube import cube_read_structure_mesh_data
+        super(CubeFile, self).__init__(filepath)
+        self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
+
+    def close(self):
+        """nop, just to fulfill the abstract interface."""
+
+    #@classmethod
+    #def write_structure_mesh_data(cls, path, structure, mesh, data):
+    #    with open(path, "wt") as fh:
+    #        cube_write_structure_mesh(fh, structure, mesh)
+    #        cube_write_data(fh, data, mesh):
 
 
 @six.add_metaclass(abc.ABCMeta)

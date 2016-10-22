@@ -2416,3 +2416,199 @@ class OpticInput(AbstractInput):
         #task = AbinitTask.temp_shell_task(inp=self)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+
+
+class Cut3DInput(MSONable, object):
+    """
+    This object stores the options to run a single cut3d analysis.
+    """
+    def __init__(self, infile_path=None, output_filepath=None, options=None):
+        """
+        Args:
+            infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
+                None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            options: a list of strings that defines the options to be passed to cut3d
+        """
+        self.infile_path = infile_path
+        self.output_filepath = output_filepath
+        self.options = options
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
+        """Returns a string with the input."""
+        lines = [self.infile_path]
+        lines.extend(self.options)
+        return '\n'.join(lines)
+
+    def write(self, filepath):
+        """Writes the input to a file."""
+        if self.infile_path is None or self.options is None:
+            raise ValueError("Infile path and options should be provided")
+
+        with open(filepath, 'w') as f:
+            f.write(self.to_string())
+
+    @classmethod
+    def _convert(cls, infile_path, output_filepath, out_option):
+        """
+        Generic function used to generate the input for convertions using cut3d
+        Args:
+            infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
+                None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            out_option: a number corresponding to the required converting option in cut3d
+        """
+        options = [str(out_option)]  # Option to convert a _DEN file
+        options.append(output_filepath)  # Name of the output file
+        options.append('0')  # No more analysis
+        return cls(infile_path=infile_path, output_filepath=output_filepath, options=options)
+
+    @classmethod
+    def den_to_3d_formatted(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a 3D formatted format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 5)
+
+    @classmethod
+    def den_to_3d_indexed(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a 3D indexed format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 6)
+
+    @classmethod
+    def den_to_molekel(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a Molekel format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 7)
+
+    @classmethod
+    def den_to_tecplot(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a Tecplot format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 8)
+
+    @classmethod
+    def den_to_xsf(cls, density_filepath, output_filepath, shift=None):
+        """
+        Generates a cut3d input for the conversion to an xsf format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        shift: a list of three integers defining the shift along the x, y, z axis. None if no shift is required.
+        """
+        options = ['9']  # Option to convert a _DEN file to an .xsf file
+        options.append(output_filepath)  # Name of the output .xsf file
+        if shift is not None:
+            options.append('y')
+            options.append("{} {} {} ".format(*shift))
+        else:
+            options.append('n')
+        options.append('0')  # No more analysis
+        return cls(infile_path=density_filepath, output_filepath=output_filepath, options=options)
+
+    @classmethod
+    def den_to_cube(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a cube format.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+            safer to use just the file name, as using an absolute or relative path may fail depending on
+            the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 14)
+
+    @classmethod
+    def hirshfeld(cls, density_filepath, all_el_dens_paths):
+        """
+        Generates a cut3d input for the calculation of the Hirshfeld charges from the density.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        all_el_dens_paths: a list of paths to the all-electron density files correspinding to the elements defined
+            in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
+        """
+        options = ['11']  # Option to convert _DEN file to a .cube file
+        for p in all_el_dens_paths:
+            options.append(p)
+        options.append('0')
+
+        return cls(infile_path=density_filepath, options=options)
+
+    @classmethod
+    def hirshfeld_from_fhi_path(cls, density_filepath, structure, fhi_all_el_path):
+        """
+        Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Authomatically
+        selects the all-electron density files from a folder containing the fhi all-electron density files:
+        http://www.abinit.org/downloads/all_core_electron
+
+        This will work only if the input has been generated with AbinitInput and the Structure object is the same
+        provided to AbinitInput.
+
+        Args:
+        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+            defined at a later time.
+        structure: the structure used for the ground state calculation. Used to determine the elements
+        fhi_all_el_path: path to the folder containing the fhi all-electron density files
+        """
+        all_el_dens_paths = []
+        # This relies on AbinitInput using Structure.types_of_specie to define znucl
+        for e in structure.types_of_specie:
+            all_el_dens_paths.append(os.path.join(fhi_all_el_path, "0.{:02}-{}.8.density.AE".format(e.number, e.name)))
+
+        return cls.hirshfeld(density_filepath, all_el_dens_paths)
+
+    @pmg_serialize
+    def as_dict(self):
+        d = dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options = self.options)
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(infile_path=d['infile_path'], output_filepath=d['output_filepath'], options=d['options'])

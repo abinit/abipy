@@ -7,11 +7,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 
-from pymatgen.core.units import bohr_to_angstrom
-from pymatgen.core.sites import PeriodicSite
-from pymatgen.core.lattice import Lattice
-from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
+from abipy.core.structure import Structure
+from pymatgen.core.lattice import Lattice
+from pymatgen.core.sites import PeriodicSite
+from pymatgen.core.units import bohr_to_angstrom
 
 
 __all__ = [
@@ -74,7 +74,7 @@ def cube_read_structure_mesh_data(file):
         ii = 0
         for line in fh:
             for val in line.split():
-                data[ii/(ny*nz), (ii/nz)%ny, ii%nz] = float(val)
+                data[ii//(ny*nz), (ii//nz)%ny, ii%nz] = float(val)
                 ii += 1
         data = data / (bohr_to_angstrom ** 3)
         if ii != nx*ny*nz:
@@ -82,33 +82,3 @@ def cube_read_structure_mesh_data(file):
         structure = Structure.from_sites(sites=sites)
         mesh = Mesh3D(shape=[nx, ny, nz], vectors=uc_matrix)
         return structure, mesh, data
-
-
-from abipy.core.mixins import _File
-class CubeFile(_File):
-    """
-
-    .. attribute:: structure
-
-        :class:`Structure` object
-
-    .. attribute:: mesh
-
-        :class:`Mesh3d` object with information on the uniform 3d mesh.
-
-    .. attribute:: data
-
-        numpy array of shape [nx, ny, nz] with numerical values on the real-space mesh.
-    """
-    def __init__(self, filepath):
-        super(CubeFile, self).__init__(filepath)
-        self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
-
-    def close(self):
-        """nop, just to fulfill the abstract interface."""
-
-    #@classmethod
-    #def write_structure_mesh_data(cls, path, structure, mesh, data):
-    #    with open(path, "wt") as fh:
-    #        cube_write_structure_mesh(fh, structure, mesh)
-    #        cube_write_data(fh, data, mesh):

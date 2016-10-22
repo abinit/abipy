@@ -25,11 +25,10 @@ from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile, DensityFortranFile, CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
-from abipy.iotools.cube import CubeFile
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
@@ -80,6 +79,7 @@ ext2file = collections.OrderedDict([
     ("cssr", Structure),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
+    ("DEN", DensityFortranFile),
 ])
 
 # Abinit files require a special treatment.
