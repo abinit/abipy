@@ -1133,10 +1133,13 @@ class AtomConfField(RowField):
         ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
         ("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
-        #("iexc", dict(dtype="f", value=4, tooltip="xc functional")),
+        # GGA-PBE
+        ("iexc", dict(dtype="f", value=4, tooltip="xc functional")),
         #("iexc", dict(dtype="cbox", value="4", choices=["-001013", "4"], tooltip="xc functional")),
-        ("iexc", dict(dtype="cbox", value="4", choices=["-001012", "4"], tooltip="xc functional")),
-        #("iexc", dict(dtype="cbox", value="4", choices=["-116133", "4"], tooltip="xc functional")),
+        # LDA
+        #("iexc", dict(dtype="cbox", value="4", choices=["-001012", "4"], tooltip="xc functional")),
+        # PBEsol
+        ("iexc", dict(dtype="cbox", value="4", choices=["-116133", "4"], tooltip="xc functional")),
         ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf", "all"]))])
 
 
