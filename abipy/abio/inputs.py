@@ -2611,4 +2611,5 @@ class Cut3DInput(MSONable, object):
 
     @classmethod
     def from_dict(cls, d):
-        return cls(infile_path=d['infile_path'], output_filepath=d['output_filepath'], options=d['options'])
+        return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
+                   options=d.get('options', None))

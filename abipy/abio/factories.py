@@ -82,15 +82,24 @@ _DEFAULTS = dict(
 )
 
 class ShiftMode(Enum):
+    """
+    Class defining the mode to be used for the shifts.
+    G: Gamma centered
+    M: Monkhorst-Pack ((0.5, 0.5, 0.5))
+    S: Symmetric. Respects the chksymbreak with multiple shifts
+    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
+        centered otherwise.
+    """
     GammaCentered = 'G'
     MonkhorstPack = 'M'
     Symmetric = 'S'
+    OneSymmetric = 'O'
 
     @classmethod
     def from_object(cls, obj):
         """
         Returns an instance of ShiftMode based on the type of object passed. convertes strings to ShiftMode depending
-        on the inital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric.
+        on the inital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.
         Case insensitive.
         """
         if isinstance(obj, cls):
@@ -164,6 +173,14 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
 def _get_shifts(shift_mode, structure):
     """
     Gives the shifts based on the selected shift mode and on the symmetry of the structure.
+    G: Gamma centered
+    M: Monkhorst-Pack ((0.5, 0.5, 0.5))
+    S: Symmetric. Respects the chksymbreak with multiple shifts
+    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
+        centered otherwise.
+
+    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
+        chksymbreak.
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
@@ -172,6 +189,13 @@ def _get_shifts(shift_mode, structure):
     elif shift_mode == ShiftMode.Symmetric:
         structure = Structure.from_sites(structure)
         return structure.calc_shiftk()
+    elif shift_mode == ShiftMode.OneSymmetric:
+        structure = Structure.from_sites(structure)
+        shifts = structure.calc_shiftk()
+        if len(shifts) == 1:
+            return shifts
+        else:
+            return ((0, 0, 0))
     else:
         raise ValueError("shift_mode not valid.")
 
