@@ -1237,8 +1237,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Raises:
             `RuntimeError` if executable is not in $PATH.
         """
-        task = AbinitTask.temp_shell_task(inp=self)
-        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"], workdir=workdir, manager=manager)
+        task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
+        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
