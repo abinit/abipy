@@ -1219,9 +1219,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return dict2namedtuple(errors=errors, warnings=warnings)
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         """
         Run ABINIT in dry mode to validate the input file.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             `namedtuple` with the following attributes:
@@ -1234,7 +1238,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             `RuntimeError` if executable is not in $PATH.
         """
         task = AbinitTask.temp_shell_task(inp=self)
-        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"], workdir=workdir, manager=manager)
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
