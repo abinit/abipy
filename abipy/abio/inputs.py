@@ -226,12 +226,16 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         """Returns a string with the input."""
 
     @abc.abstractmethod
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         """
         This method should invoke the executable associated to the input object.
         to test whether the input variables are correct and consistent.
         The executable is supposed to implemente some sort of `--dry-run` option
         that invokes the parser to validate the input and exits.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             `namedtuple` with the following attributes:
@@ -2257,9 +2261,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
         """
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         # TODO: Anaddb does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self)
+        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
 
@@ -2415,9 +2419,9 @@ class OpticInput(AbstractInput):
 
         return "\n".join(lines)
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         # TODO: Optic does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self)
+        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
 
