@@ -422,12 +422,7 @@ class Has_Phbands(object):
 
         if dialog.ShowModal() == wx.ID_CANCEL: return
 
-        with ETSF_Reader(dialog.GetPath()) as r:
-            directions = r.read_value("non_analytical_directions")
-            non_anal_phfreq = r.read_value("non_analytical_phonon_modes")
-
-            self.phbands.non_anal_directions = directions
-            self.phbands.non_anal_phfreqs = non_anal_phfreq
+        self.phbands.read_non_anal_from_file(dialog.GetPath())
 
     def OnPhbandsPlot(self, event):
         """Plot phonon frequencies with matplotlib."""
@@ -519,9 +514,6 @@ class Has_MultiplePhbands(Has_Phbands):
             awx.showErrorMessage(self)
 
         plotter = PhononBandsPlotter()
-        # for path, phbands in zip(self.phbands_filepaths, self.phbands_list):
-        #     label = os.path.relpath(path)
-        #     plotter.add_phbands(label, phbands)
 
         for i in selected:
             label = os.path.relpath(self.phbands_filepaths[i])
