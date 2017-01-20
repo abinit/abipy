@@ -416,6 +416,25 @@ class AnaddbInputTest(AbipyTest):
         anaddb_input.deepcopy()
 
 
+class TestCut3DInput(AbipyTest):
+    """Unit tests for AbinitInput."""
+
+    def setUp(self):
+        self.structure = abidata.structure_from_ucell("Si")
+
+    def test_dict_methods(self):
+        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        self.assertMSONable(cut3d_input)
+
+    def test_generation_methods(self):
+        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_xsf('/path/to/den', 'outfile_name', shift=[2, 2, 2])
+        cut3d_input = Cut3DInput.den_to_3d_indexed('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_3d_formatted('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_tecplot('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
+
+
 if __name__ == "__main__":
     import unittest
     unittest.main()

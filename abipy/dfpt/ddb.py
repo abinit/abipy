@@ -23,6 +23,7 @@ from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, InteratomicForceConstants
+from pymatgen.analysis.elasticity.elastic import ElasticTensor
 
 import logging
 logger = logging.getLogger(__name__)
@@ -838,3 +839,11 @@ class ElasticComplianceTensor(Has_Structure):
         return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
                    structure=dd['structure'] if dd['structure'] is not None else None,
                    additional_info=dd['additional_info'])
+
+    def get_pmg_elastic_tensor(self):
+        """
+        Converts to a pymatgen ElasticTensor object.
+        """
+
+        return ElasticTensor.from_voigt(self.elastic_tensor)
+
