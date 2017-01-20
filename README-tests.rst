@@ -18,4 +18,8 @@ install the nose-exclude plugin with::
 
    `pip install nose-exclude`
 
+and scriptest with::
+
+   `pip install scripttest`
+
 

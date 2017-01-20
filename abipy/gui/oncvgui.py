@@ -1134,8 +1134,10 @@ class AtomConfField(RowField):
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
         ("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
         #("iexc", dict(dtype="f", value=4, tooltip="xc functional")),
-        ("iexc", dict(dtype="cbox", value="4", choices=["-001013", "4"], tooltip="xc functional")),
-        ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf"]))])
+        #("iexc", dict(dtype="cbox", value="4", choices=["-001013", "4"], tooltip="xc functional")),
+        ("iexc", dict(dtype="cbox", value="4", choices=["-001012", "4"], tooltip="xc functional")),
+        #("iexc", dict(dtype="cbox", value="4", choices=["-116133", "4"], tooltip="xc functional")),
+        ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf", "all"]))])
 
 
 @add_tooltips

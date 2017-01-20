@@ -33,8 +33,8 @@ xys = ebands.derivatives(spin=0, band=3, order=1, asmarker="DER1-band3")
 #emasses = ebands.effective_masses(spin=0, band=0, acc=2)
 #print("emasses", emasses)
 
-emasses = ebands.effmass(spin=0, kpoint=[0,0,0], bands=0, acc=2)
-print("emasses", emasses)
+#emasses = ebands.effmass(spin=0, kpoint=[0,0,0], bands=0, acc=2)
+#print("emasses", emasses)
 
 #emasses = ebands.effective_masses(spin=0, band=3, acc=2)
 #print("emasses", emasses)

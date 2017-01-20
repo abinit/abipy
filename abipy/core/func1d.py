@@ -119,6 +119,10 @@ class Function1D(object):
     def __pow__(self, other):
         return self.__class__(self.mesh, self.values**other)
 
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.plot(show=False)
+
     @property
     def real(self):
         """Return new :class:`Function1D` with the real part of self."""

@@ -996,24 +996,27 @@ class KpointsReaderMixin(object):
         weights = self.read_kweights()
         ksampling = self.read_ksampling_info()
 
-        # FIXME
-        # Quick and dirty hack to allow the reading of the k-points from WFK files
-        # where info on the sampling is missing. I will regret it but at present
-        # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
-        #if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
-        #if np.any(ksampling.kptrlatt_orig != 0) or abs(sum(weights) - 1.0) < 1.e-6:
-        if np.any(ksampling.kptrlatt_orig != 0):
-            # We have a homogeneous sampling of the BZ.
-            return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
-
-        elif ksampling.kptopt < 0:
+        if ksampling.kptopt < 0:
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
             for kpoint in kpath:
                 kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
             return kpath
 
-        raise ValueError("Only homogeneous samplings or paths are supported!")
+        # FIXME
+        # Quick and dirty hack to allow the reading of the k-points from WFK files
+        # where info on the sampling is missing. I will regret it but at present
+        # is the only solution I found (changes in the ETSF-IO part of Abinit are needed)
+        #if ksampling.is_homogeneous or abs(sum(weights) - 1.0) < 1.e-6:
+        #if np.any(ksampling.kptrlatt_orig != 0) or abs(sum(weights) - 1.0) < 1.e-6:
+
+        #if np.any(ksampling.kptrlatt_orig != 0):
+        # We have a homogeneous sampling of the BZ.
+        return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
+
+        raise ValueError(
+          "Only homogeneous samplings or paths are supported!"
+          "ksamping info:\n%s" % str(ksampling))
 
     def read_ksampling_info(self):
         # FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig

@@ -21,7 +21,8 @@ try:
 except ImportError:
     pass
 
-from pymatgen.io.abinit.launcher import PyFlowScheduler, BatchLauncher
+from pymatgen.io.abinit.launcher import PyFlowScheduler #, BatchLauncher
+from pymatgen.io.abinit.pseudos import Pseudo
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
@@ -76,10 +77,12 @@ ext2file = collections.OrderedDict([
     (".log", AbinitLogFile),
     (".cif", Structure),
     ("POSCAR", Structure),
-    ("cssr", Structure),
+    (".cssr", Structure),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
+    (".psp8", Pseudo),
+    (".xml", Pseudo),
 ])
 
 # Abinit files require a special treatment.

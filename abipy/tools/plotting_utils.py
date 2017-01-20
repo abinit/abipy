@@ -15,10 +15,33 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 
 
 __all__ = [
+    "set_axlims",
     "plot_array",
     "ArrayPlotter"
 ]
 
+def set_axlims(ax, lims, axname):
+    """
+    Set the data limits for the axis ax.
+
+    Args:
+        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
+        axname: "x" for x-axis, "y" for y-axis.
+
+    Return: (left, right)
+    """
+    left, right = None, None
+    if lims is None: return (left, right)
+    if len(lims) == 2:
+        left, right = lims[0], lims[1]
+    elif len(lims) == 1:
+        left = lims[0]
+    else:
+        left = float(lims)
+
+    set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
+    set_lim(left, right)
+    return left, right
 
 def data_from_cplx_mode(cplx_mode, arr):
     """

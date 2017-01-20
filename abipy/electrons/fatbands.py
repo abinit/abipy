@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes for the analysis of fatbands and PJDOS."""
+"""Classes for the analysis of electronic fatbands and projected DOSes."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import traceback
@@ -8,13 +8,20 @@ import numpy as np
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
 from monty.functools import lazy_property
-from monty.string import marquee
+from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian
+from abipy.tools.plotting_utils import set_axlims
 
+
+def gaussians_dos(dos, mesh, width, values, energies, weights):
+    assert len(dos) == len(mesh) and len(values) == len(energies) == len(weights)
+    for vw, e, w in zip(values * weights, energies, weights):
+        dos += vw * gaussian(mesh, width, center=e)
+    return dos
 
 class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
@@ -36,14 +43,27 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     # Mapping L --> color used in plots.
     l2color = {0: "red", 1: "blue", 2: "green", 3: "yellow", 4: "orange"}
+
     # Mapping L --> title used in subplots that depend on L.
     l2tex = {0: "$l=s$", 1: "$l=p$", 2: "$l=d$", 3: "$l=f$", 4: "$l=g$"}
 
-    # Markers used for up/down bands.
+    # Markers used for up/down bands (collinear spin)
     marker_spin = {0: "^", 1: "v"}
-    # Mapping spin --> title used in subplots that depend on spin.
+
+    # Mapping spin --> title used in subplots that depend on spin (collinear)
     spin2tex = {0: "$\sigma=\\uparrow$", 1: "$\sigma=\\downarrow$"}
 
+    # Mappings used non-collinear spin.
+    spinors2tex = {"up-up": "$\\uparrow,\\uparrow$", "up-down": "$\\uparrow,\\downarrow$",
+                   "down-up": "$\\downarrow,\\uparrow$", "down-down": "$\\downarrow,\\downarrow$",
+                   "sigma_x": "$\sigma_{x}$", "sigma_y": "$\sigma_{y}$", "sigma_z": "$\sigma_{z}$",
+                  }
+    spinors2color = {"up-up": "black", "up-down": "brown",
+                     "down-up": "violet", "down-down": "yellow",
+                     "sigma_x": "green", "sigma_y": "blue", "sigma_z": "red",
+                   }
+
+    # The alpha blending value, between 0 (transparent) and 1 (opaque)
     alpha = 0.6
 
     # Options passed to ebands.plot_ax. See also eb_plotax_kwargs
@@ -68,14 +88,14 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self.nspden, self.nspinor = r.read_nspinor(), r.read_nspden()
 
         # Read metadata so that we know how to handle the content of the file.
-        self.usepaw = r.read_value("usepaw")
         self.prtdos = r.read_value("prtdos")
         self.prtdosm = r.read_value("prtdosm")
         self.pawprtdos = r.read_value("pawprtdos")
+        self.usepaw = r.read_value("usepaw")
         self.natsph = r.read_dimvalue("natsph")
         self.iatsph = r.read_value("iatsph") - 1 # F --> C
         self.ndosfraction = r.read_dimvalue("ndosfraction")
-        # 1 + maximum angular momentum for Bessel function expansion
+        # mbesslang: 1 + maximum angular momentum for Bessel function expansion.
         self.mbesslang = r.read_dimvalue("mbesslang")
         self.ratsph_type = r.read_value("ratsph")
 
@@ -90,7 +110,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         # This is a tricky part. Note the following:
         # If usepaw == 0, lmax_type gives the max l included in the non-local part of Vnl
-        #   The wavefunction can have l-components > lmax_type
+        #   The wavefunction can have l-components > lmax_type, especially if vloc = vlmax.
         # If usepaw == 1, lmax_type represents the max l included in the PAW basis set.
         #   The AE wavefunction cannot have more ls than l-max if pawprtdos == 2 and
         #   the cancellation between PS-onsite and the smooth part is exact.
@@ -129,11 +149,76 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             for i, symb in enumerate(self.symbols):
                 self.symbol2color[symb] = cm(i/nsymb)
 
-        # Array dimensioned as natom. Set to true if iatom has been calculated
-        self.has_atom = np.zeros(self.natom, dtype=bool)
-        self.has_atom[self.iatsph] = True
+        # Array dimensioned with natom. Set to true if iatom has been calculated
+        if self.prtdos == 3:
+            self.has_atom = np.zeros(self.natom, dtype=bool)
+            self.has_atom[self.iatsph] = True
 
-        # Read dos_fraction_m from file and build walm_sbk array of shape [natom, lmax**2, nsppol, mband, nkpt].
+    @lazy_property
+    def wal_sbk(self):
+        """
+        Numpy array of shape [natom, mbesslang, nsppol, mband, nkpt]
+        with the L-contributions. Present only if prtdos == 3.
+        """
+        return self._read_wal_sbk()
+
+    @lazy_property
+    def walm_sbk(self):
+        """
+        Numpy array of shape [natom, mbesslang**2, nsppol, mband, nkpt]
+        with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0
+        """
+        return self._read_walm_sbk(key="dos_fractions")
+
+    def _read_wal_sbk(self, key="dos_fractions"):
+        # Read dos_fraction_m from file and build wal_sbk array of shape
+        # [natom, lmax, nsppol, mband, nkpt].
+        #
+        # In abinit the **Fortran** array has shape
+        #   dos_fractions(nkpt,mband,nsppol,ndosfraction)
+        #
+        # Note that Abinit allows the users to select a subset of atoms with iatsph. Moreover the order
+        # of the atoms could differ from the one in the structure even when natom == natsph (unlikely but possible).
+        # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
+        # Entries that are not computed are set to zero and a warning is issued.
+        if self.prtdos != 3:
+            raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+
+        wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
+
+        if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
+            # All atoms have been calculated and the order if ok.
+            wal_sbk = np.reshape(self.reader.read_value(key), wshape)
+
+        else:
+            # Need to tranfer data. Note np.zeros.
+            wal_sbk = np.zeros(wshape)
+            if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
+                print("Will rearrange filedata since iatsp != [1, 2, ...])")
+                filedata = np.reshape(self.reader.read_value(key), wshape)
+                for i, iatom in enumerate(self.iatsph):
+                    wal_sbk[iatom] = filedata[i]
+            else:
+                print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
+                assert self.natsph < self.natom
+                filedata = np.reshape(self.reader.read_value(key),
+                                     (self.natsph, self.mbesslang, self.nsppol, self.mband, self.nkpt))
+                for i, iatom in enumerate(self.iatsph):
+                    wal_sbk[iatom] = filedata[i]
+
+        # In principle, this should never happen (unless there's a bug in Abinit or a
+        # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
+        num_neg = np.sum(wal_sbk < 0)
+        if num_neg:
+            print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
+                  num_neg, 100 * num_neg / wal_sbk.size))
+
+        return wal_sbk
+
+    def _read_walm_sbk(self, key="dos_fraction_m"):
+        # Read dos_fraction_m from file and build walm_sbk array of shape
+        # [natom, lmax**2, nsppol, mband, nkpt].
+        #
         # In abinit the **Fortran** array has shape
         #   dos_fractions_m(nkpt,mband,nsppol,ndosfraction*mbesslang*m_dos_flag)
         #
@@ -141,35 +226,41 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # of the atoms could differ from the one in the structure even when natom == natsph (unlikely but possible).
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
+        if self.prtdos != 3:
+          raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+        if self.prtdosm == 0:
+          raise RuntimeError("The file does not contain LM-DOS since prtdosm=%i" % self.prtdosm)
+
         wshape = (self.natom, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
 
         if self.natsph == self.natom and np.all(self.iatsph == np.arange(self.natom)):
             # All atoms have been calculated and the order if ok.
-            self.walm_sbk = np.reshape(r.read_value("dos_fractions_m"), wshape)
+            walm_sbk = np.reshape(self.reader.read_value(key), wshape)
 
         else:
             # Need to tranfer data. Note np.zeros.
-            self.walm_sbk = np.zeros(wshape)
+            walm_sbk = np.zeros(wshape)
             if self.natsph == self.natom and np.any(self.iatsph != np.arange(self.natom)):
                 print("Will rearrange filedata since iatsp != [1, 2, ...])")
-                filedata = np.reshape(r.read_value("dos_fractions_m"), wshape)
+                filedata = np.reshape(self.reader.read_value(key), wshape)
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbk[iatom] = filedata[i]
-
+                    walm_sbk[iatom] = filedata[i]
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(r.read_value("dos_fractions_m"),
+                filedata = np.reshape(r.read_value(key),
                                      (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
                 for i, iatom in enumerate(self.iatsph):
-                    self.walm_sbk[iatom] = filedata[i]
+                    walm_sbk[iatom] = filedata[i]
 
         # In principle, this should never happen (unless there's a bug in Abinit or a
         # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
-        num_neg = np.sum(self.walm_sbk < 0)
+        num_neg = np.sum(walm_sbk < 0)
         if num_neg:
             print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
-                  num_neg, 100 * num_neg / self.walm_sbk.size))
+                  num_neg, 100 * num_neg / walm_sbk.size))
+
+        return walm_sbk
 
     @property
     def ebands(self):
@@ -195,23 +286,24 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
         app(marquee("Fatbands Info", mark="="))
-        app("usepaw=%d, prtdos=%d, pawprtdos=%d, prtdosm=%d, mbesslang=%d" % (
-            self.usepaw, self.prtdos, self.pawprtdos, self.prtdosm, self.mbesslang))
+        app("prtdos=%d, prtdosm=%d, mbesslang=%d, pawprtdos=%d, usepaw=%d" % (
+            self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
         app("nsppol=%d, nkpt=%d, mband=%d" % (self.nsppol, self.nkpt, self.mband))
         app("")
 
-        table = [["Idx", "Symbol", "Reduced_Coords", "Lmax", "Ratsph [Bohr]", "Has_Atom"]]
-        for iatom, site in enumerate(self.structure):
-            table.append([
-                iatom,
-                site.specie.symbol,
-                "%.5f %.5f %.5f" % tuple(site.frac_coords),
-                self.lmax_atom[iatom],
-                self.ratsph_type[self.typat[iatom]],
-                "Yes" if self.has_atom[iatom] else "No",
-            ])
-
-        app(tabulate(table, headers="firstrow"))
+        if self.prtdos == 3:
+            # Print table with info on atoms.
+            table = [["Idx", "Symbol", "Reduced_Coords", "Lmax", "Ratsph [Bohr]", "Has_Atom"]]
+            for iatom, site in enumerate(self.structure):
+                table.append([
+                    iatom,
+                    site.specie.symbol,
+                    "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                    self.lmax_atom[iatom],
+                    self.ratsph_type[self.typat[iatom]],
+                    "Yes" if self.has_atom[iatom] else "No",
+                ])
+            app(tabulate(table, headers="firstrow"))
 
         return "\n".join(lines)
 
@@ -222,18 +314,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         for all spin and bands else the contribution for (spin, band)
         """
         if spin is None and band is None:
-            wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
-            for l in range(self.lmax_atom[iatom]+1):
-                for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, l**2 + m]
+            return self.wal_sbk[iatom]
         else:
             assert spin is not None and band is not None
-            wl = np.zeros((self.lsize, self.nkpt))
-            for l in range(self.lmax_atom[iatom]+1):
-                for m in range(2*l + 1):
-                    wl[l] += self.walm_sbk[iatom, l**2 + m, spin, band, :]
-
-        return wl
+            return self.wal_sbk[iatom, :, spin, band, :]
 
     def get_wl_symbol(self, symbol, spin=None, band=None):
         """
@@ -246,15 +330,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    for m in range(2*l + 1):
-                        wl[l] += self.walm_sbk[iat, l**2 + m]
+                    wl[l] += self.wal_sbk[iat, l]
         else:
             assert spin is not None and band is not None
             wl = np.zeros((self.lsize, self.nkpt))
             for iat in self.symbol2indices[symbol]:
                 for l in range(self.lmax_atom[iat]+1):
-                    for m in range(2*l + 1):
-                        wl[l, :] += self.walm_sbk[iat, l**2 + m, spin, band, :]
+                    wl[l, :] += self.wal_sbk[iat, l, spin, band, :]
 
         return wl
 
@@ -291,15 +373,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             sp = np.zeros((self.nsppol, self.mband, self.nkpt))
             for iatom in range(self.natom):
                 for l in range(self.lmax_atom[iatom]+1):
-                    for m in range(2*l + 1):
-                        sp += self.walm_sbk[iatom, l**2 + m]
+                    sp += self.wal_sbk[iatom, l]
         else:
             assert spin is not None and band is not None
             sp = np.zeros((self.nkpt))
             for iatom in range(self.natom):
                 for l in range(self.lmax_atom[iatom]+1):
-                    for m in range(2*l + 1):
-                        sp += self.walm_sbk[iatom, l**2 + m, spin, band, :]
+                    sp += self.wal_sbk[iatom, l, spin, band, :]
 
         return 1.0 - sp
 
@@ -317,17 +397,20 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         )
 
     @add_fig_kwargs
-    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=2.0, blist=None, **kwargs):
+    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=2.0,
+                               ylims=None, blist=None, **kwargs):
         """
         Plot fatbands for each atom in the unit cell. By default, only the "inequivalent" atoms are shown.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             view: "inequivalent", "all"
             fact:  float used to scale the stripe size.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
         Returns:
@@ -346,7 +429,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             num_plots, ax2iatom = self.natom, np.arange(self.natom)
 
         elif view == "inequivalent":
-            print("Calling spglib to find the inequivalent sites.")
+            print("Calling spglib to find inequivalent sites.")
             print("Note that magnetic symmetries are not taken into account")
             from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
             spgan = SpacegroupAnalyzer(self.structure)
@@ -404,26 +487,31 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         y1, y2 = yup + w, ydown - w
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.l2color[l])
                         ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.l2color[l],
-                                        label=self.l2tex[l] if (i, spin, band) == (0, 0, 0) else None)
+                                        label=self.l2tex[l] if (spin, band) == (0, 0) else None)
                                         # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
+
+            set_axlims(ax, ylims, "y")
 
         axmat[0,0].legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_lview(self, e0="fermie", fact=2.0, axmat=None, lmax=None, blist=None, **kwargs):
+    def plot_fatbands_lview(self, e0="fermie", fact=2.0, axmat=None, lmax=None,
+                            ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by l.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
             axmat:
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
         Returns:
@@ -458,7 +546,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label.set_fontsize(0)
 
-                for band in mybands:
+                for ib, band in enumerate(mybands):
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
                     for symbol in self.symbols:
@@ -468,24 +556,29 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         # Add width around each band. Only the [0,0] plot has the legend.
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.symbol2color[symbol])
                         ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.symbol2color[symbol],
-                                        label=symbol if (l, spin, band) == (0, 0, 0) else None)
+                                        label=symbol if (l, spin, ib) == (0, 0, 0) else None)
                         yup, ydown = y1, y2
+
+                set_axlims(ax, ylims, "y")
 
         axmat[0, 0].legend(loc="best")
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, lmax=None, blist=None, **kwargs):
+    def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, lmax=None,
+                            ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands grouped by l.
+        Plot the electronic fatbands grouped by L.
 
         Args:
             iatom: Index of the atom in the structure.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
         Returns:
@@ -542,20 +635,25 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.l2color[l])
                     yup, ydown = y1, y2
 
+            set_axlims(ax, ylims, "y")
+
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None, blist=None, **kwargs):
+    def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None,
+                               ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
             axmat:
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
         Returns:
@@ -600,20 +698,24 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                                         # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
 
+                set_axlims(ax, ylims, "y")
+
         axmat[0, 0].legend(loc="best")
         return fig
 
     @add_fig_kwargs
-    def plot_spilling(self, e0="fermie", fact=5.0, axlist=None, blist=None, **kwargs):
+    def plot_spilling(self, e0="fermie", fact=5.0, axlist=None, ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
         Returns:
@@ -661,6 +763,97 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     ax.fill_between(x, y, y + absw, where=wisneg, alpha=self.alpha, facecolor="red")
                     ax.fill_between(x, y, y - absw, where=wisneg, alpha=self.alpha, facecolor="red")
 
+            set_axlims(ax, ylims, "y")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=10,
+                             ylims=None, blist=None, axlist=None, **kwargs):
+        """
+        Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.
+
+        Args:
+            terms: List of strings defining the quantities to plot. Possible values in:
+
+                {"up-up", "up-down", "down-up", "down-down", "sigma_x", "sigma_y", "sigma_z"}
+
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            fact:  float used to scale the marker size.
+            axlist:
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            blist: List of band indices for the fatband plot. If None, all bands are included
+
+        Returns:
+            `matplotlib` figure
+        """
+        if self.prtdos != 5 and self.nspinor != 2:
+            print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
+                % (self.prtdos, self.nspinor))
+            return None
+
+        # Build axlist
+        import matplotlib.pyplot as plt
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)
+            axlist = axlist.ravel()
+        else:
+            axlist = np.reshape(axlist, (1, len(terms))).ravel()
+            fig = plt.gcf()
+
+        ebands = self.ebands
+        e0 = ebands.get_e0(e0)
+        xvals = np.arange(self.nkpt)
+        mybands = range(ebands.mband) if blist is None else blist
+        spin0 = 0
+
+        # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
+        # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
+        w_sbk = self.reader.read_value("dos_fractions")
+        term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
+
+        # TODO: To be tested.
+        terms = list_strings(terms)
+        for i, (term, ax) in enumerate(zip(terms, axlist)):
+            ebands.plot_ax(ax, e0, spin=spin0, color=self.linecolor, linewidth=self.linewidth)
+            ebands.decorate_ax(ax, title=term)
+            if i != 0:
+                ax.set_ylabel("")
+                # Only the first column show labels.
+                # Trick: Don't change the labels but set their fontsize to 0 otherwise
+                # also the other axes are affecred (likely due to sharey=True).
+                for tick in ax.yaxis.get_major_ticks():
+                    tick.label.set_fontsize(0)
+
+            idx = term2idx[term]
+            color = self.spinors2color[term]
+            # Rescale weights in [0, 1]
+            data = w_sbk[idx, spin0, :, :].copy()
+            data -= data.min()
+            dmax = data.max()
+            if dmax != 0.0: data /= dmax
+            #print(data)
+
+            for ib, band in enumerate(mybands):
+                yvals = ebands.eigens[spin0, :, band] - e0
+                ax.scatter(xvals, yvals, c=data[band], s=20, alpha=self.alpha,
+                           #edgecolor=plt.get_cmap('jet')(data[band]),
+                           marker="o", label=self.spinors2tex[term] if ib == 0 else None)
+
+                #ws = w_sbk[idx, spin0, band, :] * fact
+                #pos_inds, neg_inds = np.where(ws >= 0), np.where(ws < 0)
+                #ax.scatter(xvals[pos_inds], yvals[pos_inds], c=color, s=ws[pos_inds],
+                #           marker="^", label=term if ib == 0 else None)
+                #ax.scatter(xvals[neg_inds], yvals[neg_inds], c=color, s=np.abs(ws[neg_inds]),
+                #           marker="v", label=term if ib == 0 else None)
+
+            set_axlims(ax, ylims, "y")
+
+        axlist[0].legend(loc="best")
         return fig
 
     def nelect_in_spheres(self, start_energy=None, stop_energy=None,
@@ -721,11 +914,15 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, **kwargs):
+                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
         Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -736,6 +933,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 If False, up/down components are plotted on different axes.
             axmat:
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Same meaning as `xlims` but for the y-axis
 
         Returns:
             `matplotlib` figure
@@ -796,6 +996,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         label = symbol if (l, spin, isymb) == (0, 0, 0) else None
                         ax.plot(x, y, color=self.symbol2color[symbol], label=label if with_info else None)
 
+                    set_axlims(ax, xlims, "x")
+                    set_axlims(ax, ylims, "y")
+
         else:
             # Plot stacked PJDOS
             # Loop over the columns of the grid.
@@ -822,6 +1025,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.symbol2color[symbol],
                              label=label if with_info else None)
+
+                    set_axlims(ax, xlims, "x")
+                    set_axlims(ax, ylims, "y")
 
         # Decorate axis.
         for spin in range(self.nsppol):
@@ -863,12 +1069,16 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     @add_fig_kwargs
     def plot_pjdos_typeview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
-                         stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, **kwargs):
+                            stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
+                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
         Args:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -879,6 +1089,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 If False, up/down components are plotted on different axes.
             axmat:
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Same meaning as `xlims` but for the y-axis
 
         Returns:
             `matplotlib` figure
@@ -938,6 +1151,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         label = self.l2tex[l] if (spin, isymb) == (0, 0) else None
                         ax.plot(x, y, color=self.l2color[l], label=label if with_info else None)
 
+                    set_axlims(ax, xlims, "x")
+                    set_axlims(ax, ylims, "y")
+
         else:
             # Plot stacked PJDOS
             # Loop over the columns of the grid.
@@ -965,6 +1181,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
                              label=label if with_info else None)
 
+                    set_axlims(ax, xlims, "x")
+                    set_axlims(ax, ylims, "y")
+
         # Decorate axis.
         for spin in range(self.nsppol):
             if aliased_axis and spin == 1: break # Don't repeat yourself!
@@ -973,10 +1192,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 ax = axmat[spin, itype]
                 if with_info:
                     if combined_spins:
-                        title = "Type: %s", symbol
+                        title = "Type: %s" % symbol
                     else:
-                        title = "%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else \
-                                 symbol
+                        title = "%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else symbol
                     ax.set_title(title)
                 ax.grid(True)
 
@@ -1006,13 +1224,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=2.0, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 **kwargs):
+                                 ylims=None, **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
@@ -1021,6 +1239,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             edos_kwargs:
             stacked:
             width_ratio:
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
 
         Returns:
             `matplotlib` figure
@@ -1061,16 +1281,18 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
-            self.plot_fatbands_lview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, show=False)
+            self.plot_fatbands_lview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_lview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
                                        stacked=stacked, combined_spins=False,
-                                       with_info=False, with_spin_sign=False, show=False, **edos_kwargs)
+                                       with_info=False, with_spin_sign=False, show=False, ylims=ylims,
+                                       **edos_kwargs)
 
         elif view == "type":
-            self.plot_fatbands_typeview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, show=False)
+            self.plot_fatbands_typeview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_typeview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
                                           stacked=stacked, combined_spins=False,
-                                          with_info=False, with_spin_sign=False, show=False, **edos_kwargs)
+                                          with_info=False, with_spin_sign=False, show=False, ylims=ylims,
+                                          **edos_kwargs)
         else:
             raise ValueError("Don't know how to handle view=%s" % str(view))
 
@@ -1085,6 +1307,191 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         if closeit: pjdosfile.close()
         return fig
 
+    @add_fig_kwargs
+    def plot_pawdos_terms(self, method="gaussian", step=0.1, width=0.2, xlims=None, *kwargs):
+        """
+        Plot ...
+
+        Args:
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+
+        Returns:
+            `matplotlib` figure
+        """
+        if self.usepaw != 1:
+            print("This is not a PAW calculation!")
+            return None
+        if self.prtdos != 3:
+            print("prtdos == 3 is required!")
+            return None
+        # TODO: More tests.
+        #if self.pawprtdos != 0:
+
+        # Onsite contributions.
+        # fracts_paw1,(dtset%nkpt,dtset%mband,dtset%nsppol,new%ndosfraction))
+        #wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
+        wal_sbk = self.wal_sbk
+        paw1_wal_sbk = self._read_wal_sbk(key="dos_fractions_paw1")
+        pawt1_wal_sbk = self._read_wal_sbk(key="dos_fractions_pawt1")
+
+        ebands = self.ebands
+        kpoints = ebands.kpoints
+        nband_sk = ebands.nband_sk
+        eigens = ebands.eigens
+
+        # Compute the linear mesh for DOS.
+        epad = 1.0
+        e_min = ebands.enemin() - epad
+        e_max = ebands.enemax() + epad
+
+        nw = int(1 + (e_max - e_min) / step)
+        mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
+        totdos_al = np.zeros((self.natom, self.lsize, self.nsppol, nw))
+        paw1dos_al = np.zeros((self.natom, self.lsize, self.nsppol, nw))
+        pawt1dos_al = np.zeros((self.natom, self.lsize, self.nsppol, nw))
+
+        if method == "gaussian":
+            for spin in range(self.nsppol):
+                for k, kpoint in enumerate(kpoints):
+                    weight = kpoint.weight
+                    for band in range(nband_sk[spin, k]):
+                        gs = gaussian(mesh, width, center=eigens[spin,k,band])
+                        for iatom in range(self.natom):
+                            if not self.has_atom[iatom]: continue
+                            for l in range(self.lmax_atom[iatom]+1):
+                                totdos_al[iatom, l, spin] += weight * gs * wal_sbk[iatom, l, spin, band, k]
+                                paw1dos_al[iatom, l, spin] += weight * gs * paw1_wal_sbk[iatom, l, spin, band, k]
+                                pawt1dos_al[iatom, l, spin] += weight * gs * pawt1_wal_sbk[iatom, l, spin, band, k]
+
+        else:
+            raise ValueError("Method %s is not supported" % method)
+
+        # TOT = PW + AE - PS
+        pwdos_al = totdos_al - paw1dos_al + pawt1dos_al
+
+        # Build grid of plots.
+        import matplotlib.pyplot as plt
+        fig, axmat = plt.subplots(nrows=np.count_nonzero(self.has_atom), ncols=self.lsize,
+                                  sharex=True, sharey=True, squeeze=False)
+
+        irow = -1
+        for iatom in range(self.natom):
+            if not self.has_atom[iatom]: continue
+            irow += 1
+            #for l in range(self.lmax_atom[iatom]+1):
+            for l in range(self.lsize):
+                ax = axmat[irow, l]
+                if l >= self.lmax_atom[iatom]+1:
+                    # don't show this plots and cycle
+                    ax.axis("off")
+                    continue
+                ax.grid(True)
+                if l != 0:
+                    ax.set_ylabel("")
+                    # Only the first column show labels.
+                    for tick in ax.yaxis.get_major_ticks():
+                        tick.label.set_fontsize(0)
+
+                for spin in range(self.nsppol):
+                    spin_sign = +1 if spin == 0 else -1
+                    ax.plot(mesh, totdos_al[iatom, l, spin] * spin_sign, color="k",
+                            label="Total" if (irow, l, spin) == (0, 0, 0) else None)
+                    ax.plot(mesh, pwdos_al[iatom, l, spin] * spin_sign, color="r",
+                            label="PW part" if (irow, l, spin) == (0, 0, 0) else None)
+                    ax.plot(mesh, paw1dos_al[iatom, l, spin] * spin_sign, color="b",
+                            label="AE-onsite" if (irow, l, spin) == (0, 0, 0) else None)
+                    ax.plot(mesh, pawt1dos_al[iatom, l, spin] * spin_sign, color="g",
+                            label="PS-onsite" if (irow, l, spin) == (0, 0, 0) else None)
+
+        for ax in axmat[-1, :]:
+            ax.set_xlabel('Energy [eV]')
+            set_axlims(ax, xlims, "x")
+
+    @add_fig_kwargs
+    def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
+                          e0="fermie", method="gaussian", step=0.1, width=0.2,
+                          blist=None,
+                         #stacked=True,
+                         ax=None, exchange_xy=False, xlims=None,
+                         #with_info=True,
+                         **kwargs):
+        """
+        Plot the PJ-DOS on a linear mesh.
+
+        Args:
+            terms:
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            stacked: True if DOS curves
+            ax:
+            exchange_xy: True if the dos should be plotted on the x axis instead of y.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+
+        Returns:
+            `matplotlib` figure
+        """
+        # TODO: To be tested.
+        if self.prtdos != 5 and self.nspinor != 2:
+            print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
+                % (self.prtdos, self.nspinor))
+            return None
+
+        try:
+            intg = self.get_dos_integrator(method, step, width)
+        except Exception:
+            msg = traceback.format_exc()
+            msg += ("Error while trying to compute the DOS.\n"
+                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Returning None\n")
+            print(msg)
+            return None
+
+        # Get energy mesh from total DOS and define the zero of energy
+        # Note that the mesh is not not spin-dependent.
+        e0 = self.ebands.get_e0(e0)
+        mesh = intg.mesh.copy()
+        mesh -= e0
+        ebands = self.ebands
+        mybands = range(ebands.mband) if blist is None else blist
+
+        # Read data from file.
+        # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
+        # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
+        w_sbk = self.reader.read_value("dos_fractions")
+        term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
+
+        spin0 = 0
+        terms = list_strings(terms)
+        dos_terms = {term: np.zeros(len(mesh)) for term in terms}
+        weights = np.array([k.weight for k in ebands.kpoints])
+        for i, term in enumerate(terms):
+            idx = term2idx[term]
+            for band in mybands:
+                gaussians_dos(dos_terms[term], mesh, width,
+                              w_sbk[idx, spin0, band, :], ebands.eigens[spin0, :, band], weights)
+
+        # Plot doses.
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for term, yvals in dos_terms.items():
+            ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])
+
+        ax.grid(True)
+        ax.set_xlabel("Energy [eV]")
+        set_axlims(ax, xlims, "x")
+        ax.legend(loc="best")
+
+        return fig
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -1094,16 +1501,37 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         nb.cells.extend([
             nbv.new_code_cell("fbfile = abilab.abiopen('%s')\nprint(fbfile)" % self.filepath),
-            #nbv.new_code_cell("fbfile.structure"),
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_typeview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_lview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0)"),
-            nbv.new_code_cell("fig = fbfile.plot_pjdos_lview()"),
-            nbv.new_code_cell("fig = fbfile.plot_pjdos_typeview()"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None, view='type')"),
+            nbv.new_code_cell("fbfile.structure"),
+            nbv.new_code_cell("fig = fbfile.ebands.kpoints.plot()"),
+            nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
+
+            nbv.new_markdown_cell("## Fatbands plots with L-character \n(require `prtdos=3`)"),
+            #nbv.new_code_cell("fig = fbfile.ebands.plot(ylims=ylims)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_typeview(ylims=ylims)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_lview(ylims=ylims)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview(ylims=ylims)"),
+
+            nbv.new_markdown_cell("## Fatbands plots with LM-character \n(require `prtdos = 3 and prtdosm != 0`)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0, ylims=ylims)"),
+
+            nbv.new_markdown_cell("## Fatbands plots with Spin-character \n(require `prtdos = 5 and nspinor == 2`)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_spinor(ylims=ylims)"),
+
+            nbv.new_markdown_cell("## L-DOSes plots \n(require `prtdos = 3` and BZ sampling)"),
+            nbv.new_code_cell("fig = fbfile.plot_pjdos_lview(xlims=xlims)"),
+            nbv.new_code_cell("fig = fbfile.plot_pjdos_typeview(xlims=xlims)"),
+
+            nbv.new_markdown_cell("## L-DOSes with fatbands\n"
+                                 "(require `prtdos=3`, `fbfile` must contain a k-path, "
+                                 "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
+            nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type')"),
         ])
+
+        if self.usepaw == 0 and self.prtdos != 3:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## PAW L-DOS decomposed into smooth PW part, AE and PS terms"),
+                nbv.new_code_cell("fig = fbfile.plot_pawdos_terms()"),
+            ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -1111,7 +1539,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 class _DosIntegrator(object):
     """
     This object is responsible for the integration of the DOS/PJDOS.
-    It's an internal object that should not be instanciated directly outside of this module.
+    It's an internal object that should not be instantiated directly outside of this module.
     PJDOSes are computed lazily and stored in the integrator so that we can reuse the results
     if needed.
     """
