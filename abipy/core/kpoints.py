@@ -174,6 +174,66 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     return np.array(kbz)
 
 
+def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, time_reversal):
+    """
+    Build mapping between a list of k-points in reduced coordinates (`other_kpoints`)
+    in the reciprocal lattice `other_lattice` and a list of reference k-points given
+    in the reciprocal lattice `ref_lattice` with symmetry operations `ref_symrecs`.
+
+    Args:
+        other_kpoints:
+        other_lattice: matrix whose rows are the reciprocal lattice vectors in cartesian coordinates.
+        ref_lattice: same meaning as other_lattice.
+        ref_kpoints:
+        ref_symrecs: [nsym,3,3] arrays with symmetry operations in the `ref_lattice` reciprocal space.
+        time_reversal: True if time-reversal can be used.
+
+    Returns
+        (o2r_map, nmissing)
+
+        nmissing:
+            Number of k-points in ref_kpoints that cannot be mapped onto ref_kpoints.
+
+        o2r_map[i] gives the mapping  between the i-th k-point in other_kpoints and
+            ref_kpoints. Set to None if the i-th k-point does not have any image in ref.
+            Each entry is a named tuple with the following attributes:
+
+                ik_ref:
+                tsign:
+                isym
+                g0
+
+            kpt_other = T S kpt_ref + G0
+    """
+    ref_gprimd_inv = np.inv(np.asarray(ref_lattice).T)
+    other_gprimd = np.asarray(other_lattice).T
+    other_kpoints = np.asarray(other_kpoints).reshape((-1, 3))
+    ref_kpoints = np.asarray(ref_kpoints).reshape((-1, 3))
+    o2r_map = len(other_kpoints) * [None]
+
+    tsigns = (1, -1) if time_reversal else (1,)
+    kmap = collections.namedtuple("kmap", "ik_ref, tsign, isym, g0")
+
+    for ik_oth, okpt in enumerate(other_kpoints):
+        # Get other k-point in reduced coordinates in the referece lattice.
+        okpt_red = np.matmul(ref_gprimd_inv, np.matmul(other_gprimd, okpt))
+
+        # k_other = TS k_ref + G0
+        found = False
+        for ik_ref, kref in enumerate(ref_kpoints):
+            if found: break
+            for tsign in tsign:
+                for isym, symrec in enumerate(ref_symrecs):
+                    krot = tsign * np.matmul(symrec, kref)
+                    if issamek(okpt_red, krot):
+                        g0 = np.rint(okpt_red - krot)
+                        o2r_map[ik_oth] = kmap(ik_ref, tsign, isym, g0)
+                        found = True
+                        break
+
+        return o2r_map, o2r_map.count(None)
+
+
 class KpointsError(Exception):
     """Base error class for KpointList exceptions."""
 

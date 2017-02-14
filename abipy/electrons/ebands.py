@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 import pymatgen.core.units as units
 
+
 from collections import OrderedDict, namedtuple, Iterable
 from monty.string import is_string, marquee
 from monty.json import MSONable, MontyEncoder
@@ -43,7 +44,7 @@ __all__ = [
 ]
 
 
-class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
+class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     """
     Single-particle state.
 
@@ -54,6 +55,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
         band: band index. (C convention, i.e >= 0).
         eig: KS eigenvalue.
         occ: Occupation factor.
+        kidx: Index of the k-point in the initial array.
 
     .. note::
         Energies are in eV.
@@ -403,14 +405,16 @@ class ElectronBands(object):
         # Eigenvalues and occupancies are stored in ndarrays ordered by [spin,kpt,band]
         self._eigens = np.atleast_3d(eigens)
         self._occfacts = np.atleast_3d(occfacts)
-        assert self.occfacts.shape == self.occfacts.shape
+        assert self._eigens.shape == self._occfacts.shape
         self.nsppol, self.nkpt, self.mband = self.eigens.shape
         self.nspinor, self.nspden = nspinor, nspden
 
         if nband_sk is not None:
             self.nband_sk = np.array(nband_sk)
         else:
-            self.nband_sk = np.array(self.nsppol*self.nkpt*[self.mband])
+            self.nband_sk = np.array(self.nsppol * self.nkpt * [self.mband])
+            self.nband_sk.shape = (self.nsppol, self.nkpt)
+        #print(nband_sk)
 
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
@@ -939,7 +943,8 @@ class ElectronBands(object):
                         kpoint=self.kpoints[kidx],
                         band=band,
                         eig=eig,
-                        occ=self.occfacts[spin, kidx, band]
+                        occ=self.occfacts[spin, kidx, band],
+                        kidx=kidx,
                         #fermie=self.fermie
                         )
 
@@ -1233,8 +1238,8 @@ class ElectronBands(object):
 
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         """
-        Compute the join density of states at q==0
-            :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} - E_{vk})`
+        Compute the join density of states at q == 0.
+            :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
 
         Args:
             spin: Spin index.
@@ -1806,6 +1811,76 @@ class ElectronBands(object):
             raise ValueError("For finite difference derivatives, the path must be homogeneous!\n" +
                              str(self.kpoints.ds[line[:-1]]))
         return vals_on_line, h, self.kpoints.versors[line[0]]
+
+    def interpolate(self, lpratio=5, kpath_coords_names=None, line_density=20,
+                    has_timrev=None, filter_params=None, retinterp=False, verbose=0):
+        """
+
+        Args:
+            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+            kpath_coords_names:
+            has_timrev:
+            filter_params:
+            verbose:
+            retinterp:
+
+        Returns:
+        """
+        # Get symmetries from abinit spacegroup (read from file).
+        abispg = self.structure.spacegroup
+        if abispg is not None:
+            fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+        else:
+            msg = ("Ebands object does not have symmetry operations `spacegroup.symrel`\n"
+                   "This usually happens when ebands has not been initalized from a netcdf file\n."
+                   "Will call spglib to get symmetry operations.")
+            print(msg)
+            from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+            spglib_data = SpacegroupAnalyzer(self.structure).get_symmetry_dataset()
+            fm_symrel = spglib_data["rotations"]
+
+        # Build interpolator.
+        from abipy.core.skw import SkwInterpolator
+        #lvecs = self.structure.lattice.matrix
+        has_timrev = True
+        #if has_timrev is None
+        my_kcoords = [k.frac_coords for k in self.kpoints]
+
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords,
+                self.structure.atomic_numbers)
+
+        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, cell, fm_symrel, has_timrev,
+                filter_params=filter_params, verbose=verbose)
+
+        # Generate k-points for interpolation.
+        if kpath_coords_names is None:
+            kfrac_coords, knames = self.structure.hsym_kpath.get_kpoints(
+                line_density=line_density, coords_are_cartesian=False)
+        else:
+            kfrac_coords, knames = generate_kcoords_names(structure, kpath_coords_names, line_density)
+
+        # Interpolate energies.
+        #new_eigens = skw.eval_all()
+        import time
+        start = time.time()
+        print("Begin interpolation...")
+        new_nkpt = len(kfrac_coords)
+        new_eigens = np.empty((self.nsppol, new_nkpt, self.nband))
+        for spin in self.spins:
+            for ik, newk in enumerate(kfrac_coords):
+                new_eigens[spin, ik] = skw.eval_sk(spin, newk)
+        print("Interpolation completed", time.time() - start)
+
+        # Build new ebands object.
+        ebands_kpts = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
+        new_occfacts = np.zeros(new_eigens.shape)
+        new_ebands = self.__class__(self.structure, ebands_kpts, new_eigens, self.fermie, new_occfacts,
+                self.nelect, self.nspinor, self.nspden)
+
+        if retinterp:
+            return new_ebands, skw
+        else:
+            return new_ebands
 
 
 class EffectiveMassAlongLine(object):
