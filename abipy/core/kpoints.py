@@ -6,6 +6,7 @@ import collections
 import json
 import numpy as np
 
+from itertools import product
 from tabulate import tabulate
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
@@ -161,8 +162,7 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     assert np.all(np.abs(shifts) <= 0.5)
 
     # Build k-point grid.
-    from itertools import product
-    kbz = []
+    kbz = collections.deque()
     for ish, shift in enumerate(shifts):
         rc0 = rc_list(mpdivs[0], shift[0], pbc=pbc, order=order)
         rc1 = rc_list(mpdivs[1], shift[1], pbc=pbc, order=order)
@@ -183,26 +183,41 @@ def has_timrev_from_kptopt(kptopt):
 
 
 def spget_ibz_weighs_bz(structure, mesh, is_shift, has_timrev):
-    import spglib as spg
+    """
+
+    Args:
+        structure: Structure object.
+        mesh: mesh numbers along reciprocal primitive axis.
+        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+        has_timrev: True if time-reversal can be used.
+
+    Return (kibz, weights, kbz)
+
+        kibz: array with the K-points in the IBZ (reduced coordinates)
+        weights: Weights associated to `kibz`. Normalized to one.
+        kbz: array with the K-points in the full BZ (reduced coordinates)
+    """
+    import spglib
     mesh = np.asarray(mesh)
     cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
     # Tolerances passed to spglib.
-    symprec = 1e-5
-    angle_tolerance = -1.0
+    spglib_symprec = 1e-5
+    spglib_angle_tolerance = -1.0
 
-    mapping, grid = spg.get_ir_reciprocal_mesh(mesh, cell,
-        is_shift=is_shift, is_time_reversal=has_timrev, symprec=symprec)
+    mapping, grid = spglib.get_ir_reciprocal_mesh(mesh, cell,
+        is_shift=is_shift, is_time_reversal=has_timrev, symprec=spglib_symprec)
 
     uniq, weights = np.unique(mapping, return_counts=True)
-    print("uniq", uniq, type(uniq))
-    print("weights", weights, type(weights))
-    print("grid", grid.shape, type(grid))
     weights = np.array(weights, dtype=np.float) / len(grid)
-    print(weights.sum())
+    #print("uniq", uniq, type(uniq))
+    #print("weights", weights, type(weights))
+    #print("grid", grid.shape, type(grid))
+    #print(weights.sum())
     nkibz = len(uniq)
     kibz = grid[uniq] / mesh
-    print("Number of ir-kpoints: %d" % nkibz)
-    print(kibz)
+    #print("Number of ir-kpoints: %d" % nkibz)
+    #print(kibz)
 
     kshift = 0.0 if is_shift is None else 0.5 * np.array(kshift)
     kbz = (grid + kshift) / mesh
@@ -743,6 +758,11 @@ class KpointList(collections.Sequence):
         return self._frac_coords
 
     @property
+    def names(self):
+        """List with the name of the k-points."""
+        return [k.name for k in self]
+
+    @property
     def weights(self):
         """`ndarray` with the weights of the k-points."""
         return np.array([kpoint.weight for kpoint in self])
@@ -824,6 +844,54 @@ class Kpath(KpointList):
     It provides methods to compute (line) derivatives along the path.
     The k-points do not have weights so Kpath should not be used to compute integral in the BZ.
     """
+
+    @classmethod
+    def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
+        """
+        Generate K-path from a list of vertices and the corresponding labels.
+
+        Args:
+            structure: Structure object.
+            vertices_names:  List of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path.
+            line_density: Number of points used to sample the smallest segment of the path
+        """
+        gmet = structure.lattice.reciprocal_lattice.metric_tensor
+        vnames = [str(vn[1]) for vn in vertices_names]
+        vertices = np.array([vn[0] for vn in vertices_names], dtype=np.float)
+        vertices.shape = (-1, 3)
+
+        dl_vals = []
+        for ik, k0 in enumerate(vertices[:-1]):
+            dk = vertices[ik + 1] - k0
+            dl = np.sqrt(np.dot(dk, np.matmul(gmet, dk)))
+            if abs(dl) < 1e-6: dl = np.inf
+            dl_vals.append(dl)
+
+        dl_min = np.array(dl_vals).min()
+
+        fact = dl_min / line_density
+        frac_coords = collections.deque()
+        knames = collections.deque()
+        for ik, dl in enumerate(dl_vals):
+            if dl == np.inf: continue
+            numk = int(np.rint(dl / fact))
+            k0 = vertices[ik]
+            dk = vertices[ik + 1] - k0
+            knames.append(vnames[ik])
+            for ii in range(numk):
+                next_k = k0 + dk * ii / numk
+                frac_coords.append(next_k)
+                if ii > 0: knames.append("")
+        knames.append(vnames[-1])
+        frac_coords.append(vertices[-1])
+
+        return cls(structure.lattice.reciprocal_lattice,
+                   frac_coords=frac_coords,
+                   weights=None,
+                   names=knames,
+                   )
 
     def __str__(self):
         return self.to_string()

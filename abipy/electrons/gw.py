@@ -1054,7 +1054,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    return plot_matrix(matrix, *args, **kwargs)
 
     def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-                    kpath_coords_names=None, line_density=20, filter_params=None, verbose=0):
+                    vertices_names=None, line_density=20, filter_params=None, verbose=0):
         """
 
         Args:
@@ -1064,7 +1064,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 the routine interpolates the QP corrections and apply them on top of the KS band structure
                 This is the recommended option because QP corrections are usually smoother than the
                 QP energies and therefore easier to interpolate. If None, the QP energies are interpolated
-                along the path defined by `kpath_coords_names` and `line_density`.
+                along the path defined by `vertices_names` and `line_density`.
             ks_ebands_kmesh: KS :class:`ElectronBands` on a homogeneous k-mesh. If present, the routine
                 interpolates the corrections on the k-mesh (used to compute QP DOS)
             ks_degatol: Energy tolerance in eV. Used when either `ks_ebands_kpath` or `ks_ebands_kmesh` are given.
@@ -1073,14 +1073,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 are interpolated instead of QP energies). This problem can be partly solved by averaging
                 the interpolated values over the set of KS degenerate states.
                 A negative value disables this ad-hoc symmetrization.
-            kpath_coords_names: Used to specify the k-path for the interpolated QP band structure
+            vertices_names: Used to specify the k-path for the interpolated QP band structure
                 when `ks_ebands_kpath` is None.
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path. `line_density` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with `kpath_coords_names`.
+            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
             filter_params: TO BE DESCRIBED
             verbose: Verbosity level
 
@@ -1118,11 +1118,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if ks_ebands_kpath is None:
             # Generate k-points for interpolation.
             bstart, bstop = 0, -1
-            if kpath_coords_names is None:
-                kfrac_coords, knames = self.structure.hsym_kpath.get_kpoints(
-                    line_density=line_density, coords_are_cartesian=False)
-            else:
-                kfrac_coords, knames = generate_kcoords_names(structure, kpath_coords_names, line_density)
+            if vertices_names is None:
+                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+            kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+            kfrac_coords, knames = kpath.frac_coords, kpath.names
+
         else:
             # Use list of k-points from ks_ebands_kpath.
             kfrac_coords = [k.frac_coords for k in ks_ebands_kpath.kpoints]

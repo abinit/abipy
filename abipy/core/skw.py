@@ -82,14 +82,14 @@ class ElectronInterpolator(object):
         print("uniq", uniq, type(uniq))
         print("weights", weights, type(weights))
         print("grid", grid.shape, type(grid))
-        weights = np.array(weights, dtype=np.float) / len(grid)
+        weights = np.asarray(weights, dtype=np.float) / len(grid)
         print(weights.sum())
         nkibz = len(uniq)
         kibz = grid[uniq] / mesh
         print("Number of ir-kpoints: %d" % nkibz)
         print(kibz)
 
-        kshift = 0.0 if is_shift is None else 0.5 * np.array(kshift)
+        kshift = 0.0 if is_shift is None else 0.5 * np.asarray(kshift)
         kbz = (grid + kshift) / mesh
 
         # All k-points and mapping to ir-grid points
@@ -376,7 +376,7 @@ class SkwInterpolator(ElectronInterpolator):
         if self.nkpt == 1:
             raise ValueError("Interpolation algorithm requires nkpt > 1")
 
-        rprimd = np.array(lattice).T
+        rprimd = np.asarray(lattice).T
         print("rprimd", rprimd)
         self.rmet = np.matmul(rprimd.T, rprimd)
 
@@ -386,18 +386,20 @@ class SkwInterpolator(ElectronInterpolator):
         # Find point group operations.
         #symrel = [s.T for s in symrel]
         symrel = np.reshape(symrel, (-1, 3, 3))
-        self.ptg_symrel, self.ptg_symrec = self._get_point_group(symrel)
+        self.ptg_symrel, self.ptg_symrec, has_inversion = self._get_point_group(symrel)
         self.ptg_nsym = len(self.ptg_symrel)
         if self.verbose:
             print("Found", self.ptg_nsym, "symmetries in point group")
 
         # Find nrwant star points.
+        lpration = int(lpratio)
         if lpratio <= 1:
             raise ValueError("lpratio must be > 1 but got %s" % lpratio)
         print("nkpt:", self.nkpt)
         nrwant = lpratio * self.nkpt
-        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
-        #rmax = 20 * np.ones(3, dtype=np.int)
+        fact = 1/2 if has_inversion else 1
+        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym * fact) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
+        #rmax = int((1.0 + (lpratio * self.nkpt) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
 
         while True:
             self.rpts, r2vals, ok = self._find_rstar_gen(nrwant, rmax)
@@ -751,6 +753,7 @@ class SkwInterpolator(ElectronInterpolator):
                 nsh += 1
             r2sh[ir] = nsh
         shlim[nsh] = msize
+        print("nshells", nsh)
         print("shells", time.time() - start)
 
         # Find R-points generating the stars.
@@ -804,6 +807,7 @@ class SkwInterpolator(ElectronInterpolator):
             print("nstars:", nstars)
             for r, r2 in zip(rpts, r2vals):
                 print(r, r2)
+        print("r2max ", rpts[nr-1])
         print("end ", time.time() - start)
 
         return rpts, r2vals, ok
@@ -837,8 +841,9 @@ class SkwInterpolator(ElectronInterpolator):
             ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 
         if not has_inversion and self.is_time_reversal:
+            # Add inversion.
             ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
             for isym in range(tmp_nsym, ptg_nsym):
                 ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 
-        return ptg_symrel, ptg_symrec
+        return ptg_symrel, ptg_symrec, has_inversion

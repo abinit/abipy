@@ -12,7 +12,6 @@ import pickle
 import numpy as np
 import pymatgen.core.units as units
 
-
 from collections import OrderedDict, namedtuple, Iterable
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
@@ -1219,7 +1218,7 @@ class ElectronBands(object):
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
-            err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
+            err_msg += str(type(self.kpoints)) # + "\n" + str(self.kpoints)
             raise ValueError(err_msg)
 
         # Compute the linear mesh.
@@ -1512,8 +1511,12 @@ class ElectronBands(object):
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
         if ticks:
+            # Don't show label if previous k-point is the same.
+            for il in range(1, len(labels)):
+                if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False)
+            ax.set_xticklabels(labels, fontdict=None, minor=False, size="x-large")
+            ax.set_xlim(0, ticks[-1])
 
     def get_e0(self, e0):
         """
@@ -1828,25 +1831,28 @@ class ElectronBands(object):
                              str(self.kpoints.ds[line[:-1]]))
         return vals_on_line, h, self.kpoints.versors[line[0]]
 
-    def interpolate(self, lpratio=5, kpath_coords_names=None, line_density=20,
+    def interpolate(self, lpratio=5, vertices_names=None, line_density=20,
                     kmesh=None, is_shift=None, filter_params=None, verbose=0):
         """
+        Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
+        Note that the interpolation will likely fail if there are symmetrical k-points in the input sampling
+        so it's recommended to call this method with band structure obtained in the IBZ.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
-            kpath_coords_names: Used to specify the k-path for the interpolated band structure
+            vertices_names: Used to specify the k-path for the interpolated band structure
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path. `line_density` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with `kpath_coords_names`.
+            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
             kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
-            is_shift: int array with the three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-            filter_params:
+            filter_params: TO BE described.
             verbose: Verbosity level
 
         Returns:
@@ -1877,14 +1883,13 @@ class ElectronBands(object):
                 self.structure.atomic_numbers)
 
         skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, cell, fm_symrel, self.has_timrev,
-                filter_params=filter_params, verbose=verbose)
+                              filter_params=filter_params, verbose=verbose)
 
         # Generate k-points for interpolation.
-        if kpath_coords_names is None:
-            kfrac_coords, knames = self.structure.hsym_kpath.get_kpoints(
-                line_density=line_density, coords_are_cartesian=False)
-        else:
-            kfrac_coords, knames = generate_kcoords_names(structure, kpath_coords_names, line_density)
+        if vertices_names is None:
+            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+        kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+        kfrac_coords, knames = kpath.frac_coords, kpath.names
 
         # Interpolate energies.
         eigens_kpath = skw.eval_all(kfrac_coords)
@@ -1893,7 +1898,7 @@ class ElectronBands(object):
         kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
         occfacts_kpath = np.zeros(eigens_kpath.shape)
         ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
-                self.nelect, self.nspinor, self.nspden)
+                                      self.nelect, self.nspinor, self.nspden)
 
         ebands_kmesh = None
         if kmesh is not None:
@@ -1905,7 +1910,7 @@ class ElectronBands(object):
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
-                                            self.nelect, self.nspinor, self.nspden)
+                                          self.nelect, self.nspinor, self.nspden)
 
         return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
 
