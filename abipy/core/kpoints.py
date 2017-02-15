@@ -174,7 +174,43 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     return np.array(kbz)
 
 
-def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, time_reversal):
+def has_timrev_from_kptopt(kptopt):
+    """
+    True if time-reversal symmetry can be used in the generation of the k-points in the IBZ.
+    """
+    kptopt = int(kptopt)
+    return False if kptopt in (3, 4) else True
+
+
+def spget_ibz_weighs_bz(structure, mesh, is_shift, has_timrev):
+    import spglib as spg
+    mesh = np.asarray(mesh)
+    cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
+    # Tolerances passed to spglib.
+    symprec = 1e-5
+    angle_tolerance = -1.0
+
+    mapping, grid = spg.get_ir_reciprocal_mesh(mesh, cell,
+        is_shift=is_shift, is_time_reversal=has_timrev, symprec=symprec)
+
+    uniq, weights = np.unique(mapping, return_counts=True)
+    print("uniq", uniq, type(uniq))
+    print("weights", weights, type(weights))
+    print("grid", grid.shape, type(grid))
+    weights = np.array(weights, dtype=np.float) / len(grid)
+    print(weights.sum())
+    nkibz = len(uniq)
+    kibz = grid[uniq] / mesh
+    print("Number of ir-kpoints: %d" % nkibz)
+    print(kibz)
+
+    kshift = 0.0 if is_shift is None else 0.5 * np.array(kshift)
+    kbz = (grid + kshift) / mesh
+
+    return kibz, weights, kbz
+
+
+def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
     """
     Build mapping between a list of k-points in reduced coordinates (`other_kpoints`)
     in the reciprocal lattice `other_lattice` and a list of reference k-points given
@@ -186,7 +222,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
         ref_lattice: same meaning as other_lattice.
         ref_kpoints:
         ref_symrecs: [nsym,3,3] arrays with symmetry operations in the `ref_lattice` reciprocal space.
-        time_reversal: True if time-reversal can be used.
+        has_timrev: True if time-reversal can be used.
 
     Returns
         (o2r_map, nmissing)
@@ -211,7 +247,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
     ref_kpoints = np.asarray(ref_kpoints).reshape((-1, 3))
     o2r_map = len(other_kpoints) * [None]
 
-    tsigns = (1, -1) if time_reversal else (1,)
+    tsigns = (1, -1) if has_timrev else (1,)
     kmap = collections.namedtuple("kmap", "ik_ref, tsign, isym, g0")
 
     for ik_oth, okpt in enumerate(other_kpoints):

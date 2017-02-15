@@ -15,8 +15,9 @@ import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
 from monty.string import is_string, marquee
+from monty.termcolor import cprint
 from monty.json import MSONable, MontyEncoder
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from monty.dev import deprecated
@@ -24,7 +25,8 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
+from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin,
+    kmesh_from_mpdivs, spget_ibz_weighs_bz, has_timrev_from_kptopt)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
@@ -657,6 +659,20 @@ class ElectronBands(object):
     def has_bzpath(self):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
+
+    @lazy_property
+    def kptopt(self):
+        """The value of the kptopt input variable."""
+        if hasattr(self, "kpoints.ksampling.kptopt"):
+            return self.kpoints.ksampling.kptopt
+        else:
+            cprint("ebands.kpoints.ksampling.kptopt is not defined, assuming kptopt = 1", "red")
+            return 1
+
+    @lazy_property
+    def has_timrev(self):
+        """True if time-reversal symmetry is used in the BZ sampling."""
+        return has_timrev_from_kptopt(self.kptopt)
 
     def kindex(self, kpoint):
         """
@@ -1813,18 +1829,33 @@ class ElectronBands(object):
         return vals_on_line, h, self.kpoints.versors[line[0]]
 
     def interpolate(self, lpratio=5, kpath_coords_names=None, line_density=20,
-                    has_timrev=None, filter_params=None, retinterp=False, verbose=0):
+                    kmesh=None, is_shift=None, filter_params=None, verbose=0):
         """
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
-            kpath_coords_names:
-            has_timrev:
+                The default should be OK in many systems, larger values may be required for accurate derivatives.
+            kpath_coords_names: Used to specify the k-path for the interpolated band structure
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with `kpath_coords_names`.
+            kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib API).
+                kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
+            is_shift: int array with the three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             filter_params:
-            verbose:
-            retinterp:
+            verbose: Verbosity level
 
         Returns:
+                namedtuple with the following attributes:
+
+            ebands_kpath: :class:`ElectronBands` with the interpolated band structure on the k-path.
+            ebands_kmesh: :class:`ElectronBands` with the interpolated band structure on the k-mesh.
+                None if kmesh is not given.
+            interpolator: :class:`SkwInterpolator` object.
         """
         # Get symmetries from abinit spacegroup (read from file).
         abispg = self.structure.spacegroup
@@ -1841,15 +1872,11 @@ class ElectronBands(object):
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
-        #lvecs = self.structure.lattice.matrix
-        has_timrev = True
-        #if has_timrev is None
         my_kcoords = [k.frac_coords for k in self.kpoints]
-
         cell = (self.structure.lattice.matrix, self.structure.frac_coords,
                 self.structure.atomic_numbers)
 
-        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, cell, fm_symrel, has_timrev,
+        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, cell, fm_symrel, self.has_timrev,
                 filter_params=filter_params, verbose=verbose)
 
         # Generate k-points for interpolation.
@@ -1860,27 +1887,27 @@ class ElectronBands(object):
             kfrac_coords, knames = generate_kcoords_names(structure, kpath_coords_names, line_density)
 
         # Interpolate energies.
-        #new_eigens = skw.eval_all()
-        import time
-        start = time.time()
-        print("Begin interpolation...")
-        new_nkpt = len(kfrac_coords)
-        new_eigens = np.empty((self.nsppol, new_nkpt, self.nband))
-        for spin in self.spins:
-            for ik, newk in enumerate(kfrac_coords):
-                new_eigens[spin, ik] = skw.eval_sk(spin, newk)
-        print("Interpolation completed", time.time() - start)
+        eigens_kpath = skw.eval_all(kfrac_coords)
 
         # Build new ebands object.
-        ebands_kpts = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
-        new_occfacts = np.zeros(new_eigens.shape)
-        new_ebands = self.__class__(self.structure, ebands_kpts, new_eigens, self.fermie, new_occfacts,
+        kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
+        occfacts_kpath = np.zeros(eigens_kpath.shape)
+        ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
                 self.nelect, self.nspinor, self.nspden)
 
-        if retinterp:
-            return new_ebands, skw
-        else:
-            return new_ebands
+        ebands_kmesh = None
+        if kmesh is not None:
+            # Get kpts and weights in IBZ.
+            dos_kcoords, dos_weights, _ = spget_ibz_weighs_bz(self.structure, kmesh, is_shift, self.has_timrev)
+            eigens_kmesh = skw.eval_all(dos_kcoords)
+
+            # Build new ebands object with k-mesh
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)
+            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+            ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
+                                            self.nelect, self.nspinor, self.nspden)
+
+        return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
 
 
 class EffectiveMassAlongLine(object):

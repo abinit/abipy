@@ -31,9 +31,12 @@ qp_edos = r.qp_ebands_kmesh.get_edos()
 #ks_edos = r.ks_ebands_kmesh.get_edos()
 #qp_edos = r.qp_ebands_kmesh.get_edos()
 
+#sigre.qplist_spin[0].plot_qps_vs_e0(title="QPState corrections of Si", exclude_fields="vUme")
+#sigres.print_qps()
+#r.qp_ebands_kpath.plot()
+
 # Plot the LDA and the QPState band structure with matplotlib.
 plotter = ElectronBandsPlotter()
-
 plotter.add_ebands("LDA", ks_ebands_kpath, dos=ks_edos)
 plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
@@ -41,5 +44,4 @@ plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 # Use e=0 if you don't want to shift the eigenvalus
 # so that it's possible to visualize the QP corrections.
 plotter.combiplot(title="Silicon band structure")
-
 plotter.gridplot(title="Silicon band structure")

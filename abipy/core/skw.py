@@ -45,7 +45,7 @@ def find_degs_sk(enesb, atol):
     return degs
 
 
-class Interpolator(object):
+class ElectronInterpolator(object):
     """
     """
     # Tolerances passed to spglib.
@@ -53,7 +53,7 @@ class Interpolator(object):
     angle_tolerance = -1.0
 
     # insulator: fermi level set to homo = nelect//2, occupation factors are either 0 or 1
-    #   not suitables for metals, semi-metals, doped semiconductors)
+    #   not suitable for metals, semi-metals, doped semiconductors)
     # fermi-dirac: metallic occupation scheme with physical temperature.
     # gaussian (metallic occupation scheme with gaussian broadening)
     occtype = "insulator"
@@ -100,11 +100,11 @@ class Interpolator(object):
 
     def set_chempot(self, chempot, kmesh, is_shift):
         # Compute DOS/IDOS
-        dos, idos = _get_cached_dos_idos(kmesh, is_shift)
+        wmesh, dos, idos = _get_cached_dos_idos(kmesh, is_shift)
         #if dos is None:
-        #    wmesh, dos, idos = self.get_dos(kmesh, is_shift=is_shift,
+        #    wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift,
         #       method="gaussian", step=0.1, width=0.2, wmesh=None)
-        #    self._cache_dos_idos(kmesh, is_shift, dos, idos):
+        #    self._cache_dos_idos(kmesh, is_shift, wmesh, dos, idos):
 
         self.chempot = chempot
         # Find number of electrons from new chemical potential from nelect.
@@ -113,11 +113,11 @@ class Interpolator(object):
 
     def set_nelect(self, nelect, kmesh, is_shift):
         # Compute DOS/IDOS
-        dos, idos = _get_cached_dos_idos(kmesh, is_shift)
+        wmesh, dos, idos = _get_cached_dos_idos(kmesh, is_shift)
         #if dos is None:
-        #    wmesh, dos, idos = self.get_dos(kmesh, is_shift=is_shift,
+        #    wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift,
         #       method="gaussian", step=0.1, width=0.2, wmesh=None)
-        #    self._cache_dos_idos(kmesh, is_shift, dos, idos):
+        #    self._cache_dos_idos(kmesh, is_shift, wmesh, dos, idos):
         self.nelect = nelect
         # Find new chemical potential from nelect.
         idos
@@ -135,7 +135,7 @@ class Interpolator(object):
                 "fermi-dirac": theta_fd,
             }[self.occtype](eigens - self.chempot, kt) * full
 
-    def get_dos(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
+    def get_dos_idos(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
         """
         Compute the DOS/IDOS on a linear mesh.
 
@@ -205,6 +205,7 @@ class Interpolator(object):
         wmesh, step = self._get_w2mesh_step(eigens, wmesh, step)
         nw = len(wmesh)
         jdos = np.zeros((self.nsppol, nw))
+        int_jdos = np.zeros((self.nsppol, nw))
 
         # Normalize the occupation factors.
         full = 2.0 if self.nsppol == 1 else 1.0
@@ -223,7 +224,7 @@ class Interpolator(object):
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        return wmesh, jdos
+        return wmesh, jdos, int_jdos
 
     def get_nesting_at_e0(self, qpoints, kmesh, e0, width=0.2, is_shift=None):
         """
@@ -322,7 +323,7 @@ class Interpolator(object):
         if is_shift is not None: is_shift = tuple(is_shift)
         return self._cached_dos_idos.get((kmesh, is_shift))
 
-    def _cache_dos_idos(self, kmesh, is_shift, dos, idos):
+    def _cache_dos_idos(self, kmesh, is_shift, wmesh, dos, idos):
         """
         Save DOS/IDOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
         """
@@ -330,10 +331,10 @@ class Interpolator(object):
         if not hasattr(self, "_cached_dos_idos"): self._cached_dos_idos = OrderedDict()
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
-        self._cached_dos_idos[(kmesh, is_shift)] = (dos, idos)
+        self._cached_dos_idos[(kmesh, is_shift)] = (wmesh.copy(), dos.dopy(), idos.copy())
 
 
-class SkwInterpolator(Interpolator):
+class SkwInterpolator(ElectronInterpolator):
     """
     This object implements the Shankland-Koelling-Wood Fourier interpolation scheme.
     It can be used to interpolate functions in k-space with the periodicity of the
@@ -350,6 +351,7 @@ class SkwInterpolator(Interpolator):
         Args:
             self.cell = (lattice, positions, numbers)
             lpratio: Ratio between the number of star-functions and the number of ab-initio k-points.
+                5 should be OK in many systems, larger values may be required for accurate derivatives.
             kpts: numpy array with the [nkpt, 3] ab-initio k-points in reduced coordinates.
             eigens: numpy array with the ab-initio energies. shape [nsppol, nkpt, nband].
             lattice: numpy array with direct lattice vectors along the rows.
@@ -371,6 +373,8 @@ class SkwInterpolator(Interpolator):
         if len(kpts) != self.nkpt:
             raise ValueError("Second dimension of eigens should be %d but got array of shape: %s" %
                 (len(kpts), eigens.shape))
+        if self.nkpt == 1:
+            raise ValueError("Interpolation algorithm requires nkpt > 1")
 
         rprimd = np.array(lattice).T
         print("rprimd", rprimd)
@@ -436,9 +440,15 @@ class SkwInterpolator(Interpolator):
 
         # Solve all bands and spins at once
         #call np.linalg.zhesv("U", nkpt-1, nband*nsppol, hmat, nkpt-1, ipiv, lmbs, nkpt-1, work, lwork, ierr)
-        lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
-                sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, debug=False, check_finite=False)
-                #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, debug=False, check_finite=True)
+        try:
+            lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
+                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, debug=False, check_finite=False)
+                    #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, debug=False, check_finite=True)
+        except scipy.linalg.LinAlgError as exc:
+            print("Cannot solve system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)")
+            print("This usually happens there are symmetrical k-points passed to the interpolator.")
+            raise exc
+
         lmb_kbs = np.reshape(lmb_kbs, (-1, nband, nsppol))
 
         # Compute coefficients.
@@ -453,13 +463,14 @@ class SkwInterpolator(Interpolator):
                     - np.dot(self.coefs[spin, ib, 1:nr], self.skr[nkpt-1, 1:nr])
 
         # Filter high-frequency.
+        self.rcut, self.rsigma = None, None
         if filter_params is not None:
-            rcut = filter_params[0] * np.sqrt(r2vals[-1])
-            rsigma = filter_params[1]
+            self.rcut = filter_params[0] * np.sqrt(r2vals[-1])
+            self.rsigma = rsigma = filter_params[1]
             if self.verbose:
-                print("Applying filter (Eq 9 of PhysRevB.61.1639) with rcut:", rcut, ", rsigma", rsigma)
+                print("Applying filter (Eq 9 of PhysRevB.61.1639) with rcut:", rcut, ", rsigma", self.rsigma)
             for ir in range(1, nr):
-                self.coefs[:, :, ir] *= 0.5 * scipy.erfc((np.sqrt(r2vals(ir)) - rcut) / rsigma)
+                self.coefs[:, :, ir] *= 0.5 * scipy.erfc((np.sqrt(r2vals(ir)) - self.rcut) / self.rsigma)
 
         # Prepare workspace arrays for star functions.
         self.cached_kpt = np.ones(3) * np.inf
@@ -486,6 +497,23 @@ class SkwInterpolator(Interpolator):
             print("Large error in SKW interpolation!")
             print("MAE:", mae, "[meV]")
         self.mae = mae
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, **kwargs):
+        """String representation."""
+        lines = []
+        app = lines.append
+        app("nsppol: %s, nband: %s" % (self.nsppol, self.nband))
+        app("Number of operations in point-group: %s with time-reversal: %s" % (self.ptg_nsym, self.is_time_reversal))
+        app("Number of ab-initio k-points: %s" % self.nkpt)
+        app("Number of star functions: %s [nstars/nk = %s]" % (self.nr, (self.nr / self.nkpt)))
+        if self.rcut is not None:
+            app("Fourier filter (Eq 9 of PhysRevB.61.1639) with rcut: %s, rsigma: %s" % (self.rcut, self.rsigma))
+        app("Comparison between ab-initio data and fit gave Mean Absolute Error: %s [meV]" % self.mae)
+
+        return "\n".join(lines)
 
     def eval_all(self, kfrac_coords, der1=None, der2=None):
         # Interpolate energies.
@@ -726,6 +754,7 @@ class SkwInterpolator(Interpolator):
         print("shells", time.time() - start)
 
         # Find R-points generating the stars.
+        # This is the most CPU critical part. I think it's difficult to do better than this without cython
         start = time.time()
         rgen = deque()
 
