@@ -1054,8 +1054,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    return plot_matrix(matrix, *args, **kwargs)
 
     def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-                    vertices_names=None, line_density=20, filter_params=None, verbose=0):
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
         """
+        Interpolated the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -1082,6 +1083,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
             filter_params: TO BE DESCRIBED
+            only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
+                Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
             verbose: Verbosity level
 
         Returns:
@@ -1102,7 +1105,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if len(self.gwkpoints) != len(self.ibz):
             eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
         if len(self.gwkpoints) == 1:
-            eapp("Interpolation requires nkptgw > 1.")
+            eapp("QP Interpolation requires nkptgw > 1.")
         #if (np.any(self.gwbstop_sk[0, 0] != self.gwbstop_sk):
         #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
         #if (np.any(self.gwbstart_sk[0, 0] != self.gwbstart_sk):
@@ -1116,7 +1119,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
         if ks_ebands_kpath is None:
-            # Generate k-points for interpolation.
+            # Generate k-points for interpolation. Will interpolate all bands available in the sigres file.
             bstart, bstop = 0, -1
             if vertices_names is None:
                 vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
@@ -1125,8 +1128,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         else:
             # Use list of k-points from ks_ebands_kpath.
+            ks_ebands_kpath = ElectronBands.as_ebands(ks_ebands_kpath)
             kfrac_coords = [k.frac_coords for k in ks_ebands_kpath.kpoints]
             knames = [k.name for k in ks_ebands_kpath.kpoints]
+
+            # Find the band range for the interpolation.
             bstart, bstop = 0, ks_ebands_kpath.nband
             bstop = min(bstop, self.min_gwbstop)
             if ks_ebands_kpath.nband < self.min_gwbstop:
@@ -1140,14 +1146,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
         egw_rarr = self.reader.read_value("egw", cmode="c").real
         if ks_ebands_kpath is not None:
-            ks_ebands_kpath = ElectronBands.as_ebands(ks_ebands_kpath)
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
             egw_rarr -= self.reader.read_value("e0")
 
         # Note there's no guarantee that the gw_kpoints and the corrections have the same k-point index.
-        # Be careful here because the order of the k-points and the band range stored
-        # in the SIGRES file may differ ...
+        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
         qpdata = np.empty(egw_rarr.shape)
         for gwk in self.gwkpoints:
             ik_ibz = self.reader.kpt2fileindex(gwk)
@@ -1170,10 +1174,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Interpolate QP energies corrections and add them to KS.
             ref_eigens = ks_ebands_kpath.eigens[:, :, bstart:bstop]
             qp_corrs = skw.eval_all_and_enforce_degs(kfrac_coords, ref_eigens, atol=ks_degatol)
-            eigens_kpath = ks_ebands_kpath.eigens + qp_corrs
-            #eigens_kpath = qp_corrs
+            eigens_kpath = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
-        # Build new ebands object with k-path
+        # Build new ebands object with k-path.
         kpts_kpath = Kpath(self.structure.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
         occfacts_kpath = np.zeros(eigens_kpath.shape)
 
@@ -1206,8 +1209,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Interpolate QP corrections from bstart to bstop
             ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
             qp_corrs = skw.eval_all_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol)
-            eigens_kmesh = ks_ebands_kmesh.eigens + qp_corrs
-            #eigens_kmesh = qp_corrs
+            eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
             # Build new ebands object with k-mesh
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)

@@ -485,10 +485,7 @@ class DensityFortranFile(AbinitFortranFile):
         outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
 
         from abipy.electrons.charges import HirshfeldCharges
-
-        hc = HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
-
-        return hc
+        return HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
 
 
 class CubeFile(_File):
@@ -742,10 +739,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
+import numpy as np
 
 %matplotlib notebook
 from IPython.display import display
-#import seaborn as sns
+#import seaborn as sns   # uncomment this line to activate seaborn settings.
 
 from abipy import abilab""")
         ])

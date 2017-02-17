@@ -1776,7 +1776,7 @@ class PhononDosPlotter(object):
             phdos: :class:`PhononDos` object.
         """
         if label in self._phdoses_dict:
-            raise ValueError("label %s is already in %s" % (label, self._phdoses_dict.keys()))
+            raise ValueError("label %s is already in %s" % (label, list(self._phdoses_dict.keys())))
 
         self._phdoses_dict[label] = phdos
 
@@ -1816,6 +1816,50 @@ class PhononDosPlotter(object):
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, quantities=None, **kwargs):
+        """
+        Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            quantities: List of strings specifying the thermodinamic quantities to plot.
+                Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+                None means all.
+
+        Returns:
+            matplotlib figure.
+        """
+        quantities = ["internal_energy", "free_energy", "entropy", "c_v"] if quantities is None else list(quantities)
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(quantities)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        import matplotlib.pyplot as plt
+        fig, axmax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: axmax[-1, -1].axis("off")
+
+        for iax, (qname, ax) in enumerate(zip(quantities, axmax.flat)):
+
+            for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+                # Compute thermodinamic quantity associated to qname
+                f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
+                ax.plot(f1d.mesh, f1d.values, label=label)
+
+            ax.set_title(qname)
+            ax.grid(True)
+            ax.set_xlabel("Temperature [K]")
+            ax.legend(loc="best")
 
         return fig
 
