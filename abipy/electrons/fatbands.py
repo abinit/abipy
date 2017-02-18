@@ -32,13 +32,15 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     .. code-block:: python
 
-        with FatBandsFile("foo_FATBANDS.nc") as fb:
+        with abiopen("out_FATBANDS.nc") as fb:
+            print(fb.structure)
             fb.plot_fatbands_lview()
 
-    Alternatively, one can use::
+    Alternatively, one can use the abiopen.py script to open the file in an ipython notebook with
 
-        with abiopen("foo_FATBANDS.nc") as fb:
-            fb.plot_fatbands_lview()
+    .. code-block:: shell
+
+        $ abiopen.py out_FATBANDS.nc -nb
     """
     # These class attributes can be redefined in order to customize the plots.
 
@@ -51,7 +53,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     # Markers used for up/down bands (collinear spin)
     marker_spin = {0: "^", 1: "v"}
 
-    # Mapping spin --> title used in subplots that depend on spin (collinear)
+    # Mapping spin --> title used in subplots that depend on (collinear) spin.
     spin2tex = {0: "$\sigma=\\uparrow$", 1: "$\sigma=\\downarrow$"}
 
     # Mappings used for non-collinear spins.
@@ -72,6 +74,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     marker_size = 3.0
     linewidth = 0.1
     linecolor = "grey"
+    #klabel_size = None
 
     @classmethod
     def from_file(cls, filepath):
@@ -395,6 +398,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             linewidth=self.linewidth,
             markersize=self.marker_size,
             marker=self.marker_spin[spin],
+            #klabel_size=self.klabel_size,
         )
 
     @add_fig_kwargs
@@ -645,7 +649,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None,
                                ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands
+        Plot the electronic fatbands grouped by atomic type.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -1505,8 +1509,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             nbv.new_code_cell("fbnc = abilab.abiopen('%s')\nprint(fbnc)" % self.filepath),
             nbv.new_code_cell("fbnc.structure"),
             nbv.new_code_cell("fig = fbnc.ebands.kpoints.plot()"),
-            #nbv.new_code_cell("fig = fbnc.ebands.plot(ylims=ylims)"),
             nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
+            #nbv.new_code_cell("fig = fbnc.ebands.plot(ylims=ylims)"),
         ])
 
         if self.prtdos == 3:

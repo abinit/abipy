@@ -1502,6 +1502,14 @@ class ElectronBands(object):
         return fig
 
     def decorate_ax(self, ax, **kwargs):
+        """
+        Decoracte matplotlib Axis
+
+        Accept:
+            title:
+            klabels
+            klabel_size:
+        """
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
 
@@ -1515,7 +1523,7 @@ class ElectronBands(object):
             for il in range(1, len(labels)):
                 if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False, size="x-large")
+            ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
             ax.set_xlim(0, ticks[-1])
 
     def get_e0(self, e0):
