@@ -23,6 +23,7 @@ def gaussians_dos(dos, mesh, width, values, energies, weights):
         dos += vw * gaussian(mesh, width, center=e)
     return dos
 
+
 class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Provides methods to analyze the data stored in the FATBANDS.nc file.
@@ -501,7 +502,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_lview(self, e0="fermie", fact=2.0, axmat=None, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands grouped by l.
+        Plot the electronic fatbands grouped by L.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -509,7 +510,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
-            axmat:
+            axmat: Matrix of axes, if None new figure is produce.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
