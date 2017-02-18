@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import collections
 import json
+import sys
 import numpy as np
 
 from itertools import product
@@ -30,11 +31,15 @@ __all__ = [
     "IrredZone",
     "rc_list",
     "kmesh_from_mpdivs",
+    "Ktables",
 ]
 
 # Tolerance used to compare k-points.
 _ATOL_KDIFF = 1e-8
 
+# Tolerances passed to spglib.
+_SPGLIB_SYMPREC = 1e-5
+_SPGLIB_ANGLE_TOLERANCE = -1.0
 
 def set_atol_kdiff(new_atol):
     """
@@ -49,6 +54,20 @@ def set_atol_kdiff(new_atol):
     old_atol = _ATOL_KDIFF
     _ATOL_KDIFF = new_atol
     return old_atol
+
+def set_spglib_tols(symprec, angle_tolerance):
+    """
+    Change the value of the tolerances `symprec` and `angle_tolerance`
+    used to call spglib. Return old values
+
+    .. warning::
+
+        This function should be called at the beginning of the script.
+    """
+    global _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE
+    old_symprec, old_angle_tolerance = _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE
+    _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE = symprec, angle_tolerance
+    return old_symprec, old_angle_tolerance
 
 
 def is_integer(x, atol=None):
@@ -181,48 +200,6 @@ def has_timrev_from_kptopt(kptopt):
     kptopt = int(kptopt)
     return False if kptopt in (3, 4) else True
 
-
-def spget_ibz_weighs_bz(structure, mesh, is_shift, has_timrev):
-    """
-
-    Args:
-        structure: Structure object.
-        mesh: mesh numbers along reciprocal primitive axis.
-        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
-            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
-        has_timrev: True if time-reversal can be used.
-
-    Return (kibz, weights, kbz)
-
-        kibz: array with the K-points in the IBZ (reduced coordinates)
-        weights: Weights associated to `kibz`. Normalized to one.
-        kbz: array with the K-points in the full BZ (reduced coordinates)
-    """
-    import spglib
-    mesh = np.asarray(mesh)
-    cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
-    # Tolerances passed to spglib.
-    spglib_symprec = 1e-5
-    spglib_angle_tolerance = -1.0
-
-    mapping, grid = spglib.get_ir_reciprocal_mesh(mesh, cell,
-        is_shift=is_shift, is_time_reversal=has_timrev, symprec=spglib_symprec)
-
-    uniq, weights = np.unique(mapping, return_counts=True)
-    weights = np.array(weights, dtype=np.float) / len(grid)
-    #print("uniq", uniq, type(uniq))
-    #print("weights", weights, type(weights))
-    #print("grid", grid.shape, type(grid))
-    #print(weights.sum())
-    nkibz = len(uniq)
-    kibz = grid[uniq] / mesh
-    #print("Number of ir-kpoints: %d" % nkibz)
-    #print(kibz)
-
-    kshift = 0.0 if is_shift is None else 0.5 * np.array(kshift)
-    kbz = (grid + kshift) / mesh
-
-    return kibz, weights, kbz
 
 
 def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
@@ -1234,3 +1211,82 @@ class KpointsReaderMixin(object):
 
 class KpointsReader(ETSF_Reader, KpointsReaderMixin):
     """This object reads k-point data from a netcdf file."""
+
+
+class Ktables(object):
+    """
+    Call spglib to compute the k-points in the IBZ with the corresponding weights
+    as well as the mapping BZ --> IBZ.
+
+    Args:
+        mesh:
+        is_shift:
+
+    Attributes:
+
+        mesh
+        is_shift
+        ibz:
+        nibz
+        weights:
+        bz:
+        nbz
+        grid:
+    """
+    def __init__(self, structure, mesh, is_shift, has_timrev):
+        """
+
+        Args:
+            structure
+            mesh
+            is_shift
+            has_timrev
+        """
+        import spglib as spg
+        self.mesh = np.array(mesh)
+        self.is_shift = is_shift
+        self.has_timrev = has_timrev
+        cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
+
+        mapping, self.grid = spg.get_ir_reciprocal_mesh(self.mesh, cell,
+            is_shift=self.is_shift, is_time_reversal=self.has_timrev, symprec=_SPGLIB_SYMPREC)
+
+        uniq, self.weights = np.unique(mapping, return_counts=True)
+        self.weights = np.asarray(self.weights, dtype=np.float) / len(self.grid)
+        self.nibz = len(uniq)
+        self.kshift = [0., 0., 0.] if is_shift is None else 0.5 * np.asarray(is_shift)
+        self.ibz = (self.grid[uniq] + self.kshift) / self.mesh
+        self.bz = (self.grid + self.kshift) / self.mesh
+        self.nbz = len(self.bz)
+
+        # All k-points and mapping to ir-grid points.
+        # FIXME This is slow.
+        self.bz2ibz = np.empty(len(self.bz), dtype=np.int)
+        for ik_bz, ir_gp_id in enumerate(mapping):
+            inds = np.where(uniq == ir_gp_id)
+            assert len(inds) == 1
+            self.bz2ibz[ik_bz] = inds[0]
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, **kwargs):
+        """String representation"""
+        lines = collections.deque()
+        app = lines.append
+        app("mesh %s, shift %s, time-reversal: %s, Irred points: %d" % (
+            self.mesh, self.kshift, self.has_timrev, self.nibz))
+
+        app("Irreducible k-points with number of points in star:\n")
+        for ik, kpt in enumerate(self.ibz):
+            app("%s: [%9.6f, %9.6f, %9.6f], nstar: %d" % (ik, kpt[0], kpt[1], kpt[2], self.weights[ik] * self.nbz))
+
+        return "\n".join(lines)
+
+    def print_bz2ibz(self, file=sys.stdout):
+        """Print BZ --> IBZ mapping."""
+        print("BZ points --> IBZ points", file=file)
+        for ik_bz, ik_ibz in enumerate(self.bz2ibz):
+            print("%6d) [%9.6f, %9.6f, %9.6f], ====> %6d) [%9.6f, %9.6f, %9.6f]," %
+                (ik_bz, self.bz[ik_ibz][0], self.bz[ik_ibz][1], self.bz[ik_ibz][2],
+                ik_ibz, self.ibz[ik_ibz][0], self.ibz[ik_ibz][1], self.ibz[ik_ibz][2]), file=file)

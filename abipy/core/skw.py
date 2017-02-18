@@ -8,10 +8,12 @@ import itertools
 import pickle
 import numpy as np
 import scipy
+import sys
 
 from collections import deque, OrderedDict
 from monty.collections import dict2namedtuple
 from abipy.tools import gaussian
+from abipy.core.kpoints import Ktables
 
 _np_matmul = np.matmul
 _np_dot = np.dot
@@ -65,10 +67,6 @@ def find_degs_sk(enesb, atol):
 
     return degs
 
-
-#class Ksampling(object):
-
-
 class ElectronInterpolator(object):
     """
     """
@@ -117,7 +115,7 @@ class ElectronInterpolator(object):
         import spglib as spg
         mesh = np.array(mesh)
         mapping, grid = spg.get_ir_reciprocal_mesh(mesh, self.cell,
-            is_shift=is_shift, is_time_reversal=self.is_time_reversal, symprec=self.symprec)
+            is_shift=is_shift, is_time_reversal=self.has_timrev, symprec=self.symprec)
 
         uniq, weights = np.unique(mapping, return_counts=True)
         print("uniq", uniq, type(uniq))
@@ -147,6 +145,8 @@ class ElectronInterpolator(object):
         return dict2namedtuple(mesh=mesh, shift=kshift,
                                ibz=ibz, nibz=len(ibz), weights=weights,
                                bz=bz, nbz=len(bz), grid=grid, bz2ibz=bz2ibz)
+
+        #return Ktables(structure, mesh, is_shift, has_timrev)
 
     #def recalc_fermie(self, kmesh, is_shift=None)
     #    # Compute DOS/IDOS
@@ -458,7 +458,7 @@ class SkwInterpolator(ElectronInterpolator):
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
 
-    def __init__(self, lpratio, kpts, eigens, cell, symrel, is_time_reversal,
+    def __init__(self, lpratio, kpts, eigens, cell, symrel, has_timrev,
                  filter_params=None, verbose=1):
         """
 
@@ -471,7 +471,7 @@ class SkwInterpolator(ElectronInterpolator):
             lattice: numpy array with direct lattice vectors along the rows.
             symrel: [nsym, 3, 3] numpy array with the (ferromagnetic) symmetry operations of the direct lattice
                 in reduced coordinates. anti-ferromagnetic symmetries (if any) should be removed by the caller.
-            is_time_reversal:
+            has_timrev:
             filter_params:
         """
         self.verbose = verbose
@@ -480,7 +480,7 @@ class SkwInterpolator(ElectronInterpolator):
         #self.abinitio_fermie
         #self.interpolated_fermie = self.abinitio_fermie
         #self.nelect = nelect
-        self.is_time_reversal = is_time_reversal
+        self.has_timrev = has_timrev
 
         eigens = np.atleast_3d(eigens)
         self.nsppol, self.nkpt, self.nband = eigens.shape
@@ -495,7 +495,6 @@ class SkwInterpolator(ElectronInterpolator):
         self.rmet = np.matmul(rprimd.T, rprimd)
 
         # Find point group operations.
-        #symrel = [s.T for s in symrel]
         symrel = np.reshape(symrel, (-1, 3, 3))
         self.ptg_symrel, self.ptg_symrec, has_inversion = self._get_point_group(symrel)
         self.ptg_nsym = len(self.ptg_symrel)
@@ -619,7 +618,7 @@ class SkwInterpolator(ElectronInterpolator):
         lines = []
         app = lines.append
         app("nsppol: %s, nband: %s" % (self.nsppol, self.nband))
-        app("Number of operations in point-group: %s with time-reversal: %s" % (self.ptg_nsym, self.is_time_reversal))
+        app("Number of operations in point-group: %s with time-reversal: %s" % (self.ptg_nsym, self.has_timrev))
         app("Number of ab-initio k-points: %s" % self.nkpt)
         app("Number of star functions: %s [nstars/nk = %s]" % (self.nr, (self.nr / self.nkpt)))
         if self.rcut is not None:
@@ -950,7 +949,7 @@ class SkwInterpolator(ElectronInterpolator):
     def _get_point_group(self, symrel):
         """
         Extract the point group rotations from the spacegroup. Add time-reversal
-        if spatial inversion is not present and `is_time_reversal`.
+        if spatial inversion is not present and `has_timrev`.
         Return (ptg_symrel, ptg_symrec) with rotations in real- and reciprocal-space.
         """
         nsym = len(symrel)
@@ -968,7 +967,7 @@ class SkwInterpolator(ElectronInterpolator):
         has_inversion = any(np.all(w == inversion_3d) for w in work_symrel[:tmp_nsym])
 
         # Now we know the symmetries of the point group.
-        ptg_nsym = 2 * tmp_nsym if not has_inversion and self.is_time_reversal else tmp_nsym
+        ptg_nsym = 2 * tmp_nsym if not has_inversion and self.has_timrev else tmp_nsym
         ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=np.int)
         ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=np.int)
 
@@ -977,7 +976,7 @@ class SkwInterpolator(ElectronInterpolator):
         for isym in range(tmp_nsym):
             ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 
-        if not has_inversion and self.is_time_reversal:
+        if not has_inversion and self.has_timrev:
             # Add inversion.
             ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
             for isym in range(tmp_nsym, ptg_nsym):

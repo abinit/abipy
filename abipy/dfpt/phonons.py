@@ -9,10 +9,10 @@ import pickle
 import os
 
 from collections import OrderedDict
-from monty.string import is_string #, list_strings
+from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from pymatgen.core.units import Ha_to_eV, eV_to_Ha
+from pymatgen.core.units import Ha_to_eV, eV_to_Ha, Energy
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
@@ -20,7 +20,7 @@ from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import Marker
-from abipy.core.abinit_units import amu_emass, Bohr_Ang
+from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro
 
 
 __all__ = [
@@ -1087,6 +1087,13 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
+_THERMO_YLABELS = {  # [name][units] --> latex string
+    "internal_energy": {"eV": "$U(T)$ [eV/cell]", "Jmol": "$U(T)$ [J/mole]"},
+    "free_energy": {"eV": "$F(T) + ZPE$ [eV/cell]", "Jmol": "$F(T) + ZPE$ [J/mole]"},
+    "entropy": {"eV": "$S(T)$ [eV/cell]", "Jmol": "$S(T)$ [J/mole]"},
+    "cv": {"eV": "$C_V(T)$ [eV/cell]", "Jmol": "$C_V(T)$ [J/mole]"},
+}
+
 class PhononDos(Function1D):
     """
     This object stores the phonon density of states.
@@ -1141,14 +1148,25 @@ class PhononDos(Function1D):
         raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
 
     @lazy_property
+    def iw0(self):
+        """
+        index of the first point in the mesh whose value is >= 0
+        """
+        iw0 = self.find_mesh_index(0.0)
+        if iw0 == -1:
+            raise ValueError("Cannot find zero in energy mesh")
+        return iw0
+
+    @lazy_property
     def idos(self):
         """Integrated DOS."""
         return self.integral()
 
-    #@lazy_property
-    #def zpm(self)
-    #    """Zero point motion"""
-    #    return 0.5 * hbar * (self.dos.values * self.dos.mesh).integral[-1]
+    @lazy_property
+    def zero_point_energy(self):
+        """Zero point energy in eV per unit cell."""
+        iw0 = self.iw0
+        return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
     def plot_ax(self, ax, what="d", exchange_xy=False, units='eV', *args, **kwargs):
         """
@@ -1222,6 +1240,151 @@ class PhononDos(Function1D):
         self.plot_ax(ax2, what="d", *args, **kwargs)
 
         fig = plt.gcf()
+        return fig
+
+    def get_internal_energy(self, tstart=5, tstop=300, num=50):
+        """
+        Returns the internal energy, in eV, in the harmonic approximation for different temperatures
+        Zero point energy is included.
+
+        tstart: The starting value (in Kelvin) of the temperature mesh.
+        tstop: The end value (in Kelvin) of the mesh.
+        num: int, optional Number of samples to generate. Default is 50.
+
+        Return:
+            :class:`Function1D` with U(T) + ZPE
+        """
+        tmesh = np.linspace(tstart, tstop, num=num)
+        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        coth = lambda x: 1.0 / np.tanh(x)
+
+        vals = np.empty(len(tmesh))
+        for it, temp in enumerate(tmesh):
+            wd2kt = w / (2 * kb_eVK * temp)
+            vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
+
+        return Function1D(tmesh, 0.5 * vals + self.zero_point_energy)
+
+    def get_entropy(self, tstart=5, tstop=300, num=50):
+        """
+        Returns the entropy, in eV/K, in the harmonic approximation for different temperatures
+
+        tstart: The starting value (in Kelvin) of the temperature mesh.
+        tstop: The end value (in Kelvin) of the mesh.
+        num: int, optional Number of samples to generate. Default is 50.
+
+        Return:
+            :class:`Function1D` with S(T).
+        """
+        tmesh = np.linspace(tstart, tstop, num=num)
+        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        coth = lambda x: 1.0 / np.tanh(x)
+
+        vals = np.empty(len(tmesh))
+        for it, temp in enumerate(tmesh):
+            wd2kt = w / (2 * kb_eVK * temp)
+            vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
+
+        return Function1D(tmesh, kb_eVK * vals)
+
+    def get_free_energy(self, tstart=5, tstop=300, num=50):
+        """
+        Returns the free energy, in eV, in the harmonic approximation for different temperatures
+        Zero point energy is included.
+
+        tstart: The starting value (in Kelvin) of the temperature mesh.
+        tstop: The end value (in Kelvin) of the mesh.
+        num: int, optional Number of samples to generate. Default is 50.
+
+        Return:
+            :class:`Function1D` with F(T) = U(T) + ZPE - T x S(T)
+        """
+        uz = self.get_internal_energy(tstart=tstart, tstop=tstop, num=num)
+        s = self.get_entropy(tstart=tstart, tstop=tstop, num=num)
+        return Function1D(uz.mesh, uz.values - s.mesh * s.values)
+
+        tmesh = np.linspace(tstart, tstop, num=num)
+        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        vals = np.empty(len(tmesh))
+        for it, temp in enumerate(tmesh):
+            kt = kb_eVK * temp
+            wd2kt = w / (2 * kt)
+            vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
+        return Function1D(tmesh, vals + self.zero_point_energy)
+
+    def get_cv(self, tstart=5, tstop=300, num=50):
+        """
+        Returns the constant-volume specific heat, in eV/K, in the harmonic approximation for different temperatures
+
+        tstart: The starting value (in Kelvin) of the temperature mesh.
+        tstop: The end value (in Kelvin) of the mesh.
+        num: int, optional Number of samples to generate. Default is 50.
+
+        Return:
+            :class:`Function1D` with C_v(T).
+        """
+        tmesh = np.linspace(tstart, tstop, num=num)
+        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        csch2 = lambda x: 1.0 / (np.sinh(x) ** 2)
+
+        vals = np.empty(len(tmesh))
+        for it, temp in enumerate(tmesh):
+            wd2kt = w / (2 * kb_eVK * temp)
+            vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
+
+        return Function1D(tmesh, kb_eVK * vals)
+
+    @add_fig_kwargs
+    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
+                             quantities=None, **kwargs):
+        """
+        Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 50.
+            quantities: List of strings specifying the thermodinamic quantities to plot.
+                Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+                None means all.
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            formula_units:
+                the number of formula units per unit cell. If unspecified, the
+                thermodynamic quantities will be given on a per-unit-cell basis.
+
+        Returns:
+            matplotlib figure.
+        """
+        quantities = list_strings(quantities) if quantities is not None else \
+            ["internal_energy", "free_energy", "entropy", "cv"]
+
+        # Build grid of plots.
+        ncols, nrows = 1, 1
+        num_plots = len(quantities)
+        if num_plots > 1:
+            ncols = 2
+            nrows = num_plots // ncols + num_plots % ncols
+
+        import matplotlib.pyplot as plt
+        fig, axmax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: axmax[-1, -1].axis("off")
+
+        for iax, (qname, ax) in enumerate(zip(quantities, axmax.flat)):
+            # Compute thermodinamic quantity associated to qname.
+            f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
+            ys = f1d.values
+            if formula_units is not None: ys /= formula_units
+            if units == "Jmol": ys = ys * e_Cb * Avogadro
+            ax.plot(f1d.mesh, ys)
+
+            ax.set_title(qname)
+            ax.grid(True)
+            ax.set_xlabel("Temperature [K]")
+            ax.set_ylabel(_THERMO_YLABELS[qname][units])
+            #ax.legend(loc="best")
+
+        fig.tight_layout()
         return fig
 
     def get_harmonic_thermo(self, tstart, tstop, num=50):
@@ -1820,14 +1983,19 @@ class PhononDosPlotter(object):
         return fig
 
     @add_fig_kwargs
-    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, quantities=None, **kwargs):
+    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
+                             quantities=None, **kwargs):
         """
-        Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.
+        Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 50.
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            formula_units:
+                the number of formula units per unit cell. If unspecified, the
+                thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
                 None means all.
@@ -1835,7 +2003,8 @@ class PhononDosPlotter(object):
         Returns:
             matplotlib figure.
         """
-        quantities = ["internal_energy", "free_energy", "entropy", "c_v"] if quantities is None else list(quantities)
+        quantities = list_strings(quantities) if quantities is not None else \
+            ["internal_energy", "free_energy", "entropy", "cv"]
 
         # Build grid of plots.
         ncols, nrows = 1, 1
@@ -1852,15 +2021,20 @@ class PhononDosPlotter(object):
         for iax, (qname, ax) in enumerate(zip(quantities, axmax.flat)):
 
             for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
-                # Compute thermodinamic quantity associated to qname
+                # Compute thermodinamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
-                ax.plot(f1d.mesh, f1d.values, label=label)
+                ys = f1d.values
+                if formula_units is not None: ys /= formula_units
+                if units == "Jmol": ys = ys * e_Cb * Avogadro
+                ax.plot(f1d.mesh, ys, label=label)
 
             ax.set_title(qname)
             ax.grid(True)
             ax.set_xlabel("Temperature [K]")
+            ax.set_ylabel(_THERMO_YLABELS[qname][units])
             ax.legend(loc="best")
 
+        fig.tight_layout()
         return fig
 
 

@@ -464,8 +464,7 @@ class Structure(pymatgen.Structure):
         Returns the vectors of the unit cell in Angstrom.
 
         Args:
-            space: "r" for real space vectors, "g" for reciprocal space basis
-                vectors.
+            space: "r" for real space vectors, "g" for reciprocal space basis vectors.
         """
         if space.lower() == "r":
             return self.lattice.matrix
@@ -499,7 +498,7 @@ class Structure(pymatgen.Structure):
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
              spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
         app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
-            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
+            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol()))
         app("")
 
         wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]

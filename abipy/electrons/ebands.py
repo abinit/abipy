@@ -25,7 +25,7 @@ from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin,
-    kmesh_from_mpdivs, spget_ibz_weighs_bz, has_timrev_from_kptopt)
+    kmesh_from_mpdivs, Ktables, has_timrev_from_kptopt)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
 from abipy.tools import gaussian
@@ -1903,11 +1903,11 @@ class ElectronBands(object):
         ebands_kmesh = None
         if kmesh is not None:
             # Get kpts and weights in IBZ.
-            dos_kcoords, dos_weights, _ = spget_ibz_weighs_bz(self.structure, kmesh, is_shift, self.has_timrev)
-            eigens_kmesh = skw.eval_all(dos_kcoords)
+            kdos = Ktables(self.structure, kmesh, is_shift, self.has_timrev)
+            eigens_kmesh = skw.eval_all(kdos.ibz)
 
             # Build new ebands object with k-mesh
-            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights, names=None)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
                                           self.nelect, self.nspinor, self.nspden)

@@ -83,18 +83,42 @@ class TestAbiopen(ScriptTest):
 class TestAbistruct(ScriptTest):
     script = os.path.join(script_dir, "abistruct.py")
 
+    def test_spglib(self):
+        """Testing abistruct spglib"""
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        env = self.get_env()
+        env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose)
+
     def test_convert(self):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        for fmt in ["cif", "cssr", "POSCAR", "json", "mson",]:
+        for fmt in ["cif", "cssr", "POSCAR", "json", "mson", "abivars"]:
             env.run(self.script, "convert", ncfile, fmt, self.loglevel, self.verbose)
 
-    #def test_bz(self):
-    #    """Testing abistruct bz"""
+    def test_abisanitize(self):
+        """Testing abistruct abisanitize"""
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        env = self.get_env()
+        env.run(self.script, "abisanitize", ncfile, self.loglevel, self.verbose)
+
+    def test_conventional(self):
+        """Testing abistruct abisanitize"""
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        env = self.get_env()
+        env.run(self.script, "conventional", ncfile, self.loglevel, self.verbose)
+
+    def test_kpath(self):
+        """Testing abistruct kpath"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("si_scf_WFK.nc")
+        env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose)
+
+    #def test_kmesh(self):
+    #    """Testing abistruct kmesh"""
     #    env = self.get_env()
     #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-    #    #env.run(self.script, self.loglevel, "bz", ncfile)
+    #    env.run(self.script, "kmesh", "--mesh=2 2 2 --shift=1 1 1 --no-time-reversal", ncfile)
 
 
 class TestAbicomp(ScriptTest):
