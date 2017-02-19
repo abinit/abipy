@@ -7,6 +7,7 @@ import numpy as np
 
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
+from monty.termcolor import cprint
 from monty.functools import lazy_property
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
@@ -573,7 +574,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands grouped by L.
+        Plot the electronic fatbands grouped by LM.
 
         Args:
             iatom: Index of the atom in the structure.
@@ -592,6 +593,11 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # TODO
         if self.nsppol == 2:
             raise NotImplementedError("To be tested with spin")
+
+        if not (self.prtdos == 3 and self.prtdosm != 0):
+            cprint("Fatbands plots with LM-character require `prtdos = 3 and prtdosm != 0`", "red")
+            return None
+
         mylmax = self.lmax_atom[iatom] if lmax is None else lmax
 
         # Build plot grid.

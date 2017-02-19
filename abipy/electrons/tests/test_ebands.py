@@ -2,11 +2,11 @@
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 import pymatgen.core.units as units
 from abipy.core.kpoints import KpointList
-from abipy.electrons.ebands import ElectronsReader, ElectronBands, ElectronDos
+from abipy.electrons.ebands import ElectronsReader, ElectronBands, ElectronDos, ElectronBandsPlotter
 from abipy.core.testing import *
 
 
@@ -14,11 +14,11 @@ class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
         """Test ElectronsReader."""
-        filepath = data.ref_file("si_scf_WFK.nc")
+        filepath = abidata.ref_file("si_scf_WFK.nc")
 
         with ElectronsReader(filepath) as r:
             kpoints = r.read_kpoints()
-            self.assertTrue(isinstance(kpoints, KpointList))
+            assert isinstance(kpoints, KpointList)
             #self.assertTrue(len(kpoints) == ??)
             #self.assert_all_equal(self.read_nband_sk == ??))
 
@@ -33,7 +33,7 @@ class ElectronBandsTest(AbipyTest):
 
     def test_read_ebands_from_WFK(self):
         """Read ElectronBands from WFK files."""
-        for filename in data.WFK_NCFILES:
+        for filename in abidata.WFK_NCFILES:
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
             ebands.to_pdframe()
@@ -44,9 +44,15 @@ class ElectronBandsTest(AbipyTest):
             #ElectronBands.from_dict(ebands.as_dict())
             #self.assertMSONable(ebands, test_if_subclass=False)
 
+            if self.has_matplotlib():
+                ebands.plot(show=False)
+
+            #if self.has_nbformat():
+            #    ebands.write_notebook(nbpath=self.get_tmpname(text=True))
+
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
-        for filename in data.GSR_NCFILES:
+        for filename in abidata.GSR_NCFILES:
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
             ebands.to_pdframe()
@@ -57,13 +63,13 @@ class ElectronBandsTest(AbipyTest):
 
     def test_dos(self):
         """Test DOS methods."""
-        gs_bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
+        gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         dos = gs_bands.get_edos()
         print(dos)
         assert ElectronDos.as_edos(dos, {}) is dos
         edos_samevals = ElectronDos.as_edos(gs_bands, {})
         assert ElectronDos.as_edos(gs_bands, {}) == dos
-        assert ElectronDos.as_edos(data.ref_file("si_scf_GSR.nc"), {}) == dos
+        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == dos
 
         mu = dos.find_mu(8)
         imu = dos.tot_idos.find_mesh_index(mu)
@@ -74,9 +80,12 @@ class ElectronBandsTest(AbipyTest):
         # Test plot methods
         #gs_bands.boxplot()
 
+        if self.has_matplotlib():
+            gs_bands.plot_with_edos(dos=dos, show=False)
+
     def test_jdos(self):
         """Test JDOS methods."""
-        bands = ElectronBands.from_file(data.ref_file("si_scf_GSR.nc"))
+        bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
         spin = 0
         conduction = [4,]
@@ -88,7 +97,7 @@ class ElectronBandsTest(AbipyTest):
 
         self.serialize_with_pickle(jdos, protocols=[-1])
 
-        nscf_bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
+        nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
         # Test the detection of denerate states.
         degs = nscf_bands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
@@ -101,14 +110,20 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             nscf_bands.get_ejdos(spin, 0, 4)
 
+        # Test interpolate.
+        vertices_names=[((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
+        r = bands.interpolate(lpratio=5, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
+        assert r.ebands_kpath is not None
+        assert r.ebands_kmesh is not None
+
     def test_pymatgen_converter(self):
         """Testing abipy-->pymatgen converter"""
-        nscf_bands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
+        nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
         pmg_bands = nscf_bands.to_pymatgen()
 
     def test_derivatives(self):
         """Testing computation of effective masses."""
-        ebands = ElectronBands.from_file(data.ref_file("si_nscf_GSR.nc"))
+        ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
         # Hack eigens to simulate free-electron bands. This will produce all(effective masses == 1)
         new_eigens = np.empty(ebands.shape)
@@ -125,3 +140,32 @@ class ElectronBandsTest(AbipyTest):
         for arr in effm_lines:
             values.extend(arr)
         self.assertArrayAlmostEqual(np.array(values), 1.0)
+
+
+class ElectronBandsPlotterTest(AbipyTest):
+
+    def test_api(self):
+        """Test ElelectronBandsPlotter API."""
+
+        plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
+        plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
+        print(repr(plotter))
+
+        assert len(plotter.ebands_list) == 2
+        assert len(plotter.edoses_list) == 0
+        with self.assertRaises(ValueError):
+            plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
+
+        print(plotter.bands_statdiff())
+        df = plotter.get_ebands_frame()
+        print(df)
+
+        if self.has_matplotlib():
+            plotter.combiplot(title="Silicon band structure", show=False)
+            plotter.combiboxplot(title="Silicon band structure", show=False)
+            plotter.gridplot(title="Silicon band structure", show=False)
+            plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
+            plotter.animate(show=False)
+
+        if self.has_nbformat():
+            plotter.write_notebook(nbpath=self.get_tmpname(text=True))

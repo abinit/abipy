@@ -6,7 +6,7 @@ import abipy.data as abidata
 import numpy as np
 import os
 
-from abipy.dfpt.phonons import PhononBands, PhononDos, InteratomicForceConstants
+from abipy.dfpt.phonons import PhononBands, PhononDos, PhdosFile, InteratomicForceConstants
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import *
 
@@ -44,17 +44,31 @@ class PhononDosTest(AbipyTest):
 
     def test_api(self):
         """Testing PhononDos API with fake data."""
-        dos = PhononDos(mesh=[1,2,3], values=[4,5,6])
+        dos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert dos.mesh.tolist() == [1,2,3] and dos.h == 1 and dos.values.tolist() == [4,5,6]
         print(dos)
         dos.idos
         assert PhononDos.as_phdos(dos, {}) is dos
+        assert dos.iw0 == 0
 
-        h = dos.get_harmonic_thermo(1, 10)
-        assert h is not None
+    def test_from_phdosfile(self):
+        ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
+        assert hasattr(ncfile, "structure")
+
+        phdos = ncfile.phdos
+        #self.assert_almost_equal(phdos.zero_point_energy, )
+        #f = phdos.get_free_energy()
+        #u = phdos.get_internal_energy()
+        #s = phdos.get_entropy()
+        #cv = phdos.get_cv()
 
         if self.has_matplotlib():
-            dos.plot(show=False)
+            ncfile.plot_pjdos_type(show=False)
+            phdos.plot(show=False)
+            phdos.plot_harmonic_thermo(tstar=20, tstop=350)
+
+        if self.has_nbformat():
+            ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class InteratomicForceConstantsTest(AbipyTest):

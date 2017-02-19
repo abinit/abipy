@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 This example shows how to plot the L-projected fatbands of MgB2 using the results
-stored in the FATBANDS.nc files produced by abinit with prtdos 3
+stored in the FATBANDS.nc files produced by abinit with prtdos 3.
+See also PhysRevLett.86.4656
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata

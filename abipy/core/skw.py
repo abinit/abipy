@@ -67,6 +67,7 @@ def find_degs_sk(enesb, atol):
 
     return degs
 
+
 class ElectronInterpolator(object):
     """
     """
@@ -581,8 +582,9 @@ class SkwInterpolator(ElectronInterpolator):
             self.rsigma = rsigma = filter_params[1]
             if self.verbose:
                 print("Applying filter (Eq 9 of PhysRevB.61.1639) with rcut:", rcut, ", rsigma", self.rsigma)
+            from scipy.special import erfc
             for ir in range(1, nr):
-                self.coefs[:, :, ir] *= 0.5 * scipy.erfc((np.sqrt(r2vals(ir)) - self.rcut) / self.rsigma)
+                self.coefs[:, :, ir] *= 0.5 * erfc((np.sqrt(r2vals[ir]) - self.rcut) / self.rsigma)
 
         # Prepare workspace arrays for star functions.
         self.cached_kpt = np.ones(3) * np.inf

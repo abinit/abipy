@@ -5,11 +5,11 @@ from __future__ import print_function, division
 import itertools
 import unittest
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
-                                as_kpoints, rc_list, kmesh_from_mpdivs,)
+                                as_kpoints, rc_list, kmesh_from_mpdivs, Ktables)
 from abipy.core.testing import *
 
 
@@ -167,7 +167,7 @@ class TestKpointsReader(AbipyTest):
         ]
 
         for fname in filenames:
-            filepath = data.ref_file(fname)
+            filepath = abidata.ref_file(fname)
             print("About to read file: %s" % filepath)
 
             with KpointsReader(filepath) as r:
@@ -351,3 +351,22 @@ class KmeshTest(AbipyTest):
  [ 1.          0.5         0.33333333]
  [ 1.          0.5         0.66666667]]"""
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
+
+
+#class TestKtables(AbipyTest):
+#
+#    def test_with_from_structure_with_symrec(self):
+#        """Generate Ktables from a structure with Abinit symmetries."""
+#        structure = self.get_abistructure("mgb2_kpath_FATBANDS.nc")
+#        assert structure.spacegroup is not None
+#        k = Ktables(structure, [4, 4, 4], is_shift=None, has_timrev=True)
+#        print(k)
+#        k.print_bz2ibz()
+#
+#    def test_with_structure_without_symrec(self):
+#        """Generate Ktables from a structure without Abinit symmetries."""
+#        structure = self.get_abistructure("mgb2_kpath_FATBANDS.nc")
+#        assert structure.spacegroup is None
+#        k = Ktables(structure, mesh, is_shift, has_timrev)
+#        print(k)
+#        k.print_bz2ibz()

@@ -11,11 +11,13 @@ from abipy.abilab import abiopen, ElectronBandsPlotter
 sigres = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
 
 # Read the KS band energies computed on the k-path
-ks_ebands_kpath = abiopen(abidata.ref_file("si_nscf_GSR.nc")).ebands
+with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_nscf:
+    ks_ebands_kpath = gsr_nscf.ebands
 
 # Read the KS band energies computed on the Monkhorst-Pack (MP) mesh
 # and compute the DOS with the Gaussian method
-ks_ebands_kmesh = abiopen(abidata.ref_file("si_scf_GSR.nc")).ebands
+with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr_scf:
+    ks_ebands_kmesh = gsr_scf.ebands
 ks_edos = ks_ebands_kmesh.get_edos()
 
 # Interpolate QP corrections and apply them on top of the KS band structures.
@@ -31,17 +33,21 @@ qp_edos = r.qp_ebands_kmesh.get_edos()
 #ks_edos = r.ks_ebands_kmesh.get_edos()
 #qp_edos = r.qp_ebands_kmesh.get_edos()
 
-#sigre.qplist_spin[0].plot_qps_vs_e0(title="QPState corrections of Si", exclude_fields="vUme")
-#sigres.print_qps()
-#r.qp_ebands_kpath.plot()
-
 # Plot the LDA and the QPState band structure with matplotlib.
 plotter = ElectronBandsPlotter()
 plotter.add_ebands("LDA", ks_ebands_kpath, dos=ks_edos)
 plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
+# Get pandas dataframe with band structure parameters.
+df = plotter.get_ebands_frame()
+print(df)
+
 # By default, the two band energies are shifted wrt to *their* fermi level.
 # Use e=0 if you don't want to shift the eigenvalus
 # so that it's possible to visualize the QP corrections.
-plotter.combiplot(title="Silicon band structure")
-plotter.gridplot(title="Silicon band structure")
+plotter.combiplot(title="Combiplot")
+plotter.boxplot(swarm=True, title="Boxplot")
+plotter.combiboxplot(swarm=True, title="Combiboxplot")
+plotter.gridplot(title="Gridplot")
+
+sigres.close()

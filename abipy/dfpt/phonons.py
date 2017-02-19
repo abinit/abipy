@@ -1637,7 +1637,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 @add_fig_kwargs
 def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, **kwargs):
     """
-    Plot multiple electron bandstructures and optionally DOSes on a grid.
+    Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
     Args:
         phb_objects: List of objects from which the phonon band structures are extracted.

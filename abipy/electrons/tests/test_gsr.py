@@ -115,4 +115,5 @@ class GSRFileTestCase(AbipyTest):
                 print(e.as_dict())
                 assert gsr.energy == e.energy
 
-            #assert 0
+            if self.has_nbformat():
+                gsr.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -1,18 +1,8 @@
 # coding: utf-8
-"""GSR file."""
+"""HirshfeldCharges"."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import numpy as np
-import pymatgen.core.units as units
-
-from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings
-from monty.collections import AttrDict
-from monty.functools import lazy_property
-from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands
-from prettytable import PrettyTable
-from .ebands import ElectronsReader
+from abipy.core.mixins import Has_Structure
 
 import logging
 logger = logging.getLogger(__name__)
@@ -29,6 +19,7 @@ class HirshfeldCharges(Has_Structure, object):
         self.charges = charges
         self._structure = structure
 
+    @property
     def structure(self):
         return self._structure
 
@@ -52,5 +43,3 @@ class HirshfeldCharges(Has_Structure, object):
                 charges.append(float(l.split()[2]))
 
         return cls(charges, structure)
-
-

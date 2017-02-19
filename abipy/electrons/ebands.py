@@ -1990,6 +1990,13 @@ class ElectronBandsPlotter(NotebookWriter):
     _LINE_WIDTHS = [2,]
 
     def __init__(self, key_ebands=None, key_edos=None, edos_kwargs=None):
+        """
+        Args:
+            key_ebands: List of (label, ebands) tuples.
+                ebands is any object that can be converted into  :class:`ElectronBands` e.g. ncfile, path.
+            key_edos: List of (label, edos) tuples.
+                edos is any object that can be converted into :class:`ElectronDoc`
+        """
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
         self.ebands_dict = OrderedDict(key_ebands)
