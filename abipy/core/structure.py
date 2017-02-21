@@ -4,8 +4,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import collections
-import pymatgen
+import tempfile
 import numpy as np
+import pickle
+import pymatgen
 
 from pprint import pprint
 from warnings import warn
@@ -19,16 +21,17 @@ from pymatgen.core.lattice import Lattice
 from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import SpaceGroup
-from abipy.iotools import as_etsfreader, Visualizer
-from abipy.iotools import xsf
+from abipy.iotools import as_etsfreader, Visualizer,  xsf
 
 __all__ = [
     "Structure",
+    "frames_from_structures",
 ]
 
 
-class Structure(pymatgen.Structure):
+class Structure(pymatgen.Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.Structure` with Abinit-specific methods.
 
@@ -48,7 +51,8 @@ class Structure(pymatgen.Structure):
             obj.__class__ = cls
             return obj
 
-        if is_string(obj): return cls.from_file(obj)
+        if is_string(obj):
+            return cls.from_file(obj)
 
         if isinstance(obj, collections.Mapping):
             try:
@@ -110,6 +114,19 @@ class Structure(pymatgen.Structure):
             from abipy.abilab import abiopen
             with abiopen(filepath) as abifile:
                 return abifile.structure
+
+        elif filepath.endswith(".pickle"):
+            with open(filepath, "rb") as fh:
+                new = pickle.load(fh)
+                if not isinstance(new, pymatgen.Structure):
+                    # Is it a object with a structure property?
+                    if hasattr(new, "structure"): new = new.structure
+
+                if not isinstance(new, pymatgen.Structure):
+                    raise ValueError("Don't know how to extract a Structure from file %s, received type %s" %
+                        (filepath, type(new)))
+
+                if new.__class__ != cls: new.__class__ = cls
 
         else:
             # TODO: Spacegroup is missing here.
@@ -366,20 +383,17 @@ class Structure(pymatgen.Structure):
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
         # to be considered in February 2016
-        from pymatgen.io.ase import AseAtomsAdaptor
-        try:
-            import spglib
-            version = spglib.get_version()
-            if version != (1, 9, 0):
-                raise ValueError('abi_primitive requires spglib version 1.9.0 '
-                                 'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
-        except ImportError:
-            raise ValueError('abi_primitive requires spglib')
+        import spglib
+        version = spglib.get_version()
+        if version < (1, 9, 0):
+            raise ValueError('abi_primitive requires spglib version >= 1.9.0 '
+                             'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
 
+        from pymatgen.io.ase import AseAtomsAdaptor
         try:
             from ase.atoms import Atoms
         except ImportError:
-            raise ValueError('Could not import Atoms from ase')
+            raise ImportError('Could not import Atoms from ase. Install it with `conda install ase` or pip')
 
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
@@ -524,9 +538,14 @@ class Structure(pymatgen.Structure):
 
         return "\n".join(outs)
 
+    # TODO: Change name --> abi_spacegroup
     @property
     def spacegroup(self):
-        """:class:`SpaceGroup` instance."""
+        """
+        :class:`SpaceGroup` instance with Abinit symmetries read from the netcd file.
+        None if abinit symmetries are not available e.g. if the structure has been created
+        from a CIF file.
+        """
         try:
             return self._spacegroup
         except AttributeError:
@@ -722,7 +741,6 @@ class Structure(pymatgen.Structure):
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             # dir=os.getcwd() is needed when we invoke the method from a notebook.
-            import tempfile
             _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
 
         if ext == "xsf":
@@ -791,12 +809,10 @@ class Structure(pymatgen.Structure):
         prefix = prefix_dict.get(format, "tmp")
         suffix = suffix_dict.get(format, "")
 
-        import tempfile
         tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
-
         self.write_structure(tmp_file.name)
-
         tmp_file.seek(0)
+
         return tmp_file.read()
 
     #def to_xsf(self):
@@ -1402,6 +1418,35 @@ class Structure(pymatgen.Structure):
 
         return psp_valences
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence.
+        # The notebook will reconstruct the object from this file
+        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        with open(tmpfile, "wb") as fh:
+            pickle.dump(self, fh)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("structure = abilab.Structure.from_file('%s')" % tmpfile),
+            nbv.new_code_cell("print(structure)"),
+            nbv.new_code_cell("print(structure.abi_string)"),
+            nbv.new_code_cell("structure"),
+            nbv.new_code_cell("print(structure.spglib_summary())"),
+            #nbv.new_code_cell("print(structure.abi_spacegroup"),
+            nbv.new_code_cell("print(structure.hsym_kpoints)"),
+            nbv.new_code_cell("structure.show_bz()"),
+            nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),
+            nbv.new_code_cell("ase_atoms = structure.to_ase_atoms()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
@@ -1418,10 +1463,13 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
             instead of Reduced coordinates.
 
     Return:
-        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the lattice parameters,
-        `coords` the atomic positions. The list of structures is available in the `structures` entry:
+        namedtuple with two pandas :class:`DataFrame`:
+            `lattice` contains the lattice parameters,
+            `coords` the atomic positions.
+        The list of structures is available in the `structures` entry:
 
     Example:
+
         dfs = frames_from_structures(files)
         dfs.lattice
         dfs.coords

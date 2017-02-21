@@ -19,7 +19,7 @@ class EbandsReaderTest(AbipyTest):
         with ElectronsReader(filepath) as r:
             kpoints = r.read_kpoints()
             assert isinstance(kpoints, KpointList)
-            #self.assertTrue(len(kpoints) == ??)
+            #assert len(kpoints) == ??
             #self.assert_all_equal(self.read_nband_sk == ??))
 
             eigens = r.read_eigenvalues()
@@ -33,7 +33,7 @@ class ElectronBandsTest(AbipyTest):
 
     def test_read_ebands_from_WFK(self):
         """Read ElectronBands from WFK files."""
-        for filename in abidata.WFK_NCFILES:
+        for ii, filename in enumerate(abidata.WFK_NCFILES):
             ebands = ElectronBands.from_file(filename)
             ebands.to_pymatgen()
             ebands.to_pdframe()
@@ -44,11 +44,9 @@ class ElectronBandsTest(AbipyTest):
             #ElectronBands.from_dict(ebands.as_dict())
             #self.assertMSONable(ebands, test_if_subclass=False)
 
-            if self.has_matplotlib():
-                ebands.plot(show=False)
-
-            #if self.has_nbformat():
-            #    ebands.write_notebook(nbpath=self.get_tmpname(text=True))
+            if ii == 0:
+                if self.has_matplotlib(): ebands.plot(show=False)
+                ebands.to_xmgrace(self.get_tmpname(text=True))
 
     def test_read_ebands_from_GSR(self):
         """Read ElectronBands from GSR files."""
@@ -140,6 +138,12 @@ class ElectronBandsTest(AbipyTest):
         for arr in effm_lines:
             values.extend(arr)
         self.assertArrayAlmostEqual(np.array(values), 1.0)
+
+    #def test_to_bxsf(self):
+    #    """Testing BSXF converter."""
+    #    from abipy.abilab import abiopen
+    #    fbnc_kmesh = abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
+    #    fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
 
 
 class ElectronBandsPlotterTest(AbipyTest):

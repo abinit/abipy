@@ -131,7 +131,11 @@ File extensions supported:
         # else generate simple notebook by calling `make_and_open_notebook`
         cls = abilab.abifile_subclass_from_filename(options.filepath)
         if hasattr(cls, "make_and_open_notebook"):
-            with abilab.abiopen(options.filepath) as abifile:
+            if hasattr(cls, "__exit__"):
+                with abilab.abiopen(options.filepath) as abifile:
+                    return abifile.make_and_open_notebook(daemonize=not options.no_daemon)
+            else:
+                abifile = abilab.abiopen(options.filepath)
                 return abifile.make_and_open_notebook(daemonize=not options.no_daemon)
         else:
             return make_and_open_notebook(options)

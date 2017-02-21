@@ -9,7 +9,7 @@ import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
-                                as_kpoints, rc_list, kmesh_from_mpdivs, Ktables)
+                                as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
 from abipy.core.testing import *
 
 
@@ -69,19 +69,18 @@ class TestKpoint(AbipyTest):
         self.assertNotEqual(gamma, X)
 
         self.assertEqual(X.norm, (gamma + X).norm)
-
         self.assertEqual(X.norm, (gamma + X).norm)
         self.assertEqual(X.norm, np.sqrt(np.sum(X.cart_coords**2)))
 
         self.assertTrue(hash(gamma) == hash(pgamma))
 
         if hash(K) != hash(X):
-            self.assertTrue(K != X)
+            assert K != X
 
         # test on_border
-        self.assertFalse(gamma.on_border)
-        self.assertTrue(X.on_border)
-        self.assertFalse(K.on_border)
+        assert not gamma.on_border
+        assert X.on_border
+        assert not K.on_border
 
 
 class TestKpointList(AbipyTest):
@@ -353,7 +352,7 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
 
 
-#class TestKtables(AbipyTest):
+#class TestKmappingTools(AbipyTest):
 #
 #    def test_with_from_structure_with_symrec(self):
 #        """Generate Ktables from a structure with Abinit symmetries."""
@@ -370,3 +369,21 @@ class KmeshTest(AbipyTest):
 #        k = Ktables(structure, mesh, is_shift, has_timrev)
 #        print(k)
 #        k.print_bz2ibz()
+
+#    def test_map_bz2ibz(self)
+#        has_timrev = True
+#        bz2ibz = map_bz2ibz(structure, kibz, ngkpt, has_timrev, pbc=False)
+#
+#        errors = []
+#        for ik_bz, kbz in enumerate(bz):
+#            ik_ibz = bz2inz[ik_bz]
+#            for symmop in structure.spacegroup:
+#                krot = symmop.rotate_k(kibz)
+#                if issamek(krot, kbz):
+#                    bz2ibz[ik_bz] = ik_ibz
+#                    break
+#            else:
+#                errors.append((ik_bz, kbz))
+#
+#        if errors:
+#        assert not errors

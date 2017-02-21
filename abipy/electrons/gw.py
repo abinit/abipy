@@ -1164,7 +1164,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         qpdata = qpdata[:, :, bstart:bstop]
         has_timrev = has_timrev_from_kptopt(self.reader.read_value("kptopt"))
 
-        skw = SkwInterpolator(lpratio, gw_kcoords, qpdata, cell, fm_symrel, has_timrev,
+        skw = SkwInterpolator(lpratio, gw_kcoords, qpdata, self.ebands.fermie, self.ebands.nelect,
+                              cell, fm_symrel, has_timrev,
                               filter_params=filter_params, verbose=verbose)
 
         if ks_ebands_kpath is None:

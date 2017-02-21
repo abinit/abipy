@@ -2,11 +2,13 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
+import os
 import numpy as np
 
 from pprint import pformat
 from monty.string import is_string, boxed
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, frames_from_structures
 from abipy.core.mixins import Has_Structure, TextFile
@@ -502,30 +504,16 @@ class AbinitInputParser(object):
         return varname, dtidx
 
 
-def validate_input_parser():
+def validate_input_parser(abitests_dir=None, input_files=None):
     """
-    Script to validate/test AbinitInput parser.
+    validate/test AbinitInput parser.
 
-    Usage:
-	$ test_input_parser DIRECTORY
-	$ test_input_parser FILES
+    Args:
+        dirpath: Abinit tests directory.
+        input_files: List of Abinit input files.
 
     Return: Exit code.
     """
-    import sys
-    import os
-    from abipy import abilab
-
-    try:
-        args = sys.argv[1:]
-    except:
-        print(validate_input_parser.__doc__)
-        return 1
-
-    if "-h" in args or "--help" in args:
-        print(validate_input_parser.__doc__)
-        return 0
-
     def is_abinit_input(path):
         """
         True if path is one of the input files used in the Abinit Test suite.
@@ -538,48 +526,67 @@ def validate_input_parser():
                 if "executable" in line and "abinit" in line: return True
             return False
 
-    # Collect files
+    # Files are collected in paths.
     paths = []
 
-    if len(args) == 1 and os.path.isdir(args[0]):
-        print("Analyzing directory %s for input files" % args[0])
-        for dirpath, dirnames, filenames in os.walk(args[0]):
+    if abitests_dir is not None:
+        print("Analyzing directory %s for input files" % abitests_dir)
+
+        for dirpath, dirnames, filenames in os.walk(abitests_dir):
             for fname in filenames:
                 path = os.path.join(dirpath, fname)
                 if is_abinit_input(path): paths.append(path)
-    else:
-        for arg in args:
-            if is_abinit_input(arg):
-                paths.append(arg)
+
+            #import ast
+            #init_path = os.path.join(dirpath, "__init__.py")
+            #with open(init_path, "rt") as f:
+            #    source = f.read()
+            #    start = source.find("inp_files = [")
+            #    if start == -1:
+            #        print("ignoring ", init_path)
+            #        continue
+            #    stop = source.find("]", start)
+            #    if stop == -1:
+            #        raise ValueError("Invalid code in %s" % init_path)
+            #    print(init_path)
+            #    inp_basenames = ast.literal_eval(source[start:stop+1])
+            #    print(int_basenames)
+
+    if input_files is not None:
+        print("Analyzing files ", str(input_files))
+        for arg in input_files:
+            if is_abinit_input(arg): paths.append(arg)
 
     nfiles = len(paths)
     if nfiles == 0:
-        print("Empty list of input files.")
+        cprint("Empty list of input files.", "red")
         return 0
 
     print("Found %d Abinit input files" % len(paths))
     errpaths = []
     for path in paths:
-        print("About to analyze:", path)
+        print(path + ": ", end="")
         try:
-            inp = abilab.AbinitInputFile.from_file(path)
+            inp = AbinitInputFile.from_file(path)
             s = str(inp)
-            print(s)
+            cprint("OK", "green")
         except Exception as exc:
             if not isinstance(exc, NotImplementedError):
+                cprint("FAILED", "red")
                 errpaths.append(path)
                 import traceback
                 print(traceback.format_exc())
                 #print("[%s]: Exception:\n%s" % (path, str(exc)))
-
                 #with open(path, "rt") as fh:
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
 
-    print("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles))
     if errpaths:
+        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
         for i, epath in enumerate(errpaths):
-            print("[%d] %s" % (i, epath))
+            cprint("[%d] %s" % (i, epath), "red")
+    else:
+        cprint("All input files successfully parsed!", "green")
 
     return len(errpaths)

@@ -7,8 +7,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 
-from abipy.core.mesh3d import Mesh3D
-from abipy.core.structure import Structure
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.units import bohr_to_angstrom
@@ -79,6 +77,9 @@ def cube_read_structure_mesh_data(file):
         data = data / (bohr_to_angstrom ** 3)
         if ii != nx*ny*nz:
             raise ValueError('Wrong number of data points ...')
+        from abipy.core.structure import Structure
         structure = Structure.from_sites(sites=sites)
+        from abipy.core.mesh3d import Mesh3D
         mesh = Mesh3D(shape=[nx, ny, nz], vectors=uc_matrix)
+
         return structure, mesh, data

@@ -193,13 +193,76 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     return np.array(kbz)
 
 
+def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
+    """
+    Compute the correspondence between the list of k-points in the *unit cell*
+    associated to the `ngkpt` mesh and the corresponding points in the IBZ.
+    This routine is mainly used to symmetrize eigenvalues in the unit cell
+    e.g. to write BXSF files for electronic isosurfaces.
+
+    Args:
+        structure: Structure with symmetry operations.
+        ibz: [*,3] array with reduced coordinates in the in the IBZ.
+        ngkpt: Mesh divisions.
+        has_timrev: True if time-reversal can be used.
+        pbc: True if the mesh should contain the periodic images (closed mesh).
+
+    Returns:
+        bz2ibz: 1d array with BZ --> IBZ mapping
+    """
+    ngkpt = np.asarray(ngkpt, dtype=np.int)
+
+    # Extract (FM) symmetry operations in reciprocal space.
+    abispg = structure.spacegroup
+    symrec_fm = [s for (s, afm) in zip(abispg.symrec, abispg.symafm) if afm == 1]
+
+    # Compute TS k_ibz.
+    bzgrid2ibz = -np.ones(ngkpt, dtype=np.int)
+
+    for ik_ibz, kibz in enumerate(ibz):
+        gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=np.int)
+        for rot in symrec_fm:
+            rot_gp = np.matmul(rot, gp_ibz)
+            gp_bz = rot_gp % ngkpt
+            bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
+            if has_timrev:
+                gp_bz = (-rot_gp) % ngkpt
+                bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
+
+    from abipy.tools.numtools import add_periodic_replicas
+    if pbc:
+        bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
+    bz2ibz = bzgrid2ibz.flatten()
+
+    if np.any(bz2ibz == -1):
+        #for ik_bz, ik_ibz in enumerate(self.bz2ibz): print(ik_bz, ">>>", ik_ibz)
+        msg = "Found %s/%s invalid entries in bz2ibz array" % ((bz2ibz == -1).sum(), len(bz2ibz))
+        msg += "This can happen if there an incosistency between the input IBZ and ngkpt"
+        msg += "ngkpt: %s, has_timrev: %s" % (str(ngkpt), has_timrev)
+        raise ValueError(msg)
+
+    return bz2ibz
+
+    """
+    for ik_bz, kbz in enumerate(bz):
+        found = False
+        for ik_ibz, kibz in enumerate(ibz):
+            if found: break
+            for symmop in structure.spacegroup:
+                krot = symmop.rotate_k(kibz)
+                if issamek(krot, kbz):
+                    bz2ibz[ik_bz] = ik_ibz
+                    found = True
+                    break
+    """
+
+
 def has_timrev_from_kptopt(kptopt):
     """
     True if time-reversal symmetry can be used in the generation of the k-points in the IBZ.
     """
     kptopt = int(kptopt)
     return False if kptopt in (3, 4) else True
-
 
 
 def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
@@ -231,7 +294,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
                 isym
                 g0
 
-            kpt_other = T S kpt_ref + G0
+            kpt_other = TS kpt_ref + G0
     """
     ref_gprimd_inv = np.inv(np.asarray(ref_lattice).T)
     other_gprimd = np.asarray(other_lattice).T

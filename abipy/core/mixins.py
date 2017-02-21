@@ -52,13 +52,8 @@ class _File(object):
         if isinstance(filepath, cls):
             return filepath
 
-        try:
-            return cls(filepath)
-        except:
-            import traceback
-            msg = traceback.format_exc()
-            msg += "\n Perhaps the subclass %s must redefine the classmethod from_file\n" % cls
-            raise ValueError(msg)
+        #print("Perhaps the subclass", cls, "must redefine the classmethod from_file.")
+        return cls(filepath)
 
     @property
     def filepath(self):
