@@ -1086,7 +1086,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
 
-            use_symmetries: boolean that compute the irreducible components of the perturbation.
+            use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
 
         Return:
