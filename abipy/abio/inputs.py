@@ -1077,35 +1077,110 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return ddk_inputs
 
-    def make_dde_inputs(self, tolerance=None):
+    def make_dde_inputs(self, tolerance=None, use_symmetries=True):
         """
         Return inputs for the calculation of the electric field perturbations.
 
         This functions should be called with an input the represents a gs run.
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolwfr": 1.0e-22}.
+
+            use_symmetries: boolean that computes the irreducible components of the perturbation.
+                Default to True. Should be set to False for nonlinear coefficients calculation.
+
+        Return:
+            List of AbinitInput objects for DFPT runs.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+            tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
+        if use_symmetries == True:
+            # Call Abinit to get the list of irred perts.
+            perts = self.abiget_irred_ddeperts()
+
+            # Build list of datasets (one input per irreducible perturbation)
+            multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+
+            # See tutorespfn/Input/trf1_5.in dataset 3
+            for pert, inp in zip(perts, multi):
+                rfdir = 3 * [0]
+                rfdir[pert.idir - 1] = 1
+
+                inp.set_vars(
+                    rfdir=rfdir,  # Direction of the dde perturbation.
+                )
+
+        else:
+            # Compute all the directions of the perturbation
+            dde_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+
+            # Build list of datasets (one input per perturbation)
+            multi = MultiDataset.replicate_input(input=self, ndtset=len(dde_rfdirs))
+
+            # See tutorespfn/Input/tnlo_2.in dataset 4
+            for rfdir, inp in zip(dde_rfdirs, multi):
+                inp.set_vars(
+                    rfdir=rfdir,  # Direction of the per ddk.
+                    prepanl=1,  # Prepare Non-linear RF calculations.
+                )
+
+        multi.set_vars(
+            rfelfd=3,  # Activate the calculation of the electric field perturbation
+            nqpt=1,  # One wavevector is to be considered
+            qpt=(0, 0, 0),  # q-wavevector.
+            kptopt=2,  # Take into account time-reversal symmetry.
+        )
+
+        multi.pop_tolerances()
+        multi.set_vars(tolerance)
+
+        return multi
+
+    def make_dte_inputs(self, tolerance=None):
+        """
+        Return inputs for the DDK calculation.
+        This functions should be called with an input the represents a GS run.
+        """
+        if tolerance is None:
+            tolerance = {"tolwfr": 1.0e-20}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+
+        if "tolvrs" in tolerance:
+            raise self.Error("tolvrs should not be used in a DDK calculation")
+
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_ddeperts()
+        perts = self.abiget_irred_dteperts()
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
-        # See tutorespfn/Input/trf1_5.in dataset 3
+        # See tutorespfn/Input/tnlo_2.in
+
         for pert, inp in zip(perts, multi):
-            rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+            rfdir1 = 3 * [0]
+            rfdir1[pert.i1dir - 1] = 1
+            rfdir2 = 3 * [0]
+            rfdir2[pert.i2dir - 1] = 1
+            rfdir3 = 3 * [0]
+            rfdir3[pert.i3dir - 1] = 1
 
             inp.set_vars(
-                rfelfd=3,             # Activate the calculation of the electric field perturbation
-                rfdir=rfdir,          # Direction of the dde perturbation.
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
+                d3e_pert1_elfd=1,  # Activate the calculation of the electric field perturbation
+                d3e_pert2_elfd=1,
+                d3e_pert3_elfd=1,
+                d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
+                d3e_pert2_dir=rfdir2,
+                d3e_pert3_dir=rfdir3,
+                nqpt=1,  # One wavevector is to be considered
+                qpt=(0, 0, 0),  # q-wavevector.
+                optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
+                kptopt=2,  # Take into account time-reversal symmetry.
             )
 
             inp.pop_tolerances()
@@ -1397,6 +1472,42 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                              )
 
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
+                                        workdir=workdir, manager=manager)
+
+    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+        """
+        This function, computes the list of irreducible perturbations for DFPT.
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
+            shiftk: Shiftks (default None i.e. use shiftk from self)
+            kptopt: Option for k-point generation. If None, the value in self is used.
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Returns:
+            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            Example:
+
+                [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+                 {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
+
+        """
+        dteperts_vars = dict(d3e_pert1_phon=0,           # No phonon-type perturbation
+                             d3e_pert2_phon=0,
+                             d3e_pert3_phon=0,
+                             d3e_pert1_elfd=1,           # Electric field perturbation
+                             d3e_pert2_elfd=1,
+                             d3e_pert3_elfd=1,
+                             d3e_pert1_dir=[1,1,1],
+                             d3e_pert2_dir=[1,1,1],
+                             d3e_pert3_dir=[1,1,1],
+                             optdriver=5,                # non-linear response functions , using the 2n+1 theorem
+                             kptopt=2,                   # kpt time reversal symmetry
+                             )
+
+        return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
     def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
