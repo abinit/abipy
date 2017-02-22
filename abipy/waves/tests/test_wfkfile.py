@@ -23,8 +23,8 @@ class TestWFKFile(AbipyTest):
             wave = wfk.get_wave(spin, kpoint, band)
             other_wave = wfk.get_wave(spin, kpoint, band+1)
 
-            self.assertTrue(wave == wave)
-            self.assertTrue(wave != other_wave)
+            assert wave == wave
+            assert wave != other_wave
 
             for ig, (g, u_g) in enumerate(wave):
                 self.assertTrue(np.all(g == wave.gvecs[ig]))
@@ -56,8 +56,7 @@ class TestWFKFile(AbipyTest):
             same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
             self.assert_almost_equal(wave.ug, same_ug)
 
-            if self.which("xcrysden") is not None:
-                wave.export_ur2(".xsf", structure)
+            wave.export_ur2(".xsf", structure)
 
             if i == 0:
                 wfk.write_notebook(nbpath=self.get_tmpname(text=True))

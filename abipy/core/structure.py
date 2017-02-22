@@ -712,7 +712,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = self.hsym_kpath.kpath["kpoints"]
-        pprint(labels)
+        #pprint(labels)
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:
@@ -1157,7 +1157,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         new_displ = np.zeros(3, dtype=np.float)
         new_sites = []
-        for at,site in enumerate(self):
+        for at, site in enumerate(self):
             for t in tvects:
                 if do_real:
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])

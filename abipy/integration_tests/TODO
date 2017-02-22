@@ -10,12 +10,8 @@ TODO LIST:
 
   # Add treatment of out-of-boundary conditions in scissors operator.
 
-  # Remove strategies, replace them with AbiInput and a flexible API 
-    with getters and setters.
-
   # Add possibility of specifying the max number of CPUs that can be used  
     for a flow at the level of the scheduler.
-
 
   # Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
     Introduce an integer flag (msg_level) to be passed to msg_hndl
@@ -28,14 +24,10 @@ TODO LIST:
   # ABINIT abort file should not be produced if we the exit is expected otherwise we 
     can have IO race conditions and ABI_CRITICAL events!!!!!!!
 
-  # Rewrite AbiInput, Dataset should be the main object (Dict-like). AbiInput is only used 
-    to build datasets!
+  # Add memory error to Abinit errors
 
   # Add ExpectedAbort to Abinit so that one can call the code to get data without triggerin
     report.errors in task.get_event.report
-
-  # Abiopen should be defined in a low level module so that we don't have to import abilab.
-    and possible circular dependencies
 
   # Improvement in the dilatmx error handler 
 
@@ -53,3 +45,5 @@ TODO LIST:
    accesswff branches)
 
  # Add option max_num_launchers in scheduler.yml
+
+ # Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t)
