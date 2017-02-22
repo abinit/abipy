@@ -1077,39 +1077,66 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return ddk_inputs
 
-    def make_dde_inputs(self, tolerance=None):
+    def make_dde_inputs(self, tolerance=None, use_symmetries=True):
         """
         Return inputs for the calculation of the electric field perturbations.
 
         This functions should be called with an input the represents a gs run.
+        Args:
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolwfr": 1.0e-22}.
+
+            use_symmetries: boolean that compute the irreducible components of the perturbation.
+                Default to True. Should be set to False for nonlinear coefficients calculation.
+
+        Return:
+            List of AbinitInput objects for DFPT runs.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+            tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
-        # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_ddeperts()
+        if use_symmetries == True:
+            # Call Abinit to get the list of irred perts.
+            perts = self.abiget_irred_ddeperts()
 
-        # Build list of datasets (one input per perturbation)
-        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+            # Build list of datasets (one input per irreducible perturbation)
+            multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
-        # See tutorespfn/Input/trf1_5.in dataset 3
-        for pert, inp in zip(perts, multi):
-            rfdir = 3 * [0]
-            rfdir[pert.idir -1] = 1
+            # See tutorespfn/Input/trf1_5.in dataset 3
+            for pert, inp in zip(perts, multi):
+                rfdir = 3 * [0]
+                rfdir[pert.idir - 1] = 1
 
-            inp.set_vars(
-                rfelfd=3,             # Activate the calculation of the electric field perturbation
-                rfdir=rfdir,          # Direction of the dde perturbation.
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
-            )
+                inp.set_vars(
+                    rfdir=rfdir,  # Direction of the dde perturbation.
+                )
 
-            inp.pop_tolerances()
-            inp.set_vars(tolerance)
+        else:
+            # Compute all the directions of the perturbation
+            dde_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+
+            # Build list of datasets (one input per perturbation)
+            multi = MultiDataset.replicate_input(input=self, ndtset=len(dde_rfdirs))
+
+            # See tutorespfn/Input/tnlo_2.in dataset 4
+            for rfdir, inp in zip(dde_rfdirs, multi):
+                inp.set_vars(
+                    rfdir=rfdir,  # Direction of the per ddk.
+                    prepanl=1,  # Prepare Non-linear RF calculations.
+                )
+
+        multi.set_vars(
+            rfelfd=3,  # Activate the calculation of the electric field perturbation
+            nqpt=1,  # One wavevector is to be considered
+            qpt=(0, 0, 0),  # q-wavevector.
+            kptopt=2,  # Take into account time-reversal symmetry.
+        )
+
+        multi.pop_tolerances()
+        multi.set_vars(tolerance)
 
         return multi
 
