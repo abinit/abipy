@@ -213,7 +213,7 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     ngkpt = np.asarray(ngkpt, dtype=np.int)
 
     # Extract (FM) symmetry operations in reciprocal space.
-    abispg = structure.spacegroup
+    abispg = structure.abi_spacegroup
     symrec_fm = [s for (s, afm) in zip(abispg.symrec, abispg.symafm) if afm == 1]
 
     # Compute TS k_ibz.

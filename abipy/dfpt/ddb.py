@@ -16,7 +16,7 @@ from monty.dev import get_ncpus
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.tasks import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
-from abipy.core.symmetries import SpaceGroup
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList
 from abipy.core.tensor import Tensor
@@ -74,10 +74,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         self._header = self._parse_header()
 
         self._structure = Structure.from_abivars(**self.header)
-        # Add Spacegroup (needed in guessed_ngkpt)
+        # Add AbinitSpacegroup (needed in guessed_ngkpt)
         # FIXME: has_timerev is always True
         spgid, has_timerev, h = 0, True, self.header
-        self._structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
+        self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
@@ -286,10 +286,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if not self.qpoints: return None
         # Build the union of the stars of the q-points.
-        all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
+        all_qpoints = np.empty((len(self.qpoints) * len(self.structure.abi_spacegroup), 3))
         count = 0
         for qpoint in self.qpoints:
-            for op in self.structure.spacegroup:
+            for op in self.structure.abi_spacegroup:
                 all_qpoints[count] = op.rotate_k(qpoint.frac_coords, wrap_tows=False)
                 count += 1
 

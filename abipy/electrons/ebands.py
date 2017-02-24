@@ -1934,7 +1934,7 @@ class ElectronBands(object):
             interpolator: :class:`SkwInterpolator` object.
         """
         # Get symmetries from abinit spacegroup (read from file).
-        abispg = self.structure.spacegroup
+        abispg = self.structure.abi_spacegroup
         if abispg is not None:
             fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
         else:

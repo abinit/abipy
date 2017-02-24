@@ -21,7 +21,7 @@ from abipy.iotools import as_etsfreader
 
 __all__ = [
     "LatticeRotation",
-    "SpaceGroup",
+    "AbinitSpaceGroup",
 ]
 
 def wrap_in_ucell(x):
@@ -549,7 +549,7 @@ class OpSequence(collections.Sequence):
                 yield [self[i] for i in indices]
 
 
-class SpaceGroup(OpSequence):
+class AbinitSpaceGroup(OpSequence):
     """Container storing the space group symmetries."""
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
@@ -773,6 +773,9 @@ class SpaceGroup(OpSequence):
         # List with the symmetry operation that preserve the kpoint.
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
+
+# To maintain backward compatibility.
+SpaceGroup = AbinitSpaceGroup
 
 
 class LittleGroup(OpSequence):

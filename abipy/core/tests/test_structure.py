@@ -23,7 +23,7 @@ class TestStructure(AbipyTest):
             assert structure.__class__ is Structure
 
             # All nc files produced by ABINIT should have info on the spacegroup.
-            assert structure.has_spacegroup
+            assert structure.has_abi_spacegroup
 
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)

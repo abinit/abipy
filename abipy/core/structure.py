@@ -22,7 +22,7 @@ from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.mixins import NotebookWriter
-from abipy.core.symmetries import SpaceGroup
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
 
 __all__ = [
@@ -102,7 +102,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             file, closeit = as_etsfreader(filepath)
 
             new = file.read_structure(cls=cls)
-            new.set_spacegroup(SpaceGroup.from_file(file))
+            new.set_abi_spacegroup(AbinitSpaceGroup.from_file(file))
             if closeit: file.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
@@ -129,7 +129,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 if new.__class__ != cls: new.__class__ = cls
 
         else:
-            # TODO: Spacegroup is missing here.
+            # TODO: AbinitSpacegroup is missing here.
             new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
             # Change the class of new.
             if new.__class__ != cls: new.__class__ = cls
@@ -497,7 +497,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         spgan = SpacegroupAnalyzer(self)
         spgdata = spgan.get_symmetry_dataset()
         # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+        abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         # Print lattice info
         outs = ["Full Formula ({s})".format(s=self.composition.formula),
@@ -538,42 +538,36 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return "\n".join(outs)
 
-    # TODO: Change name --> abi_spacegroup
     @property
-    def spacegroup(self):
+    def abi_spacegroup(self):
         """
-        :class:`SpaceGroup` instance with Abinit symmetries read from the netcd file.
+        :class:`AbinitSpaceGroup` instance with Abinit symmetries read from the netcd file.
         None if abinit symmetries are not available e.g. if the structure has been created
         from a CIF file.
         """
         try:
-            return self._spacegroup
+            return self._abi_spacegroup
         except AttributeError:
             return None
 
-    def set_spacegroup(self, spacegroup):
-        """`SpaceGroup` setter."""
-        self._spacegroup = spacegroup
+    def set_abi_spacegroup(self, spacegroup):
+        """`AbinitSpaceGroup` setter."""
+        self._abi_spacegroup = spacegroup
 
     @property
-    def has_spacegroup(self):
+    def has_abi_spacegroup(self):
         """True is the structure contains info on the spacegroup."""
-        return self.spacegroup is not None
+        return self.abi_spacegroup is not None
 
-    @property
-    def is_symmorphic(self):
-        """True if at least one fractional translation is non-zero."""
-        return self.spacegroup.is_symmorphic
+    #@property
+    #def fm_symmops(self):
+    #    """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
+    #    return self.abi_spacegroup.symmops(afm_sign=+1)
 
-    @property
-    def fm_symmops(self):
-        """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sign=+1)
-
-    @property
-    def afm_symmops(self):
-        """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sign=-1)
+    #@property
+    #def afm_symmops(self):
+    #    """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
+    #    return self.abi_spacegroup.symmops(afm_sign=-1)
 
     @lazy_property
     def hsym_kpath(self):
@@ -609,7 +603,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         present in the `pymatgen` database.
         """
         # Construct the stars.
-        return [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
+        return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
     def get_sorted_structure_z(self):
         """Orders the structure according to increasing Z of the elements"""
@@ -617,7 +611,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown."""
-        if self.spacegroup is None: return None
+        if self.abi_spacegroup is None: return None
         for star in self.hsym_stars:
             if star.find(kpoint) != -1:
                 return star.name
@@ -689,7 +683,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         spglib_symbol, spglib_number = None, None
         if with_spglib: spglib_symbol, spglib_number = self.get_space_group_info()
         # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+        abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         return OrderedDict([
             ("formula", self.formula), ("natom", self.num_sites),

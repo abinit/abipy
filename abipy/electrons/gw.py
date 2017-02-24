@@ -1115,7 +1115,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             raise ValueError("\n".join(errlines))
 
         # Get symmetries from abinit spacegroup (read from file).
-        abispg = self.structure.spacegroup
+        abispg = self.structure.abi_spacegroup
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
         if ks_ebands_kpath is None:
