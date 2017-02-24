@@ -5,6 +5,7 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from abipy.core.tensor import Tensor
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
@@ -86,7 +87,8 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return InteratomicForceConstants.from_file(self.filepath)
         except Exception as exc:
-            print(exc, "Returning None", sep="\n")
+            print(exc)
+            cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
     def write_notebook(self, nbpath=None):

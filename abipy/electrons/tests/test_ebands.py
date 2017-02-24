@@ -39,10 +39,8 @@ class ElectronBandsTest(AbipyTest):
             ebands.to_pdframe()
             assert ElectronBands.as_ebands(ebands) is ebands
 
-            # FIXME
-            #print(ebands.as_dict())
-            #ElectronBands.from_dict(ebands.as_dict())
-            #self.assertMSONable(ebands, test_if_subclass=False)
+            ElectronBands.from_dict(ebands.as_dict())
+            self.assertMSONable(ebands, test_if_subclass=False)
 
             if ii == 0:
                 if self.has_matplotlib(): ebands.plot(show=False)
@@ -139,11 +137,11 @@ class ElectronBandsTest(AbipyTest):
             values.extend(arr)
         self.assertArrayAlmostEqual(np.array(values), 1.0)
 
-    #def test_to_bxsf(self):
-    #    """Testing BSXF converter."""
-    #    from abipy.abilab import abiopen
-    #    fbnc_kmesh = abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
-    #    fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
+    def test_to_bxsf(self):
+        """Testing BSXF converter."""
+        from abipy.abilab import abiopen
+        fbnc_kmesh = abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
+        fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
 
 
 class ElectronBandsPlotterTest(AbipyTest):

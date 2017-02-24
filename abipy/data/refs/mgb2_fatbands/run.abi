@@ -7,7 +7,8 @@ prtdos  3
 #Dataset 1: GS calculation
 ngkpt1   18 18 18
 nshiftk1 1
-shiftk1  0.0 0.0 0.5    # This choice preserves the hexagonal symmetry of the grid,
+#shiftk1  0.0 0.0 0.5    # This choice preserves the hexagonal symmetry of the grid,
+shiftk1  0.0 0.0 0.0    # This choice preserves the hexagonal symmetry of the grid,
 occopt1  4              # Marzari smearing
 tsmear1  0.03
 tolvrs1  1.0d-10

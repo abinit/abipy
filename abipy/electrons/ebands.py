@@ -330,6 +330,7 @@ class ElectronBands(object):
 
     @pmg_serialize
     def as_dict(self):
+        """Return dictionary with JSON serialization."""
         return dict(
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
