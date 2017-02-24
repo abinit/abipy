@@ -348,6 +348,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     @pmg_serialize
     def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         #vars = OrderedDict()
         # Use a list of (key, value) to serialize the OrderedDict
         abi_args = []
@@ -368,6 +371,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     @classmethod
     def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
@@ -2390,22 +2396,7 @@ class OpticError(Exception):
     """Error class raised by OpticInput."""
 
 
-class OpticInput(AbstractInput):
-    """
-    abo_1WF7      ! Name of the first d/dk response wavefunction file, produced by abinit
-    abo_1WF8      ! Name of the second d/dk response wavefunction file, produced by abinit
-    abo_1WF9      ! Name of the third d/dk response wavefunction file, produced by abinit
-    abo_WFK       ! Name of the ground-state wavefunction file, produced by abinit
-    0.01          ! Value of the *smearing factor*, in Hartree
-    0.010   1     ! frequency *step* and *maximum* frequency (Ha)
-    0.000         ! *Scissor* shift if needed, in Hartree
-    0.001         ! *Tolerance* on closeness of singularities (in Hartree)
-    3             ! *Number of components* of linear optic tensor to be computed
-    11 33 23      ! Linear *coefficients* to be computed (x=1, y=2, z=3)
-    2             ! Number of components of nonlinear optic tensor to be computed
-    123 222       ! Non-linear coefficients to be computed
-    """
-
+class OpticInput(AbstractInput, MSONable):
     """
     &FILES
      ddkfile_1 = 'abo_1WF7',
@@ -2437,22 +2428,40 @@ class OpticInput(AbstractInput):
         #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
         #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
         #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
-        OpticVar(name="broadening",      default=0.01, group='PARAMETERS', help="Value of the *smearing factor*, in Hartree"),
-        OpticVar(name="domega",     default=0.010, group='PARAMETERS', help="Frequency *step* (Ha)"),
-        OpticVar(name="maxomega",     default=1, group='PARAMETERS', help="Maximum frequency (Ha)"),
-        OpticVar(name="scissor",   default=0.000, group='PARAMETERS', help="*Scissor* shift if needed, in Hartree"),
-        OpticVar(name="tolerance",  default=0.001, group='PARAMETERS', help="*Tolerance* on closeness of singularities (in Hartree)"),
-        OpticVar(name="autoparal",  default=0, group='PARAMETERS', help="Autoparal option"),
-        OpticVar(name="max_ncpus",  default=0, group='PARAMETERS', help="Max number of CPUs considered in autoparal mode"),
 
-        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS', help="*Number of components* of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp",     default=0, group='COMPUTATIONS', help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients to be computed"),
-        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS', help="Number of components of linear electro-optic tensor to be computed"),
-        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS', help="Linear electro-optic coefficients to be computed"),
-        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor v2 to be computed"),
-        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients v2 to be computed"),
+        # PARAMETERS section:
+        OpticVar(name="broadening", default=0.01, group='PARAMETERS',
+                 help="Value of the *smearing factor*, in Hartree"),
+        OpticVar(name="domega", default=0.010, group='PARAMETERS',
+                 help="Frequency *step* (Ha)"),
+        OpticVar(name="maxomega", default=1, group='PARAMETERS',
+                 help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor", default=0.000, group='PARAMETERS',
+                 help="*Scissor* shift if needed, in Hartree"),
+        OpticVar(name="tolerance", default=0.001, group='PARAMETERS',
+                 help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="autoparal", default=0, group='PARAMETERS',
+                 help="Autoparal option"),
+        OpticVar(name="max_ncpus", default=0, group='PARAMETERS',
+                 help="Max number of CPUs considered in autoparal mode"),
+
+        # COMPUTATIONS section:
+        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS',
+                 help="*Number of components* of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp", default=0, group='COMPUTATIONS',
+                 help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients to be computed"),
+        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of linear electro-optic tensor to be computed"),
+        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS',
+                 help="Linear electro-optic coefficients to be computed"),
+        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor v2 to be computed"),
+        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients v2 to be computed"),
     ]
 
     _GROUPS = ['PARAMETERS','COMPUTATIONS']
@@ -2464,7 +2473,7 @@ class OpticInput(AbstractInput):
     _NAME2VAR = {v.name: v for v in _VARIABLES}
 
     def __init__(self, **kwargs):
-        # Init with default values.
+        # Initalize with default values.
         self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
 
         # Update the variables with the values passed by the user
@@ -2487,14 +2496,31 @@ class OpticInput(AbstractInput):
                              (key, __file__))
 
     def get_default(self, key):
+        """Return the default value of variable `key`."""
         for var in self._VARIABLES:
             if var.name == key: return var.default
-        raise KeyError("Cannot find %s in _VARIABLES" % key)
+        raise self.Error("Cannot find %s in _VARIABLES" % str(key))
 
+    @classmethod
+    def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        kwargs = {}
+        for grp, section in d.items():
+            if grp in ("@module", "@class"): continue
+            kwargs.update(**section)
+        return cls(**kwargs)
+
+    @pmg_serialize
     def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         my_dict = OrderedDict()
         for grp in self._GROUPS:
             my_dict[grp] = OrderedDict()
+
         for name in self._VARNAMES:
             value = self.vars.get(name)
             if value is None: value = self.get_default(name)
@@ -2503,11 +2529,12 @@ class OpticInput(AbstractInput):
 
             var = self._NAME2VAR[name]
             grp = var.group
-            my_dict[grp].update({name : value})
+            my_dict[grp].update({name: value})
 
         return my_dict
 
     def to_string(self):
+        """String representation."""
         table = []
         app = table.append
 
@@ -2690,7 +2717,7 @@ class Cut3DInput(MSONable, object):
         Args:
         density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
             defined at a later time.
-        all_el_dens_paths: a list of paths to the all-electron density files correspinding to the elements defined
+        all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
             in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
         """
         options = ['11']  # Option to convert _DEN file to a .cube file
@@ -2703,7 +2730,7 @@ class Cut3DInput(MSONable, object):
     @classmethod
     def hirshfeld_from_fhi_path(cls, density_filepath, structure, fhi_all_el_path):
         """
-        Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Authomatically
+        Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Automatically
         selects the all-electron density files from a folder containing the fhi all-electron density files:
         http://www.abinit.org/downloads/all_core_electron
 
@@ -2725,10 +2752,16 @@ class Cut3DInput(MSONable, object):
 
     @pmg_serialize
     def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         d = dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options = self.options)
         return d
 
     @classmethod
     def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
                    options=d.get('options', None))

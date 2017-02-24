@@ -90,6 +90,7 @@ class ScalarField(Has_Structure):
         return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                               rhor=-self.datar,
                               structure=self.structure)
+
     @property
     def structure(self):
         return self._structure

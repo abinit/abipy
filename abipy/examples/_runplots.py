@@ -34,7 +34,7 @@ def change_backend(new_backend=""):
     if os.path.exists(conf_file):
         shutil.copy(conf_file, BKP_FILE)
 
-        with open(conf_file, "r") as f:
+        with open(conf_file, "rt") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines):
@@ -77,7 +77,7 @@ def main():
     parser.add_argument('-m', '--mode', type=str, default="automatic",
                         help="execution mode. Either s (sequential) or a (automatic)")
 
-    parser.add_argument('-t', '--time', type=float, default=5,
+    parser.add_argument('-t', '--time', type=float, default=8,
                         help="wait time seconds before running next demo.")
 
     options = parser.parse_args()

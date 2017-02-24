@@ -2,7 +2,7 @@ dynamics Package
 ================
 
 
-:mod:`electrons` Package
+:mod:`dynamics` Package
 ------------------------
 
 .. automodule:: abipy.dynamics

@@ -343,7 +343,6 @@ class TestMultiDataset(AbipyTest):
         assert len(new_multi[0].tags) == 1
 
 
-
 class AnaddbInputTest(AbipyTest):
     """Tests for AnaddbInput."""
 
@@ -435,6 +434,45 @@ class TestCut3DInput(AbipyTest):
         cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
 
 
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+class OpticInputTest(AbipyTest):
+    """Tests for OpticInput."""
+    def test_optic_input_api(self):
+        """Test OpticInput API."""
+        optic_input = OpticInput()
+        print(optic_input)
+
+        with self.assertRaises(optic_input.Error):
+            optic_input["foo"] = 23
+
+        with self.assertRaises(optic_input.Error):
+            optic_input.get_default("foo")
+
+        optic_input.set_vars(num_lin_comp=0)
+        assert optic_input["num_lin_comp"] == 0
+        assert optic_input["broadening"] == 0.01
+
+    def test_real_optic_input(self):
+        """Testing real optic input."""
+
+        # Optic does not support MPI with ncpus > 1.
+        optic_input = OpticInput(
+            broadening=0.002,          # Value of the smearing factor, in Hartree
+            domega=0.0003,             # Frequency mesh.
+            maxomega=0.3,
+            scissor=0.000,             # Scissor shift if needed, in Hartree
+            tolerance=0.002,           # Tolerance on closeness of singularities (in Hartree)
+            num_lin_comp=1,            # Number of components of linear optic tensor to be computed
+            lin_comp=11,               # Linear coefficients to be computed (x=1, y=2, z=3)
+            num_nonlin_comp=2,         # Number of components of nonlinear optic tensor to be computed
+            nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
+        )
+
+        print(optic_input)
+        assert optic_input.vars
+
+        # Compatible with Pickle and MSONable?
+        self.serialize_with_pickle(optic_input, test_eq=True)
+        self.assertMSONable(optic_input)
+
+        v = optic_input.abivalidate()
+        assert v.retcode == 0

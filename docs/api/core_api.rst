@@ -9,18 +9,10 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`structure` Module
+:mod:`abinit_units` Module
 -----------------------
 
-.. automodule:: abipy.core.structure
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`wyckoff` Module
----------------------
-
-.. automodule:: abipy.core.wyckoff
+.. automodule:: abipy.core.abinit_units
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,14 +41,6 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`irrepsdb` Module
-----------------------
-
-.. automodule:: abipy.core.irrepsdb
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 :mod:`mesh3d` Module
 --------------------
 
@@ -65,11 +49,34 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`mixins` Module
+--------------------
+
+.. automodule:: abipy.core.mixins
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`irrepsdb` Module
+----------------------
+
+.. automodule:: abipy.core.irrepsdb
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 :mod:`kpoints` Module
 ---------------------
 
 .. automodule:: abipy.core.kpoints
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`structure` Module
+-----------------------
+
+.. automodule:: abipy.core.structure
    :members:
    :undoc-members:
    :show-inheritance:
@@ -82,6 +89,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`tensor` Module
+--------------------
+
+.. automodule:: abipy.core.tensor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`testing` Module
 ---------------------
 
@@ -90,11 +105,10 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`wyckoff` Module
+---------------------
 
-:mod:`tensor` Module
---------------------
-
-.. automodule:: abipy.core.tensor
+.. automodule:: abipy.core.wyckoff
    :members:
    :undoc-members:
    :show-inheritance:
