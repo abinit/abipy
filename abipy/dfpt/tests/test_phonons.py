@@ -38,8 +38,9 @@ class PhononBandsTest(AbipyTest):
         eig = phbands.dyn_mat_eigenvect
         self.assertTrue(np.allclose(np.dot(eig[0], eig[0].T), np.eye(len(eig[0]), dtype=np.complex), atol=1e-5, rtol=1e-3))
 
-        #dos = phbands.get_phdos()
-        #print(dos)
+        # Cannot compute PHDOS with q-path
+        with self.assertRaises(ValueError):
+            phdos = phbands.get_phdos()
 
 
 class PhononDosTest(AbipyTest):

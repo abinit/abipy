@@ -58,8 +58,8 @@ class TestAbinitInputFile(AbipyTest):
         # acell and rprimd with unit.
         s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1 "
              "ntypat 1 typat *1 znucl 1*14 xangst 0 0 0")
-        inp = AbinitInputFile.from_string(s)
-        assert inp.structure == si1_structure
+        with AbinitInputFile.from_string(s) as inp:
+            assert inp.structure == si1_structure
 
         # TODO Angdeg sqrt(4) sqrt(4/2)
         #assert 0
@@ -203,7 +203,10 @@ typat 1 1         # For the first dataset, both numbers will be read,
         print(inp)
 
     def test_all_inputs_in_tests(self):
-        """Try to parse all Abinit input files inside the Abinit `tests` directory."""
+        """
+        Try to parse all Abinit input files inside the Abinit `tests` directory.
+        Requires $ABINIT_HOME_DIR env variable.
+        """
         abi_homedir = os.environ.get("ABINIT_HOME_DIR")
         if abi_homedir is None:
             raise unittest.SkipTest("Env variable `ABINIT_HOME_DIR` is required for this test.")

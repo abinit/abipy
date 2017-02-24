@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 """
-This example shows how to compute the band structure of a set of 
+This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing a set of internal paramaters
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import sys 
+import sys
 
 from abipy import abilab
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.abilab import FloatWithUnit
 
@@ -23,7 +23,7 @@ def special_positions(lattice, u):
                         ]
 
     frac_coords["O"] = [ [0, 0, u] ]
-                            
+
     species, coords = [], []
 
     for symbol, positions in frac_coords.items():
@@ -36,13 +36,13 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
-    pseudos = data.pseudos("14si.pspnc", "8o.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
 
-    base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
+    base_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    news, uparams = [], [0.1, 0.2, 0.3]
+    news, uparams = [], [0.2, 0.3]
 
     for u in uparams:
         new = special_positions(base_structure.lattice, u)
@@ -70,7 +70,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
         #nband=8,
     )
 
-    # GS + NSCF run 
+    # GS + NSCF run
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
     multi.set_vars(global_vars)
 
@@ -101,4 +101,3 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
-

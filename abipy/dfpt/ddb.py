@@ -86,9 +86,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if read_blocks:
             self.blocks = self._read_blocks()
 
-        # Guess q-mesh
-        #self._guessed_ngqpt = self._guess_ngqpt()
-
     def close(self):
         """Needed for the `AbinitFile` abstract interface."""
 
@@ -552,35 +549,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
             return emacro, becs
-
-    #def anaget_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
-    #    """
-    #    Execute anaddb to compute thermodinamical properties.
-
-    #    Args:
-    #        ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
-    #        asr, chneut, dipdp: Anaddb input variable. See official documentation.
-    #        workdir: Working directory. If None, a temporary directory is created.
-    #        manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-    #        verbose: verbosity level. Set it to a value > 0 to get more information
-    #        kwargs: Additional variables you may want to pass to Anaddb.
-    #    """
-    #    if ngqpt is None: ngqpt = self.guessed_ngqpt
-
-    #    inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-    #           ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10)
-
-    #    task = AnaddbTask.temp_shell_task(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-
-    #    if verbose:
-    #        print("ANADDB INPUT:\n", inp)
-    #        print("workdir:", task.workdir)
-
-    #    task.start_and_wait(autoparal=False)
-
-    #    report = task.get_event_report()
-    #    if not report.run_completed:
-    #        raise self.AnaddbError(task=task, report=report)
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
                    verbose=0, anaddb_kwargs=None):

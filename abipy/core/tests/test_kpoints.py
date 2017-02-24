@@ -352,38 +352,47 @@ class KmeshTest(AbipyTest):
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
 
 
-#class TestKmappingTools(AbipyTest):
-#
-#    def test_with_from_structure_with_symrec(self):
-#        """Generate Ktables from a structure with Abinit symmetries."""
-#        structure = self.get_abistructure("mgb2_kpath_FATBANDS.nc")
-#        assert structure.spacegroup is not None
-#        k = Ktables(structure, [4, 4, 4], is_shift=None, has_timrev=True)
-#        print(k)
-#        k.print_bz2ibz()
-#
-#    def test_with_structure_without_symrec(self):
-#        """Generate Ktables from a structure without Abinit symmetries."""
-#        structure = self.get_abistructure("mgb2_kpath_FATBANDS.nc")
-#        assert structure.spacegroup is None
-#        k = Ktables(structure, mesh, is_shift, has_timrev)
-#        print(k)
-#        k.print_bz2ibz()
+class TestKmappingTools(AbipyTest):
 
-#    def test_map_bz2ibz(self)
-#        has_timrev = True
-#        bz2ibz = map_bz2ibz(structure, kibz, ngkpt, has_timrev, pbc=False)
-#
-#        errors = []
-#        for ik_bz, kbz in enumerate(bz):
-#            ik_ibz = bz2inz[ik_bz]
-#            for symmop in structure.spacegroup:
-#                krot = symmop.rotate_k(kibz)
-#                if issamek(krot, kbz):
-#                    bz2ibz[ik_bz] = ik_ibz
-#                    break
-#            else:
-#                errors.append((ik_bz, kbz))
-#
-#        if errors:
-#        assert not errors
+    def setUp(self):
+        from abipy.abilab import abiopen
+
+        with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as ncfile:
+            self.mgb2 = ncfile.structure
+            self.kibz = [k.frac_coords for k in ncfile.ebands.kpoints]
+            self.has_timrev = True
+            #self.has_timrev = has_timrev_from_kptopt(kptopt)
+            self.ngkpt = [18, 18, 18]
+
+    def test_map_bz2ibz(self):
+        bz2ibz = map_bz2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
+
+        #errors = []
+        #for ik_bz, kbz in enumerate(bz):
+        #    ik_ibz = bz2inz[ik_bz]
+        #    for symmop in structure.spacegroup:
+        #        krot = symmop.rotate_k(kibz)
+        #        if issamek(krot, kbz):
+        #            bz2ibz[ik_bz] = ik_ibz
+        #            break
+        #    else:
+        #        errors.append((ik_bz, kbz))
+
+        #if errors:
+        #assert not errors
+
+    #def test_with_from_structure_with_symrec(self):
+    #    """Generate Ktables from a structure with Abinit symmetries."""
+    #    self.mgb2 = self.get_abistructure.mgb2("mgb2_kpath_FATBANDS.nc")
+    #    assert self.mgb2.spacegroup is not None
+    #    mesh = [4, 4, 4]
+    #    k = Ktables(self.mgb2, mesh, is_shift=None, has_timrev=True)
+    #    print(k)
+    #    k.print_bz2ibz()
+
+    #def test_with_structure_without_symrec(self):
+    #    """Generate Ktables from a structure without Abinit symmetries."""
+    #    assert self.mgb2.spacegroup is None
+    #    k = Ktables(self.mgb2, mesh, is_shift, has_timrev)
+    #    print(k)
+    #    k.print_bz2ibz()

@@ -96,8 +96,19 @@ class DdbTest(AbipyTest):
         phbands_file.close()
         phdos_file.close()
 
+        # Test DOS computation via anaddb.
         c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=None)
         if self.has_matplotlib():
             c.plotter.plot(show=False)
+
+        # Execute anaddb to compute the interatomic forces.
+        ifc = ddb.anaget_ifc()
+        assert ifc.structure == ddb.structure
+        assert ifc.number_of_atoms == len(ddb.structure)
+
+        if self.has_matplotlib():
+            ifc.plot_longitudinal_ifc(show=False)
+            ifc.plot_longitudinal_ifc_short_range(show=False)
+            ifc.plot_longitudinal_ifc_ewald(show=False)
 
         ddb.close()

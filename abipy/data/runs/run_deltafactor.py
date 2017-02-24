@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import sys
-import abipy.data as data  
+import abipy.data as data
 import abipy.abilab as abilab
 
 from pseudo_dojo.dojo.works import DeltaFactory
@@ -25,12 +25,12 @@ def build_flow(options):
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files
-    # used in the original paper. We only have to specify 
+    # used in the original paper. We only have to specify
     # the cutoff energy ecut (Ha) for the pseudopotential.
-    # The workflow will produce a pdf file with the equation of state 
-    # and a file deltafactor.txt with the final results in the 
+    # The workflow will produce a pdf file with the equation of state
+    # and a file deltafactor.txt with the final results in the
     # outdir directory DELTAFACTOR/work_0/outdir.
-    factory = DeltaFactory()
+    factory = DeltaFactory("PBE")
 
     kppa = 6750  # Use this to have the official k-point sampling
     kppa = 50    # this value is for testing purpose.
@@ -38,7 +38,7 @@ def build_flow(options):
     ecut = 8
     pawecutdg = ecut * 2 if pseudo.ispaw else None
 
-    work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa, 
+    work = factory.work_for_pseudo(pseudo, accuracy="normal", kppa=kppa,
                                    ecut=ecut, pawecutdg=pawecutdg,
                                    toldfe=1.e-8, smearing="fermi_dirac:0.0005")
 
