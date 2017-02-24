@@ -1,7 +1,7 @@
 """Tests for electrons.bse module"""
 from __future__ import print_function, division
 
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.electrons.bse import *
 from abipy.core.testing import *
@@ -11,7 +11,7 @@ class TestMDF_Reader(AbipyTest):
 
     def test_MDF_reading(self):
         """Test MdfReader."""
-        mdf_file = data.ref_file("tbs_4o_DS2_MDF.nc")
+        mdf_file = abidata.ref_file("tbs_4o_DS2_MDF.nc")
 
         with MdfReader(mdf_file) as r:
             assert len(r.wmesh) == r.read_dimvalue("number_of_frequencies")
@@ -32,7 +32,7 @@ class TestMDF_Reader(AbipyTest):
 
     def test_TSR(self):
         """Test the computation of Tensor"""
-        mdf_file = MdfFile(data.ref_file("tbs_4o_DS2_MDF.nc"))
+        mdf_file = MdfFile(abidata.ref_file("tbs_4o_DS2_MDF.nc"))
 
         exc_tsr = mdf_file.get_tensor("exc")
         rpa_tsr = mdf_file.get_tensor("rpa")

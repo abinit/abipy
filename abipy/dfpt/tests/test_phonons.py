@@ -87,6 +87,10 @@ class InteratomicForceConstantsTest(AbipyTest):
 
         cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4,4,4], verbose=1)
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.ddb.close()
+
     def test_filtering(self):
 
         self.ifc.ifc_local_coord_ewald
@@ -100,7 +104,6 @@ class InteratomicForceConstantsTest(AbipyTest):
 
         dist, data = self.ifc.get_ifc_cartesian(min_dist=1, max_dist=10)
         self.assert_equal(np.shape(data), (56, 3, 3))
-
 
     def test_plot(self):
         if not self.has_matplotlib():
@@ -120,3 +123,4 @@ class NonAnalyticalPhTest(AbipyTest):
         phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
 
         phbands.non_anal_phfreqs
+        ddb.close()
