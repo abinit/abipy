@@ -2,6 +2,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import pytest
+import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 
@@ -95,7 +96,7 @@ def itest_atomic_relaxation(fwp, tvars):
     with t0.open_hist() as hist:
         print(hist)
         # from_file accepts HIST files as well.
-        assert hist.structures[-1] == abilab.Structure.from_file(hist.filepath)
+        assert np.all(hist.structures[-1].frac_coords == abilab.Structure.from_file(hist.filepath).frac_coords)
 
     with t0.open_gsr() as gsr:
         print(gsr)

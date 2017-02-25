@@ -1765,6 +1765,7 @@ class ElectronBands(object):
         """
         Export the full band structure to `filepath` in BXSF format
         suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
+        Require k-points in IBZ and gamma-centered k-mesh.
         """
         # Sanity check.
         errors = []; eapp = errors.append
@@ -1792,6 +1793,7 @@ class ElectronBands(object):
             ik_ibz = bz2ibz[ik_bz]
             emesh_sbk[:, :, ik_bz] = self.eigens[:, ik_ibz, :]
 
+        # Write BXSF file.
         with open(filepath, "wt") as fh:
             bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs+1, emesh_sbk, self.fermie, unit="eV")
 

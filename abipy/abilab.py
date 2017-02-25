@@ -26,7 +26,7 @@ from pymatgen.io.abinit.pseudos import Pseudo
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile, DensityFortranFile, CubeFile
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile, CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
@@ -44,7 +44,7 @@ from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
-from abipy.electrons.denpot import DensityNcFile
+from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)

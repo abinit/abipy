@@ -138,7 +138,7 @@ class ElectronBandsTest(AbipyTest):
         self.assertArrayAlmostEqual(np.array(values), 1.0)
 
     def test_to_bxsf(self):
-        """Testing BSXF converter."""
+        """Testing Fermi surface exporter."""
         from abipy.abilab import abiopen
         fbnc_kmesh = abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
         fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))

@@ -251,11 +251,10 @@ def itest_bandstructure_flow(fwp, tvars):
         timer.plot_efficiency(show=False)
 
     # Test CUT3D API provided by DensityFortranFile.
-    from abipy.core.mixins import DensityFortranFile
     den_path = t0.outdir.has_abiext("DEN")
     assert den_path
     if not den_path.endswith(".nc"):
-        denfile = DensityFortranFile(den_path)
+        denfile = abilab.DensityFortranFile(den_path)
         workdir = flow.outdir.path
         denfile.get_cube("den.cube", workdir=workdir)
         denfile.get_xsf("den.xsf", workdir=workdir)
