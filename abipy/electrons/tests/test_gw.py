@@ -62,6 +62,7 @@ class TestSigresFile(AbipyTest):
     def test_readall(self):
         for path in abidata.SIGRES_NCFILES:
             sigres = abiopen(path)
+            sigres.close()
 
     def test_base(self):
         """Test SIGRES File."""
@@ -90,9 +91,15 @@ class TestSigresFile(AbipyTest):
                   8.71122659251508, 3.29693118466282, 3.125545059031]
 
         self.assert_almost_equal(sigres.qpgaps, np.reshape(qpgaps, (1,6)))
+        ik = 0
+        df = sigres.get_dataframe_sk(spin=0, kpoint=ik)
+        same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
+        assert np.all(df["qpe"] == same_df["qpe"])
 
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        sigres.close()
 
     def test_interpolator(self):
         """Test QP interpolation."""

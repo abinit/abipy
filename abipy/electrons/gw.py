@@ -1014,10 +1014,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
-        # TODO Is it still used?
-        self.reader.print_qps(spin=spin, kpoints=kpoints, bands=bands, fmt=None, stream=stream)
-
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
         Plot the KS energies as function an k and add markers
@@ -1029,7 +1025,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     def get_dataframe_sk(self, spin, kpoint, index=None):
-        """Returns pandas DataFrame"""
+        """
+        Returns pandas DataFrame with QP results for the given (spin, k-point).
+        """
         rows, bands = [], []
         # FIXME start and stop should depend on k
         for band in range(self.min_gwbstart, self.max_gwbstop):
@@ -1043,7 +1041,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         import pandas as pd
         index = len(bands) * [index] if index is not None else bands
-        return pd.DataFrame(rows, index=index, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):

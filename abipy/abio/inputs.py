@@ -2512,7 +2512,7 @@ class OpticInput(AbstractInput, MSONable):
             kwargs.update(**section)
         return cls(**kwargs)
 
-    @pmg_serialize
+    #@pmg_serialize
     def as_dict(self):
         """
         JSON interface used in pymatgen for easier serialization.

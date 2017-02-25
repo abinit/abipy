@@ -1,12 +1,13 @@
 # coding: utf-8
+"""Test for Robots"""
 from __future__ import unicode_literals, division, print_function
 
 import sys
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.core.testing import AbipyTest
-from abipy.abio.robots import * 
+from abipy.abio.robots import *
 
 
 class RobotTest(AbipyTest):
@@ -42,8 +43,3 @@ class RobotTest(AbipyTest):
     #def test_sigres_robot(self):
     #def test_mdf_robot(self):
     #def test_ddb_robot(self):
-
-
-if __name__ == '__main__':
-    import unittest
-    unittest.main()

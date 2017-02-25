@@ -3,9 +3,9 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import pymatgen.core.units as units
 
 from monty.string import marquee
+from monty.termcolor import cprint
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.fields import DensityReader
@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "DensityNcFile",
 ]
+
+class DenNcReader(ElectronsReader, DensityReader):
+    """Object used to read data from DEN.nc files."""
 
 
 class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -46,6 +49,7 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         return self.to_string()
 
     def to_string(self):
+        """Return string representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -55,6 +59,7 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         app(str(self.structure))
         app("")
         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+        app("XC functional: %s" % str(self.xc))
 
         return "\n".join(lines)
 
@@ -74,7 +79,7 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
 
     @lazy_property
     def xc(self):
-        """:class:`XcFunc object with info on the exchange-correlation functional."""
+        """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
 
     def close(self):
@@ -86,7 +91,7 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         """
         if filename is None:
             filename = self.basename.replace(".nc", "_CHGCAR")
-            print("Writing density in CHGCAR format to file:", filename)
+            cprint("Writing density in CHGCAR format to file: %s" % filename, "yellow")
         return self.density.to_chgcar(filename=filename)
 
     def write_xsf(self, filename=None):
@@ -95,13 +100,13 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         """
         if filename is None:
             filename = self.basename.replace(".nc", ".xsf")
-            print("Writing density in XSF format to file:", filename)
+            cprint("Writing density in XSF format to file: %s" % filename, "yellow")
         return self.density.export(filename)
 
     def write_cube(self, filename=None, spin="total"):
         if filename is None:
             filename = self.basename.replace(".nc", ".cube")
-            print("Writing density in CUBE format to file:", filename)
+            cprint("Writing density in CUBE format to file: %s" % filename, "yellow")
         return self.density.export_to_cube(filename, spin=spin)
 
     def write_notebook(self, nbpath=None):
@@ -117,10 +122,9 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
             nbv.new_code_cell("fig = denc.ebands.plot()"),
             nbv.new_code_cell("fig = denc.ebands.kpoints.plot()"),
             nbv.new_code_cell("fig = denc.ebands.get_edos().plot()"),
+            nbv.new_code_cell("#cube = denc.write_cube(filename=None)"),
+            nbv.new_code_cell("#xsf_path = denc.write_xsf(filename=None"),
+            nbv.new_code_cell("#chgcar = denc.write_chgcar(filename=None"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
-
-
-class DenNcReader(ElectronsReader, DensityReader):
-    pass

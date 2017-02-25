@@ -58,10 +58,10 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`ncdenpot` Module
+:mod:`denpot` Module
 ----------------------
 
-.. automodule:: abipy.electrons.ncdenpot
+.. automodule:: abipy.electrons.denpot
    :members:
    :undoc-members:
    :show-inheritance:

@@ -110,6 +110,7 @@ class _File(object):
 
 
 class TextFile(_File):
+
     def __enter__(self):
         # Open the file
         self._file
@@ -162,7 +163,7 @@ class AbinitTextFile(TextFile):
 
 
 class AbinitLogFile(AbinitTextFile):
-    """Class representing the log file."""
+    """Class representing the Abinit log file."""
 
 
 class AbinitOutputFile(AbinitTextFile):
@@ -195,8 +196,12 @@ class AbinitOutputFile(AbinitTextFile):
             others: list of `AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
         """
+        # Open file here if we receive a string. Files will be closed before returning
+        close_files = []
         for i, other in enumerate(others):
-            if is_string(other): others[i] = self.__class__.from_file(other)
+            if is_string(other):
+                others[i] = self.__class__.from_file(other)
+                close_files.append(i)
 
         fig, figures = None, []
         while True:
@@ -215,6 +220,10 @@ class AbinitOutputFile(AbinitTextFile):
 
         self.seek(0)
         for other in others: other.seek(0)
+
+        if close_files:
+            for i in close_files: others[i].close()
+
         return figures
 
     def compare_d2de_scf_cycles(self, others, show=True):
@@ -226,8 +235,12 @@ class AbinitOutputFile(AbinitTextFile):
             others: list of `AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
         """
+        # Open file here if we receive a string. Files will be closed before returning
+        close_files = []
         for i, other in enumerate(others):
-            if is_string(other): others[i] = self.__class__.from_file(other)
+            if is_string(other):
+                others[i] = self.__class__.from_file(other)
+                close_files.append(i)
 
         fig, figures = None, []
         while True:
@@ -246,6 +259,10 @@ class AbinitOutputFile(AbinitTextFile):
 
         self.seek(0)
         for other in others: other.seek(0)
+
+        if close_files:
+            for i in close_files: others[i].close()
+
         return figures
 
 
@@ -330,14 +347,13 @@ class AbinitFortranFile(_File):
 class DensityFortranFile(AbinitFortranFile):
     """
     Class representing the _DEN fortran file containing density.
-    Provides methods to run Cut3D.
+    Provides methods to run Cut3D and convert data into different formats.
     """
 
     def _convert(self, cut3d_input, workdir=None):
         """
         Internal function to run a conversion using cut3d.
         """
-
         workdir = tempfile.mkdtemp() if workdir is None else workdir
 
         # local import to avoid circular references
@@ -463,6 +479,8 @@ class DensityFortranFile(AbinitFortranFile):
         """
         if all_el_dens_paths is None and fhi_all_el_path is None:
             raise ValueError("At least one source of all electron densities should be provided")
+        if all_el_dens_paths is not None and fhi_all_el_path is not None:
+            raise ValueError("all_el_dens_paths and fhi_all_el_path are mutually exclusive.")
 
         # local import to avoid circular references
         from pymatgen.io.abinit.wrappers import Cut3D

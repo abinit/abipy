@@ -44,7 +44,7 @@ from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
-from abipy.electrons.ncdenpot import DensityNcFile
+from abipy.electrons.denpot import DensityNcFile
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)

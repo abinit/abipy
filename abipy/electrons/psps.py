@@ -302,6 +302,7 @@ class PspsFile(AbinitNcFile):
 
     @add_fig_kwargs
     def compare(self, others, **kwargs):
+        """Produce matplotlib plot comparing self with another list of pseudos `others`."""
         if not isinstance(others, (list, tuple)):
             others = [others]
 

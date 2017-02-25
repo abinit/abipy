@@ -7,8 +7,7 @@ hardware:  &hardware
 
 job: &job
    mpi_runner: mpirun
-   pre_run:
-     - "source ~/env.sh"
+   pre_run: "source ~/env.sh"
 
 policy:
     autoparal: 1
@@ -22,8 +21,8 @@ policy:
 qadapters:
   - priority: 1 
     queue:
-      qname: fast
       qtype: shell
+      qname: localhost
     job: *job
     hardware: *hardware
     limits:
