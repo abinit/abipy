@@ -776,12 +776,12 @@ class KpointList(collections.Sequence):
         Both quantities are set to None if self is not a MP mesh.
         Use `is_mpmesh` to check whether self is a MP mesh.
         """
-        ksampling = self.ksampling
         if not self.is_ibz: return (None, None)
-        m = ksampling.kptrlatt.copy()
+        # Test if kptrlatt is diagonal.
+        m = self.ksampling.kptrlatt.copy()
         np.fill_diagonal(m, 0)
         if np.any(m != 0): return (None, None)
-        return ksampling.kptrlatt.diagonal(), ksampling.shifts
+        return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
     def is_mpmesh(self):
@@ -1087,6 +1087,7 @@ class IrredZone(KpointList):
         return self.to_string()
 
     def to_string(self):
+        """String representation."""
         lines = []; app = lines.append
 
         if self.is_mpmesh:
@@ -1140,49 +1141,84 @@ class IrredZone(KpointList):
 
 
 class KSamplingInfo(AttrDict):
+    """
+    Store metadata defining the k-point sampling according to the abinit conventions.
+    One should pass through one of the class methods to instanciate the class,
+    avoid calling __init__ directly.
+    """
 
-    #KNOWN_KEYS = {
-    #    "reduced_coordinates_of_kpoints": MANDATORY,
-    #    "kpoint_weights": OPTIONAL,
-    #    "kpoint_grid shift": OPTIONAL,
-    #    "monkhorst_pack_folding": OPTIONAL,
-    #    "kpoint_grid vectors": OPTIONAL,
-    #    "kptopt": OPTIONAL,
-    #}
+    KNOWN_KEYS = set([
+        "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None
+        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None
+        "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None
+        "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None
+        "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None
+        "kptopt"           # Options for k-point generation. Negative if we have a k-path (nbounds - 1)
+    ])
+
+    @classmethod
+    def from_mpdivs(cls, mpdivs, shifts, kptopt):
+        """
+        Homogeneous sampling specified in terms of `mpdivs` (ngkpt in abinit),
+        the set of `shifts` and the value of `kptopt`.
+        """
+        kptrlatt = kptrlatt_orig = np.diag(mpdivs)
+        shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
+
+    @classmethod
+    def from_kptrlatt(cls, kptrlatt, shifts, kptopt):
+        """
+        Homogeneous sampling specified in terms of `kptrlatt`
+        the set of `shifts` and the value of `kptopt`.
+        """
+        kptrlatt = kptrlatt_orig = np.reshape(kptrlatt, (3,3))
+        shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
+        # Test if kptrlatt is diagonal.
+        m = kptrlatt.copy()
+        np.fill_diagonal(m, 0)
+        mpdivs = None if np.any(m != 0) else np.diag(kptrlatt)
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
+
+    @classmethod
+    def from_kbounds(cls, kbounds):
+        """Metadata associated to a k-path specified in terms of boundaries."""
+        mpdivs, kptrlatt, kptrlatt_orig, shifts, shifts_orig = 5 * (None,)
+        kptopt = len(np.reshape(kbounds, (-1, 3))) - 1  # Note -1
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
-        #print("ksampling", self)
-        #for k in self:
-        #   if k not in self.KNOWN_KEYS:
-        #       raise ValueError("Unknow key %s" % k)
+        for k in self:
+           if k not in self.KNOWN_KEYS:
+               raise ValueError("Unknow key %s" % k)
+
+    #def __str__(self):
+    #    lines = []
+    #    app = lines.append
+    #    return "\n".join(lines)
 
     @property
     def is_homogeneous(self):
         """True if we have a homogeneous sampling of the BZ."""
-        return self.mpdivs is not None or self.kptrlatt is not None and self.kptopt > 0
+        return (self.mpdivs is not None or self.kptrlatt is not None) and self.kptopt > 0
+
+    #@property
+    #def sampling_with_diagonal_kptrlatt(self)
+    #    if self.kptrlatt is None: return False
+    #    # Test if kptrlatt is diagonal.
+    #    m = self.kptrlatt.copy()
+    #    np.fill_diagonal(m, 0)
+    #    if np.any(m != 0): return False
+    #    return True
 
     #@property
     #def is_path(self):
     #    """True if we have a path in the BZ."""
     #    return self.kptopt < 0
-
-
-def returns_None_onfail(func):
-    import functools
-    from numpy.ma import MaskedArray
-
-    @functools.wraps(func)
-    def wrapper(self):
-        try:
-            value = func(self)
-            # This trick is needed because in many cases we define the netcdf variable
-            # but we don't write its value.
-            return value if not isinstance(value, MaskedArray) else None
-        except self.Error:
-            return None
-
-    return wrapper
 
 
 class KpointsReaderMixin(object):
@@ -1228,24 +1264,22 @@ class KpointsReaderMixin(object):
         shifts = self.read_kshifts()
 
         return KSamplingInfo(
-            kptopt=int(self.read_value("kptopt", default=0)),
             mpdivs=self.read_kmpdivs(),
             kptrlatt=kptrlatt,
-            shifts=shifts,
             kptrlatt_orig=self.read_value("kptrlatt_orig", default=kptrlatt),
-            shiftk_orig=self.read_value("shiftk_orig", default=shifts),
+            shifts=shifts,
+            shifts_orig=self.read_value("shiftk_orig", default=shifts),
+            kptopt=int(self.read_value("kptopt", default=0)),
         )
 
     def read_kfrac_coords(self):
         """Fractional coordinates of the k-points"""
         return self.read_value("reduced_coordinates_of_kpoints")
 
-    #@returns_None_onfail
     def read_kweights(self):
         """Returns the weight of the k-points. None if not found."""
         return self.read_value("kpoint_weights")
 
-    #@returns_None_onfail
     def read_kshifts(self):
         """Returns the shifts of the k-mesh in reduced coordinates. None if not found."""
         try:
@@ -1253,12 +1287,10 @@ class KpointsReaderMixin(object):
         except self.Error:
             return self.read_value("kpoint_grid_shift")
 
-    #@returns_None_onfail
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
         return self.read_value("monkhorst_pack_folding")
 
-    #@returns_None_onfail
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
         try:

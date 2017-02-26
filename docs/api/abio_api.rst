@@ -59,6 +59,15 @@ abio Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`outputs` Module
+--------------------
+
+.. automodule:: abipy.abio.outputs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`robots` Module
 --------------------
 

@@ -9,7 +9,7 @@ import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
-                                as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
+    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
 from abipy.core.testing import *
 
 
@@ -350,6 +350,50 @@ class KmeshTest(AbipyTest):
  [ 1.          0.5         0.33333333]
  [ 1.          0.5         0.66666667]]"""
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
+
+
+class TestKsamplingInfo(AbipyTest):
+    def test_ksampling(self):
+        """Test KsamplingInfo API."""
+        # from_mpdivs constructor
+        mpdivs, shifts = [2, 3, 4], [0.5, 0.5, 0.5]
+        kptopt = 1
+        ksi = KSamplingInfo.from_mpdivs(mpdivs, shifts, kptopt)
+        self.assert_equal(ksi.mpdivs, mpdivs)
+        self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
+        self.assert_equal(ksi.shifts.flatten(), shifts)
+        assert ksi.kptopt == kptopt
+        assert ksi.is_homogeneous
+        print(ksi)
+
+        # from kptrlatt constructor
+        kptrlatt = np.diag(mpdivs)
+        ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
+        self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
+        self.assert_equal(ksi.mpdivs, np.diag(ksi.kptrlatt))
+        self.assert_equal(ksi.shifts.flatten(), shifts)
+        assert ksi.kptopt == kptopt
+        assert ksi.is_homogeneous
+        print(ksi)
+
+        # kptrlatt with non-zero off-diagonal elements.
+        shifts = [0.5, 0.5, 0.5]
+        kptrlatt = [1, 1, 1, 2, 2, 2, 3, 3, 3]
+        kptopt = 1
+        ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
+        assert ksi.mpdivs is None
+        print(ksi)
+
+        # from_kbounds constructor
+        kbounds = [0, 0, 0, 1, 1, 1]
+        ksi = KSamplingInfo.from_kbounds(kbounds)
+        assert (ksi.mpdivs, ksi.kptrlatt, ksi.kptrlatt_orig, ksi.shifts, ksi.shifts_orig) == 5 * (None,)
+        assert ksi.kptopt == 1
+        assert not ksi.is_homogeneous
+        print(ksi)
+
+        with self.assertRaises(ValueError):
+            foo = KSamplingInfo(foo=1)
 
 
 class TestKmappingTools(AbipyTest):

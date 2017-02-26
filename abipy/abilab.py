@@ -21,19 +21,24 @@ try:
 except ImportError:
     pass
 
-from pymatgen.io.abinit.launcher import PyFlowScheduler #, BatchLauncher
+### Pymatgen import ###
+#from pymatgen.io.abinit.launcher import PyFlowScheduler
 from pymatgen.io.abinit.pseudos import Pseudo
+# Tools for unit conversion
+import pymatgen.core.units as units
+FloatWithUnit = units.FloatWithUnit
+ArrayWithUnit = units.ArrayWithUnit
 
+### Abipy import ###
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile, CubeFile
+from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
-from abipy.iotools import Visualizer
-from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter,
     ElectronDos, ElectronDosPlotter, frame_from_ebands)
@@ -46,24 +51,15 @@ from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
 from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
-                                phbands_gridplot)
+from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
 #from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
 
-# Tools for unit conversion
-import pymatgen.core.units as units
-FloatWithUnit = units.FloatWithUnit
-ArrayWithUnit = units.ArrayWithUnit
-
-# Documentation.
+# Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
-
-# Utils for notebooks.
-from abipy.tools.notebooks import mpld3_enable_notebook
 
 
 def _straceback():

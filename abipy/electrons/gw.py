@@ -904,6 +904,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.to_string()
 
     def to_string(self):
+        """String representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -1211,7 +1212,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
             # Build new ebands object with k-mesh
-            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)
+            #ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0,0,0], kptopt=1)
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
+                                   names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
             qp_ebands_kmesh = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
                                             self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)

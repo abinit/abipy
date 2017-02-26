@@ -24,7 +24,7 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import NotebookWriter
-from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin,
+from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
     kmesh_from_mpdivs, Ktables, has_timrev_from_kptopt, map_bz2ibz)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
@@ -1980,7 +1980,10 @@ class ElectronBands(object):
             eigens_kmesh = skw.eval_all(kdos.ibz)
 
             # Build new ebands object with k-mesh
-            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights, names=None)
+            #kptopt = kptopt_from_timrev()
+            ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0,0,0], kptopt=1)
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights,
+                                   names=None, ksampling=ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
                                           self.nelect, self.nspinor, self.nspden)

@@ -110,7 +110,22 @@ class ElectronBandsTest(AbipyTest):
         vertices_names=[((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
         r = bands.interpolate(lpratio=5, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
         assert r.ebands_kpath is not None
+        assert r.ebands_kpath.kpoints.is_path
+        assert not r.ebands_kpath.kpoints.is_ibz
+        mpdivs, shifts = r.ebands_kpath.kpoints.mpdivs_shifts
+        assert mpdivs is None and shifts is None
+
         assert r.ebands_kmesh is not None
+        assert r.ebands_kmesh.kpoints.is_ibz
+        assert not r.ebands_kmesh.kpoints.is_path
+        assert r.ebands_kmesh.kpoints.ksampling is not None
+        assert r.ebands_kmesh.kpoints.is_mpmesh
+        mpdivs, shifts = r.ebands_kmesh.kpoints.mpdivs_shifts
+        self.assert_equal(mpdivs, [8, 8, 8])
+        self.assert_equal(shifts.flatten(), [0, 0, 0])
+
+        # Export it in BXSF format.
+        r.ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
     def test_pymatgen_converter(self):
         """Testing abipy-->pymatgen converter"""
