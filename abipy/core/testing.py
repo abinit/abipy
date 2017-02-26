@@ -82,6 +82,15 @@ def has_matplotlib(version=None, op=">="):
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
+def has_seaborn():
+    """True if seaborn is installed."""
+    try:
+        import seaborn.apionly as sns
+        return True
+    except ImportError:
+        return False
+
+
 def has_fireworks():
     """True if fireworks is installed."""
     try:
@@ -120,6 +129,10 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_matplotlib(version=None, op=">="):
         return has_matplotlib(version=version, op=op)
+
+    @staticmethod
+    def has_seaborn():
+        return has_seaborn()
 
     @staticmethod
     def has_ase(version=None, op=">="):

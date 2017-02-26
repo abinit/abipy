@@ -352,9 +352,9 @@ class AnaddbInputTest(AbipyTest):
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
-        self.assertTrue("brav" in inp)
-        self.assertEqual(inp["brav"], 1)
-        self.assertEqual(inp.get("brav"), 1)
+        assert "brav" in inp
+        assert inp["brav"] == 1
+        assert inp.get("brav") == 1
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -365,17 +365,15 @@ class AnaddbInputTest(AbipyTest):
         ngqpt = (4, 4, 4)
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
-        self.assertEqual(inp2['ifcflag'], 1)
+        assert inp2['ifcflag'] == 1
 
-        s2 = inp2.to_string(sortmode="a")
-        print(s2)
+        print(inp2.to_string(sortmode="a"))
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
-        self.assertEqual(inp3['ifcflag'], 1)
-        self.assertEqual(inp3['prtdos'], 1)
-        s3 = inp3.to_string(sortmode="a")
-        print(s3)
+        assert inp3['ifcflag'] == 1
+        assert inp3['prtdos'] == 1
+        print(inp3.to_string(sortmode="a"))
 
         # Compatible with deepcopy and Pickle?
         for i in (inp, inp2, inp3):

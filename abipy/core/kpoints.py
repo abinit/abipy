@@ -197,11 +197,12 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     """
     Compute the correspondence between the list of k-points in the *unit cell*
     associated to the `ngkpt` mesh and the corresponding points in the IBZ.
+    Requires structure with Abinit symmetries.
     This routine is mainly used to symmetrize eigenvalues in the unit cell
     e.g. to write BXSF files for electronic isosurfaces.
 
     Args:
-        structure: Structure with symmetry operations.
+        structure: Structure with (Abinit) symmetry operations.
         ibz: [*,3] array with reduced coordinates in the in the IBZ.
         ngkpt: Mesh divisions.
         has_timrev: True if time-reversal can be used.
@@ -214,6 +215,8 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
 
     # Extract (FM) symmetry operations in reciprocal space.
     abispg = structure.abi_spacegroup
+    if abispg is None:
+        raise ValueError("Structure does not contain the Abinit spacegroup!")
     symrec_fm = [s for (s, afm) in zip(abispg.symrec, abispg.symafm) if afm == 1]
 
     # Compute TS k_ibz.
@@ -229,15 +232,16 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
                 gp_bz = (-rot_gp) % ngkpt
                 bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
 
-    from abipy.tools.numtools import add_periodic_replicas
     if pbc:
+        # Add periodical replicas.
+        from abipy.tools.numtools import add_periodic_replicas
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
     bz2ibz = bzgrid2ibz.flatten()
 
     if np.any(bz2ibz == -1):
         #for ik_bz, ik_ibz in enumerate(self.bz2ibz): print(ik_bz, ">>>", ik_ibz)
         msg = "Found %s/%s invalid entries in bz2ibz array" % ((bz2ibz == -1).sum(), len(bz2ibz))
-        msg += "This can happen if there an incosistency between the input IBZ and ngkpt"
+        msg += "This can happen if there an inconsistency between the input IBZ and ngkpt"
         msg += "ngkpt: %s, has_timrev: %s" % (str(ngkpt), has_timrev)
         raise ValueError(msg)
 

@@ -265,7 +265,7 @@ class DensityFortranFile(AbinitFortranFile):
             (HirshfeldCharges) the calculated Hirshfeld charges.
         """
         if all_el_dens_paths is None and fhi_all_el_path is None:
-            raise ValueError("At least one source of all electron densities should be provided")
+            raise ValueError("At least one source of all electron densities should be provided.")
         if all_el_dens_paths is not None and fhi_all_el_path is not None:
             raise ValueError("all_el_dens_paths and fhi_all_el_path are mutually exclusive.")
 

@@ -28,16 +28,14 @@ class AbinitTextFile(TextFile):
             self._events = EventsParser().parse(self.filepath)
         return self._events
 
-    @property
-    def timer_data(self):
+    def get_timer(self):
         """
         Timer data.
         """
         # Parse the file the first time the property is accessed or when mtime is changed.
-        stat = os.stat(self.filepath)
-        if stat.st_mtime != self._last_mtime or not hasattr(self, "_timer_data"):
-            self._timer_data = AbinitTimerParser().parse(self.filepath)
-        return self._timer_data
+        timer = AbinitTimerParser()
+        timer.parse(self.filepath)
+        return timer
 
 
 class AbinitLogFile(AbinitTextFile, NotebookWriter):
@@ -188,13 +186,12 @@ while True:
     icycle += 1
     d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=True)"""),
 
-#       nbv.new_code_cell("""
-#abo.seek(0)
-#timer = abo.get_timer()
-#if timer is not None:
-#    timer.plot()
-#
-#"""
+       nbv.new_code_cell("""
+abo.seek(0)
+timer = abo.get_timer()
+if timer:
+    timer.plot_all()
+"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

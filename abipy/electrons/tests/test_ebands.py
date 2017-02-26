@@ -74,10 +74,9 @@ class ElectronBandsTest(AbipyTest):
         self.serialize_with_pickle(dos, protocols=[-1], test_eq=False)
 
         # Test plot methods
-        #gs_bands.boxplot()
-
         if self.has_matplotlib():
             gs_bands.plot_with_edos(dos=dos, show=False)
+            if self.has_seaborn(): gs_bands.boxplot(show=False)
 
     def test_jdos(self):
         """Test JDOS methods."""
@@ -86,7 +85,7 @@ class ElectronBandsTest(AbipyTest):
         spin = 0
         conduction = [4,]
         for v in range(1,5):
-            valence = range(0,v)
+            valence = range(0, v)
             jdos = bands.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
@@ -155,8 +154,8 @@ class ElectronBandsTest(AbipyTest):
     def test_to_bxsf(self):
         """Testing Fermi surface exporter."""
         from abipy.abilab import abiopen
-        fbnc_kmesh = abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
-        fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
+        with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
+            fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
 
 
 class ElectronBandsPlotterTest(AbipyTest):

@@ -11,7 +11,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, frames_from_structures
-from abipy.core.mixins import Has_Structure, TextFile
+from abipy.core.mixins import Has_Structure, TextFile, NotebookWriter
 
 import logging
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def _get_anaddb_varnames():
         return _anaddb_varnames
 
     from abipy import data as abidata
-    with open(abidata.var_file("anaddb_vars.json")) as fh:
+    with open(abidata.var_file("anaddb_vars.json"), "rt") as fh:
         _anaddb_varnames = set(json.load(fh))
         return _anaddb_varnames
 
@@ -48,12 +48,11 @@ def is_abivar(s):
     global ABI_VARNAMES
     if ABI_VARNAMES is None:
         from abipy import data as abidata
-        with open(abidata.var_file("abinit_vars.json")) as fh:
+        with open(abidata.var_file("abinit_vars.json"), "rt") as fh:
             ABI_VARNAMES = set(json.load(fh))
             # Add include statement
-            # FIXME: This should be added to the database.
-            ABI_VARNAMES.add("include")
-            ABI_VARNAMES.add("xyzfile")
+            # FIXME: These variables should be added to the database.
+            ABI_VARNAMES.update(("include", "xyzfile"))
 
     return s in ABI_VARNAMES
 
@@ -212,8 +211,17 @@ class Dataset(dict, Has_Structure):
             print("  kwargs", kwargs)
             raise exc
 
+    def __str__(self):
+        """string representation."""
+        lines = []
+        app = lines.append
+        for k in sorted(list(self.keys())):
+            app("%s %s" % (k, str(self[k])))
 
-class AbinitInputFile(TextFile, Has_Structure):
+        return "\n".join(lines)
+
+
+class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object parses the Abinit input file, stores the variables in
     dict-like objects (Datasets) and build `Structure` objects from
@@ -240,6 +248,9 @@ class AbinitInputFile(TextFile, Has_Structure):
         self.ndtset = len(self.datasets)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
         """String representation."""
         lines = []
         app = lines.append
@@ -292,6 +303,35 @@ class AbinitInputFile(TextFile, Has_Structure):
                 logger.info("Datasets have different structures. Returning None. Use input.datasets[i].structure")
                 return None
         return self.datasets[0].structure
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("abinp = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(abinp)"),
+        ])
+
+        has_multi_structures = self.structure is None
+        if has_multi_structures:
+            nb.cells.extend([
+                nbv.new_code_cell("""
+for dataset in inp.datasets:
+    print(dataset.structure)"""),
+            ])
+
+        if self.ndtset > 1:
+            nb.cells.extend([
+                nbv.new_code_cell("""
+for dataset in abinp.datasets:
+    print(dataset)"""),
+            ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class AbinitInputParser(object):

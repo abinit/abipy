@@ -38,7 +38,7 @@ _SCRIPTS = None
 def pyscript(basename):
     """Return the absolute name of one of the scripts in the `examples` directory from its basename."""
 
-    global _SCRIPTS 
+    global _SCRIPTS
     if _SCRIPTS is None:
         # Build mapping basename --> path.
         from monty.os.path import find_exts
@@ -107,7 +107,7 @@ def find_ncfiles(top):
                         SILENT += 1
 
                 else:
-                    ncfiles[basename] = apath 
+                    ncfiles[basename] = apath
 
     return ncfiles
 
@@ -119,7 +119,10 @@ def ref_file(basename):
     if basename in _DATA_NCFILES:
         return _DATA_NCFILES[basename]
     else:
-        return os.path.join(dirpath, basename)
+        path = os.path.join(dirpath, basename)
+        if not os.path.exists(path):
+            raise ValueError("Cannot find reference file %s" % path)
+        return path
 
 
 def ref_files(*basenames):
@@ -179,7 +182,7 @@ class FilesGenerator(object):
         self.finalize = kwargs.pop("finalize", True)
         self.verbose = kwargs.pop("verbose", 1)
 
-        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] + 
+        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] +
                 list(self.files_to_save.keys()))
 
     def __str__(self):
@@ -195,7 +198,7 @@ class FilesGenerator(object):
         process = self._run()
         process.wait()
 
-        if process.returncode != 0: 
+        if process.returncode != 0:
             print("returncode == %s" % process.returncode)
             print(process.stderr.readlines())
             return process.returncode
@@ -218,7 +221,7 @@ class FilesGenerator(object):
 
         # Remove files
         garbage = [f for f in all_files if f not in self.files_to_keep]
-        for f in garbage: 
+        for f in garbage:
             if f.endswith(".py"): continue
             if self.verbose: print("Will remove file %s" % f)
             os.remove(f)
@@ -302,8 +305,8 @@ class AnaddbFilesGenerator(FilesGenerator):
         # 6) base name for elphon output files e.g. t13
         # 7) file containing ddk filenames for elphon/transport
         return "\n".join([
-            "run.abi", 
-            "out", 
+            "run.abi",
+            "out",
             self.in_ddb,
             self.out_ddb,
             self.in_gkk,

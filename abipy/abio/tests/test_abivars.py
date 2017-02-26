@@ -60,6 +60,8 @@ class TestAbinitInputFile(AbipyTest):
              "ntypat 1 typat *1 znucl 1*14 xangst 0 0 0")
         with AbinitInputFile.from_string(s) as inp:
             assert inp.structure == si1_structure
+            if self.has_nbformat():
+                inp.write_notebook(nbpath=self.get_tmpname(text=True))
 
         # TODO Angdeg sqrt(4) sqrt(4/2)
         #assert 0
@@ -209,7 +211,7 @@ typat 1 1         # For the first dataset, both numbers will be read,
         """
         abi_homedir = os.environ.get("ABINIT_HOME_DIR")
         if abi_homedir is None:
-            raise unittest.SkipTest("Env variable `ABINIT_HOME_DIR` is required for this test.")
+            raise unittest.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
 
         retcode = validate_input_parser(abitests_dir=os.path.join(abi_homedir, "tests"))
         assert retcode == 0
