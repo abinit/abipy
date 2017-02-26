@@ -2,6 +2,8 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import os
+import unittest
 
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
@@ -199,3 +201,12 @@ typat 1 1         # For the first dataset, both numbers will be read,
         assert len(inp.datasets[0].structure) == 2
         assert len(inp.datasets[1].structure) == 1
         print(inp)
+
+    def test_all_inputs_in_tests(self):
+        """Try to parse all Abinit input files inside the Abinit `tests` directory."""
+        abi_homedir = os.environ.get("ABINIT_HOME_DIR")
+        if abi_homedir is None:
+            raise unittest.SkipTest("Env variable `ABINIT_HOME_DIR` is required for this test.")
+
+        retcode = validate_input_parser(abitests_dir=os.path.join(abi_homedir, "tests"))
+        assert retcode == 0

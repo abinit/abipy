@@ -46,7 +46,7 @@ class DielectricTensor(object):
 
         # One tensor for each frequency
         all_tensors = []
-        for (ifrq, freq) in enumerate(mdf.wmesh):
+        for ifrq, freq in enumerate(mdf.wmesh):
             tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq],
                                                      structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)

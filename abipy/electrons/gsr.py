@@ -356,7 +356,6 @@ class GsrReader(ElectronsReader):
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
         d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
-
         return EnergyTerms(**d)
 
 

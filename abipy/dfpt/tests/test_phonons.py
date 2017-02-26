@@ -1,12 +1,12 @@
 """Tests for phonons"""
 from __future__ import print_function, division
 
-import tempfile
-import abipy.data as abidata
-import numpy as np
+import unittest
 import os
+import numpy as np
+import abipy.data as abidata
 
-from abipy.dfpt.phonons import PhononBands, PhononDos, InteratomicForceConstants
+from abipy.dfpt.phonons import PhononBands, PhononDos, PhdosFile, InteratomicForceConstants
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import *
 
@@ -28,8 +28,10 @@ class PhononBandsTest(AbipyTest):
         #self.assertEqual(phbands.maxfreq, 30)
 
         # Test XYZ vib
-        _, filename = tempfile.mkstemp(text=True)
-        phbands.create_xyz_vib(iqpt=0, filename=filename, max_supercell=[4,4,4])
+        phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])
+
+        # Test xmgrace
+        phbands.to_xmgrace(self.get_tmpname(text=True))
 
         # Test convertion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
@@ -44,17 +46,37 @@ class PhononDosTest(AbipyTest):
 
     def test_api(self):
         """Testing PhononDos API with fake data."""
-        dos = PhononDos(mesh=[1,2,3], values=[4,5,6])
+        dos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert dos.mesh.tolist() == [1,2,3] and dos.h == 1 and dos.values.tolist() == [4,5,6]
         print(dos)
         dos.idos
         assert PhononDos.as_phdos(dos, {}) is dos
+        assert dos.iw0 == 0
 
-        h = dos.get_harmonic_thermo(1, 10)
-        assert h is not None
+    def test_from_phdosfile(self):
+        ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
+        assert hasattr(ncfile, "structure")
+
+        phdos = ncfile.phdos
+
+        # Thermodinamics in the Harmonic approximation
+        #self.assert_almost_equal(phdos.zero_point_energy, )
+        f = phdos.get_free_energy()
+        #self.assert_almost_equal(f.values, )
+        u = phdos.get_internal_energy()
+        #self.assert_almost_equal(u.values, )
+        s = phdos.get_entropy()
+        #self.assert_almost_equal(s.values, )
+        cv = phdos.get_cv()
+        #self.assert_almost_equal(cv.values, )
 
         if self.has_matplotlib():
-            dos.plot(show=False)
+            ncfile.plot_pjdos_type(show=False)
+            phdos.plot(show=False)
+            phdos.plot_harmonic_thermo(tstar=20, tstop=350)
+
+        if self.has_nbformat():
+            ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class InteratomicForceConstantsTest(AbipyTest):
@@ -63,7 +85,7 @@ class InteratomicForceConstantsTest(AbipyTest):
     def setUpClass(cls):
         cls.ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
 
-        cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4,4,4])
+        cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4,4,4], verbose=1)
 
     def test_filtering(self):
 
@@ -98,8 +120,3 @@ class NonAnalyticalPhTest(AbipyTest):
         phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
 
         phbands.non_anal_phfreqs
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

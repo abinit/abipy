@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.core.testing import *
 from abipy.waves import WfkFile
@@ -12,9 +12,9 @@ class TestWFKFile(AbipyTest):
 
     def test_read_wfkfile(self):
         """Read WfkFile and waves from NC example data files."""
-        assert data.WFK_NCFILES
+        assert abidata.WFK_NCFILES
 
-        for path in data.WFK_NCFILES:
+        for i, path in enumerate(abidata.WFK_NCFILES):
             wfk = WfkFile(path)
             print(wfk)
 
@@ -59,7 +59,7 @@ class TestWFKFile(AbipyTest):
             if self.which("xcrysden") is not None:
                 wave.export_ur2(".xsf", structure)
 
+            if i == 0:
+                wfk.write_notebook(nbpath=self.get_tmpname(text=True))
 
-if __name__ == "__main__":
-   import unittest
-   unittest.main()
+            wfk.close()

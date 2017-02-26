@@ -26,8 +26,9 @@ Ha_THz=6579.683920722
 Ha_J=4.35974394e-18
 # minus the electron charge, in Coulomb
 e_Cb=1.602176487e-19
-# Boltzmann constant in Ha/K
-kb_HaK=8.617343e-5/Ha_eV
+# Boltzmann constant in eV/K and Ha/K
+kb_eVK=8.617343e-5
+kb_HaK = kb_eVK / Ha_eV
 # 1 atomic mass unit, in electronic mass
 amu_emass=1.660538782e-27/9.10938215e-31
 # 1 Ha/Bohr^3, in GPa

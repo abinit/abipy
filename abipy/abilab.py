@@ -26,28 +26,30 @@ from pymatgen.io.abinit.pseudos import Pseudo
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
-from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile
+from abipy.core.mixins import AbinitLogFile, AbinitOutputFile, OutNcFile, DensityFortranFile, CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.iotools import Visualizer
-from abipy.iotools.cube import CubeFile
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.factories import *
-from abipy.electrons.ebands import ElectronBands, ElectronDosPlotter, ElectronBandsPlotter, frame_from_ebands
+from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter,
+    ElectronDos, ElectronDosPlotter, frame_from_ebands)
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
+#from abipy.electrons.sigmaph import SigmaPhFile
 from abipy.electrons.ncdenpot import DensityNcFile
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader,
                                 phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
+#from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
@@ -81,6 +83,7 @@ ext2file = collections.OrderedDict([
     (".cssr", Structure),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
+    ("DEN", DensityFortranFile),
     (".psp8", Pseudo),
     (".xml", Pseudo),
 ])
@@ -98,6 +101,8 @@ abiext2ncfile = collections.OrderedDict([
     ("PHDOS.nc", PhdosFile),
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
+    #("SIGMAPH.nc", SigmaPhFile),
+    #("GRUNS.nc", GrunsFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
 ])

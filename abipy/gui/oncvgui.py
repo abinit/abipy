@@ -1132,12 +1132,15 @@ class AtomConfField(RowField):
         ("z", dict(dtype="i")),
         ("nc", dict(dtype="i", value=0, tooltip="number of core states"),),
         ("nv", dict(dtype="i", value=0, tooltip="number of valence states")),
-        ("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
+        #("iexc", dict(dtype="i", value=4, tooltip="xc functional")),
+        # GGA-PBE
         #("iexc", dict(dtype="f", value=4, tooltip="xc functional")),
         #("iexc", dict(dtype="cbox", value="4", choices=["-001013", "4"], tooltip="xc functional")),
+        # LDA
         ("iexc", dict(dtype="cbox", value="4", choices=["-001012", "4"], tooltip="xc functional")),
+        # PBEsol
         #("iexc", dict(dtype="cbox", value="4", choices=["-116133", "4"], tooltip="xc functional")),
-        ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf", "all"]))])
+        ("psfile", dict(dtype="cbox", value="psp8", choices=["psp8", "upf", "both"]))])
 
 
 @add_tooltips
@@ -2425,11 +2428,12 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         basename = os.path.basename(input_file).replace(".in", "")
 
         ps_dest = os.path.join(dirpath, basename + ".psp8")
+        upf_dest = os.path.join(dirpath, basename + ".upf")
         out_dest = os.path.join(dirpath, basename + ".out")
         djrepo_dest = os.path.join(dirpath, basename + ".djrepo")
 
         exists = []
-        for f in [input_file, ps_dest, out_dest, djrepo_dest]:
+        for f in [input_file, ps_dest, upf_dest, out_dest, djrepo_dest]:
             if os.path.exists(f): exists.append(os.path.basename(f))
 
         if exists:
@@ -2441,7 +2445,11 @@ class PseudoGeneratorListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin, listmix.Li
         with open(input_file, "wt") as fh:
             fh.write(self.notebook.makeInputString())
 
+        print(psgen.pseudo.path)
         shutil.copy(psgen.pseudo.path, ps_dest)
+        upf_src = psgen.pseudo.path.replace(".psp8", ".upf")
+        if os.path.exists(upf_src):
+            shutil.copy(upf_src, upf_dest)
         shutil.copy(psgen.stdout_path, out_dest)
 
         # Parse the output file

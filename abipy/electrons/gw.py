@@ -8,14 +8,15 @@ import numpy as np
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string, marquee
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.bisect import find_le, find_ge
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
@@ -979,10 +980,19 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         ax, fig, plt = get_ax_fig_plt(ax)
 
+        errlines = []
         for band in bands:
-            sigw = self.get_sigmaw(spin, kpoint, band)
+            try:
+                sigw = self.get_sigmaw(spin, kpoint, band)
+            except ValueError as exc:
+                errlines.append(str(exc))
+                continue
             label = "skb = %s, %s, %s" % (spin, kpoint, band)
             sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
+
+        if errlines:
+            cprint("\n".join(errlines), "red")
+            return None
 
         return fig
 
@@ -1043,6 +1053,178 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    matrix = self.reader.read_mlda_to_qps(spin, kpoint)
     #    return plot_matrix(matrix, *args, **kwargs)
 
+    def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
+        """
+        Interpolated the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
+
+        Args:
+            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+                The default should be OK in many systems, larger values may be required for accurate derivatives.
+            ks_ebands_kpath: KS :class:`ElectronBands` on a k-path. If present,
+                the routine interpolates the QP corrections and apply them on top of the KS band structure
+                This is the recommended option because QP corrections are usually smoother than the
+                QP energies and therefore easier to interpolate. If None, the QP energies are interpolated
+                along the path defined by `vertices_names` and `line_density`.
+            ks_ebands_kmesh: KS :class:`ElectronBands` on a homogeneous k-mesh. If present, the routine
+                interpolates the corrections on the k-mesh (used to compute QP DOS)
+            ks_degatol: Energy tolerance in eV. Used when either `ks_ebands_kpath` or `ks_ebands_kmesh` are given.
+                KS energies are assumed to be degenerate if they differ by less than this value.
+                The interpolator may break band degeneracies (the error is usually smaller if QP corrections
+                are interpolated instead of QP energies). This problem can be partly solved by averaging
+                the interpolated values over the set of KS degenerate states.
+                A negative value disables this ad-hoc symmetrization.
+            vertices_names: Used to specify the k-path for the interpolated QP band structure
+                when `ks_ebands_kpath` is None.
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
+            filter_params: TO BE DESCRIBED
+            only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
+                Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
+            verbose: Verbosity level
+
+        Returns:
+
+            :class:`namedtuple` with the following attributes:
+
+                qp_ebands_kpath: :class:`ElectronBands` with the QP energies interpolated along the k-path.
+                qp_ebands_kmesh: :class:`ElectronBands` with the QP energies interpolated on the k-mesh.
+                    None if `ks_ebands_kmesh` is not passed.
+                ks_ebands_kpath: :class:`ElectronBands` with the KS energies interpolated along the k-path.
+                ks_ebands_kmesh: :class:`ElectronBands` with the KS energies on the k-mesh..
+                    None if `ks_ebands_kmesh` is not passed.
+                interpolator: :class:`SkwInterpolator` object.
+        """
+        # TODO: Consistency check.
+        errlines = []
+        eapp = errlines.append
+        if len(self.gwkpoints) != len(self.ibz):
+            eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
+        if len(self.gwkpoints) == 1:
+            eapp("QP Interpolation requires nkptgw > 1.")
+        #if (np.any(self.gwbstop_sk[0, 0] != self.gwbstop_sk):
+        #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
+        #if (np.any(self.gwbstart_sk[0, 0] != self.gwbstart_sk):
+        #if (np.any(self.gwbstart_sk[0, 0] != 0):
+
+        if errlines:
+            raise ValueError("\n".join(errlines))
+
+        # Get symmetries from abinit spacegroup (read from file).
+        abispg = self.structure.spacegroup
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+
+        if ks_ebands_kpath is None:
+            # Generate k-points for interpolation. Will interpolate all bands available in the sigres file.
+            bstart, bstop = 0, -1
+            if vertices_names is None:
+                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+            kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+            kfrac_coords, knames = kpath.frac_coords, kpath.names
+
+        else:
+            # Use list of k-points from ks_ebands_kpath.
+            ks_ebands_kpath = ElectronBands.as_ebands(ks_ebands_kpath)
+            kfrac_coords = [k.frac_coords for k in ks_ebands_kpath.kpoints]
+            knames = [k.name for k in ks_ebands_kpath.kpoints]
+
+            # Find the band range for the interpolation.
+            bstart, bstop = 0, ks_ebands_kpath.nband
+            bstop = min(bstop, self.min_gwbstop)
+            if ks_ebands_kpath.nband < self.min_gwbstop:
+                cprint("Number of bands in KS band structure smaller than the number of bands in GW corrections", "red")
+                cprint("Highest GW bands will be ignored", "red")
+
+        # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
+        # and re-apply them on top of the KS band structure.
+        gw_kcoords = [k.frac_coords for k in self.gwkpoints]
+
+        # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
+        egw_rarr = self.reader.read_value("egw", cmode="c").real
+        if ks_ebands_kpath is not None:
+            if ks_ebands_kpath.structure != self.structure:
+                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+            egw_rarr -= self.reader.read_value("e0")
+
+        # Note there's no guarantee that the gw_kpoints and the corrections have the same k-point index.
+        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
+        qpdata = np.empty(egw_rarr.shape)
+        for gwk in self.gwkpoints:
+            ik_ibz = self.reader.kpt2fileindex(gwk)
+            for spin in range(self.nsppol):
+                qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
+
+        # Build interpolator for QP corrections.
+        from abipy.core.skw import SkwInterpolator
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+        qpdata = qpdata[:, :, bstart:bstop]
+        has_timrev = has_timrev_from_kptopt(self.reader.read_value("kptopt"))
+
+        skw = SkwInterpolator(lpratio, gw_kcoords, qpdata, self.ebands.fermie, self.ebands.nelect,
+                              cell, fm_symrel, has_timrev,
+                              filter_params=filter_params, verbose=verbose)
+
+        if ks_ebands_kpath is None:
+            # Interpolate QP energies.
+            eigens_kpath = skw.eval_all(kfrac_coords)
+        else:
+            # Interpolate QP energies corrections and add them to KS.
+            ref_eigens = ks_ebands_kpath.eigens[:, :, bstart:bstop]
+            qp_corrs = skw.eval_all_and_enforce_degs(kfrac_coords, ref_eigens, atol=ks_degatol)
+            eigens_kpath = qp_corrs if only_corrections else ref_eigens + qp_corrs
+
+        # Build new ebands object with k-path.
+        kpts_kpath = Kpath(self.structure.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
+        occfacts_kpath = np.zeros(eigens_kpath.shape)
+
+        # Finding the new Fermi level of the interpolated bands is not trivial, in particular if metallic.
+        # because one should first interpolate the QP bands on a mesh. Here I align the QP bands
+        # at the HOMO of the KS bands.
+        homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
+        qp_fermie = max([eigens_kpath[e.spin, e.kidx, e.band] for e in homos])
+        #qp_fermie = self.ebands.fermie
+        #qp_fermie = 0.0
+
+        qp_ebands_kpath = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
+                                         self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+
+        qp_ebands_kmesh = None
+        if ks_ebands_kmesh is not None:
+            # Interpolate QP corrections on the same k-mesh as the one used in the KS run.
+            ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
+            if bstop > ks_ebands_kmesh.nband:
+                msg = "Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
+                    ks_ebands_kmesh%nband, bstop)
+                raise ValueError(msg)
+            if ks_ebands_kpath.structure != self.structure:
+                cprint("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!", "red")
+
+            # K-points and weight for DOS are taken from ks_ebands_kmesh
+            dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
+            dos_weights = [k.weight for k in ks_ebands_kmesh.kpoints]
+
+            # Interpolate QP corrections from bstart to bstop
+            ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
+            qp_corrs = skw.eval_all_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol)
+            eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
+
+            # Build new ebands object with k-mesh
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights, names=None)
+            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+            qp_ebands_kmesh = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
+                                            self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+
+        return dict2namedtuple(qp_ebands_kpath=qp_ebands_kpath,
+                               qp_ebands_kmesh=qp_ebands_kmesh,
+                               ks_ebands_kpath=ks_ebands_kpath,
+                               ks_ebands_kmesh=ks_ebands_kmesh,
+                               interpolator=skw,
+                               )
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -1055,7 +1237,18 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("print(sigres)"),
             nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
             nbv.new_code_cell("fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=1000)"),
-            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0,0,0], bands=0)"),
+            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
+            nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
+            nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),
+            nbv.new_code_cell("""
+if r.ks_ebands_kpath is not None:
+    plotter = abilab.ElectronBandsPlotter()
+    plotter.add_ebands("KS", r.ks_ebands_kpath) # dos=r.ks_ebands_kmesh.get_edos())
+    plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath) # dos=r.qp_ebands_kmesh.get_edos()))
+    plotter.combiplot(title="Silicon band structure")
+    #plotter.gridplot(title="Silicon band structure")
+    plotter.plot()
+""")
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1302,7 +1495,6 @@ class SigresReader(ETSF_Reader):
         """
         if isinstance(kpoint, int):
             return kpoint
-            #kpoint = self.gwkpoints[kpoint]
 
         try:
             return self.ibz.index(kpoint)

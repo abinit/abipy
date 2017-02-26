@@ -10,6 +10,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import subprocess
 import json
+import tempfile
+#import numpy.testing.utils as nptu
 
 from monty.os.path import which
 from pymatgen.util.testing import PymatgenTest
@@ -42,7 +44,7 @@ def has_abinit(version=None, op=">="):
     If version is not None, abinit version op version is evaluated and the result is returned.
     False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
-    abinit = which("abinit") 
+    abinit = which("abinit")
     if abinit is None: return False
     if version is None: return abinit is not None
 
@@ -70,10 +72,8 @@ def has_matplotlib(version=None, op=">="):
     """
     try:
         import matplotlib
-
         matplotlib.use("Agg") # Use non-graphical display backend during test.
         have_matplotlib = "DISPLAY" in os.environ
-
         if version is None: return True
     except ImportError:
         print("Skipping matplotlib test")
@@ -83,6 +83,7 @@ def has_matplotlib(version=None, op=">="):
 
 
 def has_fireworks():
+    """True if fireworks is installed."""
     try:
         import fireworks
         return True
@@ -127,13 +128,68 @@ class AbipyTest(PymatgenTest):
             import ase
         except ImportError:
             return False
-        
+
         if version is None: return True
         return cmp_version(ase.__version__, version, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())
         self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
+
+    def get_abistructure_from_abiref(self, basename):
+        """Return an Abipy structure from the basename of one of the reference files."""
+        import abipy.data as abidata
+        from abipy.core.structure import Structure
+        return Structure.as_structure(abidata.ref_file(basename))
+
+    def get_tmpname(self, **kwargs):
+        """Invoke mkstep with kwargs, return the name of a temporary file."""
+        fd, tmpname = tempfile.mkstemp(**kwargs)
+        return tmpname
+
+    def has_nbformat(self):
+        """Return True if nbformat is available and we can test the generation of ipython notebooks."""
+        try:
+            import nbformat
+            return True
+        except ImportError:
+            return False
+
+    #@staticmethod
+    #def assert_almost_equal(actual, desired, decimal=7, err_msg='',
+    #                        verbose=True):
+    #    """
+    #    Alternative naming for assertArrayAlmostEqual.
+    #    """
+    #    return PymatgenTest.assertArrayAlmostEqual(
+    #        actual, desired, decimal, err_msg, verbose)
+
+    #@staticmethod
+    #def assert_equal(actual, desired, err_msg='', verbose=True):
+    #    """
+    #    Alternative naming for assertArrayEqual.
+    #    """
+    #    return PymatgenTest.assertArrayEqual(actual, desired,
+    #                                         err_msg=err_msg, verbose=verbose)
+
+    #@staticmethod
+    #def assertArrayAlmostEqual(actual, desired, decimal=7, err_msg='',
+    #                           verbose=True):
+    #    """
+    #    Tests if two arrays are almost equal to a tolerance. The CamelCase
+    #    naming is so that it is consistent with standard unittest methods.
+    #    """
+    #    return nptu.assert_almost_equal(actual, desired, decimal, err_msg,
+    #                                    verbose)
+
+    #@staticmethod
+    #def assertArrayEqual(actual, desired, err_msg='', verbose=True):
+    #    """
+    #    Tests if two arrays are equal. The CamelCase naming is so that it is
+    #     consistent with standard unittest methods.
+    #    """
+    #    return nptu.assert_equal(actual, desired, err_msg=err_msg,
+    #                             verbose=verbose)
 
 
 class AbipyFileTest(AbipyTest):

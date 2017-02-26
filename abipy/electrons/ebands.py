@@ -14,8 +14,9 @@ import pymatgen.core.units as units
 
 from collections import OrderedDict, namedtuple, Iterable
 from monty.string import is_string, marquee
+from monty.termcolor import cprint
 from monty.json import MSONable, MontyEncoder
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from monty.dev import deprecated
@@ -23,9 +24,10 @@ from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin, kmesh_from_mpdivs
+from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KpointsReaderMixin,
+    kmesh_from_mpdivs, Ktables, has_timrev_from_kptopt, map_bz2ibz)
 from abipy.core.structure import Structure
-from abipy.iotools import ETSF_Reader, Visualizer, bxsf_write
+from abipy.iotools import ETSF_Reader, bxsf_write
 from abipy.tools import gaussian
 from abipy.tools.plotting_utils import set_axlims
 
@@ -43,7 +45,7 @@ __all__ = [
 ]
 
 
-class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
+class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     """
     Single-particle state.
 
@@ -54,6 +56,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ")):
         band: band index. (C convention, i.e >= 0).
         eig: KS eigenvalue.
         occ: Occupation factor.
+        kidx: Index of the k-point in the initial array.
 
     .. note::
         Energies are in eV.
@@ -403,14 +406,16 @@ class ElectronBands(object):
         # Eigenvalues and occupancies are stored in ndarrays ordered by [spin,kpt,band]
         self._eigens = np.atleast_3d(eigens)
         self._occfacts = np.atleast_3d(occfacts)
-        assert self.occfacts.shape == self.occfacts.shape
+        assert self._eigens.shape == self._occfacts.shape
         self.nsppol, self.nkpt, self.mband = self.eigens.shape
         self.nspinor, self.nspden = nspinor, nspden
 
         if nband_sk is not None:
             self.nband_sk = np.array(nband_sk)
         else:
-            self.nband_sk = np.array(self.nsppol*self.nkpt*[self.mband])
+            self.nband_sk = np.array(self.nsppol * self.nkpt * [self.mband])
+            self.nband_sk.shape = (self.nsppol, self.nkpt)
+        #print(nband_sk)
 
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
@@ -653,6 +658,20 @@ class ElectronBands(object):
     def has_bzpath(self):
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
+
+    @lazy_property
+    def kptopt(self):
+        """The value of the kptopt input variable."""
+        if hasattr(self, "kpoints.ksampling.kptopt"):
+            return self.kpoints.ksampling.kptopt
+        else:
+            cprint("ebands.kpoints.ksampling.kptopt is not defined, assuming kptopt = 1", "red")
+            return 1
+
+    @lazy_property
+    def has_timrev(self):
+        """True if time-reversal symmetry is used in the BZ sampling."""
+        return has_timrev_from_kptopt(self.kptopt)
 
     def kindex(self, kpoint):
         """
@@ -939,7 +958,8 @@ class ElectronBands(object):
                         kpoint=self.kpoints[kidx],
                         band=band,
                         eig=eig,
-                        occ=self.occfacts[spin, kidx, band]
+                        occ=self.occfacts[spin, kidx, band],
+                        kidx=kidx,
                         #fermie=self.fermie
                         )
 
@@ -1198,7 +1218,7 @@ class ElectronBands(object):
         if abs(wsum - 1) > 1.e-6:
             err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
             err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
-            err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
+            err_msg += str(type(self.kpoints)) # + "\n" + str(self.kpoints)
             raise ValueError(err_msg)
 
         # Compute the linear mesh.
@@ -1233,8 +1253,8 @@ class ElectronBands(object):
 
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         """
-        Compute the join density of states at q==0
-            :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} - E_{vk})`
+        Compute the join density of states at q == 0.
+            :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
 
         Args:
             spin: Spin index.
@@ -1406,7 +1426,7 @@ class ElectronBands(object):
         #fermie = self.fermie
         print("KS fermie", self.fermie, "--> QP fermie", fermie, "Delta(QP-KS)=", fermie - self.fermie)
 
-        return ElectronBands(
+        return self.__class__(
             self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect, self.nspinor, self.nspden,
             nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
 
@@ -1482,6 +1502,14 @@ class ElectronBands(object):
         return fig
 
     def decorate_ax(self, ax, **kwargs):
+        """
+        Decoracte matplotlib Axis
+
+        Accept:
+            title:
+            klabels
+            klabel_size:
+        """
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
 
@@ -1491,8 +1519,12 @@ class ElectronBands(object):
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
         if ticks:
+            # Don't show label if previous k-point is the same.
+            for il in range(1, len(labels)):
+                if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False)
+            ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
+            ax.set_xlim(0, ticks[-1])
 
     def get_e0(self, e0):
         """
@@ -1658,10 +1690,80 @@ class ElectronBands(object):
         fig = plt.gcf()
         return fig
 
+    def to_xmgrace(self, filepath):
+        """
+        Write xmgrace file with band structure energies and labels for high-symmetry k-points.
+        """
+        f = open(filepath, "wt")
+        def w(s):
+            f.write(s)
+            f.write("\n")
+
+        emef = np.array(self.eigens - self.fermie)
+
+        import datetime
+        w("# Grace project file")
+        w("# Generated by abipy on: %s" % str(datetime.datetime.today()))
+        w("# Crystalline structure:")
+        for s in str(self.structure).splitlines():
+            w("# %s" % s)
+        w("# mband: %d, nkpt: %d, nsppol: %d, nspinor: %d" % (self.mband, self.nkpt, self.nsppol, self.nspinor))
+        w("# nelect: %8.2f, %s" % (self.nelect, str(self.smearing)))
+        w("# Energies are in eV. Zero set to efermi, previously it was at: %s [eV]" % self.fermie)
+        w("# List of k-points and their index (C notation i.e. count from 0)")
+        for ik, kpt in enumerate(self.kpoints):
+            w("# %d %s" % (ik, str(kpt.frac_coords)))
+        w("@page size 792, 612")
+        w("@page scroll 5%")
+        w("@page inout 5%")
+        w("@link page off")
+        w("@with g0")
+        w("@world xmin 0.00")
+        w('@world xmax %d' % (self.nkpt-1))
+        w('@world ymin %s' % emef.min())
+        w('@world ymax %s' % emef.max())
+        w('@default linewidth 1.5')
+        w('@xaxis  tick on')
+        w('@xaxis  tick major 1')
+        w('@xaxis  tick major color 1')
+        w('@xaxis  tick major linestyle 3')
+        w('@xaxis  tick major grid on')
+        w('@xaxis  tick spec type both')
+        w('@xaxis  tick major 0, 0')
+
+        kticks, klabels = self._make_ticks_and_labels(klabels=None)
+        w('@xaxis  tick spec %d' % len(kticks))
+        for ik, (ktick, klabel) in enumerate(zip(kticks, klabels)):
+            w('@xaxis  tick major %d, %d' % (ik, ktick))
+            w('@xaxis  ticklabel %d, "%s"' % (ik, klabel))
+
+        w('@xaxis  ticklabel char size 1.500000')
+        w('@yaxis  tick major 10')
+        w('@yaxis  label "Band Energy [eV]"')
+        w('@yaxis  label char size 1.500000')
+        w('@yaxis  ticklabel char size 1.500000')
+        ii = -1
+        for spin in range(self.nsppol):
+            for band in range(self.mband):
+                ii += 1
+                w('@    s%d line color %d' % (ii, spin + 1))
+
+        ii = -1
+        for spin in range(self.nsppol):
+            for band in range(self.mband):
+                ii += 1
+                w('@target G0.S%d' % ii)
+                w('@type xy')
+                for ik in range(self.nkpt):
+                    w('%d %.8E' % (ik, emef[spin, ik, band]))
+                w('&')
+
+        f.close()
+
     def to_bxsf(self, filepath):
         """
-        Export the full band structure on filepath in the BXSF format
-        suitable for the visualization of the Fermi surface.
+        Export the full band structure to `filepath` in BXSF format
+        suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
         """
         # Sanity check.
         errors = []; eapp = errors.append
@@ -1670,36 +1772,27 @@ class ElectronBands(object):
         if not self.kpoints.is_ibz:
             eapp("Expecting an IBZ sampling for the Fermi surface but got %s" % type(ebands.kpoints))
         if not self.kpoints.is_mpmesh:
-            eapp("Monkhorst-Pack meshes are required for Fermi surface visualization.")
+            eapp("Monkhorst-Pack meshes are required for bxsf output.")
+
         mpdivs, shifts = self.kpoints.mpdivs_shifts
         if shifts is not None and not np.all(shifts == 0.0):
-            eapp("Shifted meshes are not supported by Xcryden")
+            eapp("Gamma-centered k-meshes are required by Xcrysden.")
         if errors:
             raise ValueError("\n".join(errors))
 
-        if "." not in filepath:
-            raise ValueError("Cannot detect file extension in path %s:" % filepath)
+        # Xcrysden requires points in the unit cell (C-order)
+        # and the mesh must include the periodic images hence pbc=True.
+        bz2ibz = map_bz2ibz(self.structure, self.kpoints.frac_coords, mpdivs, self.has_timrev, pbc=True)
 
-        tokens = filepath.strip().split(".")
-        ext = tokens[-1]
+        # Construct bands in BZ: e_{TSk} = e_{k}
+        len_bz = len(bz2ibz)
+        emesh_sbk = np.empty((self.nsppol, self.nband, len_bz))
+        for ik_bz in range(len_bz):
+            ik_ibz = bz2ibz[ik_bz]
+            emesh_sbk[:, :, ik_bz] = self.eigens[:, ik_ibz, :]
 
-        if not tokens[0]:
-            # fname == ".ext" ==> Create temporary file.
-            _, path = tempfile.mkstemp(suffix="." + ext, text=True)
-
-        # Xcrysden requires points in the unit cell and the mesh must include
-        # the periodic images hence use pbc=True.
-        ebands3d = EBands3D(self.structure,
-                            ibz_arr=self.kpoints.frac_coords, ene_ibz=self.eigens,
-                            ndivs=mpdivs, shifts=shifts, pbc=True, order="unit_cell")
-
-        # Symmetrize bands in the unit cell.
-        emesh_sbk = ebands3d.get_emesh_sbk()
-
-        with open(filepath, "w") as fh:
+        with open(filepath, "wt") as fh:
             bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs+1, emesh_sbk, self.fermie, unit="eV")
-
-        return Visualizer.from_file(filepath)
 
     def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
         """
@@ -1807,6 +1900,90 @@ class ElectronBands(object):
                              str(self.kpoints.ds[line[:-1]]))
         return vals_on_line, h, self.kpoints.versors[line[0]]
 
+    def interpolate(self, lpratio=5, vertices_names=None, line_density=20,
+                    kmesh=None, is_shift=None, filter_params=None, verbose=0):
+        """
+        Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
+        Note that the interpolation will likely fail if there are symmetrical k-points in the input sampling
+        so it's recommended to call this method with band structure obtained in the IBZ.
+
+        Args:
+            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+                The default should be OK in many systems, larger values may be required for accurate derivatives.
+            vertices_names: Used to specify the k-path for the interpolated band structure
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
+            kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib API).
+                kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+            filter_params: TO BE described.
+            verbose: Verbosity level
+
+        Returns:
+                namedtuple with the following attributes:
+
+            ebands_kpath: :class:`ElectronBands` with the interpolated band structure on the k-path.
+            ebands_kmesh: :class:`ElectronBands` with the interpolated band structure on the k-mesh.
+                None if kmesh is not given.
+            interpolator: :class:`SkwInterpolator` object.
+        """
+        # Get symmetries from abinit spacegroup (read from file).
+        abispg = self.structure.spacegroup
+        if abispg is not None:
+            fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+        else:
+            msg = ("Ebands object does not have symmetry operations `spacegroup.symrel`\n"
+                   "This usually happens when ebands has not been initalized from a netcdf file\n."
+                   "Will call spglib to get symmetry operations.")
+            print(msg)
+            from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+            spglib_data = SpacegroupAnalyzer(self.structure).get_symmetry_dataset()
+            fm_symrel = spglib_data["rotations"]
+
+        # Build interpolator.
+        from abipy.core.skw import SkwInterpolator
+        my_kcoords = [k.frac_coords for k in self.kpoints]
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords,
+                self.structure.atomic_numbers)
+
+        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, self.fermie, self.nelect,
+                              cell, fm_symrel, self.has_timrev,
+                              filter_params=filter_params, verbose=verbose)
+
+        # Generate k-points for interpolation.
+        if vertices_names is None:
+            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+        kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+        kfrac_coords, knames = kpath.frac_coords, kpath.names
+
+        # Interpolate energies.
+        eigens_kpath = skw.eval_all(kfrac_coords)
+
+        # Build new ebands object.
+        kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
+        occfacts_kpath = np.zeros(eigens_kpath.shape)
+        ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
+                                      self.nelect, self.nspinor, self.nspden)
+
+        ebands_kmesh = None
+        if kmesh is not None:
+            # Get kpts and weights in IBZ.
+            kdos = Ktables(self.structure, kmesh, is_shift, self.has_timrev)
+            eigens_kmesh = skw.eval_all(kdos.ibz)
+
+            # Build new ebands object with k-mesh
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights, names=None)
+            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+            ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
+                                          self.nelect, self.nspinor, self.nspden)
+
+        return dict2namedtuple(ebands_kpath=ebands_kpath, ebands_kmesh=ebands_kmesh, interpolator=skw)
+
 
 class EffectiveMassAlongLine(object):
     """
@@ -1875,6 +2052,13 @@ class ElectronBandsPlotter(NotebookWriter):
     _LINE_WIDTHS = [2,]
 
     def __init__(self, key_ebands=None, key_edos=None, edos_kwargs=None):
+        """
+        Args:
+            key_ebands: List of (label, ebands) tuples.
+                ebands is any object that can be converted into  :class:`ElectronBands` e.g. ncfile, path.
+            key_edos: List of (label, edos) tuples.
+                edos is any object that can be converted into :class:`ElectronDoc`
+        """
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
         self.ebands_dict = OrderedDict(key_ebands)
@@ -2313,14 +2497,14 @@ class ElectronBandsPlotter(NotebookWriter):
         key_ebands = []
         for label, ebands in self.ebands_dict.items():
             _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-            with open(tmpfile, "w") as fh:
+            with open(tmpfile, "wb") as fh:
                 pickle.dump(ebands, fh)
                 key_ebands.append((label, tmpfile))
 
         key_edos = []
         for label, edos in self.edoses_dict.items():
             _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-            with open(tmpfile, "w") as fh:
+            with open(tmpfile, "wb") as fh:
                 pickle.dump(edos, fh)
                 key_edos.append((label, tmpfile))
 
@@ -2409,132 +2593,6 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             occopt=occopt,
             tsmear_ev=units.Energy(self.read_value("smearing_width"), "Ha").to("eV")
         )
-
-
-# TODO: Finalize the implementation.
-class EBands3D(object):
-    """
-    This object symmetrizes the band energies in the full Brillouin zone.
-    """
-    def __init__(self, structure, ibz_arr, ene_ibz, ndivs, shifts, pbc=False, order="unit_cell"):
-        """
-        Args:
-            structure: :class:`Structure` object.
-            ibz_arr: `ndarray` with the k-points in the IBZ in reduced coordinates.
-            ene_ibz: Energies in the IBZ. shape = (nsppol, nk_ibz, nband)
-            ndivs: Number of divisions used to generate the k-mesh
-            shifts: List of shifts used to generate the k-mesh
-            pbc: True if periodic boundary conditions should be enfored
-                during the generation of the k-mesh
-            order: String defining the order of the k-point in the k-mesh.
-                "unit_cell":
-                    Point are located in the unit_cell, i.e. kx in [0, 1]
-                "bz":
-                    Point are located in the Brillouin zone, i.e. kx in [-1/2, 1/2].
-        """
-        self.ibz_arr = ibz_arr
-        self.ene_ibz = np.atleast_3d(ene_ibz)
-        self.nsppol, self.nkibz, self.nband = self.ene_ibz.shape
-
-        self.ndivs, self.shifts = ndivs, np.atleast_2d(shifts)
-        self.pbc, self.order = pbc, order
-
-        # Compute the full list of k-points according to order.
-        self.bz_arr = kmesh_from_mpdivs(self.ndivs, shifts, pbc=pbc, order=order)
-
-        # Compute the mapping bz --> ibz
-        try:
-            from abipy.extensions.klib import map_bz2ibz
-            self.bz2ibz = map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
-        except ImportError:
-            # This is really slow
-            self.bz2ibz = self.slow_map_bz2ibz(structure, self.bz_arr, self.ibz_arr)
-
-        if np.any(self.bz2ibz == -1):
-            #for ik_bz, ik_ibz in enumerate(self.bz2ibz):
-            #   print(ik_bz, ">>>", ik_ibz)
-            raise ValueError("-1 found")
-
-    @property
-    def spins(self):
-        """Used to iterate over spin indices."""
-        return range(self.nsppol)
-
-    @property
-    def bands(self):
-        """Used to iterate over bands"""
-        return range(self.nband)
-
-    @property
-    def len_bz(self):
-        """Number of point in the full bz."""
-        return len(self.bz_arr)
-
-    @staticmethod
-    def slow_map_bz2ibz(structure, bz, ibz):
-        #print("bz",bz)
-        #print("ibz",ibz)
-        bz2ibz = -np.ones(len(bz), dtype=np.int)
-        from abipy.core.kpoints import issamek
-
-        for ik_bz, kbz in enumerate(bz):
-            #print("kbz",kbz)
-            found = False
-            for ik_ibz, kibz in enumerate(ibz):
-                #print("kibz",kibz)
-                if found: break
-                for symmop in structure.spacegroup:
-                    krot = symmop.rotate_k(kibz)
-                    if issamek(krot, kbz):
-                        bz2ibz[ik_bz] = ik_ibz
-                        found = True
-                        break
-
-        return bz2ibz
-
-    def get_emesh_sbk(self):
-        """
-        Returns a numpy array of shape [nsppol, nband, len_bz] with the eigevanalues in the full zone.
-        """
-        emesh_sbk = np.empty((self.nsppol, self.nband, self.len_bz))
-        for spin in self.spins:
-            for band in self.bands:
-                #emesh_sbk[spin, band, :] = self.ene_ibz[spin, self.bz2ibz, band]
-                emesh_sbk[spin, band, :] = self.get_emesh_k(spin, band)
-
-        return emesh_sbk
-
-    def get_emesh_k(self, spin, band):
-        """
-        Return a `ndarray` with shape [len_bz] with the energies in the full zone for given spin and band.
-        """
-        emesh_k = np.empty(self.len_bz)
-
-        ene_ibz = self.ene_ibz[spin,:,band]
-        # e_{Sk} = e_{k}
-        for ik_bz in range(self.len_bz):
-           ik_ibz = self.bz2ibz[ik_bz]
-           #print(ik_bz, ">>>", ik_ibz)
-           emesh_k[ik_bz] = self.ene_ibz[spin,ik_ibz,band]
-
-        return emesh_k
-
-    #def plane_cut(self, values_ibz):
-    #    """
-    #    Symmetrize values in the IBZ to have them on the full BZ, then
-    #    select a slice along the specified plane E.g. plane = (1,1,0).
-    #    """
-    #    assert len(values_ibz) == len(self)
-    #    #indices =
-    #    z0 = 0
-    #    plane = np.empty((self.nx, self.ny))
-    #    kx, ky = range(self.nx), range(self.ny)
-    #    for x in kx:
-    #        for y in ky:
-    #            ibz_idx = self.map_xyz2ibz[x, y, z0]
-    #            plane[x, y] = values_ibz[ibz_idx]
-    #    kx, ky = np.meshgrid(kx, ky)
-    #    return kx, ky, plane
 
 
 class ElectronDos(object):
@@ -2991,7 +3049,7 @@ class ElectronDosPlotter(NotebookWriter):
         key_edos = []
         for label, edos in self.edoses_dict.items():
             _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-            with open(tmpfile, "w") as fh:
+            with open(tmpfile, "wb") as fh:
                 pickle.dump(edos, fh)
                 key_edos.append((label, tmpfile))
 

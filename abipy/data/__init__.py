@@ -245,7 +245,8 @@ class AbinitFilesGenerator(FilesGenerator):
         super(AbinitFilesGenerator, self).__init__(**kwargs)
 
         # Add Absolute paths for the pseudopotentials.
-        self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+        #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+        self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
     def make_filesfile_str(self):
         s = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
