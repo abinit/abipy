@@ -175,7 +175,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             nbv.new_code_cell("""
 abo.seek(0); icycle = -1
 while True:
-    gs_cycle = abo.next_gs_scf_cycle())
+    gs_cycle = abo.next_gs_scf_cycle()
     if gs_cycle is None: break
     icycle += 1
     gs_cycle.plot(title="SCF cycle no %d" % icycle, tight_layout=True)"""),
@@ -183,7 +183,7 @@ while True:
         nbv.new_code_cell("""
 abo.seek(0); icycle = -1
 while True:
-    d2de_cycle = abo.next_d2de_scf_cycle())
+    d2de_cycle = abo.next_d2de_scf_cycle()
     if d2de_cycle is None: break
     icycle += 1
     d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=True)"""),
