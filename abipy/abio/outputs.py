@@ -169,7 +169,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("abo = abilab.abiopen('%s')" % self.filepath),
-            #nbv.new_code_cell("print(abo.events)"),
+            nbv.new_code_cell("print(abo.events)"),
             nbv.new_code_cell("""
 abo.seek(0); icycle = -1
 while True:
