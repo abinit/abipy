@@ -24,6 +24,7 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.nkpt == 78
         assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0
+        assert not fbnc_kpath.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
             fbnc_kpath.plot_fatbands_typeview(tight_layout=True, show=False)
@@ -35,6 +36,7 @@ class TestElectronFatbands(AbipyTest):
         fbnc_kmesh = FatBandsFile(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
         print(fbnc_kmesh)
         assert fbnc_kmesh.ebands.kpoints.is_ibz
+        assert fbnc_kmesh.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
             fbnc_kmesh.plot_pjdos_typeview(tight_layout=True, show=False)

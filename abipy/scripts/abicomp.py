@@ -300,18 +300,19 @@ def main():
     def str_examples():
         return """\
 Usage example:
-  abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
-  abicomp.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
-  abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
-  abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
-  abicomp.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
-  abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
-  abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
-  abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
-  abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
-                                                     parse timing data and plot results.
+
+  abicomp.py structure */*/outdata/out_GSR.nc         => Compare structures in multiple files.
+  abicomp.py ebands out1_GSR.nc out2_GSR.nc           => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                     => Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                      => Interact with the plotter via the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                        => Compare electron DOS in the jupyter notebook.
+  abicomp.py gs_scf run1.abo run2.abo                 => Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo              => Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                      => Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                      => Scan directory tree from `.`, look for files with extension `abo`
+                                                         parse timing data and plot results.
 """
+  #abicomp.py phbands out1_PHBST.nc out2_PHBST.nc      => Plot electron bands on a grid.
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -363,7 +364,7 @@ Usage example:
                           help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+    #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
 
     # Subparser for pseudos command.
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)

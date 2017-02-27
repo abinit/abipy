@@ -359,7 +359,7 @@ class GsrReader(ElectronsReader):
         return EnergyTerms(**d)
 
 
-# TODO: Remove
+# TODO: Remove and/or merge with robots.
 class GsrPlotter(Iterable):
     """
     This object receives a list of `GsrFile` objects and provides

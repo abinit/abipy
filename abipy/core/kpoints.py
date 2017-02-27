@@ -940,7 +940,14 @@ class Kpath(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, **kwargs):
+        """
+        String representation.
+
+        Args:
+            verbose: Verbosity level. Default: 0
+        """
+        verbose = kwargs.get("verbose", 0)
         lines = []
         app = lines.append
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
@@ -953,6 +960,8 @@ class Kpath(KpointList):
 
         table = [["Idx", "Frac_coords", "Name", "ds", "Vert",]]
         for i, kpoint in enumerate(self):
+            tag = "*" if i in vids else " "
+            if verbose == 0 and not tag: continue
             table.append([
                 str(i),
                 "%.5f, %.5f, %.5f" % tuple(kpoint.frac_coords),

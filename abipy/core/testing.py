@@ -71,10 +71,11 @@ def has_matplotlib(version=None, op=">="):
     If version is None, the result of matplotlib.__version__ `op` version is returned.
     """
     try:
+        #have_display = "DISPLAY" in os.environ
         import matplotlib
-        matplotlib.use("Agg") # Use non-graphical display backend during test.
-        have_matplotlib = "DISPLAY" in os.environ
+        matplotlib.use("Agg")  # Use non-graphical display backend during test.
         if version is None: return True
+
     except ImportError:
         print("Skipping matplotlib test")
         return False

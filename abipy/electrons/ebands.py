@@ -501,6 +501,11 @@ class ElectronBands(object):
         """Shape of the array with the eigenvalues."""
         return self.nsppol, self.nkpt, self.mband
 
+    @property
+    def has_metallic_scheme(self):
+        """True if we are using a metallic scheme for occupancies."""
+        return self.smearing.has_metallic_scheme
+
     def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
         """
         Recompute the Fermi level.
@@ -1056,14 +1061,9 @@ class ElectronBands(object):
 
         return lumos
 
-    @property
-    def use_metallic_scheme(self):
-        """True if we are using a metallic scheme for occupancies."""
-        return self.smearing.use_metallic_scheme
-
     #def is_metal(self, spin)
     #    """True if this spin channel is metallic."""
-    #    if not self.use_metallic_scheme: return False
+    #    if not self.has_metallic_scheme: return False
     #    for k in self.kidxs:
     #        # Find leftmost value greater than x.
     #        b = find_gt(self.eigens[spin,k,:], self.fermie)
@@ -1103,7 +1103,7 @@ class ElectronBands(object):
 
         return dirgaps
 
-    def to_string(self, title=None, with_structure=True, with_kpoints=True):
+    def to_string(self, title=None, with_structure=True, with_kpoints=True, **kwargs):
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
@@ -1122,23 +1122,23 @@ class ElectronBands(object):
         app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
         app("nsppol: %d, nkpt: %d, mband: %d, nspinor: %s, nspden: %s" % (
            self.nsppol, self.nkpt, self.mband, self.nspinor, self.nspden))
-
         app(str(self.smearing))
 
         def indent(s):
             return "    " + s.replace("\n", "\n    ")
 
-        enough_bands = (self.mband > self.nspinor * self.nelect // 2)
-        for spin in self.spins:
-            if self.nsppol == 2:
-                app(">>> For spin %s" % spin)
-            if enough_bands:
-                app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
-                app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
-            app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
-            app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
-            app("Valence max located at:\n%s" % indent(str(self.homos[spin])))
-            app("")
+        if not self.has_metallic_scheme:
+            enough_bands = (self.mband > self.nspinor * self.nelect // 2)
+            for spin in self.spins:
+                if self.nsppol == 2:
+                    app(">>> For spin %s" % spin)
+                if enough_bands:
+                    app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
+                    app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
+                app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
+                app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
+                app("Valence max located at:\n%s" % indent(str(self.homos[spin])))
+                app("")
 
         if with_kpoints:
             app(marquee("K-points", mark="="))
@@ -1223,7 +1223,7 @@ class ElectronBands(object):
             raise ValueError(err_msg)
 
         # Compute the linear mesh.
-        epad = 3.0
+        epad = 3.0 * width
         e_min = self.enemin() - epad
         e_max = self.enemax() + epad
 
@@ -2078,6 +2078,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
     def __repr__(self):
+        """Invoked by repr"""
         lines = []
         app = lines.append
         for i, (label, ebands) in enumerate(self.ebands_dict.items()):
@@ -2243,7 +2244,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of ElectronBands has been replaced by combiplot.")
+    @deprecated(message="plot method of ElectronBandsPlotter has been replaced by combiplot.")
     def plot(self, *args, **kwargs):
         if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
             raise ValueError("align|xlim|ylim options are not supported anymore.")
@@ -2591,7 +2592,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         try:
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
             scheme = scheme.strip()
-        except TypeError:
+        except TypeError as exc:
             scheme = None
 
         return Smearing(

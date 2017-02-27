@@ -153,6 +153,9 @@ class TestKpointList(AbipyTest):
         self.assertTrue(len(add_klist) == 4)
         self.assertTrue(add_klist == add_klist.remove_duplicated())
 
+#class TestIrredZone(AbipyTest):
+#class TestKpath(AbipyTest):
+
 
 class TestKpointsReader(AbipyTest):
 

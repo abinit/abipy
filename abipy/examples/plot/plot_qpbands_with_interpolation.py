@@ -18,6 +18,7 @@ with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_nscf:
 # and compute the DOS with the Gaussian method
 with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr_scf:
     ks_ebands_kmesh = gsr_scf.ebands
+
 ks_edos = ks_ebands_kmesh.get_edos()
 
 # Interpolate QP corrections and apply them on top of the KS band structures.
@@ -27,7 +28,7 @@ r = sigres.interpolate(lpratio=5,
                        ks_ebands_kmesh=ks_ebands_kmesh)
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
-# Shortcut.
+# Shortcut: pass the name of the GSR files directly.
 #r = sigres.interpolate(ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
 #                       ks_ebands_kmesh=abidata.ref_file("si_scf_GSR.nc"))
 #ks_edos = r.ks_ebands_kmesh.get_edos()

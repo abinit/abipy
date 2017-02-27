@@ -795,7 +795,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the marker size.
-            axlist:
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included

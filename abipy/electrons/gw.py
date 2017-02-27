@@ -11,6 +11,7 @@ from monty.string import list_strings, is_string, marquee
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from monty.dev import deprecated
 from monty.bisect import find_le, find_ge
 from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
@@ -149,6 +150,31 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
             return _TIPS
 
 
+def _get_fields_for_plot(with_fields, exclude_fields):
+    """
+    Return list of fields to plot from input arguments.
+    """
+    all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
+
+    # Initialize fields.
+    if is_string(with_fields) and with_fields == "all":
+        fields = all_fields
+    else:
+        fields = list_strings(with_fields)
+        for f in fields:
+            if f not in all_fields:
+                raise ValueError("Field %s not in allowed values %s" % (f, all_fields))
+
+    # Remove entries
+    if exclude_fields:
+        if is_string(exclude_fields):
+            exclude_fields = exclude_fields.split()
+        for e in exclude_fields:
+            fields.remove(e)
+
+    return fields
+
+
 class QPList(list):
     """
     A list of quasiparticle corrections for a given spin.
@@ -161,6 +187,10 @@ class QPList(list):
         return "<%s at %s, len=%d>" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
+        """String representation."""
+        return to_string()
+
+    def to_string(self, **kwargs):
         """String representation."""
         table = self.to_table()
         strio = cStringIO()
@@ -216,13 +246,17 @@ class QPList(list):
         return table
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
         """
+        Plot the QP results as function of the initial KS energy.
+
         Args:
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Simiar to `with_field` but it excludes
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            label: Label for plot.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -235,50 +269,50 @@ class QPList(list):
         """
         fermi = kwargs.pop("fermi", None)
 
-        if is_string(with_fields):
-            if with_fields == "all":
-                fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
-            else:
-                fields = with_fields.split()
+        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        if not fields:
+            return None
 
-        if exclude_fields:
-            if is_string(exclude_fields):
-                exclude_fields = exclude_fields.split()
-            for e in exclude_fields:
-                fields.remove(e)
-
-        # Build grid of plots.
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
+        # Build grid of plots.
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
-
-        if self.is_e0sorted:
-            qps = self
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+            axlist = axlist.ravel()
         else:
-            qps = self.sort_by_e0()
+            axlist = np.reshape(axlist, (1, len(fields))).ravel()
+            fig = plt.gcf()
 
+        # Get qplist and sort it.
+        qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
 
         linestyle = kwargs.pop("linestyle", "o")
-        for field, ax in zip(fields, ax_list):
+        for ii, (field, ax) in enumerate(zip(fields, axlist)):
+            irow, icol = divmod(ii, ncols)
             ax.grid(True)
-            ax.set_xlabel('e0 [eV]')
+            if irow == nrows - 1: ax.set_xlabel('e0 [eV]')
             ax.set_ylabel(field)
             yy = qps.get_field(field)
-            ax.plot(e0mesh, yy.real, linestyle, **kwargs)
+            lbl = label if ii == 0 and label is not None else None
+
+            ax.plot(e0mesh, yy.real, linestyle, label=lbl, **kwargs)
             #ax.plot(e0mesh, e0mesh)
+
             if fermi is not None:
                 ax.plot(2*[fermi], [min(yy), max(yy)])
 
         # Get around a bug in matplotlib
-        if (num_plots % ncols) != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0:
+            axlist[-1].plot([0,1], [0,1], lw=0)
+            axlist[-1].axis('off')
+
+        if label is not None:
+            axlist[0].legend(loc="best")
 
         return fig
 
@@ -324,18 +358,16 @@ class QPList(list):
         for idx, v in enumerate(dflat):
             if idx == 0 and v > e0mesh[0]:
                 raise ValueError("min(e0mesh) %s is not included in domains" % e0mesh[0])
-
             if idx == dsize-1 and v < e0mesh[-1]:
                 raise ValueError("max(e0mesh) %s is not included in domains" % e0mesh[-1])
-
             if idx != dsize-1 and dflat[idx] > dflat[idx+1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
-
             if idx == dsize-1 and dflat[idx] < dflat[idx-1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
+
         # Create the sub_domains and the spline functions in each subdomain.
-        func_list = []
-        residues = []
+        func_list, residues = [], []
+
         if len(domains) == 2:
             #print('forcing extremal point on the scissor')
             ndom = 0
@@ -461,14 +493,14 @@ class Sigmaw(object):
         import matplotlib.pyplot as plt
 
         nrows = len(what)
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
+        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
+        axlist = axlist.ravel()
 
         title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
-            ax = ax_list[i]
+            ax = axlist[i]
             ax.grid(True)
 
             if i == len(what):
@@ -578,9 +610,7 @@ class SigresPlotter(Iterable):
         # Initialize/check useful quantities.
         #
         # 1) Number of spins
-        if not hasattr(self, "nsppol"):
-            self.nsppol = sigres.nsppol
-
+        if not hasattr(self, "nsppol"): self.nsppol = sigres.nsppol
         if self.nsppol != sigres.nsppol:
             raise ValueError("Found two SIGRES files with different nsppol")
 
@@ -701,7 +731,7 @@ class SigresPlotter(Iterable):
         # Set ticks and labels.
         if self.param_name is None:
             # Could not figure the name of the parameter ==> Use the basename of the files
-            ticks, labels = range(len(self)), [f.basename for f in self]
+            ticks, labels = list(range(len(self))), [f.basename for f in self]
         else:
             ticks, labels = self.xvalues, [f.params[self.param_name] for f in self]
 
@@ -796,22 +826,21 @@ class SigresPlotter(Iterable):
 
         self.prepare_plot()
 
-        import matplotlib.pyplot as plt
-
         # Build grid of plots.
+        import matplotlib.pyplot as plt
         num_plots, ncols, nrows = len(kpoints_for_plot), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
-        ax_list = ax_list.ravel()
+        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
+        axlist = axlist.ravel()
 
         if (num_plots % ncols) != 0:
-            ax_list[-1].axis('off')
+            axlist[-1].axis('off')
 
         xx = self.xvalues
-        for kpoint, ax in zip(kpoints_for_plot, ax_list):
+        for kpoint, ax in zip(kpoints_for_plot, axlist):
 
             for spin in spin_range:
                 for band in band_range:
@@ -825,6 +854,40 @@ class SigresPlotter(Iterable):
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
+        return fig
+
+    @add_fig_kwargs
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+        """
+        Plot the QP results as function of the initial KS energy for all SIGRES files stored in the plotter.
+
+        Args:
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+
+        Returns:
+            `matplotlib` figure.
+        """
+        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        if not fields:
+            return None
+
+        # Build plot grid
+        import matplotlib.pyplot as plt
+        num_plots, ncols, nrows = len(fields), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+
+        for sigres in self:
+            label = sigres.basename
+            fig = sigres.plot_qps_vs_e0(with_fields=fields, axlist=axlist,
+                                        label=label, show=False, **kwargs)
         return fig
 
 
@@ -957,13 +1020,33 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
         return Function1D(wmesh, spf_values)
 
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+    @deprecated(message="print_qps is deprecated and will be removed in the next version")
+    def print_qps(self, **kwargs):
+        self.reader.print_qps(**kwargs)
+
+    @add_fig_kwargs
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
         """
         Plot QP data as function of the KS energy.
+
+        Args:
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            label: Label for plot.
+
+        Returns:
+            `matplotlib` figure.
         """
+        with_fields = _get_fields_for_plot(with_fields, exclude_fields)
+
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
-            qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
+            fig = qps.plot_qps_vs_e0(with_fields=with_fields, axlist=axlist, label=label, show=False, **kwargs)
+
+        return fig
 
     @add_fig_kwargs
     def plot_spectral_functions(self, spin, kpoint, bands, ax=None, **kwargs):
@@ -1461,7 +1544,6 @@ class SigresReader(ETSF_Reader):
         # Frequencies for the spectral function.
         if self.has_spfunc:
             self._omega_r = self.read_value("omega_r")
-
             self._sigcme = self.read_value("sigcme", cmode="c")
             self._sigxcme = self.read_value("sigxcme", cmode="c")
 
@@ -1494,13 +1576,8 @@ class SigresReader(ETSF_Reader):
             This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
-        if isinstance(kpoint, int):
-            return kpoint
-
-        try:
-            return self.ibz.index(kpoint)
-        except:
-            raise
+        if isinstance(kpoint, int): return kpoint
+        return self.ibz.index(kpoint)
 
     def gwkpt2seqindex(self, gwkpoint):
         """
@@ -1522,8 +1599,7 @@ class SigresReader(ETSF_Reader):
             qps = []
             for gwkpoint in self.gwkpoints:
                 ik = self.gwkpt2seqindex(gwkpoint)
-                bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
-                for band in bands:
+                for band in range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik]):
                     qps.append(self.read_qp(spin, gwkpoint, band))
 
             qps_spin[spin] = QPList(qps)
@@ -1572,7 +1648,6 @@ class SigresReader(ETSF_Reader):
             raise ValueError("%s does not contain spectral function data" % self.path)
 
         ik = self.kpt2fileindex(kpoint)
-
         return self._omega_r, self._sigxcme[spin,:,ik,band]
 
     def read_spfunc(self, spin, kpoint, band):
@@ -1592,7 +1667,7 @@ class SigresReader(ETSF_Reader):
         aim_sigc = np.abs(self._sigcme[spin,:,ik,ib].imag)
 
         den = np.zeros(self.nomega_r)
-        for (io, omega) in enumerate(self._omega_r):
+        for io, omega in enumerate(self._omega_r):
             den[io] = (omega - self._hhartree[spin,ik,ib,ib].real - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
                 self._sigcme[spin,io,ik,ib].imag ** 2
 

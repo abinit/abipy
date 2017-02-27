@@ -6,7 +6,7 @@ import abipy.data as abidata
 
 import pymatgen.core.units as units
 from abipy.core.kpoints import KpointList
-from abipy.electrons.ebands import ElectronsReader, ElectronBands, ElectronDos, ElectronBandsPlotter
+from abipy.electrons.ebands import ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronsReader, frame_from_ebands
 from abipy.core.testing import *
 
 
@@ -60,6 +60,14 @@ class ElectronBandsTest(AbipyTest):
     def test_dos(self):
         """Test DOS methods."""
         gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+        assert not gs_bands.has_metallic_scheme
+
+        # Test get_e0
+        assert gs_bands.get_e0("fermie") == gs_bands.fermie
+        assert gs_bands.get_e0(None) == 0.0
+        assert gs_bands.get_e0("None") == 0.0
+        assert gs_bands.get_e0(1.0) == 1.0
+
         dos = gs_bands.get_edos()
         print(dos)
         assert ElectronDos.as_edos(dos, {}) is dos
@@ -156,6 +164,20 @@ class ElectronBandsTest(AbipyTest):
         from abipy.abilab import abiopen
         with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
+
+
+class FrameFromEbandsTest(AbipyTest):
+    def test_frame_from_ebands(self):
+            """Testing frame_from_ebands."""
+            gsr_scf_path = abidata.ref_file("si_scf_GSR.nc")
+            gs_ebands = ElectronBands.as_ebands(gsr_scf_path)
+            gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
+            index = ["foo", "bar", "hello"]
+            df = frame_from_ebands([gsr_scf_path, gs_ebands, gsr_nscf_path], index=index, with_spglib=True)
+            #print(df)
+            assert all(f == "Si2" for f in df["formula"])
+            assert all(num == 227 for num in df["abispg_num"])
+            assert all(df["spglib_num"] == df["abispg_num"])
 
 
 class ElectronBandsPlotterTest(AbipyTest):

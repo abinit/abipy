@@ -7,8 +7,9 @@ import abipy.data as abidata
 
 from abipy.abilab import abiopen
 from abipy.electrons.gw import *
-from abipy.electrons.gw import SigresReader
+from abipy.electrons.gw import SigresReader, SigresPlotter
 from abipy.core.testing import *
+
 
 class TestQPList(AbipyTest):
 
@@ -97,6 +98,13 @@ class TestSigresFile(AbipyTest):
         same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
         assert np.all(df["qpe"] == same_df["qpe"])
 
+        if self.has_matplotlib():
+            sigres.plot_qps_vs_e0(show=False)
+            with self.assertRaises(ValueError):
+                sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
+            sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
+            sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
+
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))
 
@@ -117,8 +125,7 @@ class TestSigresFile(AbipyTest):
 
         assert r.qp_ebands_kpath is not None
         assert r.qp_ebands_kpath.kpoints.is_path
-        #print(r.qp_ebands_kpath.kpoints.ksampling)
-        #print(r.qp_ebands_kpath.kpoints.mpdivs_shifts)
+        #print(r.qp_ebands_kpath.kpoints.ksampling, r.qp_ebands_kpath.kpoints.mpdivs_shifts)
         assert r.qp_ebands_kpath.kpoints.mpdivs_shifts == (None, None)
 
         assert r.qp_ebands_kmesh is not None
@@ -147,3 +154,26 @@ class TestSigresFile(AbipyTest):
             plotter.gridplot(title="Silicon band structure", show=False)
 
         sigres.close()
+
+
+class TestSigresPlotter(AbipyTest):
+    def test_sigres_plotter(self):
+        """Testing SigresPlotter."""
+        filenames = [
+            "si_g0w0ppm_nband10_SIGRES.nc",
+            "si_g0w0ppm_nband20_SIGRES.nc",
+            "si_g0w0ppm_nband30_SIGRES.nc",
+        ]
+        filepaths = [abidata.ref_file(fname) for fname in filenames]
+
+        plotter = SigresPlotter()
+        plotter.add_files(filepaths)
+        print(plotter)
+        assert len(plotter) == len(filepaths)
+
+        if self.has_matplotlib():
+            plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
+            plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
+            plotter.plot_qps_vs_e0(show=False)
+
+        plotter.close()
