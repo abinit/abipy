@@ -1,6 +1,11 @@
 from __future__ import division, print_function, unicode_literals
 
 import unittest
+try:
+    raise ImportError("No module named sets_deprecated")
+except ImportError:
+    raise unittest.SkipTest("Skipping all tests in test_classes due to sets_deprecated")
+
 import shutil
 import os
 import tempfile

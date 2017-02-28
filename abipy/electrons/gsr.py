@@ -253,8 +253,11 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(gsr)"),
             nbv.new_code_cell("fig = gsr.ebands.plot()"),
             nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = gsr.ebands.get_edos().plot()"),
-            nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+            nbv.new_code_cell("""\
+if gsr.ebands.kpoints.is_ibz:
+    fig = gsr.ebands.get_edos().plot()"""),
+            #nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -1,8 +1,17 @@
 from __future__ import division, print_function, unicode_literals
+
+import unittest
+try:
+    raise ImportError("No module named sets_deprecated")
+except ImportError:
+    raise unittest.SkipTest("Skipping all tests in test_classes due to sets_deprecated")
+
+
+
 import os
 import tempfile
-import unittest
 import shutil
+
 from abipy.abilab import Structure as AbiStructure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.structure import Structure

@@ -47,7 +47,8 @@ from abipy import abilab\
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
-    cmd = "jupyter notebook %s" % nbpath
+    cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+    return os.system(cmd)
     if options.no_daemon:
         return os.system(cmd)
     else:

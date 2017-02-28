@@ -398,9 +398,25 @@ class NotebookWriter(object):
         if not daemonize:
             return os.system(cmd)
         else:
-            import daemon
-            with daemon.DaemonContext():
-                return os.system(cmd)
+            cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+            print(cmd)
+            import subprocess
+            #process = subprocess.Popen(cmd, shell=True)
+            cmd = "jupyter notebook %s" % nbpath
+            import os
+
+            try:
+                from subprocess import DEVNULL # py3k
+            except ImportError:
+                DEVNULL = open(os.devnull, 'wb')
+
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+            #process = subprocess.Popen(cmd.split(), shell=True)
+            print("pid", str(process.pid))
+            #return os.system(cmd)
+            #import daemon
+            #with daemon.DaemonContext():
+            #    return os.system(cmd)
 
     def get_nbformat_nbv_nb(self, title=None):
         """

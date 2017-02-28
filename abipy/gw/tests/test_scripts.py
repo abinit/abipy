@@ -1,14 +1,18 @@
 from __future__ import division, print_function, unicode_literals
+
+import unittest
+try:
+    raise ImportError("No module named sets_deprecated")
+except ImportError:
+    raise unittest.SkipTest("Skipping all tests in test_classes due to sets_deprecated")
+
 import os
 import shutil
 import tempfile
 import abipy.data as abidata
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.core.structure import Structure
-from pymatgen.io.vasp.GWvaspinputsets import GWDFTDiagVaspInputSet, GWG0W0VaspInputSet, GWscDFTPrepVaspInputSet
-from pymatgen.io.vasp.GWvaspinputsets import SingleVaspGWWork
+
+from abipy.core.testing import AbipyTest
 from abipy.gw.datastructures import GWSpecs, get_spec  # , GWConvergenceData
-from abipy.gw.codeinterfaces import AbinitInterface, VaspInterface, get_code_interface
 from abipy.gw.tests.test_helpers import structure
 
 
@@ -19,7 +23,7 @@ from abipy.gw.tests.test_helpers import structure
 __author__ = 'setten'
 
 
-class GWSetupTest(PymatgenTest):
+class GWSetupTest(AbipyTest):
     def test_setup(self):
         """
         Testing the main functions called in the abiGWsetup script
