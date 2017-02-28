@@ -12,7 +12,7 @@ import sys
 
 from collections import deque, OrderedDict
 from monty.collections import dict2namedtuple
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools import gaussian
 from abipy.core.kpoints import Ktables
 

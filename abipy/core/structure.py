@@ -18,7 +18,7 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
-from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs #, get_ax_fig_plt
 from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.mixins import NotebookWriter

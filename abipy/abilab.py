@@ -13,16 +13,11 @@ from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.works import *
-from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow,
+from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
     g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
-# Need new version of pymatgen.
-try:
-    from pymatgen.io.abinit.flows import PhononFlow
-except ImportError:
-    pass
 
 ### Pymatgen import ###
-#from pymatgen.io.abinit.launcher import PyFlowScheduler
+from pymatgen.io.abinit.launcher import PyFlowScheduler
 from pymatgen.io.abinit.pseudos import Pseudo
 # Tools for unit conversion
 import pymatgen.core.units as units

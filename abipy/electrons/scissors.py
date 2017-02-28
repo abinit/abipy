@@ -8,7 +8,7 @@ import numpy as np
 from six.moves import cPickle as pickle
 from collections import OrderedDict
 from monty.collections import AttrDict
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 
 
 __all__ = [

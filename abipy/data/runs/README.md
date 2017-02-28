@@ -50,6 +50,9 @@ Phonon band structure of AlAs.
 `run_phonopy_si`:
 Compute phonon frequencies with phonopy (supercells and finite-difference method).
 
+`run_qha`:
+Flow for quasi-harmonic calculations
+
 `run_qptdmscr`:
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
@@ -84,6 +87,6 @@ This script shows how to compute the G0W0 corrections in silicon.
 Structural relaxation for SiC.
 
 `run_wyckoff`:
-This example shows how to compute the band structure of a set of 
+This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing a set of internal paramaters
 

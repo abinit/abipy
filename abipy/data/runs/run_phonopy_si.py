@@ -7,7 +7,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.dfpt.abiphonopy import PhonopyWork
+from abipy.flows.abiphonopy import PhonopyWork
 
 
 def build_flow(options):

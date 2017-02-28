@@ -13,7 +13,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from monty.bisect import find_le, find_ge
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
 from abipy.core.func1d import Function1D
@@ -188,7 +188,7 @@ class QPList(list):
 
     def __str__(self):
         """String representation."""
-        return to_string()
+        return self.to_string()
 
     def to_string(self, **kwargs):
         """String representation."""

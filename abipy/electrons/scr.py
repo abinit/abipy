@@ -10,7 +10,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.gsphere import GSphere

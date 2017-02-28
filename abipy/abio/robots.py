@@ -9,7 +9,7 @@ import numpy as np
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.analysis.eos import EOS
 from pymatgen.io.abinit.flows import Flow
 from abipy.core.mixins import NotebookWriter

@@ -11,7 +11,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import collections
 
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 
 
 __all__ = [
@@ -42,6 +42,7 @@ def set_axlims(ax, lims, axname):
     set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
     set_lim(left, right)
     return left, right
+
 
 def data_from_cplx_mode(cplx_mode, arr):
     """

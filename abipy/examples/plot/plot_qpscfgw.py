@@ -5,9 +5,9 @@ This example shows how to visualize the SCGW QP amplitudes in the KS basis set.
 import abipy.data as abidata
 from abipy.abilab import abiopen
 
-sigred = abiopen(abidata.ref_file("QPSC_SIGRES.nc"))
+sigres = abiopen(abidata.ref_file("QPSC_SIGRES.nc"))
 
-print("calctyp",sigred.gwcalctyp)
+print("calctyp",sigres.gwcalctyp)
 sigres.print_qps()
 
 #qp = sigres.get_qpcorr(spin=0, kpoint=(0,0,0), band=0)
