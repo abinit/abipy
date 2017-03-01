@@ -177,7 +177,6 @@ install_requires = [
     "wxmplot",
     "html2text",
     "pigments",
-    #"orderedset",
     "pyyaml>=3.11",
     "pandas",
     "numpy>=1.8",
@@ -247,7 +246,7 @@ setup_args = dict(
 if __name__ == "__main__":
     setup(**setup_args)
 
-    msg = """
+    print("""
 Please read the following if you are about to use abipy for the first time:
 
 [1]
@@ -268,7 +267,6 @@ followed by:
 
 This will print the lessons documentation with further instructions.
 Have fun!
-"""
-    print(msg)
+""")
 
     cleanup()

@@ -15,7 +15,7 @@ def tonumber(s):
         raise
 
     except:
-        raise RuntimeError("Don't know how to handle string: %s" % s)
+        raise RuntimeError("Don't know how to handle type %s: %s" % (type(s), str(s)))
 
 
 def nums_and_text(line):
