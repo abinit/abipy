@@ -47,6 +47,7 @@ def scf_ph_inputs(paral_kgb=0):
         ixc=1,
         nstep=25,
         diemac=9.0,
+        iomode=3,
     )
 
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)

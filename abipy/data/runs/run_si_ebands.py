@@ -24,6 +24,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
                        istwfk="*1",
                        nstep=15,
                        paral_kgb=paral_kgb,
+                       iomode=3,
                     )
 
     if multi.ispaw:

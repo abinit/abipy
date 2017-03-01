@@ -22,6 +22,7 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
         paral_kgb=0,
         #nstep=4, # This is not enough to converge. Used to test the automatic restart.
         nstep=10,
+        iomode=3,
     )
 
     multi.set_vars(global_vars)

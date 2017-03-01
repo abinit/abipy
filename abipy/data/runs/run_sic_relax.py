@@ -25,6 +25,7 @@ def build_flow(options):
         chksymbreak=0,
         ecut=20,
         paral_kgb=0,
+        iomode=3,
     )
 
     ngkpt = [4,4,4]

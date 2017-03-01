@@ -23,7 +23,8 @@ def make_inputs(paral_kgb=1):
         ecut=ecut,
         istwfk="*1",
         paral_kgb=paral_kgb,
-        gwpara=2
+        gwpara=2,
+        iomode=1,
     )
 
     ecuteps = 4
