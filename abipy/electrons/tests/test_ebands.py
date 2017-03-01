@@ -39,6 +39,7 @@ class ElectronBandsTest(AbipyTest):
             ebands.to_pdframe()
             assert ElectronBands.as_ebands(ebands) is ebands
 
+            self.serialize_with_pickle(ebands, test_eq=False)
             ElectronBands.from_dict(ebands.as_dict())
             self.assertMSONable(ebands, test_if_subclass=False)
 
@@ -53,9 +54,9 @@ class ElectronBandsTest(AbipyTest):
             ebands.to_pymatgen()
             ebands.to_pdframe()
 
-            # FIXME
-            #ElectronBands.from_dict(ebands.as_dict())
-            #self.assertMSONable(ebands, test_if_subclass=False)
+            self.serialize_with_pickle(ebands, test_eq=False)
+            ElectronBands.from_dict(ebands.as_dict())
+            self.assertMSONable(ebands, test_if_subclass=False)
 
     def test_dos(self):
         """Test DOS methods."""
@@ -167,6 +168,7 @@ class ElectronBandsTest(AbipyTest):
 
 
 class FrameFromEbandsTest(AbipyTest):
+
     def test_frame_from_ebands(self):
             """Testing frame_from_ebands."""
             gsr_scf_path = abidata.ref_file("si_scf_GSR.nc")
@@ -196,7 +198,7 @@ class ElectronBandsPlotterTest(AbipyTest):
 
         print(plotter.bands_statdiff())
         df = plotter.get_ebands_frame()
-        print(df)
+        assert df is not None
 
         if self.has_matplotlib():
             plotter.combiplot(title="Silicon band structure", show=False)

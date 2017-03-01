@@ -8,7 +8,6 @@ import collections
 
 from monty.os.path import which
 from pymatgen.core.units import *
-from pymatgen.io.abinit.eos import EOS
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinit.tasks import *

@@ -74,12 +74,16 @@ def has_matplotlib(version=None, op=">="):
         #have_display = "DISPLAY" in os.environ
         import matplotlib
         matplotlib.use("Agg")  # Use non-graphical display backend during test.
-        if version is None: return True
 
     except ImportError:
         print("Skipping matplotlib test")
         return False
 
+    # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+    import matplotlib.pyplot as plt
+    plt.close("all")
+
+    if version is None: return True
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
