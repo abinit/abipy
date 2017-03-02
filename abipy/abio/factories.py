@@ -8,6 +8,7 @@ import pymatgen.io.abinit.abiobjects as aobj
 
 from collections import namedtuple
 from monty.collections import AttrDict
+from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
 from pymatgen.io.abinit.abiobjects import KSampling
 from pymatgen.io.abinit.pseudos import PseudoTable
@@ -104,7 +105,7 @@ class ShiftMode(Enum):
         """
         if isinstance(obj, cls):
             return obj
-        elif isinstance(obj, (str, unicode)):
+        elif is_string(obj):
             return cls(obj[0].upper())
         else:
             raise ValueError('The object provided is not handled')
@@ -528,7 +529,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     scf_diffs = []
 
-    for k in extra_abivars.keys():
+    keys = list(extra_abivars.keys())
+    #for k in extra_abivars.keys():
+    for k in keys:
         if k[-2:] == '_s':
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)

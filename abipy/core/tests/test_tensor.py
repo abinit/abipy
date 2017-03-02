@@ -26,7 +26,7 @@ class TestTensor(AbipyTest):
         #finder = SymmetryFinder(structure)
         finder = SpacegroupAnalyzer(structure)
 
-        spacegroup = finder.get_space_group()
+        spacegroup = finder.get_space_group_operations()
         pointgroup = finder.get_point_group_symbol()
 
         cartesian_tensor = [[2,3,1.2],[3,4,1.0],[1.2,1.0,6]]

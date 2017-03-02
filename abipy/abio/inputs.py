@@ -322,26 +322,33 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         import hashlib
         sha1 = hashlib.sha1()
 
+        try:
+            tos = unicode 
+        except NameError:
+            # Py3K
+            def tos(s): 
+                return str(s).encode(encoding="utf-8")
+
         # Add key, values to sha1
         # (not sure this is code is portable: roundoff errors and conversion to string)
         # We could just compute the hash from the keys (hash equality does not necessarily imply __eq__!)
         for key in sorted(self.keys()):
             value = self[key]
             if isinstance(value, np.ndarray): value = value.tolist()
-            sha1.update(unicode(key))
-            sha1.update(unicode(value))
+            sha1.update(tos(key))
+            sha1.update(tos(value))
 
         # Use string representation to compute hash
         # Not perfect but it supposed to be better than the version above
         # Use alphabetical sorting, don't write pseudos (treated below).
         #s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
-        #sha1.update(unicode(s))
+        #sha1.update(tos(s))
 
-        sha1.update(unicode(self.comment))
+        sha1.update(tos(self.comment))
         # add pseudos (this is easy because we have md5)
-        sha1.update(unicode([p.md5 for p in self.pseudos]))
+        sha1.update(tos([p.md5 for p in self.pseudos]))
         # add the decorators, do we need to add them ?
-        sha1.update(unicode([dec.__class__.__name__ for dec in self.decorators]))
+        sha1.update(tos([dec.__class__.__name__ for dec in self.decorators]))
 
         return sha1.hexdigest()
 
