@@ -83,7 +83,7 @@ def abicomp_ebands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
+        plotter.make_and_open_notebook(foreground=options.foreground)
 
     else:
         # Print pandas Dataframe.
@@ -120,7 +120,7 @@ def abicomp_edos(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
+        plotter.make_and_open_notebook(foreground=options.foreground)
 
     else:
         # Print pandas Dataframe.
@@ -211,7 +211,7 @@ def abicomp_robot(options):
         IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
                      robot=robot)
     elif options.notebook:
-        robot.make_and_open_notebook(daemonize=not options.no_daemon)
+        robot.make_and_open_notebook(foreground=options.foreground)
     else:
         print(robot)
         abilab.print_frame(robot.get_dataframe())
@@ -288,7 +288,7 @@ def abicomp_time(options):
         import IPython
         IPython.start_ipython(argv=[], user_ns={"parser": parser})
     elif options.notebook:
-        parser.make_and_open_notebook(daemonize=not options.no_daemon)
+        parser.make_and_open_notebook(foreground=options.foreground)
     else:
         parser.plot_all()
 
@@ -331,8 +331,8 @@ Usage example:
     # Parent parser for commands support (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    ipy_parser.add_argument('--no-daemon', action='store_true', default=False,
-                             help="Don't start jupyter notebook with daemon process")
+    ipy_parser.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
     # Build the main parser.

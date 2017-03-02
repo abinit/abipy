@@ -10,6 +10,7 @@ import tempfile
 
 from time import ctime
 from monty.os.path import which
+from monty.termcolor import cprint
 from monty.string import is_string
 from monty.functools import lazy_property
 
@@ -375,13 +376,14 @@ class NotebookWriter(object):
     See also:
         http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
-    def make_and_open_notebook(self, nbpath=None, daemonize=False):
+    def make_and_open_notebook(self, nbpath=None, foreground=False):
         """
         Generate an ipython notebook and open it in the browser.
 
         Args:
             nbpath: If nbpath is None, a temporay file is created.
-            daemonize:
+            foreground: By default, jupyter is executed in background and stdout, stderr are redirected
+            to devnull. Use foreground to run the process in foreground
 
         Return:
             system exit code.
@@ -392,27 +394,25 @@ class NotebookWriter(object):
         nbpath = self.write_notebook(nbpath=nbpath)
 
         if which("jupyter") is None:
-            raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
+            raise RuntimeError("Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
-        cmd = "jupyter notebook %s" % nbpath
-        if not daemonize:
+        if foreground:
+            cmd = "jupyter notebook %s" % nbpath
             return os.system(cmd)
         else:
             cmd = "jupyter notebook %s &> /dev/null &" % nbpath
-            print(cmd)
+            print("Executing:", cmd)
             import subprocess
             #process = subprocess.Popen(cmd, shell=True)
             cmd = "jupyter notebook %s" % nbpath
-            import os
 
             try:
                 from subprocess import DEVNULL # py3k
             except ImportError:
-                DEVNULL = open(os.devnull, 'wb')
+                DEVNULL = open(os.devnull, "wb")
 
             process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
-            #process = subprocess.Popen(cmd.split(), shell=True)
-            print("pid", str(process.pid))
+            cprint("pid: %s" % str(process.pid), "yellow")
             #return os.system(cmd)
             #import daemon
             #with daemon.DaemonContext():

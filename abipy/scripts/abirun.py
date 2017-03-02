@@ -174,13 +174,27 @@ from abipy import abilab
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
 
-    cmd = "jupyter notebook %s" % nbpath
-    if not options.no_daemon:
+    if options.foreground:
+        cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
     else:
-        import daemon
-        with daemon.DaemonContext():
-            return os.system(cmd)
+        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+        print("Executing:", cmd)
+        import subprocess
+        #process = subprocess.Popen(cmd, shell=True)
+        cmd = "jupyter notebook %s" % nbpath
+
+        try:
+            from subprocess import DEVNULL # py3k
+        except ImportError:
+            DEVNULL = open(os.devnull, "wb")
+
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+        cprint("pid: %s" % str(process.pid), "yellow")
+
+        #import daemon
+        #with daemon.DaemonContext():
+        #    return os.system(cmd)
 
 @prof_main
 def main():
@@ -443,8 +457,8 @@ Specify the files to open. Possible choices:
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
                                        help="Create and open an ipython notebook to interact with the flow.")
-    p_notebook.add_argument('--no-daemon', action='store_true', default=False,
-                             help="Don't start jupyter notebook with daemon process")
+    p_notebook.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
@@ -929,7 +943,7 @@ Specify the files to open. Possible choices:
         with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
             IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
             #IPython.start_ipython(argv=[], user_ns={"robot": robot})
-            #robot.make_and_open_notebook(nbpath=None, daemonize=True)
+            #robot.make_and_open_notebook(nbpath=None, foreground=True)
 
     elif options.command == "plot":
         fext = dict(
