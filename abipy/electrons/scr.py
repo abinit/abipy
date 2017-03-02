@@ -10,13 +10,12 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.gsphere import GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting_utils import ArrayPlotter, plot_array, data_from_cplx_mode
+from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt
 
 
 import logging

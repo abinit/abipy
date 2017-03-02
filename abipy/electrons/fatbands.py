@@ -15,7 +15,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import set_axlims
+from abipy.tools.plotting import set_axlims
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):

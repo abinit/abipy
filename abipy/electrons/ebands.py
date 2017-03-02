@@ -20,7 +20,6 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from monty.dev import deprecated
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import NotebookWriter
@@ -29,7 +28,7 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import set_axlims
+from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, Marker
 
 
 import logging
@@ -590,7 +589,6 @@ class ElectronBands(object):
                  positions of the i-th markers in the plot and s[i] is the size of the marker.
             extend: True if the values xys should be added to a pre-existing marker.
         """
-        from abipy.tools.plotting_utils import Marker
         if not hasattr(self, "_markers"):
             self._markers = OrderedDict()
 

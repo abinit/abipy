@@ -39,6 +39,8 @@ class ScriptTest(AbipyTest):
     loglevel = "--loglevel=ERROR"
     verbose = "--verbose"
 
+    expect_stderr = True   # otherwise tests fail due to warnings and deprecation messages 
+
     def get_env(self):
         #import tempfile
         #env = TestFileEnvironment(tempfile.mkdtemp(suffix='', prefix='test_' + script))
@@ -54,7 +56,7 @@ class ScriptTest(AbipyTest):
         env.run(self.script, "--help")
 
         # Script must provide a version option
-        r = env.run(self.script, "--version", expect_stderr=True)
+        r = env.run(self.script, "--version", expect_stderr=self.expect_stderr)
         print("stderr", r.stderr)
         print("stdout", r.stdout)
         verstr = r.stderr.strip() 
@@ -70,11 +72,11 @@ class TestAbidoc(ScriptTest):
     def test_abidoc(self):
         """Testing abidoc.py script"""
         env = self.get_env()
-        env.run(self.script, "man", "ecut", self.loglevel, self.verbose)
-        env.run(self.script, "apropos", "test", self.loglevel, self.verbose)
-        env.run(self.script, "find", "paw", self.loglevel, self.verbose)
-        env.run(self.script, "list", self.loglevel, self.verbose)
-        env.run(self.script, "withdim", "natom", self.loglevel, self.verbose)
+        env.run(self.script, "man", "ecut", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        env.run(self.script, "apropos", "test", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        env.run(self.script, "find", "paw", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        env.run(self.script, "list", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        env.run(self.script, "withdim", "natom", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbiopen(ScriptTest):
@@ -92,38 +94,44 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct spglib"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose)
+        env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose,  
+                expect_stderr=self.expect_stderr)
 
     def test_convert(self):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
         for fmt in ["cif", "cssr", "POSCAR", "json", "mson", "abivars"]:
-            env.run(self.script, "convert", ncfile, fmt, self.loglevel, self.verbose)
+            env.run(self.script, "convert", ncfile, fmt, self.loglevel, self.verbose, 
+                    expect_stderr=self.expect_stderr)
 
     def test_abisanitize(self):
         """Testing abistruct abisanitize"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        env.run(self.script, "abisanitize", ncfile, self.loglevel, self.verbose)
+        env.run(self.script, "abisanitize", ncfile, self.loglevel, self.verbose, 
+                expect_stderr=self.expect_stderr)
 
     def test_conventional(self):
         """Testing abistruct conventional"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        env.run(self.script, "conventional", ncfile, self.loglevel, self.verbose)
+        env.run(self.script, "conventional", ncfile, self.loglevel, self.verbose, 
+                expect_stderr=self.expect_stderr)
 
     def test_kpath(self):
         """Testing abistruct kpath"""
         env = self.get_env()
         ncfile = abidata.ref_file("si_scf_WFK.nc")
-        env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose, expect_stderr=True)
+        env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose, 
+                expect_stderr=self.expect_stderr)
 
     #def test_kmesh(self):
     #    """Testing abistruct kmesh"""
     #    env = self.get_env()
     #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
     #    env.run(self.script, "kmesh", "--mesh=2 2 2 --shift=1 1 1 --no-time-reversal", ncfile)
+    #            expect_stderr=self.expect_stderr)
 
 
 class TestAbicomp(ScriptTest):
@@ -133,6 +141,7 @@ class TestAbicomp(ScriptTest):
         """Testing abicomp"""
         env = self.get_env()
         #env.run(self.script, "gs_scf", qtype, file1, file2, self.loglevel, self.verbose)
+        #expect_stderr=self.expect_stderr)
 
 
 class TestAbirun(ScriptTest):
@@ -145,12 +154,15 @@ class TestAbirun(ScriptTest):
         no_logo_colors = ["--no-logo", "--no-colors"]
 
         # Test doc_manager
-        env.run(self.script, ".", "doc_manager", self.loglevel, self.verbose, *no_logo_colors)
+        env.run(self.script, ".", "doc_manager", self.loglevel, self.verbose, *no_logo_colors, 
+                expect_stderr=self.expect_stderr)
         for qtype in QueueAdapter.all_qtypes():
-            env.run(self.script, ".", "doc_manager", qtype, self.loglevel, self.verbose, *no_logo_colors)
+            env.run(self.script, ".", "doc_manager", qtype, self.loglevel, self.verbose, *no_logo_colors,
+                    expect_stderr=self.expect_stderr)
 
         # Test doc_sheduler
-        env.run(self.script, ".", "doc_scheduler", self.loglevel, self.verbose, *no_logo_colors)
+        env.run(self.script, ".", "doc_scheduler", self.loglevel, self.verbose, *no_logo_colors,
+                expect_stderr=self.expect_stderr)
 
 
 #class TestAbipsps(ScriptTest):
@@ -173,7 +185,7 @@ class TestAbicheck(ScriptTest):
     def test_abicheck(self):
         """Testing abicheck.py"""
         env = self.get_env()
-        env.run(self.script, self.loglevel, self.verbose)
+        env.run(self.script, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 #class TestAbiinsp(ScriptTest):

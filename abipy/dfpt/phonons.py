@@ -13,13 +13,12 @@ from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha, Energy
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import Marker
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt
 from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro
 
 
@@ -1764,8 +1763,6 @@ class PhononBandsPlotter(object):
                  positions of the i-th markers in the plot and s[i] is the size of the marker.
             extend: True if the values xys should be added to a pre-existing marker.
         """
-        from abipy.tools.plotting_utils import Marker
-
         if extend:
             if key not in self._markers:
                 self._markers[key] = Marker(*xys)

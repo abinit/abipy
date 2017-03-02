@@ -11,7 +11,7 @@ import numpy as np
 
 from six.moves import cStringIO
 from monty.functools import lazy_property
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode
 from abipy.tools.derivatives import finite_diff
 
 __all__ = [
@@ -488,7 +488,7 @@ class Function1D(object):
         else:
             cplx_mode = kwargs.pop("cplx_mode", "re")
 
-        from abipy.tools.plotting_utils import data_from_cplx_mode
+
         lines = []
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)

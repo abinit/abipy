@@ -22,6 +22,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
+from abipy.tools.plotting import ArrayPlotter, plot_array
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1083,7 +1084,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
 
         if kpoint is None:
-            from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
             for kpoint in self.ibz:
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
@@ -1092,7 +1092,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             fig = plotter.plot(**kwargs)
 
         else:
-            from abipy.tools.plotting_utils import plot_array
+
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
             fig = plot_array(ksqp_arr, **kwargs)
 
