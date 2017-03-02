@@ -77,20 +77,20 @@ class PhonopyWork(Work):
 	    PhonopyWork instance.
         """
         new = cls()
-	new.phonopy_tasks, new.bec_tasks = [], []
-	new.cpdata2dst = None
+        new.phonopy_tasks, new.bec_tasks = [], []
+        new.cpdata2dst = None
 
         # Initialize phonon. Supercell matrix has (3, 3) shape.
         unitcell = atoms_from_structure(gsinp.structure)
-	new.scdims = scdims = np.array(scdims)
-	if scdims.shape != (3,):
-	    raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+        new.scdims = scdims = np.array(scdims)
+        if scdims.shape != (3,):
+            raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
 
-	supercell_matrix = np.diag(scdims)
-	phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
+        supercell_matrix = np.diag(scdims)
+        phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
         new.phonon = phonon = Phonopy(unitcell, supercell_matrix, **phonopy_kwargs)
 
-	displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
+        displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
         phonon.generate_displacements(**displ_kwargs) #distance=0.01,
 
         # Obtain supercells containing respective displacements (list of Atoms objects).
@@ -103,7 +103,7 @@ class PhonopyWork(Work):
             sc_gsinp.set_vars_ifnotin(chksymbreak=0, chkprim=0)
 
             task = new.register_scf_task(sc_gsinp)
-	    new.phonopy_tasks.append(task)
+            new.phonopy_tasks.append(task)
 
         return new
 
@@ -113,11 +113,11 @@ class PhonopyWork(Work):
         have reached status S_OK. Here we get the forces from the output files, and
         we call phonopy to compute the inter-atomic force constants.
         """
-	phonon = self.phonon
+        phonon = self.phonon
 
 	# Write POSCAR with initial unit cell.
-	structure = structure_from_atoms(phonon.get_primitive())
-	structure.to(filename=self.outdir.path_in("POSCAR"))
+        structure = structure_from_atoms(phonon.get_primitive())
+        structure.to(filename=self.outdir.path_in("POSCAR"))
 
 	# Write yaml file with displacements.
         supercell = phonon.get_supercell()
@@ -126,10 +126,10 @@ class PhonopyWork(Work):
         file_IO.write_disp_yaml(displacements, supercell, directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 
-	# Extract forces from the main output files.
-	forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
-	num_atoms = supercell.get_number_of_atoms()
-	force_sets = parse_set_of_forces(num_atoms, forces_filenames)
+        # Extract forces from the main output files.
+        forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
+        num_atoms = supercell.get_number_of_atoms()
+        force_sets = parse_set_of_forces(num_atoms, forces_filenames)
 
 	# Write FORCE_SETS file.
         displacements = file_IO.parse_disp_yaml(filename=self.outdir.path_in('disp.yaml'))
@@ -138,50 +138,50 @@ class PhonopyWork(Work):
             disp['forces'] = forces
         file_IO.write_FORCE_SETS(displacements, filename=self.outdir.path_in('FORCE_SETS'))
 
-	# Write README and configuration files.
-	examples_url = "http://atztogo.github.io/phonopy/examples.html"
-	doctags_url = "http://atztogo.github.io/phonopy/setting-tags.html#setting-tags"
+        # Write README and configuration files.
+        examples_url = "http://atztogo.github.io/phonopy/examples.html"
+        doctags_url = "http://atztogo.github.io/phonopy/setting-tags.html#setting-tags"
         kptbounds = np.array([k.frac_coords for k in structure.hsym_kpoints])
-	path_coords = " ".join(str(rc) for rc in kptbounds.flat)
-	path_labels = " ".join(k.name for k in structure.hsym_kpoints)
-	ngqpt = structure.calc_ngkpt(nksmall=30)
+        path_coords = " ".join(str(rc) for rc in kptbounds.flat)
+        path_labels = " ".join(k.name for k in structure.hsym_kpoints)
+        ngqpt = structure.calc_ngkpt(nksmall=30)
 
-	with open(self.outdir.path_in("band.conf"), "wt") as fh:
-	    fh.write("#" + doctags_url + "\n")
-	    fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
-	    fh.write("BAND = %s\n" % path_coords)
-	    fh.write("BAND_LABELS = %s\n" % path_labels)
-	    fh.write("BAND_POINTS = 101\n")
-	    fh.write("#BAND_CONNECTION = .TRUE.\n")
+        with open(self.outdir.path_in("band.conf"), "wt") as fh:
+            fh.write("#" + doctags_url + "\n")
+            fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
+            fh.write("BAND = %s\n" % path_coords)
+            fh.write("BAND_LABELS = %s\n" % path_labels)
+            fh.write("BAND_POINTS = 101\n")
+            fh.write("#BAND_CONNECTION = .TRUE.\n")
 
-	with open(self.outdir.path_in("dos.conf"), "wt") as fh:
-	    fh.write("#" + doctags_url + "\n")
-	    fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
-	    fh.write("MP = %d %d %d\n" % tuple(ngqpt))
-	    fh.write("#GAMMA_CENTER = .TRUE.\n")
+        with open(self.outdir.path_in("dos.conf"), "wt") as fh:
+            fh.write("#" + doctags_url + "\n")
+            fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
+            fh.write("MP = %d %d %d\n" % tuple(ngqpt))
+            fh.write("#GAMMA_CENTER = .TRUE.\n")
 
-	with open(self.outdir.path_in("band-dos.conf"), "wt") as fh:
-	    fh.write("#" + doctags_url + "\n")
-	    fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
-	    fh.write("BAND = %s\n" % path_coords)
-	    fh.write("BAND_LABELS = %s\n" % path_labels)
-	    fh.write("BAND_POINTS = 101\n")
-	    fh.write("#BAND_CONNECTION = .TRUE.\n")
-	    fh.write("MP = %d %d %d\n" % tuple(ngqpt))
-	    fh.write("#GAMMA_CENTER = .TRUE.\n")
+        with open(self.outdir.path_in("band-dos.conf"), "wt") as fh:
+            fh.write("#" + doctags_url + "\n")
+            fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
+            fh.write("BAND = %s\n" % path_coords)
+            fh.write("BAND_LABELS = %s\n" % path_labels)
+            fh.write("BAND_POINTS = 101\n")
+            fh.write("#BAND_CONNECTION = .TRUE.\n")
+            fh.write("MP = %d %d %d\n" % tuple(ngqpt))
+            fh.write("#GAMMA_CENTER = .TRUE.\n")
 
-	with open(self.outdir.path_in("README"), "wt") as fh:
-	    fh.write("To plot bands, use: `phonopy -p band.conf`\n")
-	    fh.write("To plot dos, use: `phonopy -p dos.conf`\n")
-	    fh.write("To plot bands and dos, use: `phonopy -p band-dos.conf`\n")
-	    fh.write("See also:\n")
-	    fh.write("\t" + examples_url + "\n")
-	    fh.write("\t" + doctags_url + "\n")
+        with open(self.outdir.path_in("README"), "wt") as fh:
+            fh.write("To plot bands, use: `phonopy -p band.conf`\n")
+            fh.write("To plot dos, use: `phonopy -p dos.conf`\n")
+            fh.write("To plot bands and dos, use: `phonopy -p band-dos.conf`\n")
+            fh.write("See also:\n")
+            fh.write("\t" + examples_url + "\n")
+            fh.write("\t" + doctags_url + "\n")
 
-	if self.cpdata2dst:
-	    self.outdir.copy_r(self.cpdata2dst)
+        if self.cpdata2dst:
+            self.outdir.copy_r(self.cpdata2dst)
 
-	return super(PhonopyWork, self).on_all_ok()
+        return super(PhonopyWork, self).on_all_ok()
 
 
 class PhonopyGruneisenWork(Work):
@@ -232,59 +232,59 @@ class PhonopyGruneisenWork(Work):
 
 	# Save arguments that will be used to call phonopy for creating
         # the supercells with the displacements once the three volumes have been relaxed.
-	new.scdims = np.array(scdims)
-	if new.scdims.shape != (3,):
-	    raise ValueError("Expecting 3 int in scdims but got %s" % str(new.scdims))
-	new.phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
-	new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
+        new.scdims = np.array(scdims)
+        if new.scdims.shape != (3,):
+            raise ValueError("Expecting 3 int in scdims but got %s" % str(new.scdims))
+        new.phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
+        new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
 
-	# Build three tasks for structural optimization at constant volume.
+        # Build three tasks for structural optimization at constant volume.
         v0 = gsinp.structure.volume
-	if voldelta <= 0:
-	    raise ValueError("voldelta must be > 0 but got %s" % voldelta)
+        if voldelta <= 0:
+            raise ValueError("voldelta must be > 0 but got %s" % voldelta)
         volumes = [v0 - voldelta, v0, v0  + voldelta]
-	if any(v <= 0 for v in volumes):
-	    raise ValueError("volumes must be > 0 but got %s" % str(volumes))
+        if any(v <= 0 for v in volumes):
+            raise ValueError("volumes must be > 0 but got %s" % str(volumes))
 
         for vol in volumes:
             # Build new structure
             new_lattice = gsinp.structure.lattice.scale(vol)
             new_structure = Structure(new_lattice, gsinp.structure.species, gsinp.structure.frac_coords)
-	    new_input = gsinp.new_with_structure(new_structure)
-	    # Set variables for structural optimization at constant volume.
-	    new_input.pop_tolerances()
-	    new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
-	    new_input.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
-	    new.register_relax_task(new_input)
+            new_input = gsinp.new_with_structure(new_structure)
+            # Set variables for structural optimization at constant volume.
+            new_input.pop_tolerances()
+            new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
+            new_input.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
+            new.register_relax_task(new_input)
 
-	return new
+        return new
 
     def on_all_ok(self):
         """
         This method is called once the `Work` is completed i.e. when all the tasks
         have reached status S_OK.
         """
-	self.add_phonopy_works_and_build()
-	return super(PhonopyGruneisenWork, self).on_all_ok()
+        self.add_phonopy_works_and_build()
+        return super(PhonopyGruneisenWork, self).on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """
         Get relaxed structures from the tasks, build Phonopy works with supercells
         constructed from the new structures, add them to the flow and build new directories.
         """
-	for i, task in enumerate(self):
-	    relaxed_structure = task.get_final_structure()
-	    gsinp = task.input.new_with_structure(relaxed_structure)
+        for i, task in enumerate(self):
+            relaxed_structure = task.get_final_structure()
+            gsinp = task.input.new_with_structure(relaxed_structure)
 
-	    work = PhonopyWork.from_gs_input(gsinp, self.scdims,
-					     phonopy_kwargs=self.phonopy_kwargs,
-					     displ_kwargs=self.displ_kwargs)
+            work = PhonopyWork.from_gs_input(gsinp, self.scdims,
+                                             phonopy_kwargs=self.phonopy_kwargs,
+                                             displ_kwargs=self.displ_kwargs)
 
-	    self.flow.register_work(work)
-	    # Tell the work to copy the results to e.g. `flow/outdir/w0/minus`
-	    dst = os.path.join(self.pos_str, {0: "minus", 1: "orig", 2: "plus"}[i])
-	    work.cpdata2dst = self.flow.outdir.path_in(dst)
+            self.flow.register_work(work)
+            # Tell the work to copy the results to e.g. `flow/outdir/w0/minus`
+            dst = os.path.join(self.pos_str, {0: "minus", 1: "orig", 2: "plus"}[i])
+            work.cpdata2dst = self.flow.outdir.path_in(dst)
 
         # Allocate new works and update the pickle database.
         self.flow.allocate()
-	self.flow.build_and_pickle_dump()
+        self.flow.build_and_pickle_dump()

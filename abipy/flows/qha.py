@@ -33,8 +33,8 @@ class RelaxAndPhononWork(Work, MergeDdb):
         relaxinp = gsinp.deepcopy()
         relaxinp.pop_tolerances()
         relaxinp.set_vars(tolvrs=1e-10, toldff=1.e-6)
-	relaxinp.set_vars(optcell=optcell, ionmov=ionmov)
-	if optcell is not None and optcell != 0 :
+        relaxinp.set_vars(optcell=optcell, ionmov=ionmov)
+        if optcell is not None and optcell != 0 :
             relaxinp.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
 
         work.relax_task = work.register_relax_task(relaxinp)
@@ -58,7 +58,7 @@ class RelaxAndPhononWork(Work, MergeDdb):
 
         # Allocate new works and update the pickle database.
         self.flow.allocate()
-	self.flow.build_and_pickle_dump()
+        self.flow.build_and_pickle_dump()
 
     def on_all_ok(self):
         """
@@ -104,11 +104,11 @@ class QhaFlow(Flow):
             # Build GS input file for new structure with rescaled volume.
             new_lattice = gsinp.structure.lattice.scale(vol)
             new_structure = Structure(new_lattice, gsinp.structure.species, gsinp.structure.frac_coords)
-	    new_input = gsinp.new_with_structure(new_structure)
+            new_input = gsinp.new_with_structure(new_structure)
 
             # Register work.
             work = RelaxAndPhononWork.from_gsinp(new_input, ngqpt, optcell=3, ionmov=3)
-	    flow.register_work(work)
+            flow.register_work(work)
 
         return flow
 
