@@ -803,7 +803,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         prefix = prefix_dict.get(format, "tmp")
         suffix = suffix_dict.get(format, "")
 
-        tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
+        tmp_file = tempfile.NamedTemporaryFile(mode="w+", suffix=suffix, prefix=prefix)
         self.write_structure(tmp_file.name)
         tmp_file.seek(0)
 
