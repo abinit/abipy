@@ -598,7 +598,7 @@ class PhononBands(object):
 	structure = self.structure
         alpha, beta, gamma = (np.pi*a/180 for a in structure.lattice.angles)
         m = structure.lattice.matrix
-        sign = np.sign(np.dot(np.cross([0], m[1]), m[2]))
+        sign = np.sign(np.dot(np.cross(m[0], m[1]), m[2]))
 
         dxx = a
         dyx = b*np.cos(gamma)
