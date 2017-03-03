@@ -592,15 +592,12 @@ class PhononBands(object):
             filename: name of the ascii file that will be created.
             pre_factor: Multiplication factor of the eigendisplacements.
         """
-
         if not isinstance(iqpts, (list, tuple)):
             iqpts = [iqpts]
 
-        lines = []
-        alpha, beta, gamma = (np.pi*a/180 for a in self.lattice.angles)
-
-        m = self.lattice.matrix
-
+	structure = self.structure
+        alpha, beta, gamma = (np.pi*a/180 for a in structure.lattice.angles)
+        m = structure.lattice.matrix
         sign = np.sign(np.dot(np.cross([0], m[1]), m[2]))
 
         dxx = a
@@ -619,7 +616,7 @@ class PhononBands(object):
         lines.append("#keyword: reduced")
 
         # coordinates
-        for s in self.structure:
+        for s in structure:
             lines.append("  {: 3.10f}  {: 3.10f}  {: 3.10f} {:>2}".format(s.a, s.b, s.c, s.specie.name))
 
         ascii_basis = [[dxx, 0, 0],
@@ -632,9 +629,9 @@ class PhononBands(object):
             displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=np.complex)
             for i in range(self.num_atoms):
                 displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)]*\
-                                    np.exp(-2*math.pi*1j*np.dot(self.structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
+                                    np.exp(-2*math.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
 
-            displ_list = np.dot(np.dot(displ_list, self.structure.lattice.inv_matrix), ascii_basis)*pre_factor
+            displ_list = np.dot(np.dot(displ_list, structure.lattice.inv_matrix), ascii_basis) * pre_factor
 
             for imode in np.arange(self.num_branches):
                 lines.append("#metaData: qpt=[{:.6f};{:.6f};{:.6f};{:.6f} \\".format(q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
@@ -896,7 +893,7 @@ class PhononBands(object):
                 d2_qnu[q, nu] = np.vdot(cvect, cvect).real
 
         # One plot per atom type.
-        for (ax_idx, symbol) in enumerate(structure.symbol_set):
+        for ax_idx, symbol in enumerate(structure.symbol_set):
             ax = ax_list[ax_idx]
 
             self.decorate_ax(ax, qlabels=qlabels)

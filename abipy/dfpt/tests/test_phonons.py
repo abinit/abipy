@@ -30,6 +30,9 @@ class PhononBandsTest(AbipyTest):
         # Test XYZ vib
         phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])
 
+        # Test ascii file
+        phbands.create_ascii_vib(iqpts=0, filename=self.get_tmpname(text=True), pre_factor=1)
+
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
