@@ -181,7 +181,6 @@ from abipy import abilab
         cmd = "jupyter notebook %s &> /dev/null &" % nbpath
         print("Executing:", cmd)
         import subprocess
-        #process = subprocess.Popen(cmd, shell=True)
         cmd = "jupyter notebook %s" % nbpath
 
         try:
@@ -192,9 +191,6 @@ from abipy import abilab
         process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
         cprint("pid: %s" % str(process.pid), "yellow")
 
-        #import daemon
-        #with daemon.DaemonContext():
-        #    return os.system(cmd)
 
 @prof_main
 def main():

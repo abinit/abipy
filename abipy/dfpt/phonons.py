@@ -34,7 +34,9 @@ __all__ = [
 
 @functools.total_ordering
 class PhononMode(object):
-    """A phonon mode has a q-point, a frequency, a cartesian displacement and a structure."""
+    """
+    A phonon mode has a q-point, a frequency, a cartesian displacement and a structure.
+    """
 
     __slots__ = [
         "qpoint",
@@ -65,9 +67,15 @@ class PhononMode(object):
         return self.freq < other.freq
 
     def __str__(self):
-        return self.to_string()
+        return self.to_string(with_displ=False)
 
-    def to_string(self, with_displ=False):
+    def to_string(self, with_displ=True):
+        """
+        String representation
+
+        Args:
+           with_displ: True to print phonon displacement.
+	"""
         lines = ["%s: q-point %s, frequency %.5f [eV]" % (self.__class__.__name__, self.qpoint, self.freq)]
         app = lines.append
 
@@ -475,7 +483,9 @@ class PhononBands(object):
         f.close()
 
     def qindex(self, qpoint):
-        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
+        """
+	Returns the index of the qpoint. Accepts integer or reduced coordinates.
+	"""
         if isinstance(qpoint, int):
             return qpoint
         else:
@@ -595,16 +605,17 @@ class PhononBands(object):
         if not isinstance(iqpts, (list, tuple)):
             iqpts = [iqpts]
 
-	structure = self.structure
+        structure = self.structure
+        a, b, c = structure.lattice.abc
         alpha, beta, gamma = (np.pi*a/180 for a in structure.lattice.angles)
         m = structure.lattice.matrix
         sign = np.sign(np.dot(np.cross(m[0], m[1]), m[2]))
 
         dxx = a
-        dyx = b*np.cos(gamma)
-        dyy = b*np.sin(gamma)
-        dzx = c*np.cos(beta)
-        dzy = c*(np.cos(alpha)-np.cos(gamma)*np.cos(beta))/np.sin(gamma)
+        dyx = b * np.cos(gamma)
+        dyy = b * np.sin(gamma)
+        dzx = c * np.cos(beta)
+        dzy = c * (np.cos(alpha) - np.cos(gamma) * np.cos(beta)) / np.sin(gamma)
         # keep the same orientation
         dzz = sign*np.sqrt(c**2-dzx**2-dzy**2)
 
@@ -629,7 +640,7 @@ class PhononBands(object):
             displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=np.complex)
             for i in range(self.num_atoms):
                 displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)]*\
-                                    np.exp(-2*math.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
+                                    np.exp(-2*np.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
 
             displ_list = np.dot(np.dot(displ_list, structure.lattice.inv_matrix), ascii_basis) * pre_factor
 
@@ -746,8 +757,8 @@ class PhononBands(object):
             raise ValueError('Value for units {} unknown'.format(units))
 
         for pf in self.split_phfreqs:
-            pf = pf*factor
-            xx = range(first_xx, first_xx+len(pf))
+            pf = pf * factor
+            xx = list(range(first_xx, first_xx + len(pf)))
             for branch in branch_range:
                 lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
             first_xx = xx[-1]
@@ -879,7 +890,7 @@ class PhononBands(object):
         nrows, ncols = (ntypat, 1)
 
         fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True)
-        xx = range(self.num_qpoints)
+        xx = list(range(self.num_qpoints))
 
         # phonon_displacements are in cartesian coordinates and stored in an array with shape
         # (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.
@@ -1058,13 +1069,14 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         qpoint = self.qpoints[qindex]
         return qindex, qpoint
 
-    def get_phframe(self, qpoint):
+    def get_phframe(self, qpoint, with_structure=True):
         """
         Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point and
         information on the crystal structure (used for convergence studies).
 
         Args:
             qpoint: integer, vector of reduced coordinates or :class:`Kpoint` object.
+	    with_structure: True to add structural parameters.
         """
         qindex, qpoint = self.qindex_qpoint(qpoint)
         phfreqs = self.phbands.phfreqs
@@ -1075,7 +1087,8 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         )
 
         # Add geo information
-        d.update(self.structure.get_dict4frame(with_spglib=True))
+        if with_structure:
+            d.update(self.structure.get_dict4frame(with_spglib=True))
 
         # Build the pandas Frame and add the q-point as attribute.
         import pandas as pd
@@ -1178,6 +1191,8 @@ class PhononDos(Function1D):
             return obj.get_phdos(**phdos_kwargs)
         elif hasattr(obj, "phbands"):
             return obj.phbands.get_phdos(**phdos_kwargs)
+        elif hasattr(obj, "phdos"):
+            return obj.phdos
 
         raise TypeError("Don't know how to create `PhononDos` from %s" % type(obj))
 
@@ -1855,7 +1870,7 @@ class PhononBandsPlotter(object):
         # Add DOSes
         if self.phdoses_dict:
             ax = ax_list[1]
-            for (label, dos) in self.phdoses_dict.items():
+            for label, dos in self.phdoses_dict.items():
                 dos.plot_ax(ax, exchange_xy=True, units=units, **opts_label[label])
 
         return fig
@@ -1911,7 +1926,7 @@ class PhononDosPlotter(object):
         ax.set_ylabel('DOS [states/eV]')
 
         lines, legends = [], []
-        for (label, dos) in self._phdoses_dict.items():
+        for label, dos in self._phdoses_dict.items():
             l = dos.plot_ax(ax, *args, **kwargs)[0]
 
             lines.append(l)
@@ -2268,6 +2283,7 @@ class InteratomicForceConstants(Has_Structure):
                                           min_dist=None, max_dist=None, ax=None, **kwargs):
         """
         Plots the short range longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.

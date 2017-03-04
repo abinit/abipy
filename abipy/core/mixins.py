@@ -403,7 +403,6 @@ class NotebookWriter(object):
             cmd = "jupyter notebook %s &> /dev/null &" % nbpath
             print("Executing:", cmd)
             import subprocess
-            #process = subprocess.Popen(cmd, shell=True)
             cmd = "jupyter notebook %s" % nbpath
 
             try:
@@ -413,10 +412,6 @@ class NotebookWriter(object):
 
             process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
             cprint("pid: %s" % str(process.pid), "yellow")
-            #return os.system(cmd)
-            #import daemon
-            #with daemon.DaemonContext():
-            #    return os.system(cmd)
 
     def get_nbformat_nbv_nb(self, title=None):
         """

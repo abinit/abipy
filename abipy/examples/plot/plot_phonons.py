@@ -7,6 +7,7 @@ from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Open PHBST file produced by anaddb and extract the phonon bands object.
+# (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb` to open the file in a jupyter notebook.
 with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands
 
@@ -14,7 +15,7 @@ with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
 # are found automatically by searching in an internal database.
 phbands.plot(title="AlAs without LO-TO splitting")
 
-# Alternatively you can use the optional argument qlabels 
+# Alternatively you can use the optional argument qlabels
 # that defines the mapping reduced_coordinates --> name of the q-point.
 #qlabels = {
 #    (0,0,0): "$\Gamma$",

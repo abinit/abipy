@@ -7,7 +7,7 @@ See also PhysRevLett.86.4656
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-# Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`
+# Open the file (alternatively one can use the shell and `abiopen.py FILE -nb` to open the file in a jupyter notebook
 # This fatbands file has been produced on a k-path so it's not suitable for DOS calculations.
 fbnc_kpath = abilab.abiopen(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This example shows how to compute and plot thermodinamic properties within the harmonic approximation.
-starting the phonon DOS produced by anaddb.
+This example shows how to compute and plot thermodinamic properties within
+the harmonic approximation using the phonon DOS produced by anaddb.
 """
 from __future__ import print_function
 
@@ -25,3 +25,5 @@ f.plot()
 # Plot U, F, S, Cv as a function of T.
 # Use J/mol units, results are divided by formula_units.
 phdos.plot_harmonic_thermo(units="Jmol", formula_units=1)
+
+ncfile.close()

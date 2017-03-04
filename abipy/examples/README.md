@@ -11,9 +11,4 @@ Below is a brief description of the different directories found here:
     procedural way. Execute the script _runplots.py for an overview 
     of the capabilities of abipy.
 
-  * htc -  usage examples of the High-throughput API.
-
-  * misc - miscellaneous examples. 
-
   * notebooks - ipython notebooks
-

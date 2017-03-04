@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This example shows how to display the Brillouin zone 
+This example shows how to display the Brillouin zone
 with pymatgen and matplotlib.
 """
 from abipy.abilab import abiopen
@@ -14,3 +14,6 @@ structure = wfk_file.structure
 
 # Visualize the BZ.
 structure.show_bz()
+
+# Close the wfk file
+wfk_file.close()
