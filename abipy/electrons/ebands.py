@@ -1516,7 +1516,8 @@ class ElectronBands(object):
         ax.set_ylabel('Energy [eV]')
 
         # Set ticks and labels.
-        ticks, labels = self._make_ticks_and_labels(kwargs.pop("klabels", None))
+        klabels = kwargs.pop("klabels", None)
+        ticks, labels = self._make_ticks_and_labels(klabels)
         if ticks:
             # Don't show label if previous k-point is the same.
             for il in range(1, len(labels)):

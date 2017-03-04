@@ -21,7 +21,7 @@ Let's assume we decided to create this directory inside `$HOME` and let's call i
 
     mkdir $HOME/local
 
-Now change you `~/.bashrc` file by adding the following lines::
+Now change your `~/.bashrc` file by adding the following three lines::
 
     export PATH=$HOME/local/bin:$PATH
     export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
@@ -46,7 +46,7 @@ The installation should be OK for AbiPy if you get::
     To find the necessary bits, look in setup.py in detect_modules() for the module's name.
 
 If, on the other hand, python has been built without `bz2` or `_tkinter` you are in trouble 
-because these packages are needed.
+because these packages are required.
 
 `bz2` is more fundamental than `_tkinter` because it is used to compress/uncompress files.
 AbiPy won't work without `bz2` and you have to install the `bzip` library with the C headers.

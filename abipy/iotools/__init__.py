@@ -4,9 +4,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 from .xsf import *
 from .visualizer import *
 
-import pymatgen.io.abinit.netcdf as ionc 
+import pymatgen.io.abinit.netcdf as ionc
 
 as_etsfreader = ionc.as_etsfreader
+
 
 class ETSF_Reader(ionc.ETSF_Reader):
     """

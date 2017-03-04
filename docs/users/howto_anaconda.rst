@@ -42,9 +42,11 @@ and install the packages with::
 
     python setup.py install
 
-Once you are done with the installation of abipy and pymatgen, open the `ipython` shell and type::
+Once you have completed the installation of abipy and pymatgen, open the `ipython` shell and type::
 
     from abipy import abilab
+
+to check the installation.
 
 Optionally, you may want to execute::
 

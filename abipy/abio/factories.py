@@ -25,6 +25,7 @@ logger = logging.getLogger(__file__)
 __all__ = [
     "gs_input",
     "ebands_input",
+    "phonons_from_gsinput",
     "g0w0_with_ppmodel_inputs",
     "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
@@ -404,11 +405,11 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
 
 def g0w0_with_ppmodel_inputs(structure, pseudos,
-                            kppa, nscf_nband, ecuteps, ecutsigx,
-                            ecut=None, pawecutdg=None,
-                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
-                            ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                            sigma_nband=None, gw_qprange=1):
+                             kppa, nscf_nband, ecuteps, ecutsigx,
+                             ecut=None, pawecutdg=None,
+                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                             sigma_nband=None, gw_qprange=1):
     """
     Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
 
@@ -850,7 +851,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
                          ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None):
     """
     Returns a list of inputs in the form of a MultiDataset to performe phonon calculations, based on
-    a grond state AbinitInput.
+    a ground state AbinitInput.
     It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
     The inputs have the following tags, according to their function: "ddk", "dde", "nscf", "ph_q_pert".
     All of them have the tag "phonon".
