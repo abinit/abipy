@@ -323,10 +323,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         sha1 = hashlib.sha1()
 
         try:
-            tos = unicode 
+            tos = unicode
         except NameError:
             # Py3K
-            def tos(s): 
+            def tos(s):
                 return str(s).encode(encoding="utf-8")
 
         # Add key, values to sha1
@@ -1400,7 +1400,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
                  {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
-
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1933,7 +1932,7 @@ class MultiDataset(object):
     def write(self, filepath="run.abi"):
         """
         Write `ndset` input files to disk. The name of the file
-        is constructued from the dataset index e.g. run0.abi
+        is constructed from the dataset index e.g. run0.abi
         """
         root, ext = os.path.splitext(filepath)
         for i, inp in enumerate(self):

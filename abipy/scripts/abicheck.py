@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Check that the environment on the local machine is properly setup"""
+"""
+This script checks that the environment on the local machine is properly configured.
+"""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
