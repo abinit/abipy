@@ -8,12 +8,10 @@ hardware: &hardware
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: /home/ucl/naps/gmatteo/bzr_repos/gmatteo_7.9.1-private/build_mvapich2_intel/src/98_main:$PATH
+        PATH: "/home/ucl/naps/gmatteo/bzr_repos/gmatteo_7.9.1-private/build_mvapich2_intel/src/98_main:$PATH"
     pre_run:
-       - source /home/ucl/naps/gmatteo/.bashrc
-       - ulimit -s unlimited
-    #modules:
-    #    - abipy-python
+       - "source /home/ucl/naps/gmatteo/.bashrc"
+       - "ulimit -s unlimited"
 
 # queues 
 qadapters:
@@ -22,9 +20,8 @@ qadapters:
        qname: defq
        qtype: slurm
        qparams:
-         mail_user:
-         mail_type: FAIL
-         # Othere slurm options ... 
+          mail_type: FAIL
+          #mail_user: # Othere slurm options ... 
     limits:
        timelimit: 0:10:0
        max_cores: 16

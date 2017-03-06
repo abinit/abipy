@@ -31,7 +31,7 @@ job: &job
 # queues 
 qadapters:
   - priority: 1
-    max_num_launches: 20
+    #max_num_launches: 20
     queue:
        qname: high
        qtype: slurm
