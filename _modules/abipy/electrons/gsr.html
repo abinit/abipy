@@ -1,0 +1,757 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.electrons.gsr &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.electrons.gsr</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.electrons.gsr</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;GSR file.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">EnergyArray</span><span class="p">,</span> <span class="n">ArrayWithUnit</span>
+<span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="k">import</span> <span class="n">ComputedEntry</span><span class="p">,</span> <span class="n">ComputedStructureEntry</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">prettytable</span> <span class="k">import</span> <span class="n">PrettyTable</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;GsrFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GsrPlotter&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="GsrFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile">[docs]</a><span class="k">class</span> <span class="nc">GsrFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    File containing the results of a ground-state calculation.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with GsrFile(&quot;foo_GSR.nc&quot;) as gsr:</span>
+<span class="sd">            print(&quot;energy: &quot;, gsr.energy)</span>
+<span class="sd">            gsr.ebands.plot()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GsrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GsrFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="n">GsrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Initialize the electron bands from file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span>
+
+        <span class="c1"># Add forces to structure</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scf_run</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">add_site_property</span><span class="p">(</span><span class="s2">&quot;cartesian_forces&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GsrFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scf_run</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> [GPa]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_scf_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if the GSR has been produced by a SCF run.&quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: We use kptopt to understand if we have a SCF/NSCF run</span>
+        <span class="c1"># In principle one should use iscf but it&#39;s not available in the GSR.</span>
+        <span class="c1">#return self.ebands.kpoints.ksampling.kptopt &gt;= 0</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">9.9999999999e+99</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span>
+
+    <span class="c1">#FIXME</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tsmear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">smearing</span><span class="o">.</span><span class="n">tsmear_ev</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.ecut"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.ecut">[docs]</a>    <span class="k">def</span> <span class="nf">ecut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cutoff energy in Hartree (Abinit input variable)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ecut&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.pawecutdg"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.pawecutdg">[docs]</a>    <span class="k">def</span> <span class="nf">pawecutdg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cutoff energy in Hartree for the PAW double grid (Abinit input variable)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;pawecutdg&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.energy"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total energy&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;etotal&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.energy_per_atom"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy_per_atom">[docs]</a>    <span class="k">def</span> <span class="nf">energy_per_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total energy / number_of_atoms&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.energy_terms"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy_terms">[docs]</a>    <span class="k">def</span> <span class="nf">energy_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_energy_terms</span><span class="p">()</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.cart_forces"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_forces">[docs]</a>    <span class="k">def</span> <span class="nf">cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cartesian forces in eV / Ang&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_forces</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">max_force</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span> <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fmods</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GsrFile.force_stats"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.force_stats">[docs]</a>    <span class="k">def</span> <span class="nf">force_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string with information on the forces.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span> <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">])</span>
+        <span class="n">imin</span><span class="p">,</span> <span class="n">imax</span> <span class="o">=</span> <span class="n">fmods</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="n">fmods</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="s2">&quot;fsum: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+            <span class="s2">&quot;mean: </span><span class="si">%s</span><span class="s2">, std </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">fmods</span><span class="o">.</span><span class="n">std</span><span class="p">()),</span>
+            <span class="s2">&quot;minimum at site </span><span class="si">%s</span><span class="s2">, cart force: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">imin</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">[</span><span class="n">imin</span><span class="p">]),</span>
+            <span class="s2">&quot;maximum at site </span><span class="si">%s</span><span class="s2">, cart force: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">imax</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">[</span><span class="n">imax</span><span class="p">]),</span>
+        <span class="p">])</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Cartesian Force&quot;</span><span class="p">,</span> <span class="s2">&quot;Length&quot;</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fmod</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fmods</span><span class="p">):</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_forces</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fmod</span><span class="p">])</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">s</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.cart_stress_tensor"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_stress_tensor">[docs]</a>    <span class="k">def</span> <span class="nf">cart_stress_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stress tensor in Ha/Bohr**3&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensor</span><span class="p">()</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.pressure"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.pressure">[docs]</a>    <span class="k">def</span> <span class="nf">pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pressure in Gpa&quot;&quot;&quot;</span>
+        <span class="n">HaBohr3_GPa</span> <span class="o">=</span> <span class="mf">29421.033</span> <span class="c1"># 1 Ha/Bohr^3, in GPa</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">HaBohr3_GPa</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">FloatWithUnit</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GPa&quot;</span><span class="p">,</span> <span class="n">unit_type</span><span class="o">=</span><span class="s2">&quot;pressure&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.residm"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.residm">[docs]</a>    <span class="k">def</span> <span class="nf">residm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum of the residuals&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;residm&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="GsrFile.xc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.xc">[docs]</a>    <span class="k">def</span> <span class="nf">xc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`XcFunc object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GsrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GsrFile.get_computed_entry"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.get_computed_entry">[docs]</a>    <span class="k">def</span> <span class="nf">get_computed_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inc_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.</span>
+<span class="sd">        Same API as the one used in vasp_output.get_computed_entry.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inc_structure (bool): Set to True if you want</span>
+<span class="sd">                ComputedStructureEntries to be returned instead of</span>
+<span class="sd">                ComputedEntries.</span>
+<span class="sd">            parameters (list): Input parameters to include. It has to be one of</span>
+<span class="sd">                the properties supported by the GSR object. If</span>
+<span class="sd">                parameters == None, a default set of parameters that are</span>
+<span class="sd">                necessary for typical post-processing will be set.</span>
+<span class="sd">            data (list): Output data to include. Has to be one of the properties</span>
+<span class="sd">                supported by the GSR object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ComputedStructureEntry/ComputedEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#raise NotImplementedError(&quot;&quot;)</span>
+        <span class="c1"># TODO</span>
+        <span class="c1">#param_names = {&quot;is_hubbard&quot;, &quot;hubbards&quot;, &quot;potcar_symbols&quot;, &quot;run_type&quot;}</span>
+        <span class="c1">#if parameters:</span>
+        <span class="c1">#    param_names.update(parameters)</span>
+        <span class="c1">#params = {p: getattr(self, p) for p in param_names}</span>
+        <span class="c1">#data = {p: getattr(self, p) for p in data} if data is not None else {}</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">inc_structure</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ComputedStructureEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+                                          <span class="n">parameters</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ComputedEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+                                 <span class="n">parameters</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GsrFile.as_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># TODO: Add info depending on the run_type e.g. max_resid is NSCF</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+            <span class="n">final_energy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+            <span class="n">final_energy_per_atom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_per_atom</span><span class="p">,</span>
+            <span class="n">max_force</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_force</span><span class="p">,</span>
+            <span class="n">cart_stress_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">,</span>
+            <span class="n">pressure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">,</span>
+            <span class="n">number_of_electrons</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span>
+        <span class="p">)</span></div>
+            <span class="c1"># FIXME: this call raises</span>
+            <span class="c1">#&gt;       if kpointcbm.label is not None:</span>
+            <span class="c1">#E       AttributeError: &#39;NoneType&#39; object has no attribute &#39;label&#39;</span>
+            <span class="c1">#ebands=self.ebands.to_pymatgen().as_dict(),</span>
+            <span class="c1">#max_residual=</span>
+            <span class="c1">#magnetization=self.magnetization,</span>
+            <span class="c1">#band_gap=</span>
+            <span class="c1">#optical_gap=</span>
+            <span class="c1">#is_direct=</span>
+            <span class="c1">#cbm=</span>
+            <span class="c1">#vbm=</span>
+            <span class="c1">#efermi=</span>
+            <span class="c1">#band_gap:</span>
+            <span class="c1">#optical_gap:</span>
+            <span class="c1">#efermi:</span>
+
+<div class="viewcode-block" id="GsrFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;gsr = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(gsr)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = gsr.ebands.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = gsr.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">if gsr.ebands.kpoints.is_ibz:</span>
+<span class="s2">    fig = gsr.ebands.get_edos().plot()&quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)&quot;),</span>
+
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">EnergyTerms</span><span class="p">(</span><span class="n">AttrDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Contributions to the total GS energy. See energies_type in m_energies.F90&quot;&quot;&quot;</span>
+
+    <span class="n">_NAME2DOC</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="c1"># (Name, help)</span>
+        <span class="p">(</span><span class="s2">&quot;e_localpsp&quot;</span><span class="p">,</span> <span class="s2">&quot;Local psp energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_eigenvalues&quot;</span><span class="p">,</span> <span class="s2">&quot;Sum of the eigenvalues - Band energy</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                          <span class="s2">&quot;(valid for double-counting scheme dtset</span><span class="si">%o</span><span class="s2">ptene == 1)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_ewald&quot;</span><span class="p">,</span>  <span class="s2">&quot;Ewald energy, store also the ion/ion energy for free boundary conditions.&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_hartree&quot;</span><span class="p">,</span> <span class="s2">&quot;Hartree part of the total energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_corepsp&quot;</span><span class="p">,</span> <span class="s2">&quot;psp core-core energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_corepspdc&quot;</span><span class="p">,</span> <span class="s2">&quot;psp core-core energy double-counting&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_kinetic&quot;</span><span class="p">,</span> <span class="s2">&quot;Kinetic energy part of total energy. (valid for direct scheme, dtset</span><span class="si">%o</span><span class="s2">ptene == 0&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_nonlocalpsp&quot;</span><span class="p">,</span> <span class="s2">&quot;Nonlocal pseudopotential part of total energy.&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;Entropy energy due to the occupation number smearing (if metal)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                      <span class="s2">&quot;Value is multiplied by dtset%tsmear, see </span><span class="si">%e</span><span class="s2">ntropy for the entropy alone</span><span class="se">\n</span><span class="s2">.&quot;</span> <span class="o">+</span>
+                      <span class="s2">&quot;(valid for metals, dtset</span><span class="si">%o</span><span class="s2">ccopt&gt;=3 .and. dtset</span><span class="si">%o</span><span class="s2">ccopt&lt;=8)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;Entropy term&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_xc&quot;</span><span class="p">,</span> <span class="s2">&quot;Exchange-correlation energy&quot;</span><span class="p">),</span>
+        <span class="c1">#(&quot;e_vdw_dftd2&quot;, &quot;Dispersion energy from DFT-D2 Van der Waals correction&quot;),</span>
+        <span class="p">(</span><span class="s2">&quot;e_xcdc&quot;</span><span class="p">,</span> <span class="s2">&quot;enxcdc=exchange-correlation double-counting energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_paw&quot;</span><span class="p">,</span> <span class="s2">&quot;PAW spherical part energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_pawdc&quot;</span><span class="p">,</span> <span class="s2">&quot;PAW spherical part double-counting energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_elecfield&quot;</span><span class="p">,</span> <span class="s2">&quot;Electric enthalpy, by adding both ionic and electronic contributions&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_magfield&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital magnetic enthalpy, by adding orbital contribution&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_fermie&quot;</span><span class="p">,</span> <span class="s2">&quot;Fermie energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_sicdc&quot;</span><span class="p">,</span> <span class="s2">&quot;Self-interaction energy double-counting&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_exactX&quot;</span><span class="p">,</span> <span class="s2">&quot;Fock exact-exchange energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;h0&quot;</span><span class="p">,</span> <span class="s2">&quot;h0=e_kinetic+e_localpsp+e_nonlocalpsp&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_electronpositron&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron-positron: electron-positron interaction energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;edc_electronpositron&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron-positron: double-counting electron-positron interaction energy&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e0_electronpositron&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron-positron: energy only due to unchanged particles</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                                <span class="s2">&quot;(if calctype=1, energy due to electrons only)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                                <span class="s2">&quot;(if calctype=2, energy due to positron only)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;e_monopole&quot;</span><span class="p">,</span> <span class="s2">&quot;Monopole correction to the total energy for charged supercells&quot;</span><span class="p">),</span>
+        <span class="c1"># FIXME: Some names have been changed in Abinit8, I should recheck the code.</span>
+        <span class="c1">#(&quot;e_xc_vdw&quot;, &quot;vdW-DF correction to the XC energy&quot;),</span>
+    <span class="p">])</span>
+
+    <span class="n">ALL_KEYS</span> <span class="o">=</span> <span class="n">_NAME2DOC</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_doc</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">__repr__</span> <span class="o">=</span> <span class="n">__str__</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;PrettyTable object with the results.&quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">PrettyTable</span><span class="p">([</span><span class="s2">&quot;Term&quot;</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NAME2DOC</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">add_row</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">table</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_doc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation, with documentation if with_doc.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">with_doc</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NAME2DOC</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">doc</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GsrReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.</span>
+<span class="sd">    It provides helper function to access the most important quantities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">read_cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read and return a numpy array with the cartesian forces in unit `unit`.</span>
+<span class="sd">        Shape (natom, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;cartesian_forces&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_cart_stress_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Abinit stores 6 unique components of this symmetric 3x3 tensor:</span>
+        <span class="c1"># Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;cartesian_stress_tensor&quot;</span><span class="p">)</span>
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">))):</span>
+            <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
+            <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">tensor</span>
+
+    <span class="k">def</span> <span class="nf">read_energy_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary of `Energies` with the different contributions to the total electronic energy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">convert</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">EnergyTerms</span><span class="o">.</span><span class="n">ALL_KEYS</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">EnergyTerms</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+
+<span class="c1"># TODO: Remove and/or merge with robots.</span>
+<div class="viewcode-block" id="GsrPlotter"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter">[docs]</a><span class="k">class</span> <span class="nc">GsrPlotter</span><span class="p">(</span><span class="n">Iterable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object receives a list of `GsrFile` objects and provides</span>
+<span class="sd">    methods to inspect/analyze the results (useful for convergence studies)</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        plotter = GsrPlotter()</span>
+<span class="sd">        plotter.add_file(&quot;foo_GSR.nc&quot;)</span>
+<span class="sd">        plotter.add_file(&quot;bar_GSR.nc&quot;)</span>
+<span class="sd">        plotter.plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">files</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gsr</span><span class="p">)</span> <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. It automatically closes the file.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GsrPlotter.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">gsr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="GsrPlotter.add_files"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.add_files">[docs]</a>    <span class="k">def</span> <span class="nf">add_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepaths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a list of filenames to the plotter&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filepaths</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GsrPlotter.add_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a filename to the plotter&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
+        <span class="n">gsr</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="p">[</span><span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span>
+
+        <span class="c1"># Initialize/check useful quantities.</span>
+        <span class="c1">#</span>
+        <span class="c1"># 1) Number of spins</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;nsppol&quot;</span><span class="p">):</span>  <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">nsppol</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="n">gsr</span><span class="o">.</span><span class="n">nsppol</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filepaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filepaths of the GSR files.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">param_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The name of the parameter whose value is checked for convergence.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_param_name</span><span class="p">(</span><span class="n">param_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span>
+
+    <span class="k">def</span> <span class="nf">_get_param_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary with the values of the parameters extracted from the GSR files.&quot;&quot;&quot;</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="n">gsr</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">param_list</span><span class="p">[</span><span class="n">pname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">pname</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">param_list</span>
+
+<div class="viewcode-block" id="GsrPlotter.set_param_name"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.set_param_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_param_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the name of the parameter whose value is checked for convergence.</span>
+<span class="sd">        if param_name is None, we try to find its name by inspecting</span>
+<span class="sd">        the values in the gsr.params dictionaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span> <span class="o">=</span> <span class="n">param_name</span></div>
+
+<div class="viewcode-block" id="GsrPlotter.prepare_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.prepare_plot">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method must be called before plotting data.</span>
+<span class="sd">        It tries to figure the name of parameter we are converging</span>
+<span class="sd">        by looking at the set of parameters used to compute the different GSR files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_param_list</span><span class="p">()</span>
+
+        <span class="n">param_name</span><span class="p">,</span> <span class="n">problem</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value_list</span> <span class="ow">in</span> <span class="n">param_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">!=</span> <span class="n">value_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">param_name</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">problem</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot perform automatic detection of convergence parameter.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                                   <span class="s2">&quot;Found multiple parameters with different values. Will use filepaths as plot labels.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_param_name</span><span class="p">(</span><span class="n">param_name</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Could not figure the name of the parameter.</span>
+            <span class="n">xvalues</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xvalues</span> <span class="o">=</span> <span class="n">param_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span>
+
+            <span class="c1"># Sort xvalues and rearrange the files.</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">iv</span> <span class="k">for</span> <span class="n">iv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+
+            <span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+            <span class="n">newd</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+                <span class="n">gsr</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">newd</span><span class="p">[</span><span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span> <span class="o">=</span> <span class="n">newd</span>
+
+            <span class="c1"># Use sorted xvalues for the plot.</span>
+            <span class="n">param_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_param_list</span><span class="p">()</span>
+            <span class="n">xvalues</span> <span class="o">=</span> <span class="n">param_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_xvalues</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The values used for the X-axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xvalues</span>
+
+<div class="viewcode-block" id="GsrPlotter.set_xvalues"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.set_xvalues">[docs]</a>    <span class="k">def</span> <span class="nf">set_xvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xvalues</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;xvalues setter.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xvalues</span> <span class="o">=</span> <span class="n">xvalues</span></div>
+
+<div class="viewcode-block" id="GsrPlotter.decorate_ax"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.decorate_ax">[docs]</a>    <span class="k">def</span> <span class="nf">decorate_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="c1"># Set ticks and labels.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Could not figure the name of the parameter ==&gt; Use the basename of the files</span>
+            <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xvalues</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GsrPlotter.plot_variables"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.plot_variables">[docs]</a>    <span class="k">def</span> <span class="nf">plot_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varname_x</span><span class="p">,</span> <span class="n">varname_y</span><span class="p">,</span> <span class="n">hspan</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ex:</span>
+<span class="sd">            plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">show</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">savefig</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;savefig&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Read the value of varname from the files.</span>
+        <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">GsrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+                <span class="n">xx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">varname_x</span><span class="p">))</span>
+                <span class="n">yy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">varname_y</span><span class="p">))</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="s2">&quot;o-&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">hspan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="n">yy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axhspan</span><span class="p">(</span><span class="n">last</span><span class="o">-</span><span class="n">hspan</span><span class="p">,</span> <span class="n">last</span><span class="o">+</span><span class="n">hspan</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">savefig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefig</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Documenting abipy &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
+        <link rel="up" title="The AbiPy Developers’ Guide" href="index.html"/>
+        <link rel="prev" title="Coding guide" href="coding_guide.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">The AbiPy Developers&#8217; Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Documenting abipy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting started</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#organization-of-abipy-s-documentation">Organization of abipy&#8217;s documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formatting">Formatting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#figures">Figures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dynamically-generated-figures">Dynamically generated figures</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">The AbiPy Developers&#8217; Guide</a> &raquo;</li>
+      
+    <li>Documenting abipy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/devel/documenting_guide.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="documenting-abipy">
+<span id="id1"></span><h1>Documenting abipy<a class="headerlink" href="#documenting-abipy" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>The documentation for abipy is generated from ReStructured Text using the <a class="reference external" href="http://sphinx.pocoo.org">Sphinx</a> documentation generation tool.
+Sphinx-1.0 or later is required.</p>
+<p>The documentation sources are found in the <code class="file docutils literal"><span class="pre">docs/</span></code> directory in the trunk.
+To build the users guide in html format, cd into <code class="file docutils literal"><span class="pre">docs/</span></code> and do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
+<p>The output produced by Sphinx can be configured by editing the <code class="file docutils literal"><span class="pre">conf.py</span></code> file located in the <code class="file docutils literal"><span class="pre">docs/</span></code>.</p>
+</div>
+<div class="section" id="organization-of-abipy-s-documentation">
+<h2>Organization of abipy&#8217;s documentation<a class="headerlink" href="#organization-of-abipy-s-documentation" title="Permalink to this headline">¶</a></h2>
+<p>The actual ReStructured Text files are kept in <code class="file docutils literal"><span class="pre">docs/users</span></code>, <code class="file docutils literal"><span class="pre">docs/devel</span></code>, <code class="file docutils literal"><span class="pre">docs/api</span></code>.
+The main entry point is <code class="file docutils literal"><span class="pre">docs/index.rst</span></code>, which pulls in the <code class="file docutils literal"><span class="pre">index.rst</span></code>
+file for the users guide, developers guide, api reference.</p>
+<p>Additional files can be added to the various guides by including their base
+file name (the .rst extension is not necessary) in the table of contents.
+It is also possible to include other documents through the use of an include
+statement, such as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">include</span><span class="p">::</span> <span class="o">../../</span><span class="n">TODO</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="formatting">
+<span id="formatting-abipy-docs"></span><h2>Formatting<a class="headerlink" href="#formatting" title="Permalink to this headline">¶</a></h2>
+<p>The Sphinx website contains plenty of <a class="reference external" href="http://sphinx.pocoo.org/contents.html">documentation</a> concerning ReST markup and
+working with Sphinx in general. Here are a few additional things to keep in mind:</p>
+<ul>
+<li><p class="first">Please familiarize yourself with the Sphinx directives for <a class="reference external" href="http://sphinx.pocoo.org/markup/inline.html">inline
+markup</a>. Abipy&#8217;s documentation makes heavy use of cross-referencing and
+other semantic markup. For example, when referring to external files, use the
+<code class="docutils literal"><span class="pre">:file:</span></code> directive.</p>
+</li>
+<li><p class="first">Function arguments and keywords should be referred to using the <em>emphasis</em>
+role. This will keep abipy&#8217;s documentation consistant with Python&#8217;s
+documentation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Here</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">description</span> <span class="n">of</span> <span class="o">*</span><span class="n">argument</span><span class="o">*</span>
+</pre></div>
+</div>
+<p>Please do not use the <cite>default role</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>Please do not describe `argument` like this.
+</pre></div>
+</div>
+<p>nor the <code class="docutils literal"><span class="pre">literal</span></code> role:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>Please do not describe ``argument`` like this.
+</pre></div>
+</div>
+</li>
+<li><p class="first">Sphinx does not support tables with column- or row-spanning cells for
+latex output. Such tables can not be used when documenting matplotlib.</p>
+</li>
+<li><p class="first">Mathematical expressions can be rendered as png images in html, and in the
+usual way by latex. For example:</p>
+<p><code class="docutils literal"><span class="pre">:math:`\sin(x_n^2)`</span></code> yields: <img src="../_images/mathmpl/math-fa85ea0416.png" style="position: relative; bottom: -8px"/>, and:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">math</span><span class="p">::</span>
+
+  \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span><span class="p">{</span>\<span class="n">infty</span><span class="p">}</span>\<span class="n">frac</span><span class="p">{</span><span class="n">e</span><span class="o">^</span><span class="p">{</span><span class="n">i</span>\<span class="n">phi</span><span class="p">}}{</span><span class="mi">1</span><span class="o">+</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span>\<span class="n">frac</span><span class="p">{</span><span class="n">e</span><span class="o">^</span><span class="p">{</span><span class="n">i</span>\<span class="n">phi</span><span class="p">}}{</span><span class="mi">1</span><span class="o">+</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>yields:</p>
+<img src="../_images/mathmpl/math-5b4e20db62.png" class="center" /></li>
+<li><p class="first">Interactive IPython sessions can be illustrated in the documentation using the following directive:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">sourcecode</span><span class="p">::</span> <span class="n">ipython</span>
+
+  <span class="n">In</span> <span class="p">[</span><span class="mi">69</span><span class="p">]:</span> <span class="n">lines</span> <span class="o">=</span> <span class="n">plot</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>which would yield:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [69]: </span><span class="n">lines</span> <span class="o">=</span> <span class="n">plot</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Footnotes <a class="footnote-reference" href="#id3" id="id2">[1]</a> can be added using <code class="docutils literal"><span class="pre">[#]_</span></code>, followed later by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">rubric</span><span class="p">::</span> <span class="n">Footnotes</span>
+
+<span class="o">..</span> <span class="p">[</span><span class="c1">#]</span>
+</pre></div>
+</div>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td><p class="first last">For example.</p>
+</td></tr>
+</tbody>
+</table>
+</li>
+<li><p class="first">Use the <em>note</em> and <em>warning</em> directives, sparingly, to draw attention to important comments:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">note</span><span class="p">::</span>
+   <span class="n">Here</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">note</span>
+</pre></div>
+</div>
+<p>yields:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">here is a note</p>
+</div>
+<p>also:</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">here is a warning</p>
+</div>
+</li>
+<li><p class="first">Use the <em>deprecated</em> directive when appropriate:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">deprecated</span><span class="p">::</span> <span class="mf">0.98</span>
+   <span class="n">This</span> <span class="n">feature</span> <span class="ow">is</span> <span class="n">obsolete</span><span class="p">,</span> <span class="n">use</span> <span class="n">something</span> <span class="k">else</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>yields:</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.98: </span>This feature is obsolete, use something else.</p>
+</div>
+</li>
+<li><p class="first">Use the <em>versionadded</em> and <em>versionchanged</em> directives, which have similar
+syntax to the <em>deprecated</em> role:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">versionadded</span><span class="p">::</span> <span class="mf">0.2</span>
+   <span class="n">The</span> <span class="n">transforms</span> <span class="n">have</span> <span class="n">been</span> <span class="n">completely</span> <span class="n">revamped</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.2: </span>The transforms have been completely revamped.</p>
+</div>
+</li>
+<li><p class="first">The autodoc extension will handle index entries for the API, but additional
+entries in the <a class="reference external" href="http://sphinx.pocoo.org/markup/para.html#index-generating-markup">index</a> need to be explicitly added.</p>
+</li>
+</ul>
+<div class="section" id="docstrings">
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the aforementioned formatting suggestions:</p>
+<ul class="simple">
+<li>Please limit the text width of docstrings to 70 characters.</li>
+<li>Keyword arguments should be described using a definition list.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="figures">
+<h2>Figures<a class="headerlink" href="#figures" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dynamically-generated-figures">
+<h3>Dynamically generated figures<a class="headerlink" href="#dynamically-generated-figures" title="Permalink to this headline">¶</a></h3>
+<p>Figures can be automatically generated from scripts and included in the docs.
+It is not necessary to explicitly save the figure in the script, this will be done
+automatically at build time to ensure that the code that is included runs and produces the advertised figure.</p>
+<p>Any plots specific to the documentation should be added to the <code class="docutils literal"><span class="pre">examples/plot/</span></code> directory and committed to git.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="coding_guide.html" class="btn btn-neutral" title="Coding guide" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

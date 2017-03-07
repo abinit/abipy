@@ -1,0 +1,1012 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.dfpt.ddb &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.dfpt.ddb</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.dfpt.ddb</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;DDB File.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span><span class="p">,</span> <span class="n">tree</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">get_ncpus</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.netcdf</span> <span class="k">import</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.tasks</span> <span class="k">import</span> <span class="n">AnaddbTask</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">TextFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">KpointList</span>
+<span class="kn">from</span> <span class="nn">abipy.core.tensor</span> <span class="k">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AnaddbInput</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononDosPlotter</span><span class="p">,</span> <span class="n">InteratomicForceConstants</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.elastic</span> <span class="k">import</span> <span class="n">ElasticTensor</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DdbError"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbError">[docs]</a><span class="k">class</span> <span class="nc">DdbError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Error class raised by DDB.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AnaddbError"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.AnaddbError">[docs]</a><span class="k">class</span> <span class="nc">AnaddbError</span><span class="p">(</span><span class="n">DdbError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exceptions raised when we try to execute :class:`AnaddbTask` in the :class:`DdbFile` methods</span>
+
+<span class="sd">    An `AnaddbError` has a reference to the task and to the :class:`EventsReport` that contains</span>
+<span class="sd">    the error messages of the run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AnaddbError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">workdir = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> errors&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">))</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DdbFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile">[docs]</a><span class="k">class</span> <span class="nc">DdbFile</span><span class="p">(</span><span class="n">TextFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object provides an interface to the DDB file produced by ABINIT</span>
+<span class="sd">    as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Error</span> <span class="o">=</span> <span class="n">DdbError</span>
+    <span class="n">AnaddbError</span> <span class="o">=</span> <span class="n">AnaddbError</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DdbFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Needed for the `AbinitFile` abstract interface.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">read_blocks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DdbFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_header</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+        <span class="c1"># Add AbinitSpacegroup (needed in guessed_ngkpt)</span>
+        <span class="c1"># FIXME: has_timerev is always True</span>
+        <span class="n">spgid</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">AbinitSpaceGroup</span><span class="p">(</span><span class="n">spgid</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">symrel</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">tnons</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">symafm</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">))</span>
+
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_qpoints</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qpoints</span> <span class="o">=</span> <span class="n">KpointList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">read_blocks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_blocks</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DdbFile.close"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Needed for the `AbinitFile` abstract interface.&quot;&quot;&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DdbFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span><span class="p">,</span> <span class="n">extend</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">,</span> <span class="n">lines</span><span class="o">.</span><span class="n">extend</span>
+        <span class="c1">#extend(super(DdbFile, self).__str__().splitlines())</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Q-points&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;guessed_ngqpt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">guessed_ngqpt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dictionary with the values reported in the header section.</span>
+<span class="sd">        Use ddb.header.ecut to access its values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header</span>
+
+    <span class="k">def</span> <span class="nf">_parse_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the header sections. Returns :class:`AttrDict` dictionary.&quot;&quot;&quot;</span>
+        <span class="c1">#ixc         7</span>
+        <span class="c1">#kpt  0.00000000000000D+00  0.00000000000000D+00  0.00000000000000D+00</span>
+        <span class="c1">#     0.25000000000000D+00  0.00000000000000D+00  0.00000000000000D+00</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">keyvals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">header_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">header_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="s2">&quot;Version&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="c1"># +DDB, Version number    100401</span>
+                <span class="n">version</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Description of the potentials (KB energies)&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;No information on the potentials yet&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Description of the PAW dataset(s)&quot;</span><span class="p">):</span>
+                <span class="c1"># Skip section with psps info.</span>
+                <span class="k">break</span>
+
+            <span class="c1"># header starts here</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="c1"># Python does not support exp format with D</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;D+&quot;</span><span class="p">,</span> <span class="s2">&quot;E+&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;D-&quot;</span><span class="p">,</span> <span class="s2">&quot;E-&quot;</span><span class="p">)</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">parse</span> <span class="o">=</span> <span class="nb">float</span> <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="nb">int</span>
+                    <span class="n">keyvals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">parse</span><span class="p">,</span> <span class="n">tokens</span><span class="p">)))</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># We have a new key</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">parse</span> <span class="o">=</span> <span class="nb">float</span> <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="nb">int</span>
+                    <span class="n">keyvals</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">parse</span><span class="p">,</span> <span class="n">tokens</span><span class="p">))))</span>
+
+        <span class="c1"># add the potential information</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;Database of total energy derivatives&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">header_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="n">header_lines</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">keyvals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">h</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Convert to array. Note that znucl is converted into integer</span>
+        <span class="c1"># to avoid problems with pymatgen routines that expect integral Z</span>
+        <span class="c1"># This of course will break any code for alchemical mixing.</span>
+        <span class="n">arrays</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;kpt&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">nkpt</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">),</span>
+            <span class="s2">&quot;rprim&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">),</span>
+            <span class="s2">&quot;symrel&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">nsym</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+            <span class="s2">&quot;tnons&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">nsym</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">),</span>
+            <span class="s2">&quot;xred&quot;</span><span class="p">:</span>  <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">natom</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">),</span>
+            <span class="s2">&quot;znucl&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+            <span class="s2">&quot;symafm&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ainfo</span> <span class="ow">in</span> <span class="n">arrays</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">h</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">ainfo</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]),</span> <span class="n">ainfo</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Transpose symrel because Abinit write matrices by colums.</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">symrel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">h</span><span class="o">.</span><span class="n">symrel</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">h</span>
+
+    <span class="k">def</span> <span class="nf">_read_qpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read the list q-points from the DDB file. Returns `ndarray`&quot;&quot;&quot;</span>
+        <span class="c1"># 2nd derivatives (non-stat.)  - # elements :      36</span>
+        <span class="c1"># qpt  2.50000000E-01  0.00000000E+00  0.00000000E+00   1.0</span>
+
+        <span class="c1"># Since there are multiple occurrences of qpt in the DDB file</span>
+        <span class="c1"># we use seen to remove duplicates.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tokens</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;qpt&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">line</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;qpt&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+        <span class="n">qpoints</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="n">nums</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">tok</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+            <span class="n">qpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nums</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_read_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># skip until the beginning of the db</span>
+        <span class="k">while</span> <span class="s2">&quot;Number of data blocks&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">readline</span><span class="p">():</span>
+            <span class="k">pass</span>
+
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">block_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">qpt</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># skip empty lines</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">isspace</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s2">&quot;List of bloks and their characteristics&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="c1">#add last block</span>
+                <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">block_lines</span><span class="p">,</span> <span class="s2">&quot;qpt&quot;</span><span class="p">:</span> <span class="n">qpt</span><span class="p">})</span>
+                <span class="k">break</span>
+
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="c1"># new block</span>
+            <span class="k">if</span> <span class="s2">&quot;# elements&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">block_lines</span><span class="p">:</span>
+                    <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">block_lines</span><span class="p">,</span> <span class="s2">&quot;qpt&quot;</span><span class="p">:</span> <span class="n">qpt</span><span class="p">})</span>
+                <span class="n">block_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">qpt</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">block_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;qpt&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">qpt</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">blocks</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`KpointList` object with the list of q-points in reduced coordinates.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qpoints</span>
+
+<div class="viewcode-block" id="DdbFile.qindex"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.qindex">[docs]</a>    <span class="k">def</span> <span class="nf">qindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The index of the q-point in the internal list of k-points.</span>
+<span class="sd">        Accepts: :class:`Kpoint` instance or integer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">qpoint</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="DdbFile.guessed_ngqpt"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.guessed_ngqpt">[docs]</a>    <span class="k">def</span> <span class="nf">guessed_ngqpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Guess for the q-mesh divisions (ngqpt) inferred from the list of</span>
+<span class="sd">        q-points found in the DDB file.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            The mesh may not be correct if the DDB file contains points belonging</span>
+<span class="sd">            to different meshes and/or the Q-mesh is shifted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_guess_ngqpt</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_guess_ngqpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function tries to figure out the value of ngqpt from the list of</span>
+<span class="sd">        points reported in the DDB file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Build the union of the stars of the q-points.</span>
+        <span class="n">all_qpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">qpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="p">:</span>
+                <span class="n">all_qpoints</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">qpoint</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Replace zeros with np.inf</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">all_qpoints</span><span class="p">:</span>
+            <span class="n">q</span><span class="p">[</span><span class="n">q</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="c1"># Compute the minimum of the fractional coordinates along the 3 directions and invert</span>
+        <span class="c1">#print(all_qpoints)</span>
+        <span class="n">smalls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">all_qpoints</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">smalls</span><span class="p">[</span><span class="n">smalls</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ngqpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">smalls</span><span class="p">)</span>
+        <span class="n">ngqpt</span><span class="p">[</span><span class="n">ngqpt</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary with the parameters that are usually tested for convergence.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nkpt&quot;</span><span class="p">,</span> <span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="s2">&quot;ecut&quot;</span><span class="p">,</span> <span class="s2">&quot;tsmear&quot;</span><span class="p">,</span> <span class="s2">&quot;ixc&quot;</span><span class="p">)}</span>
+
+    <span class="c1"># TODO</span>
+    <span class="c1"># API to understand if the DDB contains the info we are looking for.</span>
+    <span class="c1"># NB: This requires the parsing of the dynamical matrix</span>
+    <span class="c1">#def has_phonon_terms(self, qpoint)</span>
+    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the phonon perturbation.&quot;&quot;&quot;</span>
+
+    <span class="c1">#def has_emacro_terms(self)</span>
+    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the electric-field perturnation.&quot;&quot;&quot;</span>
+
+    <span class="c1">#def has_bec_terms(self)</span>
+    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the Born effective charges.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DdbFile.anaget_phmodes_at_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phmodes_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute anaddb to compute phonon modes at the given q-point.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qpoint: Reduced coordinates of the qpoint where phonon modes are computed.</span>
+<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">            lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions</span>
+<span class="sd">                non_anal_phfreqs attributes will be added to the returned object</span>
+<span class="sd">            directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three</span>
+<span class="sd">                cartesian direction will be used</span>
+<span class="sd">            anaddb_kwargs: additional kwargs for anaddb</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            :class:`PhononBands` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">qpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> contains </span><span class="si">%s</span><span class="s2"> qpoints and the choice is ambiguous.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                                 <span class="s2">&quot;Please specify the qpoint.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)))</span>
+
+        <span class="c1"># Check if qpoint is in the DDB.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qindex</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;input qpoint </span><span class="si">%s</span><span class="s2"> not in ddb.qpoints:</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">))</span>
+
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">modes_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>
+                                          <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">,</span>
+                                          <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ANADDB INPUT:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;workdir:&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Run the task here</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">AnaddbError</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">open_phbst</span><span class="p">()</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lo_to_splitting</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
+                <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">read_non_anal_from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span></div>
+
+    <span class="c1">#def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1,</span>
+    <span class="c1">#                      workdir=None, manager=None, verbose=0, **kwargs):</span>
+
+    <span class="c1">#def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method=&quot;tetra&quot;</span>
+    <span class="c1">#                      workdir=None, manager=None, verbose=0, **kwargs):</span>
+
+<div class="viewcode-block" id="DdbFile.anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span>
+                                       <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                       <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute anaddb to compute the phonon band structure and the phonon DOS</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions</span>
+<span class="sd">                used to sample the smallest lattice vector.</span>
+<span class="sd">            ndivsm: Number of division used for the smallest segment of the q-path</span>
+<span class="sd">            asr, chneut, dipdip: Anaddb input variable. See official documentation.</span>
+<span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
+<span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure</span>
+<span class="sd">            qptbounds: Boundaries of the path. If None, the path is generated from an internal database</span>
+<span class="sd">                depending on the input structure.</span>
+<span class="sd">            anaddb_kwargs: additional kwargs for anaddb</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :class:`PhbstFile` with the phonon band structure.</span>
+<span class="sd">            :class:`PhdosFile` with the the phonon DOS.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ngqpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">guessed_ngqpt</span>
+
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">phbands_and_dos</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span>
+            <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span>
+            <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ANADDB INPUT:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;workdir:&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Run the task here.</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">AnaddbError</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="n">phbst</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">open_phbst</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">lo_to_splitting</span><span class="p">:</span>
+            <span class="n">phbst</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">read_non_anal_from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">phbst</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">open_phdos</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DdbFile.anacompare_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anacompare_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">anacompare_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmalls</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">num_cpus</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives</span>
+<span class="sd">            the number of divisions to be used to sample the smallest reciprocal lattice vector.</span>
+<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
+<span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
+<span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
+<span class="sd">            num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.</span>
+<span class="sd">            stream: File-like object used for printing.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            `namedtuple` with the following attributes:</span>
+
+<span class="sd">                phdoses: List of :class:`PhononDos` objects</span>
+<span class="sd">                plotter: :class:`PhononDosPlotter` object. Use plotter.plot() to visualize the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">get_ncpus</span><span class="p">()</span> <span class="k">if</span> <span class="n">num_cpus</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">num_cpus</span>
+        <span class="k">if</span> <span class="n">num_cpus</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num_cpus</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">num_cpus</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_cpus</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">))</span>
+
+        <span class="c1"># TODO: anaget_phdos</span>
+        <span class="k">def</span> <span class="nf">do_work</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span>
+                <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span>
+
+        <span class="k">if</span> <span class="n">num_cpus</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Sequential version</span>
+            <span class="n">phdoses</span> <span class="o">=</span> <span class="p">[</span><span class="n">do_work</span><span class="p">(</span><span class="n">nqs</span><span class="p">)</span> <span class="k">for</span> <span class="n">nqs</span> <span class="ow">in</span> <span class="n">nqsmalls</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Threads</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing </span><span class="si">%d</span><span class="s2"> phonon DOS with </span><span class="si">%d</span><span class="s2"> threads&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">),</span> <span class="n">num_cpus</span><span class="p">)</span> <span class="p">)</span>
+            <span class="n">phdoses</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">worker</span><span class="p">():</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">nqsm</span><span class="p">,</span> <span class="n">phdos_index</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                    <span class="n">phdos</span> <span class="o">=</span> <span class="n">do_work</span><span class="p">(</span><span class="n">nqsm</span><span class="p">)</span>
+                    <span class="n">phdoses</span><span class="p">[</span><span class="n">phdos_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">phdos</span>
+                    <span class="n">q</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+            <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">Queue</span> <span class="k">import</span> <span class="n">Queue</span> <span class="c1"># py2k</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Queue</span> <span class="c1"># py3k</span>
+
+            <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_cpus</span><span class="p">):</span>
+                 <span class="n">t</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">worker</span><span class="p">)</span>
+                 <span class="n">t</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+                 <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nqsmall</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">):</span>
+                <span class="n">q</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+            <span class="c1"># block until all tasks are done</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="c1"># Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined</span>
+        <span class="c1"># on different frequency meshes ==&gt; spline on the mesh of the last DOS.</span>
+        <span class="n">last_mesh</span><span class="p">,</span> <span class="n">converged</span> <span class="o">=</span> <span class="n">phdoses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">phdos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phdoses</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">splined_dos</span> <span class="o">=</span> <span class="n">phdos</span><span class="o">.</span><span class="n">spline_on_mesh</span><span class="p">(</span><span class="n">last_mesh</span><span class="p">)</span>
+            <span class="n">abs_diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">splined_dos</span> <span class="o">-</span> <span class="n">phdoses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Delta(Phdos[</span><span class="si">%d</span><span class="s2">] - Phdos[</span><span class="si">%d</span><span class="s2">]) / Phdos[</span><span class="si">%d</span><span class="s2">]: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">phdoses</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">phdoses</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">abs_diff</span><span class="o">.</span><span class="n">integral</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+
+        <span class="c1"># Fill the plotter.</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononDosPlotter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">phdos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">,</span> <span class="n">phdoses</span><span class="p">):</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_phdos</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;nqsmall </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">phdoses</span><span class="o">=</span><span class="n">phdoses</span><span class="p">,</span> <span class="n">plotter</span><span class="o">=</span><span class="n">plotter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DdbFile.anaget_emacro_and_becs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_emacro_and_becs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chneut: Anaddb input variable. See official documentation.</span>
+<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            emacro, becs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;chneut&quot;</span><span class="p">:</span> <span class="n">chneut</span><span class="p">})</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ANADDB INPUT:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;workdir:&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Run the task here.</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">AnaddbError</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="c1"># Read data from the netcdf output file produced by anaddb.</span>
+        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+
+            <span class="n">emacro</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_cartesian_tensor</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;emacro_cart&quot;</span><span class="p">),</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">),</span>
+            <span class="n">becs</span> <span class="o">=</span> <span class="n">Becs</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;becs_cart&quot;</span><span class="p">),</span> <span class="n">structure</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chneut&quot;</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">emacro</span><span class="p">,</span> <span class="n">becs</span></div>
+
+<div class="viewcode-block" id="DdbFile.anaget_ifc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_ifc">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ifcout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute anaddb to compute the interatomic forces.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ifcout: Number of neighbouring atoms for which the ifc&#39;s will be output. If None all the atoms in the big box.</span>
+<span class="sd">            asr, chneut, dipdip: Anaddb input variable. See official documentation.</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">            anaddb_kwargs: additional kwargs for anaddb</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :class:`InteratomicForceConstants` with the calculated ifc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ngqpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">guessed_ngqpt</span>
+
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">ifc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ifcout</span><span class="o">=</span><span class="n">ifcout</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>
+                              <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ANADDB INPUT:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;workdir:&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Run the task here.</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">AnaddbError</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">InteratomicForceConstants</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;anaddb.nc&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DdbFile.write"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes the DDB file in filepath.</span>
+<span class="sd">        Requires the blocks data.</span>
+<span class="sd">        Only the information stored in self.header.lines and in self.blocks will be used to produce the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; **** Database of total energy derivatives ****&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; Number of data blocks=</span><span class="si">{0:5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)))</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; List of bloks and their characteristics&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DdbFile.get_block_for_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.get_block_for_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">get_block_for_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">],</span> <span class="n">qpt</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DdbFile.replace_block_for_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.replace_block_for_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">replace_block_for_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information.</span>
+<span class="sd">        data should be a list of strings representing the whole data block.</span>
+<span class="sd">        Note that the DDB file should be written and reopened in order to call methods that run anaddb.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">],</span> <span class="n">qpt</span><span class="p">):</span>
+                <span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="DdbFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ddb = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ddb)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;display(ddb.header)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method=&quot;tetra&quot;,</span>
+<span class="s2">                                   ngqpt=None, lo_to_splitting=False,</span>
+<span class="s2">                                   qptbounds=None, anaddb_kwargs=None)</span>
+<span class="s2">phbands, phdos = bstfile.phbands, phdosfile.phdos&quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_with_phdos(phdos)&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">emacro, becs = ddb.anaget_emacro_and_becs()</span>
+<span class="s2">print(emacro)</span>
+<span class="s2">print(becs)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Becs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.Becs">[docs]</a><span class="k">class</span> <span class="nc">Becs</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This object stores the Born effective charges and provides simple tools for data analysis.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">becs_arr</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">chneut</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.</span>
+<span class="sd">            structure: Structure object.</span>
+<span class="sd">            chneut: Option used for the treatment of the Charge Neutrality requirement</span>
+<span class="sd">                for the effective charges (anaddb input variable)</span>
+<span class="sd">            order: &quot;f&quot; if becs_arr is in Fortran order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">becs_arr</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span> <span class="o">=</span> <span class="n">chneut</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">becs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">becs_arr</span><span class="p">):</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">becs_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">T</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>
+            <span class="c1">#self.becs[i] = Tensor.from_cartesian_tensor(mat, structure.lattice, space=&quot;r&quot;)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Becs.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.Becs.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Born effective charges computed with chneut: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">bec</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="p">):</span>
+            <span class="c1"># TODO: why PeriodicSite.__str__ does not give the frac_coords?</span>
+            <span class="c1">#print(type(site))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;bec at site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">site</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">bec</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add info on the bec sum rule.</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_sumrule</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Becs.check_sumrule"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.Becs.check_sumrule">[docs]</a>    <span class="k">def</span> <span class="nf">check_sumrule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Born effective charge neutrality sum-rule with chneut: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">)</span>
+        <span class="n">becs_atomsum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">becs_atomsum</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="ElasticComplianceTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor">[docs]</a><span class="k">class</span> <span class="nc">ElasticComplianceTensor</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This object is used to store the elastic and compliance tensors.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elastic_tensor</span><span class="p">,</span> <span class="n">compliance_tensor</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">additional_info</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates</span>
+<span class="sd">            compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates</span>
+<span class="sd">            structure: Structure object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span> <span class="o">=</span> <span class="n">elastic_tensor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span> <span class="o">=</span> <span class="n">compliance_tensor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_info</span> <span class="o">=</span> <span class="n">additional_info</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ElasticComplianceTensor.from_ec_nc_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.from_ec_nc_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_ec_nc_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">ec_nc_file</span><span class="p">,</span> <span class="n">tensor_type</span><span class="o">=</span><span class="s1">&#39;relaxed_ion&#39;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">NetcdfReader</span><span class="p">(</span><span class="n">ec_nc_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc_reader</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;relaxed_ion&#39;</span><span class="p">:</span>
+                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion&#39;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;clamped_ion&#39;</span><span class="p">:</span>
+                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_clamped_ion&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_clamped_ion&#39;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;relaxed_ion_stress_corrected&#39;</span><span class="p">:</span>
+                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;tensor_type &quot;</span><span class="si">{0}</span><span class="s1">&quot; not allowed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tensor_type</span><span class="p">))</span>
+        <span class="c1">#TODO: add the structure object!</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">elastic_tensor</span><span class="o">=</span><span class="n">ec</span><span class="p">,</span> <span class="n">compliance_tensor</span><span class="o">=</span><span class="n">compl</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">additional_info</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;tensor_type&#39;</span><span class="p">:</span> <span class="n">tensor_type</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="ElasticComplianceTensor.as_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;elastic_tensor&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">,</span> <span class="s1">&#39;compliance_tensor&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">,</span>
+                <span class="s1">&#39;structure&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;additional_info&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_info</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="ElasticComplianceTensor.extended_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.extended_dict">[docs]</a>    <span class="k">def</span> <span class="nf">extended_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="n">K_Voigt</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                   <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">9.0</span>
+        <span class="n">K_Reuss</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                         <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                         <span class="mf">2.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">G_Voigt</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
+                   <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span> <span class="o">/</span> <span class="mf">15.0</span>
+        <span class="n">G_Reuss</span> <span class="o">=</span> <span class="mf">15.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
+                          <span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                          <span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mf">4.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
+                          <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">+</span>
+                          <span class="mf">3.0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">compliance_tensor</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+        <span class="n">K_VRH</span> <span class="o">=</span> <span class="p">(</span><span class="n">K_Voigt</span> <span class="o">+</span> <span class="n">K_Reuss</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">G_VRH</span> <span class="o">=</span> <span class="p">(</span><span class="n">G_Voigt</span> <span class="o">+</span> <span class="n">G_Reuss</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">universal_elastic_anisotropy</span> <span class="o">=</span> <span class="mf">5.0</span><span class="o">*</span><span class="n">G_Voigt</span><span class="o">/</span><span class="n">G_Reuss</span> <span class="o">+</span> <span class="n">K_Voigt</span><span class="o">/</span><span class="n">K_Reuss</span> <span class="o">-</span> <span class="mf">6.0</span>
+        <span class="n">isotropic_poisson_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="mf">3.0</span><span class="o">*</span><span class="n">K_VRH</span> <span class="o">-</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">G_VRH</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">6.0</span><span class="o">*</span><span class="n">K_VRH</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">G_VRH</span><span class="p">)</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;K_Voigt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_Voigt</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;G_Voigt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">G_Voigt</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;K_Reuss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_Reuss</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;G_Reuss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">G_Reuss</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;K_VRH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">K_VRH</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;G_VRH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">G_VRH</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;universal_elastic_anistropy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">universal_elastic_anisotropy</span>
+        <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;isotropic_poisson_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">isotropic_poisson_ratio</span>
+        <span class="k">return</span> <span class="n">dd</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ElasticComplianceTensor.from_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">dd</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">elastic_tensor</span><span class="o">=</span><span class="n">dd</span><span class="p">[</span><span class="s1">&#39;elastic_tensor&#39;</span><span class="p">],</span> <span class="n">compliance_tensor</span><span class="o">=</span><span class="n">dd</span><span class="p">[</span><span class="s1">&#39;compliance_tensor&#39;</span><span class="p">],</span>
+                   <span class="n">structure</span><span class="o">=</span><span class="n">dd</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">dd</span><span class="p">[</span><span class="s1">&#39;structure&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">additional_info</span><span class="o">=</span><span class="n">dd</span><span class="p">[</span><span class="s1">&#39;additional_info&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ElasticComplianceTensor.get_pmg_elastic_tensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.get_pmg_elastic_tensor">[docs]</a>    <span class="k">def</span> <span class="nf">get_pmg_elastic_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts to a pymatgen ElasticTensor object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ElasticTensor</span><span class="o">.</span><span class="n">from_voigt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

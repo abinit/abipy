@@ -1,0 +1,514 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.data &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.data</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.data</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions providing access to file data for unit tests and tutorials.</span>
+<span class="sd">Preferred way to import the module is via the import syntax:</span>
+
+<span class="sd">import abipy.abidata as abidata</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="k">import</span> <span class="n">PseudoParser</span><span class="p">,</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">abipy.data.ucells</span> <span class="k">import</span> <span class="n">structure_from_ucell</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;cif_file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pseudo&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pseudos&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ref_file&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ref_files&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;structure_from_ucell&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+
+<span class="n">_CIF_DIRPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;cifs&quot;</span><span class="p">))</span>
+
+<span class="n">_PSEUDOS_DIRPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;pseudos&quot;</span><span class="p">))</span>
+
+<span class="n">_VARIABLES_DIRPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;variables&quot;</span><span class="p">))</span>
+
+<span class="n">_MPDATA_DIRPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;mpdata&quot;</span><span class="p">))</span>
+
+
+<span class="n">_SCRIPTS_DIRPATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;examples&quot;</span><span class="p">))</span>
+<span class="n">_SCRIPTS</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">pyscript</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the absolute name of one of the scripts in the `examples` directory from its basename.&quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">_SCRIPTS</span>
+    <span class="k">if</span> <span class="n">_SCRIPTS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Build mapping basename --&gt; path.</span>
+        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">find_exts</span>
+        <span class="n">pypaths</span> <span class="o">=</span> <span class="n">find_exts</span><span class="p">(</span><span class="n">_SCRIPTS_DIRPATH</span><span class="p">,</span> <span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="s2">&quot;_*|.*&quot;</span><span class="p">)</span>
+        <span class="n">_SCRIPTS</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pypaths</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SCRIPTS</span>
+            <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">return</span> <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">basename</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="cif_file"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.cif_file">[docs]</a><span class="k">def</span> <span class="nf">cif_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the absolute path of the CIF file in tests/data/cifs.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_CIF_DIRPATH</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+<span class="n">pseudo_dir</span> <span class="o">=</span> <span class="n">_PSEUDOS_DIRPATH</span>
+
+
+<div class="viewcode-block" id="pseudo"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.pseudo">[docs]</a><span class="k">def</span> <span class="nf">pseudo</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a `Pseudo` object.&quot;&quot;&quot;</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_PSEUDOS_DIRPATH</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PseudoParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="pseudos"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.pseudos">[docs]</a><span class="k">def</span> <span class="nf">pseudos</span><span class="p">(</span><span class="o">*</span><span class="n">filenames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos.&quot;&quot;&quot;</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">pseudo</span><span class="p">,</span> <span class="n">filenames</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">PseudoTable</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">var_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a yml file located in data/variables.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_VARIABLES_DIRPATH</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">find_ncfiles</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find all netcdf files starting from the top-level directory top.</span>
+<span class="sd">    Filenames must be unique. Directories whose start with &quot;tmp_&quot; are</span>
+<span class="sd">    excluded from the search.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dictionary with mapping: basename --&gt; absolute path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">SILENT</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ncfiles</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="s2">&quot;tmp_&quot;</span> <span class="ow">in</span> <span class="n">dirpath</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">for</span> <span class="n">basename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+            <span class="n">apath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">basename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">basename</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">:</span>
+                    <span class="n">err_msg</span> <span class="o">=</span>  <span class="s2">&quot;Found duplicated basename </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">basename</span>
+                    <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;Stored: </span><span class="si">%s</span><span class="s2">, new </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ncfiles</span><span class="p">[</span><span class="n">basename</span><span class="p">],</span> <span class="n">apath</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">SILENT</span><span class="p">:</span>
+                        <span class="kn">import</span> <span class="nn">warnings</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+                        <span class="c1">#raise ValueError(err_msg)</span>
+                        <span class="n">SILENT</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ncfiles</span><span class="p">[</span><span class="n">basename</span><span class="p">]</span> <span class="o">=</span> <span class="n">apath</span>
+
+    <span class="k">return</span> <span class="n">ncfiles</span>
+
+<span class="n">_DATA_NCFILES</span> <span class="o">=</span> <span class="n">find_ncfiles</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;refs&quot;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="ref_file"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.ref_file">[docs]</a><span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the absolute path of basename in tests/data directory.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">basename</span> <span class="ow">in</span> <span class="n">_DATA_NCFILES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_DATA_NCFILES</span><span class="p">[</span><span class="n">basename</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find reference file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="ref_files"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.ref_files">[docs]</a><span class="k">def</span> <span class="nf">ref_files</span><span class="p">(</span><span class="o">*</span><span class="n">basenames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;List with the absolute path of basenames in tests/data directory.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">basenames</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">ncfiles_with_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a list with the absolute path of the files with extension ext.&quot;&quot;&quot;</span>
+    <span class="n">ncfiles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">basename</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_DATA_NCFILES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;-etsf&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">ext</span><span class="p">):</span>
+            <span class="n">ncfiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ncfiles</span>
+
+
+<span class="k">def</span> <span class="nf">mp_structures</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Returns a dictionary containg the structures stored in mpdata/mp_structures. &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+    <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_MPDATA_DIRPATH</span><span class="p">,</span> <span class="s1">&#39;mp_structures.json&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">)</span>
+
+
+<span class="n">WFK_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;WFK&quot;</span><span class="p">)</span>
+
+<span class="n">DEN_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;DEN&quot;</span><span class="p">)</span>
+
+<span class="n">GSR_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;GSR&quot;</span><span class="p">)</span>
+
+<span class="n">SIGRES_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;SIGRES&quot;</span><span class="p">)</span>
+
+<span class="n">ALL_NCFILES</span> <span class="o">=</span> <span class="n">_DATA_NCFILES</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">FilesGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class generates the output files used in the unit tests and in the examples.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory.</span>
+<span class="sd">            finalize: True if self.finalize is called</span>
+<span class="sd">            verbose: Verbosity level.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;files_to_save&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;files_to_save are not defined&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
+        <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find </span><span class="si">%s</span><span class="s2"> in $PATH&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;workdir&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;finalize&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">files_to_keep</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s2">&quot;run.abi&quot;</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">]</span> <span class="o">+</span>
+                <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files_to_save</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: workdir:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run Abinit and rename output files. Return 0 if success&quot;&quot;&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;returncode == </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.files&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_filesfile_str</span><span class="p">())</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span> <span class="o">+</span> <span class="s2">&quot; &lt; run.files &gt; run.log&quot;</span>
+        <span class="k">return</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">all_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Remove files</span>
+        <span class="n">garbage</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_files</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files_to_keep</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">garbage</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Will remove file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># Rename files.</span>
+        <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files_to_save</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Will rename </span><span class="si">%s</span><span class="s2"> --&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AbinitFilesGenerator</span><span class="p">(</span><span class="n">FilesGenerator</span><span class="p">):</span>
+    <span class="c1"># Subclasses must define the following class attributes:</span>
+    <span class="c1"># List of pseudos in (basenames in abipy/data/pseudos</span>
+    <span class="c1">#pseudos = [&quot;14si.pspnc&quot;]</span>
+
+    <span class="c1"># Mapping old_name --&gt; new_name for the output files that must be preserved.</span>
+    <span class="c1">#files_to_save = {</span>
+    <span class="c1">#    &quot;out_DS1_DEN-etsf.nc&quot;: &quot;si_DEN-etsf.nc&quot;,</span>
+    <span class="c1">#    &quot;out_DS2_GSR.nc&quot;: &quot;si_nscf_GSR.nc&quot;,</span>
+    <span class="c1">#}</span>
+    <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;abinit&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AbinitFilesGenerator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Add Absolute paths for the pseudopotentials.</span>
+        <span class="c1">#self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_PSEUDOS_DIRPATH</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span> <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">make_filesfile_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;run.abi&quot;</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">,</span><span class="s2">&quot;tmp&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+
+<span class="k">class</span> <span class="nc">AnaddbFilesGenerator</span><span class="p">(</span><span class="n">FilesGenerator</span><span class="p">):</span>
+    <span class="c1"># Subclasses must define the following class attributes:</span>
+
+    <span class="c1"># 1) Mapping old_name --&gt; new_name for the output files that must be preserved.</span>
+    <span class="c1">#files_to_save = {</span>
+    <span class="c1">#    &quot;trf2_5.out_PHBST.nc&quot;: &quot;trf2_5.out_PHBST.nc&quot;,</span>
+    <span class="c1">#    &quot;trf2_5.out_PHDOS.nc&quot;: &quot;trf2_5.out_PHDOS.nc&quot;,</span>
+    <span class="c1">#}</span>
+
+    <span class="c1"># 2) Input DDB (mandatory)</span>
+    <span class="n">in_ddb</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># 3) output DDB (optional)</span>
+    <span class="n">out_ddb</span> <span class="o">=</span> <span class="s2">&quot;dummy_out_ddb&quot;</span>
+
+    <span class="c1"># 3) Input GKK (optional)</span>
+    <span class="n">in_gkk</span> <span class="o">=</span> <span class="s2">&quot;dummy_in_gkk&quot;</span>
+
+    <span class="c1"># 4) base name for elphon output files (optional)</span>
+    <span class="n">elph_basename</span> <span class="o">=</span> <span class="s2">&quot;dummy_elph_basename&quot;</span>
+
+    <span class="c1"># 5) file containing ddk filenames for elphon/transport</span>
+    <span class="n">in_ddk</span> <span class="o">=</span> <span class="s2">&quot;dummy_in_ddk&quot;</span>
+
+    <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;anaddb&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AnaddbFilesGenerator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_ddb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;in_ddb must be specified&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">files_to_keep</span><span class="o">.</span><span class="n">update</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_ddb</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_ddb</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_gkk</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elph_basename</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_ddk</span><span class="p">,</span>
+        <span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">make_filesfile_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># 1) formatted input file</span>
+        <span class="c1"># 2) formatted output file e.g. t13.out</span>
+        <span class="c1"># 3) input derivative database e.g. t13.ddb.in</span>
+        <span class="c1"># 4) output molecular dynamics e.g. t13.md</span>
+        <span class="c1"># 5) input elphon matrix elements  (GKK file) :</span>
+        <span class="c1"># 6) base name for elphon output files e.g. t13</span>
+        <span class="c1"># 7) file containing ddk filenames for elphon/transport</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="s2">&quot;run.abi&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;out&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_ddb</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_ddb</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_gkk</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elph_basename</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_ddk</span><span class="p">,</span>
+        <span class="p">])</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">pyscript</span><span class="p">(</span><span class="s2">&quot;plot_spectral_functions.py&quot;</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,1526 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.core.symmetries &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.core.symmetries</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.core.symmetries</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Objects used to deal with symmetry operations in crystals.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cStringIO</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
+<span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="k">import</span> <span class="n">iuptri</span>
+<span class="kn">from</span> <span class="nn">monty.pprint</span> <span class="k">import</span> <span class="n">pprint_table</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
+<span class="kn">from</span> <span class="nn">pymatgen.serializers.pickle_coders</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">wrap_to_ws</span><span class="p">,</span> <span class="n">issamek</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;LatticeRotation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AbinitSpaceGroup&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">wrap_in_ucell</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms x in its corresponding reduced number in the interval [0,1[.&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">is_integer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    True if all x is integer within the absolute tolerance atol.</span>
+
+<span class="sd">    &gt;&gt;&gt; is_integer([1., 2.])</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_integer(1.01, atol=0.011)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; is_integer([1.01, 2])</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">int_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">int_x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">mati3inv</span><span class="p">(</span><span class="n">mat3</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invert and transpose orthogonal 3x3 matrix of INTEGER elements.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mat3: 3x3 matrix-like object with integer elements</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ndarray` with the TRANSPOSE of the inverse of mat3 if trans==True.</span>
+<span class="sd">        If trans==False, the inverse of mat3 is returned.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.</span>
+<span class="sd">       Since these form a group, inverses are also integer arrays.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mat3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat3</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">mat3</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
+
+    <span class="n">mit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">dd</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Make sure matrix is not singular</span>
+    <span class="k">if</span> <span class="n">dd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Attempting to invert integer array: </span><span class="si">%s</span><span class="se">\n</span><span class="s2"> ==&gt; determinant is zero.&quot;</span> <span class="o">%</span> <span class="n">mat3</span><span class="p">)</span>
+
+    <span class="n">mit</span> <span class="o">=</span> <span class="n">mit</span> <span class="o">//</span> <span class="n">dd</span>
+    <span class="k">if</span> <span class="n">trans</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mit</span><span class="o">.</span><span class="n">T</span>
+
+
+<span class="k">def</span> <span class="nf">_get_det</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the determinant of a 3x3 rotation matrix mat.</span>
+
+<span class="sd">    raises:</span>
+<span class="sd">        ValueError if abs(det) != 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">det</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span> <span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>\
+        <span class="o">-</span> <span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span> <span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>\
+        <span class="o">+</span> <span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span> <span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">mat</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">det</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;determinant must be \pm 1 while it is </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">det</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">det</span>
+
+
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Operation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class that defines the methods that must be</span>
+<span class="sd">    implememted by the concrete class representing some sort of operation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;O1 == O2&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;O1 * O2&quot;&quot;&quot;</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Operation can be used as dictionary keys.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the inverse of self.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">opconj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns X^-1 S X where X is the other symmetry operation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">isE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if self is the identity operator&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">SymmOp</span><span class="p">(</span><span class="n">Operation</span><span class="p">,</span> <span class="n">SlotPickleMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crystalline symmetry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ATOL_TAU</span> <span class="o">=</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>
+
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;rot_r&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rotm1_r&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;tau&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;time_sign&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;afm_sign&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rot_g&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_det&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_trace&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rot_r</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">time_sign</span><span class="p">,</span> <span class="n">afm_sign</span><span class="p">,</span> <span class="n">rot_g</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This object represents a space group symmetry i.e. a symmetry of the crystal.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rot_r: 3x3 integer matrix with the rotational part in real space in reduced coordinates (C order).</span>
+<span class="sd">            tau: fractional translation in reduced coordinates.</span>
+<span class="sd">            time_sign: -1 if time reversal can be used, otherwise +1.</span>
+<span class="sd">            afm_sign: anti-ferromagnetic part [+1,-1].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rot_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rot_r</span><span class="p">)</span>
+
+        <span class="c1"># Store R and R^{-1} in real space.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotm1_r</span> <span class="o">=</span> <span class="n">rot_r</span><span class="p">,</span> <span class="n">mati3inv</span><span class="p">(</span><span class="n">rot_r</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">tau</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">=</span> <span class="n">afm_sign</span><span class="p">,</span> <span class="n">time_sign</span>
+        <span class="k">assert</span> <span class="n">afm_sign</span> <span class="ow">in</span>  <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">time_sign</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Compute symmetry matrix in reciprocal space: S = R^{-1t}</span>
+        <span class="k">if</span> <span class="n">rot_g</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span> <span class="o">=</span> <span class="n">mati3inv</span><span class="p">(</span><span class="n">rot_r</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">rot_g</span> <span class="o">==</span> <span class="n">mati3inv</span><span class="p">(</span><span class="n">rot_r</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span> <span class="o">=</span> <span class="n">rot_g</span>
+
+    <span class="c1"># operator protocol.</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="c1"># Note the two fractional traslations are equivalent if they differ by a lattice vector.</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">rot_r</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">is_integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="o">-</span><span class="n">other</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ATOL_TAU</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">afm_sign</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">time_sign</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a new :class:`SymmOp` which is equivalent to apply the &quot;other&quot; :class:`SymmOp`</span>
+<span class="sd">        followed by this one i.e:</span>
+
+<span class="sd">        {R,t} {S,u} = {RS, Ru + t}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">SymmOp</span><span class="p">(</span><span class="n">rot_r</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">rot_r</span><span class="p">),</span>
+                      <span class="n">tau</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">tau</span><span class="p">),</span>
+                      <span class="n">time_sign</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">time_sign</span><span class="p">,</span>
+                      <span class="n">afm_sign</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :class:`Symmop` can be used as keys in dictionaries.</span>
+<span class="sd">        Note that the hash is computed from integer values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">SymmOp</span><span class="p">(</span><span class="n">rot_r</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rotm1_r</span><span class="p">,</span>
+                      <span class="n">tau</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotm1_r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">),</span>
+                      <span class="n">time_sign</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span><span class="p">,</span>
+                      <span class="n">afm_sign</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True is self is the identity operator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span> <span class="ow">and</span>
+                <span class="n">is_integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ATOL_TAU</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># end operator protocol.</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_vec2str</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%2d</span><span class="s2">,</span><span class="si">%2d</span><span class="s2">,</span><span class="si">%2d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vec</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">+=</span>  <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;, </span><span class="si">%.3f</span><span class="s2">]  &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec2str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;] &quot;</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot; time_sign=</span><span class="si">%2d</span><span class="s2">, afm_sign=</span><span class="si">%2d</span><span class="s2">, det=</span><span class="si">%2d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_symmorphic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if the fractional translation is non-zero.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">det</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determinant of the rotation matrix [-1, +1].&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">_get_det</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Trace of the rotation matrix.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rot_r</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_proper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if the rotational part has determinant == 1.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">==</span> <span class="o">+</span><span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_timerev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if symmetry contains the time-reversal operator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_fm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if self if ferromagnetic symmetry.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="o">+</span><span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_afm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if self if anti-ferromagnetic symmetry.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">rotate_k</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the symmetry operation to the k-point given in reduced coordinates.</span>
+
+<span class="sd">        Sk is wrapped to the first Brillouin zone if wrap_tows is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span>
+
+        <span class="k">return</span> <span class="n">wrap_to_ws</span><span class="p">(</span><span class="n">sk</span><span class="p">)</span> <span class="k">if</span> <span class="n">wrap_tows</span> <span class="k">else</span> <span class="n">sk</span>
+
+    <span class="k">def</span> <span class="nf">preserve_k</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">ret_g0</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the operation preserves the k-point modulo a reciprocal lattice vector.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frac_coords: Fractional coordinates of the k-point</span>
+<span class="sd">            ret_g0: False if only the boolean result is wanted.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool, g0 = S(k) - k</span>
+
+<span class="sd">            bool is True is self preserves k and g0 is an integer vector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ret_g0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sk</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">issamek</span><span class="p">(</span><span class="n">sk</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rotate_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">in_ucell</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the symmetry operation to a point in real space given in reduced coordinates.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            We use the convention: symmop(r) = R^{-1] (r - tau)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rotm1_rmt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotm1_r</span><span class="p">,</span> <span class="n">frac_coords</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">wrap_in_ucell</span><span class="p">(</span><span class="n">rotm1_rmt</span><span class="p">)</span> <span class="k">if</span> <span class="n">in_ucell</span> <span class="k">else</span> <span class="n">rotm1_rmt</span>
+
+    <span class="k">def</span> <span class="nf">rotate_gvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvecs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gvecs: `ndarray` with shape [ng, 3] containing the reduced coordinates of the G-vectors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            rot_gvecs: `ndarray` with shape [ng, 3] containing the result of self(G).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rot_gvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">gvecs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ig</span><span class="p">,</span> <span class="n">gvec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gvecs</span><span class="p">):</span>
+            <span class="n">rot_gvecs</span><span class="p">[</span><span class="n">ig</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rot_g</span><span class="p">,</span> <span class="n">gvec</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_sign</span>
+
+        <span class="k">return</span> <span class="n">rot_gvecs</span>
+
+
+<span class="k">class</span> <span class="nc">OpSequence</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class providing the basic method that are common to containers of operations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Equality test.</span>
+
+<span class="sd">        .. warning: :</span>
+
+<span class="sd">            The order of the operations in self and  in other is not relevant.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Check if each operation in self is also present</span>
+        <span class="c1"># in other. The order is irrelevant.</span>
+        <span class="n">founds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">op</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">other</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">founds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">founds</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">founds</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;self contains duplicated ops! Likely a bug!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">show_ops</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of occurences of operation op in self.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the (first) index of operation op in self.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError if not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the (first) index of op in self. -1 if not found.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">is_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns True if self is a group.&quot;&quot;&quot;</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Identity must be present.</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">isE</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">check</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># The inverse must be in the set.</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">op</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">check</span> <span class="o">+=</span> <span class="mi">2</span>
+
+        <span class="c1"># The product of two members must be in the set.</span>
+        <span class="n">op_prods</span> <span class="o">=</span> <span class="p">[</span><span class="n">op1</span> <span class="o">*</span> <span class="n">op2</span> <span class="k">for</span> <span class="n">op1</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">for</span> <span class="n">op2</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">op12</span> <span class="ow">in</span> <span class="n">op_prods</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">op12</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;op12 not in group</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">op12</span><span class="p">))</span>
+                <span class="n">check</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">check</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">is_commutative</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if operations in self commute with each other.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">op1</span><span class="p">,</span> <span class="n">op2</span> <span class="ow">in</span> <span class="n">iuptri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diago</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">op1</span> <span class="o">*</span> <span class="n">op2</span> <span class="o">!=</span> <span class="n">op2</span> <span class="o">*</span> <span class="n">op1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">is_abelian_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if self is a commutative group.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_commutative</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_group</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dictionary where the keys are the symmetry operations and</span>
+<span class="sd">        the values are the indices of the operations in the iterable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">op</span><span class="p">:</span> <span class="n">idx</span> <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mult_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a set of nsym 3x3 operations which are supposed to form a group,</span>
+<span class="sd">        this routine constructs the multiplication table of the group.</span>
+<span class="sd">        mtable[i,j] gives the index of the product S_i * S_j.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mult_table</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">mtable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">op1</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="n">op12</span> <span class="o">=</span> <span class="n">op1</span> <span class="o">*</span> <span class="n">op2</span>
+                    <span class="c1"># Save the index of op12 in self</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">op12</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="n">mtable</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mult_table</span> <span class="o">=</span> <span class="n">mtable</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mult_table</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of classes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_indices</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">class_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A class is defined as the set of distinct elements obtained by</span>
+<span class="sd">        considering for each element, S, of the group all its conjugate</span>
+<span class="sd">        elements X^-1 S X where X ranges over all the elements of the group.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Nested list l = [cls0_indices, cls1_indices, ...] where each sublist</span>
+<span class="sd">            contains the indices of the class. len(l) equals the number of classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_class_indices</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">found</span><span class="p">,</span> <span class="n">class_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="kc">False</span><span class="p">],</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))]</span>
+
+            <span class="n">num_classes</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">op1</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">found</span><span class="p">[</span><span class="n">ii</span><span class="p">]:</span> <span class="k">continue</span>
+                <span class="n">num_classes</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">for</span> <span class="p">(</span><span class="n">jj</span><span class="p">,</span> <span class="n">op2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="c1"># Form conjugate and search it among the operations</span>
+                    <span class="c1"># that have not been found yet.</span>
+                    <span class="n">op1_conj</span> <span class="o">=</span> <span class="n">op1</span><span class="o">.</span><span class="n">opconj</span><span class="p">(</span><span class="n">op2</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="p">(</span><span class="n">kk</span><span class="p">,</span> <span class="n">op3</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="ow">and</span> <span class="n">op1_conj</span> <span class="o">==</span> <span class="n">op3</span><span class="p">:</span>
+                            <span class="n">found</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">class_indices</span><span class="p">[</span><span class="n">num_classes</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kk</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_class_indices</span> <span class="o">=</span> <span class="n">class_indices</span><span class="p">[:</span><span class="n">num_classes</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">assert</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_class_indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_class_indices</span>
+
+    <span class="k">def</span> <span class="nf">groupby_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_inds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iterate over the operations grouped in symmetry classes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            with_inds: If True, [op0, op1, ...], [ind_op0, ind_op1, ...] is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">with_inds</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_indices</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">],</span> <span class="n">indices</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_indices</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="AbinitSpaceGroup"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup">[docs]</a><span class="k">class</span> <span class="nc">AbinitSpaceGroup</span><span class="p">(</span><span class="n">OpSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Container storing the space group symmetries.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spgid</span><span class="p">,</span> <span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span><span class="p">,</span> <span class="n">symafm</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            spgid: space group number (from 1 to 232, 0 if cannot be specified).</span>
+<span class="sd">            symrel: (nsym,3,3) array with the rotational part of the symmetries in real</span>
+<span class="sd">                space (reduced coordinates are assumed, see also `inord` for the order.</span>
+<span class="sd">            tnons: (nsym,3) array with fractional translation in reduced coordinates.</span>
+<span class="sd">            symafm: (nsym) array with +1 for Ferromagnetic symmetry and -1 for AFM</span>
+<span class="sd">            has_timerev: True if time-reversal symmetry is included.</span>
+<span class="sd">            inord: storage order of mat in symrel[:]. If inord == &quot;F&quot;, mat.T is stored</span>
+<span class="sd">                as matrices are always stored in C-order. Use inord == &quot;F&quot; if you have</span>
+<span class="sd">                read symrel from an external file produced by abinit.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            All the arrays are stored in C-order. Use as_fortran_arrays to extract data</span>
+<span class="sd">            that can be passes to Fortran routines.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spgid</span> <span class="o">=</span> <span class="n">spgid</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">spgid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">233</span><span class="p">)</span>
+
+        <span class="n">inord</span> <span class="o">=</span> <span class="n">inord</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">inord</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Time reversal symmetry.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_timerev</span> <span class="o">=</span> <span class="n">has_timerev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_signs</span> <span class="o">=</span> <span class="p">[</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timerev</span> <span class="k">else</span> <span class="p">[</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symrel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tnons</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symafm</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">,</span> <span class="p">(</span><span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span><span class="p">,</span> <span class="n">symafm</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tnons</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symafm</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;symrel, tnons and symafm must have equal shape[0]&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inord</span> <span class="o">==</span> <span class="s2">&quot;F&quot;</span><span class="p">:</span>
+            <span class="c1"># Fortran to C.</span>
+            <span class="k">for</span> <span class="n">isym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_symrel</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symrel</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symrec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symrel</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">isym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_symrec</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="o">=</span> <span class="n">mati3inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">[</span><span class="n">isym</span><span class="p">],</span> <span class="n">trans</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">all_syms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">time_sign</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_signs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">isym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">)):</span>
+
+                <span class="n">all_syms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SymmOp</span><span class="p">(</span><span class="n">rot_r</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symrel</span><span class="p">[</span><span class="n">isym</span><span class="p">],</span>
+                                       <span class="n">tau</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tnons</span><span class="p">[</span><span class="n">isym</span><span class="p">],</span>
+                                       <span class="n">time_sign</span><span class="o">=</span><span class="n">time_sign</span><span class="p">,</span>
+                                       <span class="n">afm_sign</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symafm</span><span class="p">[</span><span class="n">isym</span><span class="p">],</span>
+                                       <span class="n">rot_g</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symrec</span><span class="p">[</span><span class="n">isym</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">all_syms</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AbinitSpaceGroup.from_file"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file.&quot;&quot;&quot;</span>
+        <span class="c1">#is_ncfile = is_string(file) and file.endswith(&quot;.nc&quot;)</span>
+        <span class="c1">#if not is_ncfile</span>
+        <span class="c1">#structure = Structure.from_file(file):</span>
+        <span class="c1">#return cls.from_structure(cls, structure, has_timerev=True,  symprec=1e-5, angle_tolerance=5)</span>
+
+        <span class="n">file</span><span class="p">,</span> <span class="n">closeit</span> <span class="o">=</span> <span class="n">as_etsfreader</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">spgid</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;space_group&quot;</span><span class="p">),</span>
+                  <span class="n">symrel</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_symmetry_matrices&quot;</span><span class="p">),</span>
+                  <span class="n">tnons</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_symmetry_translations&quot;</span><span class="p">),</span>
+                  <span class="n">symafm</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;symafm&quot;</span><span class="p">),</span>
+                  <span class="n">has_timerev</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># FIXME not treated by ETSF-IO.</span>
+                  <span class="n">inord</span><span class="o">=</span><span class="n">inord</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">closeit</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AbinitSpaceGroup.from_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.from_structure">[docs]</a>    <span class="k">def</span> <span class="nf">from_structure</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">has_timerev</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a :class:`Structure` object. Uses spglib to perform various symmetry finding operations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            has_timerev: True is time-reversal symmetry is included.</span>
+<span class="sd">            symprec: Tolerance for symmetry finding</span>
+<span class="sd">            angle_tolerance: Angle tolerance for symmetry finding.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            AFM symmetries are not supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Call spglib to get the list of symmetry operations.</span>
+        <span class="n">spga</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">spga</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">spgid</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">],</span>
+                   <span class="n">symrel</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;rotations&quot;</span><span class="p">],</span>
+                   <span class="n">tnons</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;translations&quot;</span><span class="p">],</span>
+                   <span class="n">symafm</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">symrel</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                   <span class="n">has_timerev</span><span class="o">=</span><span class="n">has_timerev</span><span class="p">,</span>
+                   <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;spgid </span><span class="si">%d</span><span class="s2">, num_spatial_symmetries </span><span class="si">%d</span><span class="s2">, has_timerev </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spgid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_spatial_symmetries</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timerev</span><span class="p">)]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmops</span><span class="p">(</span><span class="n">time_sign</span><span class="o">=+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">op</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_symmorphic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if there&#39;s at least one operation with non-zero fractional translation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">is_symmorphic</span> <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_timerev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if time-reversal symmetry is present.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_timerev</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">symrel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symrel</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tnons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tnons</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">symrec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symrec</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">symafm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symafm</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_spatial_symmetries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fact</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timerev</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">/</span> <span class="n">fact</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">afm_symmops</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tuple with antiferromagnetic symmetries.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmops</span><span class="p">(</span><span class="n">time_sign</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">afm_sign</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fm_symmops</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tuple of ferromagnetic symmetries.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmops</span><span class="p">(</span><span class="n">time_sign</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">afm_sign</span><span class="o">=+</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AbinitSpaceGroup.symmops"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.symmops">[docs]</a>    <span class="k">def</span> <span class="nf">symmops</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_sign</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">afm_sign</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            time_sign: If specified, only symmetries with time-reversal sign time_sign are returned.</span>
+<span class="sd">            afm_sign: If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            tuple of :class:`SymmOp` instances.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">symmops</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span><span class="p">:</span>
+            <span class="n">gotit</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">time_sign</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">time_sign</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_signs</span>
+                <span class="n">gotit</span> <span class="o">=</span> <span class="n">gotit</span> <span class="ow">and</span> <span class="n">sym</span><span class="o">.</span><span class="n">time_sign</span> <span class="o">==</span> <span class="n">time_sign</span>
+
+            <span class="k">if</span> <span class="n">afm_sign</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">afm_sign</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">gotit</span> <span class="o">=</span> <span class="n">gotit</span> <span class="ow">and</span> <span class="n">sym</span><span class="o">.</span><span class="n">afm_sign</span> <span class="o">==</span> <span class="n">afm_sign</span>
+
+            <span class="k">if</span> <span class="n">gotit</span><span class="p">:</span>
+                <span class="n">symmops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">symmops</span><span class="p">)</span></div>
+
+    <span class="c1">#def to_arrays(self, order=&quot;c&quot;):</span>
+    <span class="c1">#    spg_arrays = collections.namedtuple(&quot;SpaceGroupArrays&quot;, &quot;symrel symrec tnons symafm timrev order&quot;)</span>
+    <span class="c1">#    symrel = np.asfortranarray(self.symrel.T)</span>
+    <span class="c1">#    symrec = np.asfortranarray(self.symrec.T)</span>
+    <span class="c1">#    for isym in range(self.num_spatial_symmetries):</span>
+    <span class="c1">#        symrel[:,:,isym] = symrel[:,:,isym].T</span>
+    <span class="c1">#        symrec[:,:,isym] = symrec[:,:,isym].T</span>
+    <span class="c1">#    return spg_arrays(</span>
+    <span class="c1">#        symrel=symrel,</span>
+    <span class="c1">#        symrec=symrec,</span>
+    <span class="c1">#        tnons =np.asfortranarray(self.tnons.T),</span>
+    <span class="c1">#        symafm=self.symafm,</span>
+    <span class="c1">#        timrev = 2 if self.has_timerev else 1</span>
+    <span class="c1">#    )</span>
+
+<div class="viewcode-block" id="AbinitSpaceGroup.find_little_group"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.find_little_group">[docs]</a>    <span class="k">def</span> <span class="nf">find_little_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the little group of the kpoint</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kpoint: Accept vector with the reduced coordinates or :class:`Kpoint` object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :class:`LittleGroup` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)</span>
+
+        <span class="n">to_spgrp</span><span class="p">,</span> <span class="n">g0vecs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="c1"># Exclude AFM operations.</span>
+        <span class="k">for</span> <span class="n">isym</span><span class="p">,</span> <span class="n">symmop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">):</span>
+            <span class="n">is_same</span><span class="p">,</span> <span class="n">g0</span> <span class="o">=</span> <span class="n">symmop</span><span class="o">.</span><span class="n">preserve_k</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_same</span><span class="p">:</span>
+                <span class="n">to_spgrp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">isym</span><span class="p">)</span>
+                <span class="n">g0vecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g0</span><span class="p">)</span>
+
+        <span class="c1"># List with the symmetry operation that preserve the kpoint.</span>
+        <span class="n">k_symmops</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">to_spgrp</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">LittleGroup</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="n">k_symmops</span><span class="p">,</span> <span class="n">g0vecs</span><span class="p">)</span></div></div>
+
+<span class="c1"># To maintain backward compatibility.</span>
+<span class="n">SpaceGroup</span> <span class="o">=</span> <span class="n">AbinitSpaceGroup</span>
+
+
+<span class="k">class</span> <span class="nc">LittleGroup</span><span class="p">(</span><span class="n">OpSequence</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">symmops</span><span class="p">,</span> <span class="n">g0vecs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        k_symmops, g0vecs, indices</span>
+
+<span class="sd">        k_symmops is a tuple with the symmetry operations that preserve the k-point i.e. Sk = k + G0</span>
+<span class="sd">        g0vecs is the tuple for G0 vectors for each operation in k_symmops</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span> <span class="o">=</span> <span class="n">kpoint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span> <span class="o">=</span> <span class="n">symmops</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g0vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">g0vecs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symmops</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g0vecs</span><span class="p">)</span>
+
+        <span class="c1"># Find the point group of k so that we know how to access the Bilbao database.</span>
+        <span class="c1"># (note that operations are in reciprocal space, afm and time_reversalve are taken out</span>
+        <span class="n">krots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">o</span><span class="o">.</span><span class="n">rot_g</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">symmops</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">o</span><span class="o">.</span><span class="n">has_timerev</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kgroup</span> <span class="o">=</span> <span class="n">LatticePointGroup</span><span class="p">(</span><span class="n">krots</span><span class="p">)</span>
+        <span class="c1">#print(self.kgroup)</span>
+        <span class="c1">#kclasses = kgroup.classes</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Kpoint Group: </span><span class="si">%s</span><span class="s2">, Kpoint: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kgroup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+
+        <span class="n">strio</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="p">()</span>
+        <span class="n">bilbao_ptgrp</span> <span class="o">=</span> <span class="n">bilbao_ptgroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kgroup</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+        <span class="n">bilbao_ptgrp</span><span class="o">.</span><span class="n">show_character_table</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">strio</span><span class="p">)</span>
+        <span class="n">strio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># TODO</span>
+        <span class="c1">#lines += [&quot;Irreducible representations, zone-border_and_nonsymmorphic %s&quot; % self.kpoint.zoneborder_]</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">strio</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">bilbao_character_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns table, info&quot;&quot;&quot;</span>
+        <span class="n">bilbao_ptgrp</span> <span class="o">=</span> <span class="n">bilbao_ptgroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kgroup</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">bilbao_ptgrp</span><span class="o">.</span><span class="n">character_table</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span><span class="p">,</span> <span class="n">info</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def konborder_and_nonsymmorphic(self):</span>
+    <span class="c1">#    return kpoint.on_border and any(not symmop.is_symmorphic for symmop in self)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">symmops</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span>
+
+    <span class="k">def</span> <span class="nf">iter_symmop_g0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">symmop</span><span class="p">,</span> <span class="n">g0</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symmops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">g0vecs</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">symmop</span><span class="p">,</span> <span class="n">g0</span>
+
+    <span class="c1">#def iter_symmop_g0_byclass(self):</span>
+
+
+<span class="k">class</span> <span class="nc">LatticePointGroup</span><span class="p">(</span><span class="n">OpSequence</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotations</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">LatticeRotation</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span> <span class="k">for</span> <span class="n">rot</span> <span class="ow">in</span> <span class="n">rotations</span><span class="p">]</span>
+
+        <span class="c1"># Call spglib to get the Herm symbol.</span>
+        <span class="c1"># Remove blanks from C string.</span>
+        <span class="kn">import</span> <span class="nn">spglib</span>
+        <span class="n">herm_symbol</span><span class="p">,</span> <span class="n">ptg_num</span><span class="p">,</span> <span class="n">trans_mat</span> <span class="o">=</span> <span class="n">spglib</span><span class="o">.</span><span class="n">get_pointgroup</span><span class="p">(</span><span class="n">rotations</span><span class="p">)</span>
+        <span class="c1">#from pymatgen.symmetry.analyzer import get_point_group</span>
+        <span class="c1">#herm_symbol, ptg_num, trans_mat = get_point_group(rotations)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">herm_symbol</span> <span class="o">=</span> <span class="n">herm_symbol</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="c1">#print(self.herm_symbol, ptg_num, trans_mat)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot detect point group symbol! Got sch_symbol = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+
+    <span class="c1">#@classmethod</span>
+    <span class="c1">#def from_lattice(cls, lattice)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">herm_symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spgid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">herm_symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spgid</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sch_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Schoenflies symbol&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">herm2sch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">herm_symbol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spgid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;ID in the space group table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">sch2spgid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="LatticeRotation"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.LatticeRotation">[docs]</a><span class="k">class</span> <span class="nc">LatticeRotation</span><span class="p">(</span><span class="n">Operation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object defines a pure rotation of the lattice (proper, improper, mirror symmetry)</span>
+<span class="sd">    that is a rotation which is compatible with a lattice. The rotation matrix is</span>
+<span class="sd">    expressed in reduced coordinates, therefore its elements are integers.</span>
+
+<span class="sd">    See:</span>
+<span class="sd">        http://xrayweb2.chem.ou.edu/notes/symmetry.html#rotation</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This object does not inherit from `ndarray` or from `np.matrix` because ....</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_E3D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_find_order_and_rootinv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the order of the rotation and if self is a root of the inverse.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">order</span><span class="p">,</span> <span class="n">root_inv</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ior</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">):</span>
+            <span class="n">rn</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">**</span> <span class="n">ior</span>
+
+            <span class="k">if</span> <span class="n">rn</span><span class="o">.</span><span class="n">isE</span><span class="p">:</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="n">ior</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">rn</span><span class="o">.</span><span class="n">isI</span><span class="p">:</span>
+                <span class="n">root_inv</span> <span class="o">=</span> <span class="n">ior</span>
+
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;LatticeRotation is not a root of unit!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">order</span><span class="p">,</span> <span class="n">root_inv</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="c1">#def __str__(self):</span>
+    <span class="c1">#    lines = &quot;Rotation: &quot; + str(self.order) + &quot;, versor: &quot; + str(self.versor) + &quot;,</span>
+    <span class="c1">#    lines.append(str(self.mat))</span>
+    <span class="c1">#    return &quot;\n&quot;.join(lines)</span>
+
+    <span class="c1"># operator protocol.</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">mat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">mat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LatticeRotation.inverse"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.LatticeRotation.inverse">[docs]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invert an orthogonal 3x3 matrix of INTEGER elements.</span>
+<span class="sd">        Note use of integer arithmetic. Raise ValueError if not invertible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">mati3inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="n">trans</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if it is the identity&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_E3D</span><span class="p">)</span>
+    <span class="c1"># end operator protocol.</span>
+
+    <span class="c1"># Implement the unary arithmetic operations (+, -)</span>
+    <span class="k">def</span> <span class="nf">__pos__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intexp</span><span class="p">,</span> <span class="n">modulo</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+       <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_E3D</span><span class="p">)</span>
+       <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&gt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">**</span> <span class="n">intexp</span><span class="p">)</span>
+       <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+       <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&lt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pow__</span><span class="p">(</span><span class="o">-</span><span class="n">intexp</span><span class="p">)</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+       <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2"> is not supported in __pow__&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">intexp</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Order of the rotation.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_inv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_order_and_rootinv</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">root_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_inv</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_inv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_order_and_rootinv</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_inv</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">det</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the determinant of a symmetry matrix mat[3,3]. It must be +-1&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_det</span> <span class="o">=</span> <span class="n">_get_det</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The trace of the rotation matrix&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="o">.</span><span class="n">trace</span><span class="p">()[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_proper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if proper rotation&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if self is the inversion operation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_E3D</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Sign of the determinant (only if improper)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">)</span>
+        <span class="c1"># Root of inverse?</span>
+        <span class="n">name</span> <span class="o">+=</span> <span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_inv</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;+&quot;</span>
+
+        <span class="k">return</span> <span class="n">name</span></div>
+
+    <span class="c1">#def versor(self):</span>
+    <span class="c1">#    # Numb code, it would be possible to have a closed expression.</span>
+    <span class="c1">#    from numpy.linalg import eig</span>
+    <span class="c1">#    eigens, eigvecs = eig(self.mat)</span>
+    <span class="c1">#    eigvecs = eigvecs.T # F --&gt; C</span>
+    <span class="c1">#    print(eigens, eigvecs)</span>
+    <span class="c1">#    for e, vec in zip(eigens, eigves):</span>
+    <span class="c1">#       if np.abs(e - 1) &lt; 1.e-3:</span>
+    <span class="c1">#            return vec</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#       raise ValueError(&quot;Cannot find versor of the rotation)</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def rottype(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Receive a 3x3 orthogonal matrix and reports its type:</span>
+    <span class="c1">#        1 Identity</span>
+    <span class="c1">#        2 Inversion</span>
+    <span class="c1">#        3 Proper rotation of an angle &lt;&gt; 180 degrees</span>
+    <span class="c1">#        4 Proper rotation of 180 degrees</span>
+    <span class="c1">#        5 Mirror symmetry</span>
+    <span class="c1">#        6 Improper rotation</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    # Treat identity and inversion first</span>
+    <span class="c1">#    if self.isE: return 1</span>
+    <span class="c1">#    if self.isI: return 2</span>
+    <span class="c1">#</span>
+    <span class="c1">#    if self.isproper: # Proper rotation</span>
+    <span class="c1">#        t = 3 # try angle != 180</span>
+    <span class="c1">#        #det180 = get_sym_det(rot + self._E3D)</span>
+    <span class="c1">#        if (self + identity).det == 0: t = 4 # 180 rotation</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        # Mirror symmetry or Improper rotation</span>
+    <span class="c1">#        t = 6</span>
+    <span class="c1">#        #detmirror = get_sym_det(rot - self._E3D)</span>
+    <span class="c1">#        if (self - identity).det == 0:</span>
+    <span class="c1">#            t = 5 # Mirror symmetry if an eigenvalue is 1</span>
+
+    <span class="c1">#    return t</span>
+
+
+<span class="k">class</span> <span class="nc">Irrep</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object represents an irreducible representation.</span>
+
+<span class="sd">    .. attributes::</span>
+
+<span class="sd">        traces: all_traces[nsym]. The trace of each irrep.</span>
+<span class="sd">        character: character[num_classes]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">mats</span><span class="p">,</span> <span class="n">class_range</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name:  Name of the irreducible representation.</span>
+<span class="sd">            dim: Dimension of the irreducible representation.</span>
+<span class="sd">            mats: Array of shape [nsym,dim,dim] with the irreducible</span>
+<span class="sd">                representations of the group. mats are packed in classes.</span>
+<span class="sd">            class_range: List of tuples, each tuple gives the start and stop index for the class.</span>
+<span class="sd">                e.g. [(0, 2), (2,4), (4,n)]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mats</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">traces</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mats</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_range</span> <span class="o">=</span> <span class="n">class_range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nclass</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_range</span><span class="p">)</span>
+
+        <span class="c1"># Compute character table.</span>
+        <span class="n">character</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nclass</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">icls</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_range</span><span class="p">):</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
+            <span class="n">isok</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">t0</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+            <span class="n">character</span><span class="p">[</span><span class="n">icls</span><span class="p">]</span> <span class="o">=</span> <span class="n">t0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_character</span> <span class="o">=</span> <span class="n">character</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mats</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">character</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_character</span>
+
+
+<span class="k">def</span> <span class="nf">bilbao_ptgroup</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns an instance of :class:`BilbaoPointGroup` from a string with the point group symbol</span>
+<span class="sd">    or a number with the spacegroup ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sch_symbol</span> <span class="o">=</span> <span class="n">any2sch</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">abipy.core.irrepsdb</span> <span class="k">import</span> <span class="n">_PTG_IRREPS_DB</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">_PTG_IRREPS_DB</span><span class="p">[</span><span class="n">sch_symbol</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">entry</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;nclass&quot;</span><span class="p">)</span>
+    <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;sch_symbol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sch_symbol</span>
+
+    <span class="k">return</span> <span class="n">BilbaoPointGroup</span><span class="p">(</span><span class="o">**</span><span class="n">entry</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BilbaoPointGroup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sch_symbol</span><span class="p">,</span> <span class="n">rotations</span><span class="p">,</span> <span class="n">class_names</span><span class="p">,</span> <span class="n">class_range</span><span class="p">,</span> <span class="n">irreps</span><span class="p">):</span>
+        <span class="c1"># Rotations are grouped in classes.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span> <span class="o">=</span> <span class="n">sch_symbol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotations</span> <span class="o">=</span> <span class="n">rotations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span> <span class="o">=</span> <span class="n">class_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nclass</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span>
+
+        <span class="c1"># List of tuples, each tuple gives the start and stop index for the class.</span>
+        <span class="c1"># e.g. [(0, 2), (2,4), (4,n)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_range</span> <span class="o">=</span> <span class="n">class_range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_len</span> <span class="o">=</span> <span class="p">[</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span> <span class="k">for</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="ow">in</span> <span class="n">class_range</span><span class="p">]</span>
+
+        <span class="c1"># The number of irreps must equal the number of classes.</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">irreps</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nclass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">irreps_by_name</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">irreps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">mats</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;matrices&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mats</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_rots</span>
+            <span class="n">irrep</span> <span class="o">=</span><span class="n">Irrep</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dim&quot;</span><span class="p">],</span> <span class="n">mats</span><span class="p">,</span> <span class="n">class_range</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">class_range</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">irrep</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">irreps_by_name</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">irrep</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">herm_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hermann-Mauguin symbol.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">herm2sch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spgid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;ID in the space group table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">sch2spgid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_rots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of rotations.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotations</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_irreps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of irreducible representations.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">irrep_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List with the names of the irreps.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irreps_by_name</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">character_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a table of strings with the character of the irreps.&quot;&quot;&quot;</span>
+        <span class="c1"># 1st row: ptgroup_name class names and multiplicity of each class</span>
+        <span class="n">name_mult</span> <span class="o">=</span> <span class="p">[</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; [&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="o">+</span><span class="s2">&quot;]&quot;</span> <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mult</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_len</span><span class="p">)]</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">self</span><span class="o">.</span><span class="n">sch_symbol</span><span class="p">]</span> <span class="o">+</span> <span class="n">name_mult</span><span class="p">]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="c1"># Add row: irrep_name, character.</span>
+        <span class="k">for</span> <span class="n">irrep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="p">:</span>
+            <span class="n">character</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">irrep</span><span class="o">.</span><span class="n">character</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">([</span><span class="n">irrep</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">character</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">table</span>
+
+    <span class="k">def</span> <span class="nf">show_character_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a string with the character_table on the given stream.&quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">character_table</span>
+        <span class="n">pprint_table</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+
+    <span class="c1">#def show_irrep(self, irrep_name):</span>
+    <span class="c1">#    &quot;&quot;&quot;Show the mapping rotation --&gt; irrep mat.&quot;&quot;&quot;</span>
+    <span class="c1">#    irrep = self.irreps_by_name[irrep_name]</span>
+
+    <span class="c1">#def irrep_from_character(self, character, rotations, tol=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Main entry point for client code.</span>
+    <span class="c1">#    This routine receives a character computed from the user and finds the</span>
+    <span class="c1">#    irreducible representation.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="c1">#def map_rotclasses(self, rotations_in_classes)</span>
+    <span class="c1">#def map_rotation(self, rotations_in_classes)</span>
+
+    <span class="k">def</span> <span class="nf">auto_test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Return code (0 if success).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rot_group</span> <span class="o">=</span> <span class="n">LatticePointGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rot_group</span><span class="o">.</span><span class="n">is_group</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rotations do not form a group!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+        <span class="c1"># Symmetries should be ordered in classes.</span>
+        <span class="c1"># Here we recompute the classes by calling rot_group.class_indices.</span>
+        <span class="c1"># We then sort the indices and we compare the results with the ref data stored in the Bilbao database.</span>
+        <span class="n">calc_class_inds</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">rot_group</span><span class="o">.</span><span class="n">class_indices</span><span class="p">]</span>
+        <span class="c1">#print(calc_class_inds)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">calc_class_inds</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_range</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">calc_inds</span><span class="p">,</span> <span class="n">ref_range</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">calc_class_inds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_range</span><span class="p">):</span>
+            <span class="n">ref_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">ref_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ref_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">calc_inds</span> <span class="o">!=</span> <span class="n">ref_inds</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rotations are not ordered in classes.&quot;</span><span class="p">,</span> <span class="n">calc_inds</span><span class="p">,</span> <span class="n">ref_inds</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">2</span>
+
+        <span class="c1"># Do we have a representation of the Group?</span>
+        <span class="n">mult_table</span> <span class="o">=</span> <span class="n">rot_group</span><span class="o">.</span><span class="n">mult_table</span>
+        <span class="n">max_err</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">rot1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rot_group</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">rot2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rot_group</span><span class="p">):</span>
+                <span class="n">idx_prod</span> <span class="o">=</span> <span class="n">mult_table</span><span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">irrep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="p">:</span>
+                    <span class="n">mat_prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">irrep</span><span class="o">.</span><span class="n">mats</span><span class="p">[</span><span class="n">idx1</span><span class="p">],</span> <span class="n">irrep</span><span class="o">.</span><span class="n">mats</span><span class="p">[</span><span class="n">idx2</span><span class="p">])</span>
+                    <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="n">mat_prod</span> <span class="o">-</span> <span class="n">irrep</span><span class="o">.</span><span class="n">mats</span><span class="p">[</span><span class="n">idx_prod</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="n">max_err</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_err</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">max_err</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Irreps do not form a representation of the group, max_err: &quot;</span><span class="p">,</span> <span class="n">max_err</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">3</span>
+
+        <span class="c1"># TODO</span>
+        <span class="c1"># Test orthogonality theorem</span>
+
+        <span class="c1"># Test the orthogonality relation of traces.</span>
+        <span class="n">max_err</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">jj</span><span class="p">),</span> <span class="p">(</span><span class="n">irp1</span><span class="p">,</span> <span class="n">irp2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">iuptri</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irreps</span><span class="p">,</span> <span class="n">with_inds</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">trac1</span><span class="p">,</span> <span class="n">trac2</span> <span class="o">=</span> <span class="n">irp1</span><span class="o">.</span><span class="n">traces</span><span class="p">,</span> <span class="n">irp2</span><span class="o">.</span><span class="n">traces</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">trac1</span><span class="p">,</span> <span class="n">trac2</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_rots</span>
+            <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">jj</span><span class="p">:</span> <span class="n">err</span> <span class="o">-=</span> <span class="mf">1.0</span>
+            <span class="n">max_err</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_err</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">max_err</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error in orthogonality relation of traces: &quot;</span><span class="p">,</span> <span class="n">max_err</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">4</span>
+
+        <span class="c1"># Success.</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="c1"># Schoenflies, Hermann-Mauguin, spgid</span>
+<span class="n">_PTG_IDS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;C1&quot;</span> <span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>     <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;Ci&quot;</span> <span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span>    <span class="mi">2</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C2&quot;</span> <span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>     <span class="mi">3</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;Cs&quot;</span> <span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span>     <span class="mi">6</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C2h&quot;</span><span class="p">,</span> <span class="s2">&quot;2/m&quot;</span><span class="p">,</span>	 <span class="mi">10</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D2&quot;</span> <span class="p">,</span> <span class="s2">&quot;222&quot;</span><span class="p">,</span>	 <span class="mi">16</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C2v&quot;</span><span class="p">,</span> <span class="s2">&quot;mm2&quot;</span><span class="p">,</span>   <span class="mi">25</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D2h&quot;</span><span class="p">,</span> <span class="s2">&quot;mmm&quot;</span><span class="p">,</span>   <span class="mi">47</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C4&quot;</span> <span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>     <span class="mi">75</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;S4&quot;</span> <span class="p">,</span> <span class="s2">&quot;-4&quot;</span><span class="p">,</span>    <span class="mi">81</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C4h&quot;</span><span class="p">,</span> <span class="s2">&quot;4/m&quot;</span><span class="p">,</span>	 <span class="mi">83</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D4&quot;</span> <span class="p">,</span> <span class="s2">&quot;422&quot;</span><span class="p">,</span>   <span class="mi">89</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C4v&quot;</span><span class="p">,</span> <span class="s2">&quot;4mm&quot;</span><span class="p">,</span>   <span class="mi">99</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D2d&quot;</span><span class="p">,</span> <span class="s2">&quot;-42m&quot;</span><span class="p">,</span>  <span class="mi">111</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D4h&quot;</span><span class="p">,</span> <span class="s2">&quot;4/mmm&quot;</span><span class="p">,</span> <span class="mi">123</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C3&quot;</span> <span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>     <span class="mi">143</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C3i&quot;</span><span class="p">,</span> <span class="s2">&quot;-3&quot;</span><span class="p">,</span>    <span class="mi">147</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D3&quot;</span> <span class="p">,</span> <span class="s2">&quot;32&quot;</span><span class="p">,</span>    <span class="mi">149</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C3v&quot;</span><span class="p">,</span> <span class="s2">&quot;3m&quot;</span><span class="p">,</span>    <span class="mi">156</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D3d&quot;</span><span class="p">,</span> <span class="s2">&quot;-3m&quot;</span><span class="p">,</span>   <span class="mi">162</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C6&quot;</span> <span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span>     <span class="mi">168</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C3h&quot;</span><span class="p">,</span> <span class="s2">&quot;-6&quot;</span><span class="p">,</span>    <span class="mi">174</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C6h&quot;</span><span class="p">,</span> <span class="s2">&quot;6/m&quot;</span><span class="p">,</span>   <span class="mi">175</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D6&quot;</span> <span class="p">,</span> <span class="s2">&quot;622&quot;</span><span class="p">,</span>   <span class="mi">177</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;C6v&quot;</span><span class="p">,</span> <span class="s2">&quot;6mm&quot;</span><span class="p">,</span>	 <span class="mi">183</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D3h&quot;</span><span class="p">,</span> <span class="s2">&quot;-6m2&quot;</span><span class="p">,</span>  <span class="mi">189</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;D6h&quot;</span><span class="p">,</span> <span class="s2">&quot;6/mmm&quot;</span><span class="p">,</span> <span class="mi">191</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;T&quot;</span>  <span class="p">,</span> <span class="s2">&quot;23&quot;</span><span class="p">,</span>    <span class="mi">195</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;Th&quot;</span> <span class="p">,</span> <span class="s2">&quot;m-3&quot;</span><span class="p">,</span>   <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;O&quot;</span>  <span class="p">,</span> <span class="s2">&quot;432&quot;</span><span class="p">,</span>   <span class="mi">207</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;Td&quot;</span> <span class="p">,</span> <span class="s2">&quot;-43m&quot;</span><span class="p">,</span>  <span class="mi">215</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;Oh&quot;</span> <span class="p">,</span> <span class="s2">&quot;m-3m&quot;</span><span class="p">,</span>  <span class="mi">221</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">_SCH2HERM</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_PTG_IDS</span><span class="p">}</span>
+<span class="n">_HERM2SCH</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_PTG_IDS</span><span class="p">}</span>
+<span class="n">_SPGID2SCH</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_PTG_IDS</span><span class="p">}</span>
+<span class="n">_SCH2SPGID</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_PTG_IDS</span><span class="p">}</span>
+
+<span class="n">sch_symbols</span> <span class="o">=</span> <span class="n">_SCH2HERM</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">sch2herm</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert from Schoenflies to Hermann-Mauguin.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_SCH2HERM</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">sch2spgid</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert from Schoenflies to the space group id.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_SCH2SPGID</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sch_symbol</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">herm2sch</span><span class="p">(</span><span class="n">herm_symbol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert from Hermann-Mauguin to Schoenflies.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_HERM2SCH</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">herm_symbol</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">spgid2sch</span><span class="p">(</span><span class="n">spgid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the Schoenflies symbol from the space group identifier.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_SPGID2SCH</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">spgid</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">any2sch</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert string or int to Schoenflies symbol. Returns None if invalid input&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">sch_symbols</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Try Hermann-Mauguin</span>
+            <span class="k">return</span> <span class="n">herm2sch</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Spacegroup ID?</span>
+        <span class="k">return</span> <span class="n">spgid2sch</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

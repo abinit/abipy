@@ -1,0 +1,482 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.electrons.denpot &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.electrons.denpot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.electrons.denpot</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Density/potential files in netcdf format.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">,</span>
+    <span class="n">AbinitFortranFile</span><span class="p">,</span> <span class="n">CubeFile</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">DensityReader</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;DensityNcFile&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">DenNcReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">DensityReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Object used to read data from DEN.nc files.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="DensityNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile">[docs]</a><span class="k">class</span> <span class="nc">DensityNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Netcdf File containing the electronic density.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with DensityNcFile(&quot;foo_DEN.nc&quot;) as ncfile:</span>
+<span class="sd">            ncfile.density</span>
+<span class="sd">            ncfile.ebands.plot()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DensityNcFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DensityNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">DenNcReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DensityNcFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;XC functional: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xc</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="DensityNcFile.density"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.density">[docs]</a>    <span class="k">def</span> <span class="nf">density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_density</span><span class="p">()</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="DensityNcFile.ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.ebands">[docs]</a>    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="DensityNcFile.xc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.xc">[docs]</a>    <span class="k">def</span> <span class="nf">xc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`XcFunc` object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DensityNcFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DensityNcFile.write_chgcar"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_chgcar">[docs]</a>    <span class="k">def</span> <span class="nf">write_chgcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write density in CHGCAR format. Return :class:`ChgCar` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;_CHGCAR&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in CHGCAR format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">to_chgcar</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DensityNcFile.write_xsf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_xsf">[docs]</a>    <span class="k">def</span> <span class="nf">write_xsf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write density in XSF format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;.xsf&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in XSF format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DensityNcFile.write_cube"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_cube">[docs]</a>    <span class="k">def</span> <span class="nf">write_cube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;.cube&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in CUBE format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">export_to_cube</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DensityNcFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;denc = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(denc)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.get_edos().plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#cube = denc.write_cube(filename=None)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#xsf_path = denc.write_xsf(filename=None&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#chgcar = denc.write_chgcar(filename=None&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">DensityFortranFile</span><span class="p">(</span><span class="n">AbinitFortranFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing the _DEN fortran file containing density.</span>
+<span class="sd">    Provides methods to run Cut3D and convert data into different formats.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal function to run a conversion using cut3d.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+
+        <span class="c1"># local import to avoid circular references</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.wrappers</span> <span class="k">import</span> <span class="n">Cut3D</span>
+        <span class="n">outfile</span><span class="p">,</span> <span class="n">converted_file</span> <span class="o">=</span> <span class="n">Cut3D</span><span class="p">()</span><span class="o">.</span><span class="n">cut3d</span><span class="p">(</span><span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">converted_file</span>
+
+    <span class="k">def</span> <span class="nf">get_cube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the cube format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (CubeFile) the converted file as a CubeFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="n">CubeFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_cube</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
+                                      <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_xsf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the xsf format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            shift: a list of three integers defining the shift along the x, y, z axis. None if no shift is required.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) path to the converted file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_xsf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">out_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">),</span>
+                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_tecplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the tecplot format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) path to the converted file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_tecplot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_molekel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the molekel format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) path to the converted file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_molekel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the 3D indexed format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) path to the converted file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_3d_formatted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to convert the density to the 3D formatted format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</span>
+<span class="sd">                safer to use just the file name, as using an absolute or relative path may fail depending on</span>
+<span class="sd">                the compiler.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) path to the converted file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_hirshfeld</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fhi_all_el_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs cut3d to get the Hirshfeld charges. Requires all-electron density files, so at least one source</span>
+<span class="sd">        should be specified (all_el_dens_paths or fhi_all_el_path)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: a Structure object representing the structure used to generate the density</span>
+<span class="sd">            all_el_dens_paths: a list of paths to the all-electron density files correspinding to the elements defined</span>
+<span class="sd">                in the abinit input.</span>
+<span class="sd">            fhi_all_el_path: path to the folder containing the fhi all-electron density files that will be used</span>
+<span class="sd">                to automatically determine the path of the required densities.</span>
+<span class="sd">            workdir: directory where cut3d is executed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (HirshfeldCharges) the calculated Hirshfeld charges.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">all_el_dens_paths</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fhi_all_el_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;At least one source of all electron densities should be provided.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">all_el_dens_paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fhi_all_el_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;all_el_dens_paths and fhi_all_el_path are mutually exclusive.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># local import to avoid circular references</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.abinit.wrappers</span> <span class="k">import</span> <span class="n">Cut3D</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
+
+        <span class="k">if</span> <span class="n">all_el_dens_paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cut3d_input</span> <span class="o">=</span> <span class="n">Cut3DInput</span><span class="o">.</span><span class="n">hirshfeld</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cut3d_input</span> <span class="o">=</span> <span class="n">Cut3DInput</span><span class="o">.</span><span class="n">hirshfeld_from_fhi_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">fhi_all_el_path</span><span class="p">)</span>
+
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+
+        <span class="n">cut3d</span> <span class="o">=</span> <span class="n">Cut3D</span><span class="p">()</span>
+        <span class="n">outfile</span><span class="p">,</span> <span class="n">converted_file</span> <span class="o">=</span> <span class="n">cut3d</span><span class="o">.</span><span class="n">cut3d</span><span class="p">(</span><span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.electrons.charges</span> <span class="k">import</span> <span class="n">HirshfeldCharges</span>
+        <span class="k">return</span> <span class="n">HirshfeldCharges</span><span class="o">.</span><span class="n">from_cut3d_outfile</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">cut3d</span><span class="o">.</span><span class="n">stdout_fname</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

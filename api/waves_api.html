@@ -1,0 +1,452 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>waves Package &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
+        <link rel="up" title="The AbiPy API" href="index.html"/>
+        <link rel="next" title="data Package" href="data_api.html"/>
+        <link rel="prev" title="dfpt Package" href="dfpt_api.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">The AbiPy API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools_api.html#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abio_api.html">abio Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="electrons_api.html">electrons Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw_api.html">gw package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dfpt_api.html">dfpt Package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">waves Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">waves</span></code> Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.waves.pwwave"><code class="docutils literal"><span class="pre">pwwave</span></code> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-abipy.waves.wfkfile"><code class="docutils literal"><span class="pre">wfkfile</span></code> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">The AbiPy API</a> &raquo;</li>
+      
+    <li>waves Package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/waves_api.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="waves-package">
+<h1>waves Package<a class="headerlink" href="#waves-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">waves</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-abipy.waves"></span></div>
+<div class="section" id="module-abipy.waves.pwwave">
+<span id="pwwave-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">pwwave</span></code> Module<a class="headerlink" href="#module-abipy.waves.pwwave" title="Permalink to this headline">¶</a></h2>
+<p>This module contains the class describing a planewave wavefunction.</p>
+<dl class="class">
+<dt id="abipy.waves.pwwave.PWWaveFunction">
+<em class="property">class </em><code class="descclassname">abipy.waves.pwwave.</code><code class="descname">PWWaveFunction</code><span class="sig-paren">(</span><em>nspinor</em>, <em>spin</em>, <em>band</em>, <em>gsphere</em>, <em>ug</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.waves.pwwave.WaveFunction</span></code></p>
+<p>This object describes a wavefunction expressed in a plane-wave basis set.</p>
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.braket">
+<code class="descname">braket</code><span class="sig-paren">(</span><em>other</em>, <em>space=u'g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.braket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.braket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the scalar product &lt;u1|u2&gt; of the periodic part of two wavefunctions
+computed in G-space or r-space, depending on the value of space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; Other wave (right-hand side)</li>
+<li><strong>space</strong> &#8211; Integration space. Possible values [&#8220;g&#8221;, &#8220;gsphere&#8221;, &#8220;r&#8221;]
+if &#8220;g&#8221; or &#8220;r&#8221; the scalar product is computed in G- or R-space on the FFT box.
+if space=&#8221;gsphere&#8221; the integration is done on the G-sphere. Note that
+this option assumes that self and other have the same list of G-vectors.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.export_ur2">
+<code class="descname">export_ur2</code><span class="sig-paren">(</span><em>filename</em>, <em>structure</em>, <em>visu=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.export_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.export_ur2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export u(r)**2 on file filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; String specifying the file path and the file format.
+The format is defined by the file extension. filename=&#8221;prefix.xsf&#8221;, for example,
+will produce a file in XSF format. An <em>empty</em> prefix, e.g. &#8221;.xsf&#8221; makes the code use a temporary file.</li>
+<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>visu</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> subclass. By default, this method returns the first available
+visualizer that supports the given file format. If visu is not None, an
+instance of visu is returned. See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of
+applications and formats supported.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Instance of <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.norm2">
+<code class="descname">norm2</code><span class="sig-paren">(</span><em>space=u'g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.norm2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.norm2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <img src="../_images/mathmpl/math-e1520270d0.png" style="position: relative; bottom: -7px"/> computed in G- or r-space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.rotate">
+<code class="descname">rotate</code><span class="sig-paren">(</span><em>symmop</em>, <em>mesh=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate the pwwave by the symmetry operation symmop.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>symmop</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Symmetry</span></code> operation</li>
+<li><strong>mesh</strong> &#8211; mesh for the FFT, if None the mesh of self is used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">New wavefunction object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.visualize_ur2">
+<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>structure</em>, <em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.visualize_ur2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize u(r)**2 visualizer.</p>
+<p>See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.waves.wfkfile">
+<span id="wfkfile-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">wfkfile</span></code> Module<a class="headerlink" href="#module-abipy.waves.wfkfile" title="Permalink to this headline">¶</a></h2>
+<p>Wavefunction file.</p>
+<dl class="class">
+<dt id="abipy.waves.wfkfile.WfkFile">
+<em class="property">class </em><code class="descclassname">abipy.waves.wfkfile.</code><code class="descname">WfkFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<p>This object provides a simple interface to access and analyze
+the data stored in the WFK file produced by ABINIT.</p>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">wfk</span> <span class="o">=</span> <span class="n">WfkFile</span><span class="p">(</span><span class="s2">&quot;foo_WFK.nc&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot band energies.</span>
+<span class="n">wfk</span><span class="o">.</span><span class="n">plot_ebands</span><span class="p">()</span>
+
+<span class="c1"># Visualize u(r)**2 with vesta.</span>
+<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_structure_with</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
+<span class="n">visu</span><span class="p">()</span>
+
+<span class="c1"># Visualize u(r)**2 with vesta.</span>
+<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_ur2</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
+<span class="n">visu</span><span class="p">()</span>
+
+<span class="c1"># Get a wavefunction.</span>
+<span class="n">wave</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.waves.wfkfile.WfkFile.ebands">
+<code class="descname">ebands</code><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code> object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.export_ur2">
+<code class="descname">export_ur2</code><span class="sig-paren">(</span><em>filepath</em>, <em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>visu=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.export_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.export_ur2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export <img src="../_images/mathmpl/math-78fb3f8667.png" style="position: relative; bottom: -8px"/> on file filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Instance of <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.get_wave">
+<code class="descname">get_wave</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.get_wave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.get_wave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return the wavefunction with the given spin, band and kpoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> &#8211; spin index. Must be in (0, 1)</li>
+<li><strong>kpoint</strong> &#8211; Either <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> instance or integer giving the sequential index in the IBZ (C-convention).</li>
+<li><strong>band</strong> &#8211; band index.</li>
+<li><strong>returns</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">WaveFunction</span></code> instance.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.waves.wfkfile.WfkFile.gspheres">
+<code class="descname">gspheres</code><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.gspheres" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <code class="xref py py-class docutils literal"><span class="pre">GSphere</span></code> objects ordered by k-points.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.kindex">
+<code class="descname">kindex</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.kindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.kindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the k-point in the file. Accepts <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object or int.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.waves.wfkfile.WfkFile.nkpt">
+<code class="descname">nkpt</code><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.nkpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of k-points.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.waves.wfkfile.WfkFile.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>prtvol=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prtvol</strong> &#8211; verbosity level.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.visualize_ur2">
+<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.visualize_ur2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize <img src="../_images/mathmpl/math-78fb3f8667.png" style="position: relative; bottom: -8px"/>  with visualizer.
+See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="data_api.html" class="btn btn-neutral float-right" title="data Package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dfpt_api.html" class="btn btn-neutral" title="dfpt Package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.iotools.xsf &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="abipy.iotools" href="../iotools.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../iotools.html">abipy.iotools</a> &raquo;</li>
+      
+    <li>abipy.iotools.xsf</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.iotools.xsf</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Tools for writing Xcrysden files.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">EnergyArray</span><span class="p">,</span> <span class="n">ArrayWithUnit</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span><span class="p">,</span> <span class="n">add_periodic_replicas</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;xsf_write_structure&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;xsf_write_data&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bxsf_write&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="xsf_write_structure"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.xsf_write_structure">[docs]</a><span class="k">def</span> <span class="nf">xsf_write_structure</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structures</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the crystalline structure in the Xcrysden format (XSF)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file: file-like object.</span>
+<span class="sd">        structures: :class:`Structure` or list of :class:`Structure` objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">animation</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">structures</span><span class="p">]</span>
+        <span class="n">animation</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">fwrite</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">write</span>
+
+    <span class="k">if</span> <span class="n">animation</span><span class="p">:</span>
+        <span class="c1"># axsf file.</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;ANIMSTEPS </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">structures</span><span class="p">))</span>
+
+    <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;CRYSTAL</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">struct</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structures</span><span class="p">):</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
+
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;# Primitive lattice vectors in Angstrom</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;PRIMVEC </span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%.14f</span><span class="s1"> </span><span class="si">%.14f</span><span class="s1"> </span><span class="si">%.14f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+        <span class="n">cart_coords</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">cart_coords</span>
+        <span class="n">atomic_numbers</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">atomic_numbers</span>
+
+        <span class="c1"># TODO</span>
+        <span class="n">cart_forces</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1">#if &quot;cartesian_forces&quot; in structure.site_properties:</span>
+        <span class="c1">#cart_forces = ArrayWithUnit().to(&quot;Ha ang^-1&quot;)</span>
+
+        <span class="n">fwrite</span><span class="p">(</span><span class="s2">&quot;# Cartesian coordinates in Angstrom.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;PRIMCOORD </span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%d</span><span class="s1"> 1</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">)):</span>
+            <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%2d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">atomic_numbers</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+            <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">cart_forces</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="s1"> </span><span class="si">%20.14f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cart_forces</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="xsf_write_data"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.xsf_write_data">[docs]</a><span class="k">def</span> <span class="nf">xsf_write_data</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">add_replicas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write data in the Xcrysden format (XSF)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file: file-like object.</span>
+<span class="sd">        structure: :class:`Structure` object.</span>
+<span class="sd">        data: array-like object in C-order, i.e data[nx,ny,nz]</span>
+<span class="sd">        add_replicas: If True, data is padded with redundant data points.</span>
+<span class="sd">            in order to have a periodic 3D array of shape=(nx+1,ny+1,nz+1).</span>
+<span class="sd">        cplx_mode: string defining the data to print when data is a complex array.</span>
+<span class="sd">            Possible choices are (case-insensitive):</span>
+
+<span class="sd">                - &quot;re&quot;  for real part.</span>
+<span class="sd">                - &quot;im&quot; for imaginary part.</span>
+<span class="sd">                - &quot;abs&quot; for the absolute value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fwrite</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">write</span>
+
+    <span class="c1"># Check this one</span>
+    <span class="k">if</span> <span class="n">add_replicas</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">add_periodic_replicas</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cplx_mode must be specified when data is a complex array.&quot;</span><span class="p">)</span>
+        <span class="n">cplx_mode</span> <span class="o">=</span> <span class="n">cplx_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">real</span>
+        <span class="k">elif</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;im&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">imag</span>
+        <span class="k">elif</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;abs&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for cplx_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cplx_mode</span><span class="p">)</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span>
+
+    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">ngrids</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">data</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">ngrids</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ndim </span><span class="si">%d</span><span class="s2"> is not supported&quot;</span> <span class="o">%</span> <span class="n">ndim</span><span class="p">)</span>
+
+    <span class="c1"># Xcrysden uses Fortran-order.</span>
+    <span class="c1"># Transpose (...,x,y,z) --&gt; (...,z,y,x) to speed up the write below.</span>
+    <span class="n">fdata</span> <span class="o">=</span> <span class="n">transpose_last3dims</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">fgrid</span> <span class="o">=</span> <span class="n">fdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+
+    <span class="n">cell</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">(</span><span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;BEGIN_BLOCK_DATAGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; data</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">dg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ngrids</span><span class="p">):</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s2">&quot; BEGIN_DATAGRID_3Dgrid#&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dg</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span>
+
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">origin</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+        <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fgrid</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">slice_x</span> <span class="o">=</span> <span class="n">fdata</span><span class="p">[</span><span class="n">dg</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">y</span><span class="p">]</span>
+                <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">slice_x</span><span class="p">])</span> <span class="p">)</span>
+                <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39; END_DATAGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;END_BLOCK_DATAGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bxsf_write"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.bxsf_write">[docs]</a><span class="k">def</span> <span class="nf">bxsf_write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">ndivs</span><span class="p">,</span> <span class="n">emesh_sbk</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write band structure data in the Xcrysden format (XSF)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file: file-like object.</span>
+<span class="sd">        structure: :class:`Structure` object.</span>
+<span class="sd">        nsppol: Number of spins.</span>
+<span class="sd">        nband: Number of bands.</span>
+<span class="sd">        ndivs: Number of divisions of the full k-mesh.</span>
+<span class="sd">        emesh_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.</span>
+<span class="sd">        fermie: Fermi energy.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        #. The k-points must span the reciprocal unit cell, not the Brillouin zone.</span>
+
+<span class="sd">        #. The mesh must be closed and centered on Gamma.</span>
+
+<span class="sd">        #. Energies are written in row-major (i.e. C) order.</span>
+
+<span class="sd">        #  Energies are in Hartree.</span>
+
+<span class="sd">    See also http://www.xcrysden.org/doc/XSF.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">emesh_sbk</span> <span class="o">=</span> <span class="n">EnergyArray</span><span class="p">(</span><span class="n">emesh_sbk</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
+    <span class="n">fermie</span> <span class="o">=</span> <span class="n">Energy</span><span class="p">(</span><span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
+
+    <span class="n">emesh_sbk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">emesh_sbk</span><span class="p">,</span> <span class="p">(</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">ndivs</span><span class="p">)))</span>
+
+    <span class="n">close_it</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">close_it</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">fw</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">write</span>
+
+    <span class="c1"># Write the header.</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;BEGIN_INFO</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;# Band-XCRYSDEN-Structure-File for Visualization of Fermi Surface generated by the ABINIT package</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;# NOTE: the first band is relative to spin-up electrons,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;#       the second band to spin-down electrons (if any) and so on ...</span><span class="se">\n</span><span class="s1">#</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;# Launch as: xcrysden --bxsf</span><span class="se">\n</span><span class="s1">#</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39; Fermi Energy: </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fermie</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;END_INFO</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;BEGIN_BLOCK_BANDGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39; band_energies</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39; BEGIN_BANDGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">fw</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">nsppol</span> <span class="o">*</span> <span class="n">nband</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Number of bands written.</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ndivs</span><span class="p">))</span> <span class="c1"># Number of division in the full BZ mesh.</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;0 0 0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>                   <span class="c1"># Unshifted meshes are not supported.</span>
+
+    <span class="c1"># Reciprocal lattice vectors in Ang^{-1}</span>
+    <span class="n">gcell</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">(</span><span class="s2">&quot;g&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">gcell</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="c1"># Write energies on the full mesh for all spins and bands.</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nband</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">enebz</span> <span class="o">=</span> <span class="n">emesh_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">fw</span><span class="p">(</span><span class="s2">&quot; BAND: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.18e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enebz</span><span class="p">))</span>
+            <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39; END_BANDGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">fw</span><span class="p">(</span><span class="s1">&#39;END_BLOCK_BANDGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">close_it</span><span class="p">:</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

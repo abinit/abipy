@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Jobfile: Controling execution and submission &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+    <li>Jobfile: Controling execution and submission</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../_sources/users/tutorial/htc/jobfile.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="jobfile-controling-execution-and-submission">
+<h1>Jobfile: Controling execution and submission<a class="headerlink" href="#jobfile-controling-execution-and-submission" title="Permalink to this headline">¶</a></h1>
+<p>The job file serves both to execute abinit and to submit the task to a batch server.</p>
+<div class="section" id="example-1-setting-execution-parameters">
+<h2>Example 1: Setting execution parameters<a class="headerlink" href="#example-1-setting-execution-parameters" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.htc</span> <span class="kn">import</span> <span class="n">Launcher</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">Launcher</span><span class="p">(</span><span class="s1">&#39;Silicon&#39;</span><span class="p">,</span> <span class="n">pseudodir</span><span class="o">=</span><span class="s1">&#39;Data/&#39;</span><span class="p">,</span>
+                                 <span class="n">bindir</span><span class="o">=</span><span class="s1">&#39;/Users/Antonius/Work/Software/abinit/7.2.0-private/build1/src/98_main/&#39;</span><span class="p">)</span>
+<span class="c1"># Pseudos</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_pseudos</span><span class="p">(</span><span class="s1">&#39;14si.pspnc&#39;</span><span class="p">)</span>
+
+<span class="c1"># Inputs</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;Data/Silicon_ground_state.in&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Run script</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_mpirun</span><span class="p">(</span><span class="s1">&#39;openmpi -np 4&#39;</span><span class="p">)</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">set_modules</span><span class="p">(</span><span class="s1">&#39;intel-compilers/12.0.4.191&#39;</span><span class="p">,</span> <span class="s1">&#39;FFTW/3.3&#39;</span><span class="p">)</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">set_lines_before</span><span class="p">(</span><span class="s1">&#39;echo &quot;Job starts at:&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_lines_after</span><span class="p">(</span><span class="s1">&#39;echo &quot;Job ends at:&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">)</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-2-making-a-submission-script">
+<h2>Example 2: Making a submission script<a class="headerlink" href="#example-2-making-a-submission-script" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.htc</span> <span class="kn">import</span> <span class="n">Launcher</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">Launcher</span><span class="p">(</span><span class="s1">&#39;Silicon&#39;</span><span class="p">,</span>
+                <span class="n">jobtype</span><span class="o">=</span><span class="s1">&#39;PBS&#39;</span><span class="p">,</span> <span class="c1"># PBS, SGE, Slurm</span>
+                <span class="n">pseudodir</span><span class="o">=</span><span class="s1">&#39;Data/&#39;</span><span class="p">,</span>
+                <span class="n">bindir</span><span class="o">=</span><span class="s1">&#39;/Users/Antonius/Work/Software/abinit/7.2.0-private/build1/src/98_main/&#39;</span><span class="p">,</span>
+                <span class="n">mpirun</span><span class="o">=</span><span class="s1">&#39;mpiexec&#39;</span><span class="p">,</span>
+                <span class="n">modules</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;intel-compilers/12.0.4.191&#39;</span><span class="p">,</span> <span class="s1">&#39;MPI/Intel/mvapich2/1.6&#39;</span><span class="p">,</span> <span class="s1">&#39;FFTW/3.3&#39;</span><span class="p">],</span>
+                <span class="n">lines_before</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;echo &quot;Job starts at:&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">],</span>
+                <span class="n">lines_after</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;echo &quot;Job ends at:&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+
+<span class="c1"># Pseudos</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_pseudos</span><span class="p">(</span><span class="s1">&#39;14si.pspnc&#39;</span><span class="p">)</span>
+
+<span class="c1"># Inputs</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;Data/Silicon_ground_state.in&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Run script</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_jobname</span><span class="p">(</span><span class="s1">&#39;MyJob&#39;</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_nodes</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_ppn</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_runtime</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">set_queue</span><span class="p">(</span><span class="s1">&#39;hpcourte&#39;</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">set_mail</span><span class="p">(</span><span class="s1">&#39;gabriel.antonius@umontreal.ca&#39;</span><span class="p">)</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">set_submission_command</span><span class="p">(</span><span class="s1">&#39;qsub&#39;</span><span class="p">)</span>  <span class="c1"># This is the default.</span>
+
+<span class="n">calc</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The available commands (set_nodes, set_ppn) will depend on the job type.
+See the subclasses of <code class="xref py py-class docutils literal"><span class="pre">JobFile</span></code>.</p>
+<div class="section" id="submitting">
+<h3>Submitting<a class="headerlink" href="#submitting" title="Permalink to this headline">¶</a></h3>
+<p>To submit with the command &#8216;qsub&#8217;, just use</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ python myscript.py -v submit
+Submitting Silicon/calc
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

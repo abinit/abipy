@@ -1,0 +1,790 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.electrons.scr &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.electrons.scr</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.electrons.scr</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Objects to analyze the screening file produced by ABINIT.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span><span class="p">,</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">index</span> <span class="k">as</span> <span class="n">bs_index</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Ha_to_eV</span><span class="p">,</span> <span class="n">eV_to_Ha</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span>
+<span class="kn">from</span> <span class="nn">abipy.core.gsphere</span> <span class="k">import</span> <span class="n">GSphere</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">ArrayPlotter</span><span class="p">,</span> <span class="n">plot_array</span><span class="p">,</span> <span class="n">data_from_cplx_mode</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="WGGFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction">[docs]</a><span class="k">class</span> <span class="nc">WGGFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for two-point functions expressed in</span>
+<span class="sd">    reciprocal space i.e. a matrix A_{G,G&#39;}(q, \omega)</span>
+
+<span class="sd">    .. attributes:</span>
+
+<span class="sd">        qpoint</span>
+<span class="sd">        wpts</span>
+<span class="sd">        gpshere:</span>
+<span class="sd">        nrew</span>
+<span class="sd">        nwim</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">wpts</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            qpoint: Q-point object</span>
+<span class="sd">            wpts: Frequency points in Ha.</span>
+<span class="sd">            wggmat: numpy array of shape [nw, ng, ng]</span>
+<span class="sd">            inord: storage order of wggmat. If inord == &quot;F&quot;, wggmat in</span>
+<span class="sd">                in Fortran column-major order. Default: &quot;C&quot; i.e. C row-major order</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qpoint</span> <span class="o">=</span> <span class="n">qpoint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span> <span class="o">=</span> <span class="n">wpts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span> <span class="o">=</span> <span class="n">gsphere</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">wggmat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">inord</span> <span class="o">==</span> <span class="s2">&quot;F&quot;</span><span class="p">:</span>
+            <span class="c1"># Fortran to C.</span>
+            <span class="k">for</span> <span class="n">iw</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wpts</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="n">iw</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="n">iw</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsphere</span><span class="p">)</span> <span class="o">==</span> <span class="n">wggmat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">)</span>
+
+        <span class="c1"># Find number of real/imaginary frequencies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplex</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nw</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">iscomplex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="o">+</span><span class="mi">1</span><span class="p">:])):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;wpts should contained real points packed in the first positions</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;followed by imaginary points but got: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etsf_name</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;  q-point: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;  Number of G-vectors: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;  Total number of frequencies: </span><span class="si">%d</span><span class="s2"> (real: </span><span class="si">%s</span><span class="s2">, imag: </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;  real frequencies up to </span><span class="si">%.2f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_wpts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;  imaginary frequencies up to </span><span class="si">%.2f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">imag_wpts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ng</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of G-vectors&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total number of frequencies.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">real_wpts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Real frequencies in Hartree&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">imag_wpts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Imaginary frequencies in Hartree&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wggmat_realw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The slice of ggmat along the real axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wggmat_imagw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The slice of ggmat along the imaginary axis.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+<div class="viewcode-block" id="WGGFunction.windex"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction.windex">[docs]</a>    <span class="k">def</span> <span class="nf">windex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the index of the **closest** frequency in `wpts`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplex</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+            <span class="n">iw</span> <span class="o">=</span> <span class="n">bs_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imag_wpts</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span>
+            <span class="n">iw</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iw</span> <span class="o">=</span> <span class="n">bs_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_wpts</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">iw</span></div>
+
+<div class="viewcode-block" id="WGGFunction.gindex"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction.gindex">[docs]</a>    <span class="k">def</span> <span class="nf">gindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the index of gvec. If gvec is an int, gvec is returned.</span>
+<span class="sd">        Raises `ValueError` if gvec is not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gvec</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="k">return</span> <span class="n">gvec</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WGGFunction.latex_label"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction.latex_label">[docs]</a>    <span class="k">def</span> <span class="nf">latex_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a latex string to be passed to matplotlib.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;$\Re(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">latex_name</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;im&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;$\Im(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">latex_name</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;abs&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">abs(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">latex_name</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span>
+        <span class="k">if</span> <span class="n">cplx_mode</span> <span class="o">==</span> <span class="s2">&quot;angle&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;$Phase(&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">latex_name</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for cplx_mode: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cplx_mode</span><span class="p">)</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="WGGFunction.plot_w"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction.plot_w">[docs]</a>    <span class="k">def</span> <span class="nf">plot_w</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the frequency dependence of W_{g1, g2}</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gvec1, gvec2:</span>
+<span class="sd">            waxis: &quot;real&quot; to plot along the real axis, &quot;imag&quot; for the imaginary axis.</span>
+<span class="sd">            cplx_mode: string defining the data to print.</span>
+<span class="sd">                       Possible choices are (case-insensitive): `re` for the real part</span>
+<span class="sd">                       &quot;im&quot; for the imaginary part, &quot;abs&quot; for the absolute value.</span>
+<span class="sd">                       &quot;angle&quot; will display the phase of the complex number in radians.</span>
+<span class="sd">                       Options can be concatenated with &quot;-&quot; e.g. &quot;re-im&quot;</span>
+
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Select data to plot</span>
+        <span class="n">ig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gindex</span><span class="p">(</span><span class="n">gvec1</span><span class="p">)</span>
+        <span class="n">ig2</span> <span class="o">=</span> <span class="n">ig1</span> <span class="k">if</span> <span class="n">gvec2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">gindex</span><span class="p">(</span><span class="n">gvec2</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">waxis</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">fig</span>
+            <span class="n">xx</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_wpts</span> <span class="o">*</span> <span class="n">Ha_to_eV</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+            <span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat_realw</span><span class="p">[:,</span> <span class="n">ig1</span><span class="p">,</span> <span class="n">ig2</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">waxis</span> <span class="o">==</span> <span class="s2">&quot;imag&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nimw</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">fig</span>
+            <span class="n">xx</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imag_wpts</span> <span class="o">*</span> <span class="n">Ha_to_eV</span><span class="p">)</span><span class="o">.</span><span class="n">imag</span>
+            <span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat_imagw</span><span class="p">[:,</span> <span class="n">ig1</span><span class="p">,</span> <span class="n">ig2</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for waxis: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">waxis</span><span class="p">)</span>
+
+        <span class="n">color_cmode</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">re</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">im</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="nb">abs</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+        <span class="n">linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;linewidth&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;linestyle&quot;</span><span class="p">,</span> <span class="s2">&quot;solid&quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cplx_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+            <span class="n">l</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">data_from_cplx_mode</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">yy</span><span class="p">),</span>
+                         <span class="n">color</span><span class="o">=</span><span class="n">color_cmode</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+                         <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">latex_label</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, qpoint: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etsf_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoint</span><span class="p">))</span>
+        <span class="c1">#ax.legend(loc=&quot;best&quot;)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="WGGFunction.plot_ggmat"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction.plot_ggmat">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ggmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">wpos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use imshow for plotting W_GG&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cplx_mode:</span>
+<span class="sd">            wpos: List of frequency indices to plot. If None, the first</span>
+<span class="sd">                frequency is used (usually w=0). if wpos == &quot;all&quot;</span>
+<span class="sd">                all frequencies are shown (use it carefully)</span>
+<span class="sd">                Other possible values: &quot;real&quot; if only real frequencies are wanted.</span>
+<span class="sd">                &quot;imag&quot; for imaginary frequencies only.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `matplotlib` figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get wpos indices.</span>
+        <span class="n">choice_wpos</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="kc">None</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">),</span>
+            <span class="s2">&quot;real&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">),</span>
+            <span class="s2">&quot;imag&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrew</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">)}</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">wpos</span> <span class="o">==</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">choice_wpos</span><span class="p">):</span>
+            <span class="n">wpos</span> <span class="o">=</span> <span class="n">choice_wpos</span><span class="p">[</span><span class="n">wpos</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wpos</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">wpos</span> <span class="o">=</span> <span class="p">[</span><span class="n">wpos</span><span class="p">]</span>
+            <span class="n">wpos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wpos</span><span class="p">)</span>
+
+        <span class="c1"># Build plotter.</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ArrayPlotter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">iw</span> <span class="ow">in</span> <span class="n">wpos</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">cplx_mode</span> <span class="o">+</span> <span class="s2">&quot; $\omega = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">[</span><span class="n">iw</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data_from_cplx_mode</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="n">iw</span><span class="p">,:,:])</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Polarizability"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.Polarizability">[docs]</a><span class="k">class</span> <span class="nc">Polarizability</span><span class="p">(</span><span class="n">WGGFunction</span><span class="p">):</span>
+    <span class="n">etsf_name</span> <span class="o">=</span> <span class="s2">&quot;dielectric_function&quot;</span>
+    <span class="n">latex_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">tilde chi&quot;</span></div>
+
+
+<div class="viewcode-block" id="DielectricFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.DielectricFunction">[docs]</a><span class="k">class</span> <span class="nc">DielectricFunction</span><span class="p">(</span><span class="n">WGGFunction</span><span class="p">):</span>
+    <span class="n">etsf_name</span> <span class="o">=</span> <span class="s2">&quot;dielectric_function&quot;</span>
+    <span class="n">latex_name</span> <span class="o">=</span> <span class="s2">&quot;\epsilon&quot;</span></div>
+
+
+<div class="viewcode-block" id="InverseDielectricFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction">[docs]</a><span class="k">class</span> <span class="nc">InverseDielectricFunction</span><span class="p">(</span><span class="n">WGGFunction</span><span class="p">):</span>
+    <span class="n">etsf_name</span> <span class="o">=</span> <span class="s2">&quot;inverse_dielectric_function&quot;</span>
+    <span class="n">latex_name</span> <span class="o">=</span> <span class="s2">&quot;\epsilon^{-1}&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_add_ppmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ppm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a :class:`PPModel` object to the internal list. Return ppm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;ppmodels&quot;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppmodels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ppmodels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ppm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ppm</span>
+
+<div class="viewcode-block" id="InverseDielectricFunction.build_godby_needs_ppmodel"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction.build_godby_needs_ppmodel">[docs]</a>    <span class="k">def</span> <span class="nf">build_godby_needs_ppmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wplasma</span><span class="p">):</span>
+        <span class="n">ppm</span> <span class="o">=</span> <span class="n">GodbyNeeds</span><span class="o">.</span><span class="n">from_em1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wplasma</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_ppmodel</span><span class="p">(</span><span class="n">ppm</span><span class="p">)</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="InverseDielectricFunction.plot_with_ppmodels"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction.plot_with_ppmodels">[docs]</a>    <span class="k">def</span> <span class="nf">plot_with_ppmodels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re&quot;</span><span class="p">,</span>
+        <span class="n">zcut</span><span class="o">=</span><span class="mf">0.1</span><span class="o">/</span><span class="n">Ha_to_eV</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            gvec1, gvec2:</span>
+<span class="sd">            waxis: &quot;real&quot; to plot along the real axis, &quot;imag&quot; for the imaginary axis.</span>
+<span class="sd">            cplx_mode: string defining the data to print.</span>
+<span class="sd">                       Possible choices are (case-insensitive): `re` for the real part</span>
+<span class="sd">                       &quot;im&quot; for the imaginary part, &quot;abs&quot; for the absolute value.</span>
+<span class="sd">                       &quot;angle&quot; will display the phase of the complex number in radians.</span>
+<span class="sd">                       Options can be concatenated with &quot;-&quot; e.g. &quot;re-im&quot;</span>
+<span class="sd">            zcut: Small shift along the imaginary axis to avoid poles. 0.1 eV is the Abinit default.</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Select the (G,G&#39;) indices to plot.</span>
+        <span class="n">ig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gindex</span><span class="p">(</span><span class="n">gvec1</span><span class="p">)</span>
+        <span class="n">ig2</span> <span class="o">=</span> <span class="n">ig1</span> <span class="k">if</span> <span class="n">gvec2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">gindex</span><span class="p">(</span><span class="n">gvec2</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_w</span><span class="p">(</span><span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="n">gvec2</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="n">waxis</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="n">cplx_mode</span><span class="p">,</span>
+                    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Compute em1 from the ppmodel on the same grid used for self.</span>
+        <span class="n">omegas</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;real&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_wpts</span><span class="p">,</span> <span class="s2">&quot;imag&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">imag_wpts</span><span class="p">}[</span><span class="n">waxis</span><span class="p">]</span>
+
+        <span class="c1"># Get y-limits of the ab-initio em1 to zoom-in the interesting region</span>
+        <span class="n">ymin_em1</span><span class="p">,</span> <span class="n">ymax_em1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">ppm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ppmodels</span><span class="p">:</span>
+            <span class="n">em1_ppm</span> <span class="o">=</span> <span class="n">ppm</span><span class="o">.</span><span class="n">eval_em1</span><span class="p">(</span><span class="n">omegas</span><span class="p">,</span> <span class="n">zcut</span><span class="p">)</span>
+            <span class="n">em1_ppm</span><span class="o">.</span><span class="n">plot_w</span><span class="p">(</span><span class="n">ig1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="n">ig2</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="n">waxis</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="n">cplx_mode</span><span class="p">,</span>
+                           <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin_em1</span><span class="p">,</span> <span class="n">ymax_em1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+
+
+<div class="viewcode-block" id="ScrFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile">[docs]</a><span class="k">class</span> <span class="nc">ScrFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Netcdf file with the tables used in Abinit to apply the</span>
+<span class="sd">    pseudopotential part of the KS Hamiltonian.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with ScrFile(&quot;foo_SCR.nc&quot;) as scr:</span>
+<span class="sd">            print(scr)</span>
+<span class="sd">            em1 = scr.get_em1(qpoint=0)</span>
+<span class="sd">            em1.plot_w()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ScrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScrFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Keep a reference to the reader.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="n">ScrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Read important parameters.</span>
+        <span class="c1">#self.params = self.reader.read_params()</span>
+
+<div class="viewcode-block" id="ScrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ScrFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Q-points&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="c1">#app(&quot;  Number of G-vectors: %d&quot; % self.ng)</span>
+        <span class="c1">#app(&quot;  Number of frequencies: %d (real:%d, imag%d)&quot; % (self.nw, self.nrew, self.nimw))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Crystalline structure.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of q-points for the dielectric function.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">qpoints</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wpts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the frequencies of the dielectric function in Ha.</span>
+<span class="sd">        Returns numpy array of complex numbers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">wpts</span>
+
+<div class="viewcode-block" id="ScrFile.get_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.get_em1">[docs]</a>    <span class="k">def</span> <span class="nf">get_em1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_wggfunc</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">InverseDielectricFunction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ScrFile.get_emacro_nlf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.get_emacro_nlf">[docs]</a>    <span class="k">def</span> <span class="nf">get_emacro_nlf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the macroscopic dielectric function *without* local field effects.</span>
+<span class="sd">        e_{0,0)(q=0, w).</span>
+
+<span class="sd">        Return :class:`Function1D`</span>
+
+<span class="sd">        .. warning:</span>
+<span class="sd">            This function performs the inversion of e-1 to get e.</span>
+<span class="sd">            that can be quite expensive and memory demanding for large matrices!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">em1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_em1</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[:</span><span class="n">em1</span><span class="o">.</span><span class="n">nrew</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
+
+        <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">real_wpts</span><span class="p">,</span> <span class="n">e</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ScrFile.get_emacro_lf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.get_emacro_lf">[docs]</a>    <span class="k">def</span> <span class="nf">get_emacro_lf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the macroscopic dielectric function *with* local field effects</span>
+<span class="sd">        1/ em1_{0,0)(q=0, w).</span>
+
+<span class="sd">        Return :class:`Function1D`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">em1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_em1</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="n">emacro</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">em1</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">real_wpts</span><span class="p">,</span> <span class="n">emacro</span><span class="p">[:</span><span class="n">em1</span><span class="o">.</span><span class="n">nrew</span><span class="p">])</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="ScrFile.plot_emacro_lf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_emacro_lf">[docs]</a>    <span class="k">def</span> <span class="nf">plot_emacro_lf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the macroscopic dielectric function with local-field effects.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_emacro_lf</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ScrFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;scr = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(scr)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = scr.plot_emacro_lf()&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;fig = ncfile.phbands.get_phdos().plot()&quot;),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ScrReader"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader">[docs]</a><span class="k">class</span> <span class="nc">ScrReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object reads the results stored in the SCR (Screening) file produced by ABINIT.</span>
+<span class="sd">    It provides helper functions to access the most important quantities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScrReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Read and store important quantities.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+        <span class="n">qred_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;qpoints_dielectric_function&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span> <span class="o">=</span> <span class="n">KpointList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">qred_coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;frequencies_dielectric_function&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+    <span class="c1">#def read_params(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Read the most importan parameters used to generate the data, i.e.</span>
+    <span class="c1">#    the parameters that may be subject to convergence studies.</span>
+
+    <span class="c1">#    Returns:</span>
+    <span class="c1">#        :class:`AttrDict` a dictionary whose keys can be accessed</span>
+    <span class="c1">#        with the dot notation i.e. d.key.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    keys = [&quot;npwwfn_used&quot;, &quot;nbands_used&quot;,]</span>
+    <span class="c1">#    return AttrDict({k: self.read_value(k) for k in keys})</span>
+
+<div class="viewcode-block" id="ScrReader.find_qpoint_fileindex"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.find_qpoint_fileindex">[docs]</a>    <span class="k">def</span> <span class="nf">find_qpoint_fileindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the q-point and the index of in the netcdf file.</span>
+<span class="sd">        Accepts `Kpoint` instance or integer</span>
+
+<span class="sd">        Raise:</span>
+<span class="sd">            `KpointsError` if qpoint cannot be found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">iq</span> <span class="o">=</span> <span class="n">qpoint</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">iq</span><span class="p">],</span> <span class="n">iq</span></div>
+
+<div class="viewcode-block" id="ScrReader.read_wggfunc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_wggfunc">[docs]</a>    <span class="k">def</span> <span class="nf">read_wggfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read data at the given q-point and return an instance</span>
+<span class="sd">        of `cls` where `cls` is a subclass of `WGGFunction`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qpoint</span><span class="p">,</span> <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_qpoint_fileindex</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
+        <span class="c1"># TODO: I don&#39;t remember how to slice in python-netcdf</span>
+        <span class="c1"># ecuteps</span>
+        <span class="n">all_gvecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_coordinates_plane_waves_dielectric_function&quot;</span><span class="p">)</span>
+        <span class="n">ecuteps</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="c1"># TODO: Gpshere.find is very slow if we don&#39;t take advantage of shells</span>
+        <span class="n">gsphere</span> <span class="o">=</span> <span class="n">GSphere</span><span class="p">(</span><span class="n">ecuteps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">all_gvecs</span><span class="p">[</span><span class="n">iq</span><span class="p">])</span>
+
+        <span class="n">full_wggmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">etsf_name</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+        <span class="n">wggmat</span> <span class="o">=</span> <span class="n">full_wggmat</span><span class="p">[</span><span class="n">iq</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span></div></div>
+
+
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<div class="viewcode-block" id="PPModel"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.PPModel">[docs]</a><span class="k">class</span> <span class="nc">PPModel</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
+
+    <span class="c1">#@abc.abstractmethod</span>
+    <span class="c1">#def from_em1(cls, em1):</span>
+    <span class="c1">#    &quot;&quot;&quot;Compute the plasmon-pole parameters from the inverse dielectric function.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<div class="viewcode-block" id="PPModel.eval_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.PPModel.eval_em1">[docs]</a>    <span class="k">def</span> <span class="nf">eval_em1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="n">zcut</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the plasmon-pole model at frequency omega (Ha units).&quot;&quot;&quot;</span></div></div>
+
+
+<div class="viewcode-block" id="GodbyNeeds"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds">[docs]</a><span class="k">class</span> <span class="nc">GodbyNeeds</span><span class="p">(</span><span class="n">PPModel</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">omegatw</span><span class="p">,</span> <span class="n">bigomegatwsq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        bigomegatwsq(:)</span>
+<span class="sd">        Plasmon pole parameters $\tilde\Omega^2_{G Gp}(q)$.</span>
+
+<span class="sd">        omegatw(:)</span>
+<span class="sd">        omegatw(nqibz)%value(npwc,dm2_otq)</span>
+<span class="sd">        Plasmon pole parameters $\tilde\omega_{G Gp}(q)$.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span> <span class="o">=</span> <span class="n">gsphere</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qpoint</span> <span class="o">=</span> <span class="n">gsphere</span><span class="o">.</span><span class="n">kpoint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omegatw</span> <span class="o">=</span> <span class="n">omegatw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bigomegatwsq</span> <span class="o">=</span> <span class="n">bigomegatwsq</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ng</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsphere</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">omegatw</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">bigomegatwsq</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">omegatw</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsphere</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="GodbyNeeds.from_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.from_em1">[docs]</a>    <span class="k">def</span> <span class="nf">from_em1</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">em1</span><span class="p">,</span> <span class="n">wplasma</span><span class="p">):</span>
+        <span class="c1"># Find omega=0 and the second imaginary frequency to fit the ppm parameters.</span>
+        <span class="n">iw0</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">iw1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">wpts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="n">iw0</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">wplasma</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="n">iw1</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="k">if</span> <span class="n">iw0</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find omega=0 in em1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">iw1</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find second imag frequency at </span><span class="si">%s</span><span class="s2"> in em1!&quot;</span> <span class="o">%</span> <span class="n">wplasma</span><span class="p">)</span>
+
+        <span class="n">w0gg</span> <span class="o">=</span> <span class="n">em1</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="n">iw0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">w1gg</span> <span class="o">=</span> <span class="n">em1</span><span class="o">.</span><span class="n">wggmat</span><span class="p">[</span><span class="n">iw1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="n">aa</span> <span class="o">=</span> <span class="n">w0gg</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">ng</span><span class="p">)</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">w0gg</span> <span class="o">-</span> <span class="n">w1gg</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">aa</span> <span class="o">/</span> <span class="n">diff</span>
+        <span class="n">omegatwsq</span> <span class="o">=</span> <span class="p">(</span><span class="n">ratio</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">wplasma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># If omega-twiddle-squared is negative,set omega-twiddle-squared to 1.0 (a reasonable way of treating</span>
+        <span class="c1"># such terms, in which epsilon**-1 was originally increasing along this part of the imaginary axis)</span>
+        <span class="c1"># (note: originally these terms were ignored in Sigma; this was changed on 6 March 1990.)</span>
+        <span class="c1">#if (REAL(omegatwsq) &lt;= 0.0) omegatwsq=one</span>
+        <span class="n">omegatwsq</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">omegatwsq</span><span class="o">.</span><span class="n">real</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="c1">#</span>
+        <span class="c1"># Get omega-twiddle</span>
+        <span class="c1"># * Neglect the imag part (if any) in omega-twiddle-squared</span>
+        <span class="c1">#omegatw(ig,igp)=SQRT(REAL(omegatwsq))</span>
+        <span class="c1">#omegatw = np.sqrt(omegatwsq)</span>
+        <span class="n">omegatw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">omegatwsq</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+        <span class="c1">#omegatw = omegatw + 7j * eV_to_Ha</span>
+
+        <span class="n">bigomegatwsq</span> <span class="o">=</span> <span class="o">-</span><span class="n">aa</span> <span class="o">*</span> <span class="n">omegatw</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">gsphere</span><span class="p">,</span> <span class="n">omegatw</span><span class="p">,</span> <span class="n">bigomegatwsq</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GodbyNeeds.eval_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.eval_em1">[docs]</a>    <span class="k">def</span> <span class="nf">eval_em1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="n">zcut</span><span class="p">):</span>
+        <span class="n">omegas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">omegas</span><span class="p">)</span>
+
+        <span class="n">wggmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">omegas</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">omegas</span><span class="p">):</span>
+            <span class="c1"># Add shift but only along the real axis.</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">imag</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">zcut</span>
+            <span class="n">den</span> <span class="o">=</span> <span class="n">w</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">omegatw</span> <span class="o">-</span> <span class="n">delta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">em1gg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bigomegatwsq</span> <span class="o">/</span> <span class="n">den</span>
+            <span class="c1">#arg = (w - self.omegatw.real) / (0.01 * eV_to_Ha)</span>
+            <span class="c1">#em1gg = em1gg * (1 - np.exp(-arg**2))</span>
+            <span class="n">wggmat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">em1gg</span>
+
+        <span class="k">return</span> <span class="n">InverseDielectricFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">)</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="GodbyNeeds.plot_ggparams"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.plot_ggparams">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ggparams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ArrayPlotter</span><span class="p">(</span><span class="o">*</span><span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">tilde\omega_{G G&#39;}$&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omegatw</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">tilde\Omega^2_{G, G&#39;}$&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bigomegatwsq</span><span class="p">)])</span>
+
+        <span class="k">return</span> <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

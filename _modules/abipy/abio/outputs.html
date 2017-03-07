@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.abio.outputs &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.abio.outputs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.abio.outputs</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Objects used to extract and plot results from output files in text format.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
+<span class="c1">#from abipy.iotools.cube import cube_read_structure_mesh_data</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.events</span> <span class="k">import</span> <span class="n">EventsParser</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiinspect</span> <span class="k">import</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abitimer</span> <span class="k">import</span> <span class="n">AbinitTimerParser</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.netcdf</span> <span class="k">import</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">TextFile</span><span class="p">,</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+
+
+<div class="viewcode-block" id="AbinitTextFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitTextFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitTextFile</span><span class="p">(</span><span class="n">TextFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for the ABINIT main output file and the log file.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List of ABINIT events reported in the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Parse the file the first time the property is accessed or when mtime is changed.</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_mtime</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_events&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="n">EventsParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span>
+
+<div class="viewcode-block" id="AbinitTextFile.get_timer"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitTextFile.get_timer">[docs]</a>    <span class="k">def</span> <span class="nf">get_timer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Timer data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Parse the file the first time the property is accessed or when mtime is changed.</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">AbinitTimerParser</span><span class="p">()</span>
+        <span class="n">timer</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">timer</span></div></div>
+
+
+<div class="viewcode-block" id="AbinitLogFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitLogFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitLogFile</span><span class="p">(</span><span class="n">AbinitTextFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class representing the Abinit log file.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AbinitLogFile.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitLogFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abilog = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(abilog.events)&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="AbinitOutputFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitOutputFile</span><span class="p">(</span><span class="n">AbinitTextFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class representing the main output file.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AbinitOutputFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># TODO: Parse header to get important dimensions and variables</span>
+        <span class="c1">#ndtset</span>
+        <span class="c1">#offset_dataset</span>
+        <span class="c1">#dims_dataset</span>
+        <span class="c1">#vars_dataset</span>
+        <span class="c1">#pseudos</span>
+        <span class="c1">#self.seek(0)</span>
+
+<div class="viewcode-block" id="AbinitOutputFile.next_gs_scf_cycle"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_gs_scf_cycle">[docs]</a>    <span class="k">def</span> <span class="nf">next_gs_scf_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the next :class:`GroundStateScfCycle` in the file. None if not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">GroundStateScfCycle</span><span class="o">.</span><span class="n">from_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitOutputFile.next_d2de_scf_cycle"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_d2de_scf_cycle">[docs]</a>    <span class="k">def</span> <span class="nf">next_d2de_scf_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">D2DEScfCycle</span><span class="o">.</span><span class="n">from_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitOutputFile.compare_gs_scf_cycles"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_gs_scf_cycles">[docs]</a>    <span class="k">def</span> <span class="nf">compare_gs_scf_cycles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent</span>
+<span class="sd">        cycle in self with the ones in others.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            others: list of `AbinitOutputFile` objects or strings with paths to output files.</span>
+<span class="sd">            show: True to diplay plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Open file here if we receive a string. Files will be closed before returning</span>
+        <span class="n">close_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">other</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">others</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="n">others</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+                <span class="n">close_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">figures</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_gs_scf_cycle</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">other</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">others</span><span class="p">):</span>
+                <span class="n">other_cycle</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">next_gs_scf_cycle</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">other_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">last</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">other_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axlist</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span> <span class="ow">and</span> <span class="n">last</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                    <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">close_files</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">close_files</span><span class="p">:</span> <span class="n">others</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">figures</span></div>
+
+<div class="viewcode-block" id="AbinitOutputFile.compare_d2de_scf_cycles"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_d2de_scf_cycles">[docs]</a>    <span class="k">def</span> <span class="nf">compare_d2de_scf_cycles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent</span>
+<span class="sd">        cycle in self with the ones in others.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            others: list of `AbinitOutputFile` objects or strings with paths to output files.</span>
+<span class="sd">            show: True to diplay plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Open file here if we receive a string. Files will be closed before returning</span>
+        <span class="n">close_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">other</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">others</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="n">others</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+                <span class="n">close_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">figures</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_d2de_scf_cycle</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">other</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">others</span><span class="p">):</span>
+                <span class="n">other_cycle</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">next_d2de_scf_cycle</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">other_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">last</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">other_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axlist</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span> <span class="ow">and</span> <span class="n">last</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                    <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">close_files</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">close_files</span><span class="p">:</span> <span class="n">others</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">figures</span></div>
+
+<div class="viewcode-block" id="AbinitOutputFile.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;abo = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(abo.events)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">abo.seek(0); icycle = -1</span>
+<span class="s2">while True:</span>
+<span class="s2">    gs_cycle = abo.next_gs_scf_cycle()</span>
+<span class="s2">    if gs_cycle is None: break</span>
+<span class="s2">    icycle += 1</span>
+<span class="s2">    gs_cycle.plot(title=&quot;SCF cycle no </span><span class="si">%d</span><span class="s2">&quot; </span><span class="si">% i</span><span class="s2">cycle, tight_layout=True)&quot;&quot;&quot;</span><span class="p">),</span>
+
+        <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">abo.seek(0); icycle = -1</span>
+<span class="s2">while True:</span>
+<span class="s2">    d2de_cycle = abo.next_d2de_scf_cycle()</span>
+<span class="s2">    if d2de_cycle is None: break</span>
+<span class="s2">    icycle += 1</span>
+<span class="s2">    d2de_cycle.plot(title=&quot;DFPT cycle no </span><span class="si">%d</span><span class="s2">&quot; </span><span class="si">% i</span><span class="s2">cycle, tight_layout=True)&quot;&quot;&quot;</span><span class="p">),</span>
+
+       <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">abo.seek(0)</span>
+<span class="s2">timer = abo.get_timer()</span>
+<span class="s2">if timer:</span>
+<span class="s2">    timer.plot_all()</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="OutNcFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.OutNcFile">[docs]</a><span class="k">class</span> <span class="nc">OutNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing the _OUT.nc file containing the dataset results</span>
+<span class="sd">    produced at the end of the run. The netcdf variables can be accessed</span>
+<span class="sd">    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OutNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">NetcdfReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span><span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Ipython integration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">OutNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># Look in self._varscache</span>
+            <span class="n">varscache</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">OutNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="s2">&quot;_varscache&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">varscache</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Cannot find attribute </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">OutNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="s2">&quot;reader&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">varscache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">varscache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">varscache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+<div class="viewcode-block" id="OutNcFile.close"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.OutNcFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OutNcFile.get_allvars"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.OutNcFile.get_allvars">[docs]</a>    <span class="k">def</span> <span class="nf">get_allvars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read all netcdf variables present in the file.</span>
+<span class="sd">        Return dictionary varname --&gt; value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

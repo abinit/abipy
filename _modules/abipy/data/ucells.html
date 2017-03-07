@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.data.ucells &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="abipy.data" href="../data.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../data.html">abipy.data</a> &raquo;</li>
+      
+    <li>abipy.data.ucells</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.data.ucells</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Database of unit cells in the ABINIT format.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">ArrayWithUnit</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ucell_names&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ucell&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;structure_from_ucell&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Public API</span>
+<span class="k">def</span> <span class="nf">ucell_names</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;List with the name of the entries.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">_UCELLS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">ucell</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the entry in the database with the given name.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_UCELLS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="structure_from_ucell"><a class="viewcode-back" href="../../../api/data_api.html#abipy.data.structure_from_ucell">[docs]</a><span class="k">def</span> <span class="nf">structure_from_ucell</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a `Structure` from the name of entry in the database.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span><span class="n">ucell</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Cannot find key </span><span class="si">%s</span><span class="s2"> in:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_UCELLS</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+
+<span class="n">_UCELLS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Si&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ntypat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         
+               <span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+               <span class="n">znucl</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+               <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">10.217</span><span class="p">],</span>
+               <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>   
+                      <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>
+                      <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">]],</span>
+               <span class="n">xred</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                      <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">]],</span>
+                    <span class="p">),</span>
+    <span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ntypat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         
+               <span class="n">natom</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+               <span class="n">znucl</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>         
+               <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">7.60</span><span class="p">],</span>
+               <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>   
+                      <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>  
+                      <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">]],</span>
+               <span class="n">xred</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span><span class="p">]],</span>
+                    <span class="p">),</span>
+
+    <span class="s2">&quot;Al-negative-volume&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ntypat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         
+               <span class="n">natom</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+               <span class="n">znucl</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>         
+               <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">7.60</span><span class="p">],</span>
+               <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>   
+                      <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.0</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  
+                      <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">]],</span>
+               <span class="n">xred</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span><span class="p">]],</span>
+                    <span class="p">),</span>
+
+    <span class="s2">&quot;ZnO&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ntypat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                <span class="n">acell</span><span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">8.6277</span><span class="p">],</span>
+                <span class="n">rprim</span><span class="o">=</span> <span class="p">[[</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">]],</span>
+                <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+                <span class="n">xred</span><span class="o">=</span><span class="p">[[</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">]],</span>
+    <span class="p">),</span>
+
+    <span class="s2">&quot;SiC&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ntypat</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">8.19</span><span class="p">],</span>
+                <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span>
+                       <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span>
+                       <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">]],</span>
+                <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span>
+                <span class="n">xred</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">],</span>
+                       <span class="p">[</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">]</span> <span class="p">]</span>
+                <span class="p">),</span>
+
+    <span class="s2">&quot;AlAs&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                 <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                 <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">10.61</span><span class="p">],</span>
+                 <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span> 
+                        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">]],</span>
+                 <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
+                 <span class="n">xred</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">],</span> 
+                       <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">]]</span>
+                <span class="p">),</span>
+
+    <span class="s2">&quot;GaAs&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                 <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>  
+                 <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">10.60</span><span class="p">],</span>
+                 <span class="n">rprim</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]],</span>
+                 <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">31</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
+                       <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span> <span class="o">*</span><span class="p">[</span><span class="mf">0.00</span><span class="p">],</span>
+                             <span class="mi">3</span> <span class="o">*</span><span class="p">[</span><span class="mf">0.25</span><span class="p">]]</span>
+                <span class="p">),</span>
+
+    <span class="s2">&quot;NiO&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>           
+                <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>       
+                <span class="n">acell</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="mf">7.92</span><span class="p">],</span>
+                <span class="n">rprim</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+                       <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+                       <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">28</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>     
+                <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                      <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                      <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span>
+                      <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span>
+                      <span class="p">]</span>
+                <span class="p">),</span>                 
+    <span class="s2">&quot;MgB2&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>                       
+                 <span class="n">typat</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                 <span class="n">acell</span><span class="o">=</span><span class="n">ArrayWithUnit</span><span class="p">([</span><span class="mf">3.086</span><span class="p">,</span> <span class="mf">3.086</span><span class="p">,</span> <span class="mf">3.523</span><span class="p">],</span> <span class="s2">&quot;ang&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;bohr&quot;</span><span class="p">),</span>
+                 <span class="n">rprim</span><span class="o">=</span> <span class="p">[</span> <span class="mf">0.866025403784439</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                         <span class="o">-</span><span class="mf">0.866025403784439</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                          <span class="mf">0.0</span>              <span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                 <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+                 <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="c1">#Mg</span>
+                       <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="c1">#B</span>
+                       <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span> <span class="c1">#B</span>
+                <span class="p">),</span>
+    <span class="s2">&quot;Fe-fm&quot;</span><span class="p">:</span>  <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                       
+                   <span class="n">typat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                       
+                   <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">5.42</span><span class="p">],</span>
+                   <span class="n">rprim</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>
+                           <span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span>
+                           <span class="mf">0.5</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>
+                   <span class="n">znucl</span><span class="o">=</span><span class="mi">26</span><span class="p">,</span>
+                   <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                  <span class="p">),</span>
+    <span class="s2">&quot;SiO2-alpha&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natom</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>                       
+                  <span class="n">typat</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">6</span><span class="o">*</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>                       
+                  <span class="n">acell</span><span class="o">=</span><span class="n">ArrayWithUnit</span><span class="p">([</span><span class="mf">4.91304</span><span class="p">,</span>  <span class="mf">4.91304</span><span class="p">,</span> <span class="mf">5.40463</span><span class="p">],</span> <span class="s2">&quot;ang&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;bohr&quot;</span><span class="p">),</span>
+                  <span class="n">rprim</span><span class="o">=</span><span class="p">[</span> <span class="mf">5.0000000000e-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.6602540378e-01</span><span class="p">,</span>  <span class="mf">0.0000000000e+00</span><span class="p">,</span>
+                          <span class="mf">5.0000000000e-01</span><span class="p">,</span>  <span class="mf">8.6602540378e-01</span><span class="p">,</span>  <span class="mf">0.0000000000e+00</span><span class="p">,</span>
+                          <span class="mf">0.0000000000e+00</span><span class="p">,</span>  <span class="mf">0.0000000000e+00</span><span class="p">,</span>  <span class="mf">1.0000000000e+00</span><span class="p">],</span>
+                  <span class="n">znucl</span><span class="o">=</span><span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+                  <span class="c1"># Experimental parameters (Wyckoff pag 312)</span>
+                  <span class="c1"># u(Si)= 0.465</span>
+                  <span class="c1"># x= 0.415 ; y= 0.272 ; z= 0.120</span>
+                  <span class="n">xred</span><span class="o">=</span><span class="p">[</span> <span class="mf">0.465</span><span class="p">,</span>   <span class="mf">0.000</span><span class="p">,</span>   <span class="mf">0.000</span>             <span class="p">,</span> <span class="c1">#Si</span>
+                         <span class="mf">0.000</span><span class="p">,</span>   <span class="mf">0.465</span><span class="p">,</span>   <span class="mi">2</span><span class="o">/</span><span class="mi">3</span>               <span class="p">,</span> <span class="c1">#Si</span>
+                        <span class="o">-</span><span class="mf">0.465</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.465</span><span class="p">,</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">3</span>               <span class="p">,</span> <span class="c1">#Si</span>
+                         <span class="mf">0.415</span><span class="p">,</span>   <span class="mf">0.272</span><span class="p">,</span>   <span class="mf">0.120</span>             <span class="p">,</span> <span class="c1">#O</span>
+                        <span class="o">-</span><span class="mf">0.143</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.415</span><span class="p">,</span>   <span class="mf">0.4533333333333333</span><span class="p">,</span> <span class="c1">#O</span>
+                        <span class="o">-</span><span class="mf">0.272</span><span class="p">,</span>   <span class="mf">0.143</span><span class="p">,</span>   <span class="mf">0.7866666666666666</span><span class="p">,</span> <span class="c1">#O</span>
+                         <span class="mf">0.143</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.272</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.120</span>             <span class="p">,</span> <span class="c1">#O</span>
+                         <span class="mf">0.272</span><span class="p">,</span>   <span class="mf">0.415</span><span class="p">,</span>   <span class="mf">0.5466666666666666</span><span class="p">,</span> <span class="c1">#O</span>
+                        <span class="o">-</span><span class="mf">0.415</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.143</span><span class="p">,</span>   <span class="mf">0.2133333333333333</span><span class="p">]</span> <span class="c1">#O</span>
+             <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1">#dict(natom=,                       </span>
+<span class="c1">#     typat=,                       </span>
+<span class="c1">#     acell=,</span>
+<span class="c1">#     rprim=,</span>
+<span class="c1">#     znucl=,</span>
+<span class="c1">#     xred=,</span>
+<span class="c1">#     ),</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

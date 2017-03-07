@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.tools.notebooks &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.tools.notebooks</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.tools.notebooks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Tools for ipython notebooks.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+
+<div class="viewcode-block" id="print_source_in_module"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source_in_module">[docs]</a><span class="k">def</span> <span class="nf">print_source_in_module</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For use inside an IPython notebook: given a module and a function, print the source code.</span>
+
+<span class="sd">    Based on:</span>
+<span class="sd">        http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getmembers</span><span class="p">,</span> <span class="n">isfunction</span><span class="p">,</span> <span class="n">getsource</span>
+    <span class="kn">from</span> <span class="nn">pygments</span> <span class="k">import</span> <span class="n">highlight</span>
+    <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="k">import</span> <span class="n">PythonLexer</span>
+    <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="k">import</span> <span class="n">HtmlFormatter</span>
+    <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
+
+    <span class="n">internal_module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">internal_functions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">getmembers</span><span class="p">(</span><span class="n">internal_module</span><span class="p">,</span> <span class="n">isfunction</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">getsource</span><span class="p">(</span><span class="n">internal_functions</span><span class="p">[</span><span class="n">function</span><span class="p">]),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="print_source"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source">[docs]</a><span class="k">def</span> <span class="nf">print_source</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For use inside an IPython notebook: given a function, print the source code.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getsource</span>
+    <span class="kn">from</span> <span class="nn">pygments</span> <span class="k">import</span> <span class="n">highlight</span>
+    <span class="kn">from</span> <span class="nn">pygments.lexers</span> <span class="k">import</span> <span class="n">PythonLexer</span>
+    <span class="kn">from</span> <span class="nn">pygments.formatters</span> <span class="k">import</span> <span class="n">HtmlFormatter</span>
+    <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="k">import</span> <span class="n">HTML</span>
+
+    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="ipw_listdir"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.ipw_listdir">[docs]</a><span class="k">def</span> <span class="nf">ipw_listdir</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="s2">&quot;dropdown&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return an ipython widget listing all the files located within the directory `top`</span>
+<span class="sd">    that can be inspected with `abiopen`. The user can select the file in the widget</span>
+<span class="sd">    and print info on the corresponding file inside the notebook.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        top: Initial directory.</span>
+<span class="sd">        recurse: False to ignore directories within `top`.</span>
+<span class="sd">        widget_type: Specify the widget to create. Possible values in:</span>
+<span class="sd">            [&quot;tooglebuttons&quot;, &quot;dropdown&quot;, &quot;radiobuttons&quot;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+    <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">clear_output</span>
+    <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
+
+    <span class="c1"># Select the widget class from widget_type</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">tooglebuttons</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">ToggleButtons</span><span class="p">,</span>
+        <span class="n">dropdown</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">,</span>
+        <span class="n">radiobuttons</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">RadioButtons</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">widget_class</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">widget_type</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Invalid `widget_type`: </span><span class="si">%s</span><span class="s2">, Choose among: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">widget_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()))))</span>
+
+    <span class="k">def</span> <span class="nf">on_value_change</span><span class="p">(</span><span class="n">change</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback&quot;&quot;&quot;</span>
+        <span class="n">clear_output</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">change</span><span class="p">[</span><span class="s2">&quot;new&quot;</span><span class="p">]</span>
+        <span class="c1">#print(change)</span>
+        <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">abifile</span><span class="p">)</span>
+            <span class="c1">#display(abifile)</span>
+
+    <span class="c1"># Get dict: dirname --&gt; list_of_files supported by abiopen.</span>
+    <span class="n">dir2files</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">dir2abifiles</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="n">recurse</span><span class="p">)</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">dir2files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">widget_class</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="n">dirname</span><span class="p">)</span>
+        <span class="c1"># TODO: Should register the callback of &quot;selected&quot; but I didn&#39;t find the event type!</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">on_value_change</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;change&quot;</span><span class="p">)</span>
+        <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">ipw</span><span class="o">.</span><span class="n">VBox</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="n">children</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">display</span><span class="p">(</span><span class="n">box</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

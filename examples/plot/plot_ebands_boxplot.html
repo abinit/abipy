@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>plot example code: plot_ebands_boxplot.py &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="plot Examples" href="index.html"/>
+        <link rel="next" title="plot example code: plot_ebands_edos.py" href="plot_ebands_edos.html"/>
+        <link rel="prev" title="plot example code: plot_ebands.py" href="plot_ebands.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Abipy Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">plot Examples</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="plot_bz.html">plot_bz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_ebands.html">plot_ebands</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">plot_ebands_boxplot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_ebands_edos.html">plot_ebands_edos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_ebands_grid.html">plot_ebands_grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_ederivatives.html">plot_ederivatives</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_edos.html">plot_edos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_edos_vs_broad.html">plot_edos_vs_broad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_efatbands.html">plot_efatbands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_ejdos.html">plot_ejdos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_funcs.html">plot_funcs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_gscycle.html">plot_gscycle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_hist.html">plot_hist</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_mdf.html">plot_mdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phbands_and_dos.html">plot_phbands_and_dos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phbands_grid.html">plot_phbands_grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phmarkers.html">plot_phmarkers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phonon_fatbands.html">plot_phonon_fatbands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phonon_pjdos.html">plot_phonon_pjdos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phonons.html">plot_phonons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_phthermo.html">plot_phthermo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qpbands_with_interpolation.html">plot_qpbands_with_interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qpbands_with_scissor.html">plot_qpbands_with_scissor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qpconverge.html">plot_qpconverge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qpmarkers.html">plot_qpmarkers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qps.html">plot_qps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_qpscfgw.html">plot_qpscfgw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_sigmaw.html">plot_sigmaw</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_spectral_functions.html">plot_spectral_functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Abipy Examples</a> &raquo;</li>
+      
+          <li><a href="index.html">plot Examples</a> &raquo;</li>
+      
+    <li>plot example code: plot_ebands_boxplot.py</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/examples/plot/plot_ebands_boxplot.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="plot-example-code-plot-ebands-boxplot-py">
+<span id="plot-plot-ebands-boxplot"></span><h1>plot example code: plot_ebands_boxplot.py<a class="headerlink" href="#plot-example-code-plot-ebands-boxplot-py" title="Permalink to this headline">¶</a></h1>
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_ebands_boxplot.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ebands_boxplot.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ebands_boxplot.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ebands_boxplot.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../../_images/plot_ebands_boxplot.png" src="../../_images/plot_ebands_boxplot.png" />
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This example shows how to use seaborn to draw a box plot showing the distributions</span>
+<span class="sd">of eigenvalues with respect to the band index.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+
+<span class="c1"># Open the file with energies computed with a homogeneous sampling of the BZ</span>
+<span class="c1"># and extract the band structure.</span>
+<span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
+    <span class="n">ebands</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="c1"># `swarm=True` to show the datapoints on top of the boxes</span>
+<span class="n">ebands</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">swarm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="plot_ebands_edos.html" class="btn btn-neutral float-right" title="plot example code: plot_ebands_edos.py" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="plot_ebands.html" class="btn btn-neutral" title="plot example code: plot_ebands.py" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

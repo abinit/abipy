@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.core.gsphere &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.core.gsphere</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.core.gsphere</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;This module contains the class defining the G-sphere for wavefunctions, densities and potentials&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;GSphere&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="GSphere"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere">[docs]</a><span class="k">class</span> <span class="nc">GSphere</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Descriptor-class for the G-sphere.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ecut</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">gvecs</span><span class="p">,</span> <span class="n">istwfk</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ecut: Cutoff energy in Hartree.</span>
+<span class="sd">            lattice: Reciprocal lattice.</span>
+<span class="sd">            kpoint: Reduced coordinates of the k-point.</span>
+<span class="sd">            gvecs: Array with the reduced coordinates of the G-vectors.</span>
+<span class="sd">            istwfk: Storage option (time-reversal symmetry, see abinit variable)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ecut</span> <span class="o">=</span> <span class="n">ecut</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span> <span class="o">=</span> <span class="n">lattice</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span> <span class="o">=</span> <span class="n">Kpoint</span><span class="o">.</span><span class="n">as_kpoint</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="n">lattice</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">gvecs</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">=</span> <span class="n">istwfk</span>
+
+        <span class="k">if</span> <span class="n">istwfk</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;istwfk </span><span class="si">%d</span><span class="s2"> is not implemented&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;ndarray with the G-vectors in reduced coordinates.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gvecs</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def kpg2(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;ndarray with |k+G|**2. in atomic unit&quot;&quot;&quot;</span>
+    <span class="c1">#    try:</span>
+    <span class="c1">#        return self._kpg2</span>
+    <span class="c1">#    except AttributeError</span>
+    <span class="c1">#        # note that now we use pymatgen lattice hence we have to convert to a.u.</span>
+    <span class="c1">#        self.kpg2 =</span>
+    <span class="c1">#        return self._kpg2</span>
+
+    <span class="c1"># Sequence protocol</span>
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span>
+
+<div class="viewcode-block" id="GSphere.index"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return the index of the G-vector gvec in self.</span>
+<span class="sd">        Raises ValueError if the value is not present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">g</span> <span class="o">==</span> <span class="n">gvec</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find </span><span class="si">%s</span><span class="s2"> in Gsphere&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">gvec</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="GSphere.count"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return number of occurrences of gvec.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">g</span> <span class="o">==</span> <span class="n">gvec</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ecut</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">ecut</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">lattice</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">kpoint</span> <span class="ow">and</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">gvecs</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
+
+<div class="viewcode-block" id="GSphere.copy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deep copy.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ecut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">istwfk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GSphere.tostring"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.tostring">[docs]</a>    <span class="k">def</span> <span class="nf">tostring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;: kpoint = </span><span class="si">%(kpoint)s</span><span class="s2">, ecut = </span><span class="si">%(ecut)f</span><span class="s2">, npw = </span><span class="si">%(npw)d</span><span class="s2">, istwfk = </span><span class="si">%(istwfk)d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+    <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a numpy array defined on the sphere.&quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npw</span><span class="p">,)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">extra_dims</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GSphere.zeros"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.zeros">[docs]</a>    <span class="k">def</span> <span class="nf">zeros</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns new zeroed 1D array.</span>
+
+<span class="sd">        The type can be set with the ``dtype`` keyword.</span>
+<span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GSphere.czeros"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.czeros">[docs]</a>    <span class="k">def</span> <span class="nf">czeros</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;New zeroed 1D complex array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GSphere.empty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns new uninitialized 1D array.</span>
+
+<span class="sd">        The type can be set with the ``dtype`` keyword.</span>
+<span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GSphere.cempty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.cempty">[docs]</a>    <span class="k">def</span> <span class="nf">cempty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;Returns New uninitialized 1D complex array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
+
+    <span class="c1">#def build_fftbox(self, boxsph_ratio=1.05):</span>
+    <span class="c1">#  &quot;&quot;&quot;Returns the number of divisions of the FFT box enclosing the sphere.&quot;&quot;&quot;</span>
+    <span class="c1">#  #return ndivs</span>
+
+<div class="viewcode-block" id="GSphere.tofftmesh"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.tofftmesh">[docs]</a>    <span class="k">def</span> <span class="nf">tofftmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">arr_on_sphere</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Insert the array arr_on_sphere given on the sphere inside the FFT mesh.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mesh:</span>
+<span class="sd">            arr_on_sphere:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">arr_on_sphere</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">arr_on_sphere</span><span class="p">)</span>
+        <span class="n">ishape</span> <span class="o">=</span> <span class="n">arr_on_sphere</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">s0</span> <span class="o">=</span> <span class="n">ishape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npw</span> <span class="o">==</span> <span class="n">ishape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">arr_on_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">s0</span><span class="p">,)</span> <span class="o">+</span> <span class="n">mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arr_on_sphere</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1">#do ipw=1,npw</span>
+            <span class="c1">#  i1=kg_k(1,ipw); if(i1&lt;0)i1=i1+n1; i1=i1+1</span>
+            <span class="c1">#  i2=kg_k(2,ipw); if(i2&lt;0)i2=i2+n2; i2=i2+1</span>
+            <span class="c1">#  i3=kg_k(3,ipw); if(i3&lt;0)i3=i3+n3; i3=i3+1</span>
+            <span class="c1">#end do</span>
+
+            <span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">n3</span><span class="p">)</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">for</span> <span class="n">sph_idx</span><span class="p">,</span> <span class="n">gvec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">):</span>
+                <span class="n">i1</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">n1</span>
+                <span class="n">i2</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i2</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i2</span> <span class="o">=</span> <span class="n">i2</span> <span class="o">+</span> <span class="n">n2</span>
+                <span class="n">i3</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i3</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i3</span> <span class="o">=</span> <span class="n">i3</span> <span class="o">+</span> <span class="n">n3</span>
+                <span class="n">arr_on_mesh</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">i3</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr_on_sphere</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">sph_idx</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;istwfk = </span><span class="si">%s</span><span class="s2"> not implemented&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">s0</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Reinstate input shape</span>
+            <span class="n">arr_on_mesh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">return</span> <span class="n">arr_on_mesh</span></div>
+
+<div class="viewcode-block" id="GSphere.fromfftmesh"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.fromfftmesh">[docs]</a>    <span class="k">def</span> <span class="nf">fromfftmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">arr_on_mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transfer arr_on_mesh given on the FFT mesh to the G-sphere.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indim</span> <span class="o">=</span>  <span class="n">arr_on_mesh</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="n">arr_on_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arr_on_mesh</span><span class="p">)</span>
+        <span class="n">ishape</span> <span class="o">=</span> <span class="n">arr_on_mesh</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">s0</span> <span class="o">=</span> <span class="n">ishape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">arr_on_sphere</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">s0</span><span class="p">,)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npw</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arr_on_mesh</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1">#do ig=1,npwout</span>
+            <span class="c1">#  i1=kg_kout(1,ig); if (i1&lt;0) i1=i1+n1; i1=i1+1</span>
+            <span class="c1">#  i2=kg_kout(2,ig); if (i2&lt;0) i2=i2+n2; i2=i2+1</span>
+            <span class="c1">#  i3=kg_kout(3,ig); if (i3&lt;0) i3=i3+n3; i3=i3+1</span>
+            <span class="c1">#end do</span>
+            <span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">n3</span><span class="p">)</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="k">for</span> <span class="n">sph_idx</span><span class="p">,</span> <span class="n">gvec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">):</span>
+                <span class="n">i1</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i1</span> <span class="o">=</span> <span class="n">i1</span> <span class="o">+</span> <span class="n">n1</span>
+                <span class="n">i2</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i2</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i2</span> <span class="o">=</span> <span class="n">i2</span> <span class="o">+</span> <span class="n">n2</span>
+                <span class="n">i3</span> <span class="o">=</span> <span class="n">gvec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i3</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">i3</span> <span class="o">=</span> <span class="n">i3</span> <span class="o">+</span> <span class="n">n3</span>
+                <span class="n">arr_on_sphere</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">sph_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr_on_mesh</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">i3</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;istwfk </span><span class="si">%s</span><span class="s2"> is not implemented&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">s0</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">indim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Reinstate input shape</span>
+            <span class="n">arr_on_sphere</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npw</span>
+
+        <span class="k">return</span> <span class="n">arr_on_sphere</span></div>
+
+<div class="viewcode-block" id="GSphere.rotate"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.rotate">[docs]</a>    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symmop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a new `GSphere` centered on Sk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            symmop: Symmetry operation object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The problem in this approach is that G-spheres centered on the</span>
+        <span class="c1"># same k-point might have G-vectors ordered in a different way</span>
+        <span class="c1"># and therefore one cannot operate on two wavefunctions in reciprocal space</span>
+        <span class="c1"># on the G-sphere without checking first that gvecs1 == gvecs2.</span>
+        <span class="c1"># The best solution is to compute the list of g-vectors with a deterministic</span>
+        <span class="c1"># algorithm, similar to the one used in Abinit and then create tables</span>
+        <span class="c1"># defining the mapping btw the two sets</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;istwfk </span><span class="si">%d</span><span class="s2"> not coded&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
+
+        <span class="c1"># Rotate the k-point and the G-vectors</span>
+        <span class="n">rot_kpt</span> <span class="o">=</span> <span class="n">symmop</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">wrap_tows</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">rot_gvecs</span> <span class="o">=</span> <span class="n">symmop</span><span class="o">.</span><span class="n">rotate_gvecs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">)</span>
+
+        <span class="c1">#rot_istwfk = istwfk(rot_kpt)</span>
+        <span class="n">rot_istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ecut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">rot_kpt</span><span class="p">,</span> <span class="n">rot_gvecs</span><span class="p">,</span> <span class="n">istwfk</span><span class="o">=</span><span class="n">rot_istwfk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span></div></div>
+
+
+<span class="c1">#def kpg_sphere(lattice, kcoords, ecut):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Set up the list of G vectors inside a sphere out to $ (1/2)*(2*\pi*(k+G))^2=ecut $</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    # Set up standard search sequence for grid points, in standard storage mode i.e.</span>
+<span class="c1">#    # 0 1 2 3 ... g_max g_min ... -1</span>
+<span class="c1">#    from pymatgen.core.units import Energy</span>
+<span class="c1">#    ecut = Energy(ecut, &quot;Ha&quot;).to(&quot;eV&quot;)</span>
+<span class="c1">#    two_ecut = 2 * ecut</span>
+<span class="c1">#</span>
+<span class="c1">#    g1d_list = 3 * [None]</span>
+<span class="c1">#</span>
+<span class="c1">#    def norm2(vec):</span>
+<span class="c1">#        return lattice.dot(vec, vec)</span>
+<span class="c1">#</span>
+<span class="c1">#    for dim in range(3):</span>
+<span class="c1">#        rec_vec = lattice.matrix[dim,:]</span>
+<span class="c1">#</span>
+<span class="c1">#        # Compute g_max and g_min for this direction.</span>
+<span class="c1">#        import itertools</span>
+<span class="c1">#        for ig in itertools.count(start=0, step=1):</span>
+<span class="c1">#            kpg = kcoords + (ig * rec_vec)</span>
+<span class="c1">#            kpg2 = norm2(kpg)</span>
+<span class="c1">#            if kpg2 &gt; two_ecut:</span>
+<span class="c1">#                g_max = ig</span>
+<span class="c1">#                break</span>
+<span class="c1">#</span>
+<span class="c1">#        for ig in itertools.count(start=-1, step=-1):</span>
+<span class="c1">#            kpg = kcoords + (ig * rec_vec)</span>
+<span class="c1">#            kpg2 = norm2(kpg)</span>
+<span class="c1">#            if kpg2 &gt; two_ecut:</span>
+<span class="c1">#                g_min = ig</span>
+<span class="c1">#                break</span>
+<span class="c1">#</span>
+<span class="c1">#        g1d_list[dim] = list(range(g_max)) + list(range(-1, g_min, -1))</span>
+<span class="c1">#</span>
+<span class="c1">#    gx_list = g1d_list[0]</span>
+<span class="c1">#    gy_list = g1d_list[1]</span>
+<span class="c1">#    gz_list = g1d_list[2]</span>
+<span class="c1">#</span>
+<span class="c1">#    # Compute the list of G-vectors. Note that the Gs are ordered</span>
+<span class="c1">#    # according to the Fortran convention.</span>
+<span class="c1">#    gvecs = []</span>
+<span class="c1">#    app = gvecs.append</span>
+<span class="c1">#</span>
+<span class="c1">#    for gvec in itertools.product(gz_list, gy_list, gx_list):</span>
+<span class="c1">#        gvec = np.array(gvec)</span>
+<span class="c1">#        kpg2 = norm2(kcoords + gvec)</span>
+<span class="c1">#        if kpg2 &lt;= two_ecut:</span>
+<span class="c1">#            app(gvec)</span>
+<span class="c1">#</span>
+<span class="c1">#    return np.array(gvecs, dtype=np.int)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

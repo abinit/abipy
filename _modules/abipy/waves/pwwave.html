@@ -1,0 +1,605 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.waves.pwwave &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.waves.pwwave</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.waves.pwwave</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;This module contains the class describing a planewave wavefunction.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools.xsf</span> <span class="k">import</span> <span class="n">xsf_write_structure</span><span class="p">,</span> <span class="n">xsf_write_data</span>
+<span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">Mesh3D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;PWWaveFunction&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">WaveFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class defining base and abstract methods for wavefunction objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">gsphere</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Yields G, ug[0:nspinor, G]&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">[</span><span class="nb">slice</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">[:,</span> <span class="nb">slice</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shape of ug i.e. (nspinor, npw)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">npw</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gsphere</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`GSphere` object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gsphere</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">kpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Kpoint` object&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">kpoint</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;G-vectors in reduced coordinates.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">gvecs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">npw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of G-vectors.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ecut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cutoff energy in Hartree.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">ecut</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isnc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if norm-conserving wavefunction.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PWWaveFunction</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ispaw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if PAW wavefunction.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PAW_WaveFunction</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Periodic part of the wavefunctions in G-space.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ug</span>
+
+    <span class="k">def</span> <span class="nf">set_ug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ug</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the value of the u(nspinor, G) array.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">ug</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ug</span> <span class="o">=</span> <span class="n">ug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_ur</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ur</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Periodic part of the wavefunction in real space.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ur</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_ug</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ur</span>
+
+    <span class="k">def</span> <span class="nf">delete_ur</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete _u(r) (if it has been computed).&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ur</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ur_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a copy with ur[nspinor, nx, ny, nz]. Mainly used for post-processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ur</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ur2_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns ur2[nx, ny, nz]. Mainly used for post-processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ur2</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The mesh used for the FFT.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
+
+    <span class="k">def</span> <span class="nf">set_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the FFT mesh. :math:`u(r)` is computed on this box.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">Mesh3D</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_ur</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deep copy of self.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">ug_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns u(G) on the FFT mesh,</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span> <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mesh</span>
+        <span class="n">ug_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">tofftmesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ug_mesh</span>
+
+    <span class="k">def</span> <span class="nf">fft_ug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs the FFT transform of :math:`u(g)` on mesh.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :math:`u(r)` on the real space FFT box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span> <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mesh</span>
+        <span class="n">ug_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mesh</span><span class="o">.</span><span class="n">fft_g2r</span><span class="p">(</span><span class="n">ug_mesh</span><span class="p">,</span> <span class="n">fg_ishifted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: nspinor = </span><span class="si">%d</span><span class="s2">, spin = </span><span class="si">%d</span><span class="s2">, band = </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;gsphere&quot;</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">prtvol</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mesh&quot;</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">prtvol</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return :math:`||u(r)||^2` in real space.&quot;&quot;&quot;</span>
+        <span class="n">ur2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ur</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ur</span>
+        <span class="c1">#ur2 = self.ur[0].conj() * self.ur[0]</span>
+        <span class="c1">#if self.nspinor == 2:</span>
+        <span class="c1">#    ur2 += self.ur[1].conj() * self.ur[1]</span>
+
+        <span class="c1"># copy to have contiguous data.</span>
+        <span class="k">return</span> <span class="n">ur2</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="PWWaveFunction"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction">[docs]</a><span class="k">class</span> <span class="nc">PWWaveFunction</span><span class="p">(</span><span class="n">WaveFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object describes a wavefunction expressed in a plane-wave basis set.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">ug</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creation method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            nspinor: number of spinorial components.</span>
+<span class="sd">            spin: spin index.</span>
+<span class="sd">            band: band index (&gt;=0)</span>
+<span class="sd">            gsphere :class:`GSphere` instance.</span>
+<span class="sd">            ug: 2D array containing u[nspinor,G] for G in gsphere.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span> <span class="o">=</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span>
+        <span class="c1"># Sanity check.</span>
+        <span class="k">assert</span> <span class="n">ug</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">assert</span> <span class="n">ug</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nspinor</span>
+        <span class="k">assert</span> <span class="n">ug</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">gsphere</span><span class="o">.</span><span class="n">npw</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gsphere</span> <span class="o">=</span> <span class="n">gsphere</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ug</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ug</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PWWaveFunction.norm2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.norm2">[docs]</a>    <span class="k">def</span> <span class="nf">norm2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return :math:`||\psi||^2` computed in G- or r-space.&quot;&quot;&quot;</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">space</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ur2</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong space: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">space</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PWWaveFunction.export_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.export_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">export_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export u(r)**2 on file filename.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: String specifying the file path and the file format.</span>
+<span class="sd">                The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
+<span class="sd">                will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
+<span class="sd">            structure: :class:`Structure` object.</span>
+<span class="sd">            visu: :class:`Visualizer` subclass. By default, this method returns the first available</span>
+<span class="sd">                visualizer that supports the given file format. If visu is not None, an</span>
+<span class="sd">                instance of visu is returned. See :class:`Visualizer` for the list of</span>
+<span class="sd">                applications and formats supported.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Instance of :class:`Visualizer`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot detect file extension in: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="c1"># fname == &quot;.ext&quot; ==&gt; Create temporary file.</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating temporary file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="c1"># Compute |u(r)|2 and write data according to ext.</span>
+        <span class="n">ur2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ur2</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ur2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;xsf&quot;</span><span class="p">:</span>
+                <span class="c1"># xcrysden</span>
+                <span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structures</span><span class="o">=</span><span class="p">[</span><span class="n">structure</span><span class="p">])</span>
+                <span class="n">xsf_write_data</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ur2</span><span class="p">,</span> <span class="n">add_replicas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;extension </span><span class="si">%s</span><span class="s2"> is not supported.&quot;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">visu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PWWaveFunction.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize u(r)**2 visualizer.</span>
+
+<span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the Visualizer subclass from the string.</span>
+        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">visu_name</span><span class="p">)</span>
+
+        <span class="c1"># Try to export data to one of the formats supported by the visualizer</span>
+        <span class="c1"># Use a temporary file (note &quot;.&quot; + ext)</span>
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">visu</span><span class="o">.</span><span class="n">supported_extensions</span><span class="p">():</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_ur2</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="n">visu</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
+
+    <span class="c1">#def tkin(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Computes the matrix element of the kinetic operator in reciprocal space.&quot;&quot;&quot;</span>
+    <span class="c1">#    tug = -0.5 * self.gsphere.kpg2 * self.ug</span>
+    <span class="c1">#    return np.vdot(self.ug, tug).sum()</span>
+
+<div class="viewcode-block" id="PWWaveFunction.braket"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.braket">[docs]</a>    <span class="k">def</span> <span class="nf">braket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the scalar product &lt;u1|u2&gt; of the periodic part of two wavefunctions</span>
+<span class="sd">        computed in G-space or r-space, depending on the value of space.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: Other wave (right-hand side)</span>
+<span class="sd">            space:  Integration space. Possible values [&quot;g&quot;, &quot;gsphere&quot;, &quot;r&quot;]</span>
+<span class="sd">                if &quot;g&quot; or &quot;r&quot; the scalar product is computed in G- or R-space on the FFT box.</span>
+<span class="sd">                if space=&quot;gsphere&quot; the integration is done on the G-sphere. Note that</span>
+<span class="sd">                this option assumes that self and other have the same list of G-vectors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">space</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span>
+            <span class="n">ug1_mesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">tofftmesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+            <span class="n">ug2_mesh</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">tofftmesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">ug1_mesh</span><span class="p">,</span> <span class="n">ug2_mesh</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;gsphere&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ur</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ur</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dv</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong space: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">space</span><span class="p">)</span></div>
+
+    <span class="c1">#def pww_translation(self, gvector, rprimd):</span>
+    <span class="c1">#    &quot;&quot;&quot;Returns the pwwave of the kpoint translated by one gvector.&quot;&quot;&quot;</span>
+    <span class="c1">#    gsph = self.gsphere.copy()</span>
+    <span class="c1">#    wpww = PWWaveFunction(self.nspinor, self.spin, self.band, gsph, self.ug.copy())</span>
+    <span class="c1">#    wpww.mesh = self.mesh</span>
+    <span class="c1">#    wpww.pww_translation_inplace(gvector, rprimd)</span>
+    <span class="c1">#    return wpww</span>
+
+    <span class="c1">#def pww_translation_inplace(self, gvector, rprimd):</span>
+    <span class="c1">#    &quot;&quot;&quot;Translates the pwwave from 1 kpoint by one gvector.&quot;&quot;&quot;</span>
+    <span class="c1">#    self.gsphere.kpoint = self.gsphere.kpoint + gvector</span>
+    <span class="c1">#    self.gsphere.gvecs = self.gsphere.gvecs + gvector</span>
+    <span class="c1">#    fft_ndivs = (self.mesh.shape[0] + 2, self.mesh.shape[1] + 2, self.mesh.shape[2] + 2)</span>
+    <span class="c1">#    newmesh = Mesh3D(fft_ndivs, rprimd, pbc=True)</span>
+    <span class="c1">#    self.mesh = newmesh</span>
+
+    <span class="c1">#def pwwtows_inplace(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Wrap the kpoint to the interval ]-1/2,1/2] and update pwwave accordingly.&quot;&quot;&quot;</span>
+    <span class="c1">#    kpoint = Kpoint(self.gsphere.kpoint, self.gsphere.gprimd)</span>
+    <span class="c1">#    wkpt = kpoint.wrap_to_ws()</span>
+
+    <span class="c1">#    if np.allclose(wkpt.rcoord, kpoint.rcoord):</span>
+    <span class="c1">#        return</span>
+
+    <span class="c1">#    #@David FIXME this is wrong</span>
+    <span class="c1">#    gvector = np.array(kpoint.rcoord - wkpt.rcoord, np.int)</span>
+    <span class="c1">#    self.gsphere.gvecs = self.gsphere.gvecs + gvector</span>
+    <span class="c1">#    self.gsphere.kpoint = wkpt.rcoord</span>
+
+    <span class="c1">#def pwwtows(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Return the pwwave of the kpoint wrapped to the interval ]-1/2,1/2].&quot;&quot;&quot;</span>
+    <span class="c1">#    gsph = self.gsphere.copy()</span>
+    <span class="c1">#    wpww = PWWaveFunction(self.nspinor, self.spin, self.band, gsph, self.ug.copy())</span>
+    <span class="c1">#    wpww.pwwtows_inplace()</span>
+    <span class="c1">#    wpww.mesh = self.mesh</span>
+    <span class="c1">#    return wpww</span>
+
+<div class="viewcode-block" id="PWWaveFunction.rotate"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.rotate">[docs]</a>    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symmop</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotate the pwwave by the symmetry operation symmop.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            symmop: :class:`Symmetry` operation</span>
+<span class="sd">            mesh: mesh for the FFT, if None the mesh of self is used.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            New wavefunction object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Spinor rotation not available yet.&quot;</span><span class="p">)</span>
+
+        <span class="n">rot_gsphere</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">symmop</span><span class="p">)</span>
+        <span class="c1">#rot_istwfk = istwfk(rot_kpt)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">symmop</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)):</span>
+            <span class="n">rot_ug</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="p">)</span>
+            <span class="n">rot_gvecs</span> <span class="o">=</span> <span class="n">rot_gsphere</span><span class="o">.</span><span class="n">gvecs</span>
+            <span class="n">rot_kpt</span> <span class="o">=</span> <span class="n">rot_gsphere</span><span class="o">.</span><span class="n">kpoint</span><span class="o">.</span><span class="n">frac_coords</span>
+
+            <span class="n">ug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ug</span>
+            <span class="c1">#phase = np.exp(-2j * np.pi * (np.dot(rot_gvecs + rot_kpt, symmop.tau)))</span>
+            <span class="k">for</span> <span class="n">ig</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npw</span><span class="p">):</span>
+                <span class="n">rot_ug</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">]</span> <span class="o">=</span> <span class="n">ug</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rot_gvecs</span><span class="p">[</span><span class="n">ig</span><span class="p">]</span> <span class="o">+</span> <span class="n">rot_kpt</span><span class="p">,</span> <span class="n">symmop</span><span class="o">.</span><span class="n">tau</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rot_ug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Invert the collinear spin if we have an AFM operation</span>
+        <span class="n">rot_spin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">rot_spin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="k">if</span> <span class="n">symmop</span><span class="o">.</span><span class="n">is_fm</span> <span class="k">else</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+
+        <span class="c1"># Build new wave and set the mesh.</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">rot_spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">rot_gsphere</span><span class="p">,</span> <span class="n">rot_ug</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">set_mesh</span><span class="p">(</span><span class="n">mesh</span> <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">PAW_WaveFunction</span><span class="p">(</span><span class="n">WaveFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    All the methods that are related to the all-electron representation should start with ae.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

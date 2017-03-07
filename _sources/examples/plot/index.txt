@@ -1,0 +1,43 @@
+.. _plot-examples-index:
+
+##############################################
+plot Examples
+##############################################
+
+.. htmlonly::
+
+    :Release: |version|
+    :Date: |today|
+
+.. toctree::
+    :maxdepth: 1
+
+    plot_bz <plot_bz.rst>
+    plot_ebands <plot_ebands.rst>
+    plot_ebands_boxplot <plot_ebands_boxplot.rst>
+    plot_ebands_edos <plot_ebands_edos.rst>
+    plot_ebands_grid <plot_ebands_grid.rst>
+    plot_ederivatives <plot_ederivatives.rst>
+    plot_edos <plot_edos.rst>
+    plot_edos_vs_broad <plot_edos_vs_broad.rst>
+    plot_efatbands <plot_efatbands.rst>
+    plot_ejdos <plot_ejdos.rst>
+    plot_funcs <plot_funcs.rst>
+    plot_gscycle <plot_gscycle.rst>
+    plot_hist <plot_hist.rst>
+    plot_mdf <plot_mdf.rst>
+    plot_phbands_and_dos <plot_phbands_and_dos.rst>
+    plot_phbands_grid <plot_phbands_grid.rst>
+    plot_phmarkers <plot_phmarkers.rst>
+    plot_phonon_fatbands <plot_phonon_fatbands.rst>
+    plot_phonon_pjdos <plot_phonon_pjdos.rst>
+    plot_phonons <plot_phonons.rst>
+    plot_phthermo <plot_phthermo.rst>
+    plot_qpbands_with_interpolation <plot_qpbands_with_interpolation.rst>
+    plot_qpbands_with_scissor <plot_qpbands_with_scissor.rst>
+    plot_qpconverge <plot_qpconverge.rst>
+    plot_qpmarkers <plot_qpmarkers.rst>
+    plot_qps <plot_qps.rst>
+    plot_qpscfgw <plot_qpscfgw.rst>
+    plot_sigmaw <plot_sigmaw.rst>
+    plot_spectral_functions <plot_spectral_functions.rst>

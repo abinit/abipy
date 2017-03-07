@@ -1,0 +1,894 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abipy.core.fields &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/index.html">User&#8217;s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Abipy Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">The AbiPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>abipy.core.fields</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abipy.core.fields</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;This module contains the class describing densities in real space on uniform 3D meshes.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">bohr_to_angstrom</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mesh3d</span> <span class="k">import</span> <span class="n">Mesh3D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">transpose_last3dims</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span><span class="p">,</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">cube</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ScalarField&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Density&quot;</span><span class="p">,</span>
+    <span class="c1">#&quot;Potential&quot;,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="ScalarField"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField">[docs]</a><span class="k">class</span> <span class="nc">ScalarField</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class representing a typical scalar field generated by electrons (e.g. densities, potentials).</span>
+<span class="sd">    The field is represented on a homogenous real-space mesh.</span>
+<span class="sd">    This class provides helper functions to perform common operations such as FFT transforms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">datar</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            nspinor: Number of spinorial components.</span>
+<span class="sd">            nsppol: Number of spins.</span>
+<span class="sd">            nspden: Number of spin density components.</span>
+<span class="sd">            datar: numpy array with the scalar field in real space. shape [..., nx, ny, nz]</span>
+<span class="sd">            structure: :class:`Structure` object describing the crystalline structure.</span>
+<span class="sd">            iorder: Order of the array. &quot;c&quot; for C ordering, &quot;f&quot; for Fortran ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">=</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+
+        <span class="n">iorder</span> <span class="o">=</span> <span class="n">iorder</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">iorder</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">iorder</span> <span class="o">==</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span>
+            <span class="c1"># (z,x,y) --&gt; (x,y,z)</span>
+            <span class="n">datar</span> <span class="o">=</span> <span class="n">transpose_last3dims</span><span class="p">(</span><span class="n">datar</span><span class="p">)</span>
+
+        <span class="c1"># Init Mesh3D</span>
+        <span class="n">mesh_shape</span> <span class="o">=</span> <span class="n">datar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">Mesh3D</span><span class="p">(</span><span class="n">mesh_shape</span><span class="p">,</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">())</span>
+
+        <span class="c1"># Make sure we have the correct shape.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">datar</span><span class="p">,</span> <span class="p">(</span><span class="n">nspden</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_check_other</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Consistency check&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;object of class </span><span class="si">%s</span><span class="s1"> is not an instance of </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">mesh</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incompatible scalar fields&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self + other&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_other</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                              <span class="n">datar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
+                              <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self - other&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_other</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                              <span class="n">datar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
+                              <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;-self&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                              <span class="n">rhor</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
+                              <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+<div class="viewcode-block" id="ScalarField.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: nspinor = </span><span class="si">%i</span><span class="s2">, nsppol = </span><span class="si">%i</span><span class="s2">, nspden = </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span>
+                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">)]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">prtvol</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">prtvol</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">datar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;`ndarray` with data in real space.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datar</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="ScalarField.datag"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.datag">[docs]</a>    <span class="k">def</span> <span class="nf">datag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;`ndarrray` with data in reciprocal space.&quot;&quot;&quot;</span>
+        <span class="c1"># FFT R --&gt; G.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">fft_r2g</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Mesh3D`&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shape of the array.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">datag</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of points along x.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">nx</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ny</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of points along y.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">ny</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of points along z.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">nz</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_collinear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if collinear i.e. nspinor==1.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def datar_xyz(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Returns a copy of the real space data with shape [:, nx, ny, nz].</span>
+    <span class="c1">#    Mainly used for post-processing.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    return self.mesh.reshape(self.datar).copy()</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def datag_xyz(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Returns a copy of the reciprocal space data with shape [:, nx, ny, nz].</span>
+    <span class="c1">#    Mainly used for post-processing.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    return self.mesh.reshape(self.datag).copy()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_space</span><span class="p">(</span><span class="n">space</span><span class="p">):</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">space</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">space</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong space </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">space</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">space</span>
+
+<div class="viewcode-block" id="ScalarField.mean"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the average of the array elements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;r&quot;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_space</span><span class="p">(</span><span class="n">space</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datag</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ScalarField.std"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.std">[docs]</a>    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the standard deviation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;r&quot;</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_space</span><span class="p">(</span><span class="n">space</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datag</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="c1">#def spheres_indexarr(self, symbrad=None):</span>
+    <span class="c1">#    if not hasattr(self, &quot;_cached_spheres_indexarr&quot;):</span>
+    <span class="c1">#        self._cached_spheres_indexarr = collections.deque(5)</span>
+    <span class="c1">#    for d, arr in self._cached_spheres_indexarr:</span>
+    <span class="c1">#        if d == symbrad: return arr</span>
+    <span class="c1">#    indarr = self.calc_ind_arr(symbrad)</span>
+    <span class="c1">#    self._cached_spheres_indexarr.append(symbrad, indarr)</span>
+    <span class="c1">#    return iarr</span>
+
+    <span class="c1">#def braket_waves(self, bra_wave, ket_wave):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Compute the matrix element of &lt;bra_wave|datar|ket_wave&gt; in real space</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="c1">#    if bra_wave.mesh != self.mesh:</span>
+    <span class="c1">#       bra_ur = bra_wave.fft_ug(self.mesh)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#       bra_ur = bra_wave.ur</span>
+
+    <span class="c1">#    if ket_wave.mesh != self.mesh:</span>
+    <span class="c1">#       ket_ur = ket_wave.fft_ug(self.mesh)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#       ket_ur = ket_wave.ur</span>
+
+    <span class="c1">#    if self.nspinor == 1:</span>
+    <span class="c1">#        assert bra_wave.spin == ket_wave.spin</span>
+    <span class="c1">#       datar_spin = self.datar[bra_wave.spin]</span>
+    <span class="c1">#       return self.mesh.integrate(bra_ur.conj() * datar_spin * ket_ur)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise NotImplemented(&quot;nspinor != 1 not implmenented&quot;)</span>
+
+    <span class="c1">#def map_coordinates(self, rcoords, order=3, frac_coords=True)</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Interpolate the real space data</span>
+    <span class="c1">#</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        coordinates: array_like</span>
+    <span class="c1">#           The coordinates at which input is evaluated.</span>
+    <span class="c1">#        order: int, optional</span>
+    <span class="c1">#            The order of the spline interpolation, default is 3. The order has to be in the range 0-5.</span>
+    <span class="c1">#    Returns:</span>
+    <span class="c1">#       ndarray with the interpolated results.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    from scipy.ndimage.interpolation import map_coordinates</span>
+    <span class="c1">#    # Compute the fractional coordinates at which datar is interpolated.</span>
+    <span class="c1">#    rcoords = np.asarray(rcoords)</span>
+    <span class="c1">#    if not frac_coords:</span>
+    <span class="c1">#       rcoords = self.structure.to_frac_coords(rcoords, in_cell=True)</span>
+    <span class="c1">#    # Wrap in the unit cell.</span>
+    <span class="c1">#    rcoords %= 1</span>
+    <span class="c1">#    coordinates = [rcoords[0], rcoords[1], rcoords[2]]</span>
+
+    <span class="c1">#    Interpolate the real part.</span>
+    <span class="c1">#    interp_data = []</span>
+    <span class="c1">#    for indata in self.datar_xyz:</span>
+    <span class="c1">#        assert not np.iscomple(indata)</span>
+    <span class="c1">#        interp_data.append(map_coordinates(indata.real, coordinates, order=order))</span>
+
+    <span class="c1">#    return np.array(interp_data)</span>
+
+    <span class="c1">#def fourier_interp(self, new_mesh):</span>
+        <span class="c1">#intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace=&quot;r&quot;)</span>
+        <span class="c1">#return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)</span>
+
+<div class="viewcode-block" id="ScalarField.export"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export the real space data on file filename.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: String specifying the file path and the file format.</span>
+<span class="sd">                The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
+<span class="sd">                will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
+<span class="sd">            visu:</span>
+<span class="sd">               :class:`Visualizer` subclass. By default, this method returns the first available</span>
+<span class="sd">                visualizer that supports the given file format. If visu is not None, an</span>
+<span class="sd">                instance of visu is returned. See :class:`Visualizer` for the list of</span>
+<span class="sd">                applications and formats supported.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Instance of :class:`Visualizer`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot; Cannot detect file extension in filename: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="c1"># filename == &quot;.ext&quot; ==&gt; Create temporary file.</span>
+            <span class="kn">import</span> <span class="nn">tempfile</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;xsf&quot;</span><span class="p">:</span>
+                <span class="c1"># xcrysden</span>
+                <span class="n">xsf</span><span class="o">.</span><span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+                <span class="n">xsf</span><span class="o">.</span><span class="n">xsf_write_data</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span> <span class="n">add_replicas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;extension </span><span class="si">%s</span><span class="s2"> is not supported.&quot;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">visu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ScalarField.visualize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.ScalarField.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize data with visualizer.</span>
+
+<span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">visu_name</span><span class="p">)</span>
+
+        <span class="c1"># Try to export data to one of the formats supported by the visualizer</span>
+        <span class="c1"># Use a temporary file (note &quot;.&quot; + ext)</span>
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">visu</span><span class="o">.</span><span class="n">supported_extensions</span><span class="p">():</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="n">visu</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for visualizer </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div></div>
+
+    <span class="c1">#def get_line(self, line, space=&quot;r&quot;):</span>
+    <span class="c1">#    x, y, z = self.mesh.line_inds(line)</span>
+    <span class="c1">#    space = self._check_space(space)</span>
+    <span class="c1">#    if space == &quot;r&quot;:</span>
+    <span class="c1">#       line = self.datar_xyz[:, x, y, z]</span>
+    <span class="c1">#    elif space == &quot;g&quot;:</span>
+    <span class="c1">#       line = self.datag_xyz[:, x, y, z]</span>
+    <span class="c1">#    # Return a 2D array.</span>
+    <span class="c1">#    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)</span>
+    <span class="c1">#    return np.reshape(line, new_shape)</span>
+
+    <span class="c1">#def get_plane(self, plane, h, space=&quot;r&quot;):</span>
+    <span class="c1">#    x, y, z = self.mesh.plane_inds(plane, h=h)</span>
+    <span class="c1">#    space = self._check_space(space)</span>
+    <span class="c1">#    if space == &quot;r&quot;:</span>
+    <span class="c1">#       plane = self.datar_xyz[:, x, y, z]</span>
+    <span class="c1">#    elif space == &quot;g&quot;:</span>
+    <span class="c1">#       plane = self.datag_xyz[:, x, y, z]</span>
+    <span class="c1">#    # Return a 3D array.</span>
+    <span class="c1">#    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)</span>
+    <span class="c1">#    return np.reshape(plane, new_shape)</span>
+
+
+<div class="viewcode-block" id="Density"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density">[docs]</a><span class="k">class</span> <span class="nc">Density</span><span class="p">(</span><span class="n">ScalarField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Electronic density.</span>
+<span class="sd">    Note that unlike Abinit, datar[nspden] contains the up/down components if nsppol = 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Density.from_file"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a netCDF file.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">DensityReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">read_density</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="n">cls</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Density.ae_core_density_on_mesh"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.ae_core_density_on_mesh">[docs]</a>    <span class="k">def</span> <span class="nf">ae_core_density_on_mesh</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">valence_density</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">rhoc_files</span><span class="p">,</span> <span class="n">maxr</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">nelec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">method</span><span class="o">=</span><span class="s1">&#39;mesh3d_dist_gridpoints&#39;</span><span class="p">,</span> <span class="n">small_dist_mesh</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">small_dist_factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the all electron core density of the structure from the pseudopotentials *rhoc files</span>
+<span class="sd">        Note that these *rhoc files contain one column with the radii in Bohrs and one column with the density</span>
+<span class="sd">        in #/Bohr^3 multiplied by a factor 4pi.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rhoc_atom_splines</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhoc_files</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rhoc_files</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of rhoc_files should be equal to the number of sites in the structure&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ifname</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">rhoc_files</span><span class="p">:</span>
+                <span class="n">rad_rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">rad_rho</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">rad_rho</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="n">radii</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">bohr_to_angstrom</span>
+                <span class="n">rho</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">bohr_to_angstrom</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">func1d</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+                <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">ifname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func1d</span><span class="o">.</span><span class="n">spline</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhoc_files</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">atoms_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">elmt</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">elmt</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">rhoc_files</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms_symbols</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The rhoc_files should be provided for all the atoms in the structure&#39;</span><span class="p">)</span>
+            <span class="n">splines</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">rhoc_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">rad_rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">rad_rho</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">rad_rho</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="n">radii</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">bohr_to_angstrom</span>
+                <span class="n">rho</span> <span class="o">=</span> <span class="n">rad_rho</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">bohr_to_angstrom</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">func1d</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+                <span class="n">splines</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">func1d</span><span class="o">.</span><span class="n">spline</span>
+            <span class="k">for</span> <span class="n">isite</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+                <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">isite</span><span class="p">]</span> <span class="o">=</span> <span class="n">splines</span><span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">]</span>
+        <span class="n">core_den</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">valence_density</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span>
+        <span class="n">dvx</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dvx</span>
+        <span class="n">dvy</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dvy</span>
+        <span class="n">dvz</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dvz</span>
+        <span class="n">maxdiag</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dvx</span><span class="o">+</span><span class="n">dvy</span><span class="o">+</span><span class="n">dvz</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dvx</span><span class="o">+</span><span class="n">dvy</span><span class="o">-</span><span class="n">dvz</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dvx</span><span class="o">-</span><span class="n">dvy</span><span class="o">+</span><span class="n">dvz</span><span class="p">),</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dvx</span><span class="o">-</span><span class="n">dvy</span><span class="o">-</span><span class="n">dvz</span><span class="p">)])</span>
+        <span class="n">smallradius</span> <span class="o">=</span> <span class="n">small_dist_factor</span><span class="o">*</span><span class="n">maxdiag</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;get_sites_in_sphere&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">nx</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">iy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">iz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">nz</span><span class="p">):</span>
+                        <span class="n">rpoint</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">rpoint</span><span class="p">(</span><span class="n">ix</span><span class="o">=</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="o">=</span><span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="o">=</span><span class="n">iz</span><span class="p">)</span>
+                        <span class="c1"># TODO: optimize this !</span>
+                        <span class="n">sites</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_sites_in_sphere</span><span class="p">(</span><span class="n">pt</span><span class="o">=</span><span class="n">rpoint</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">maxr</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">site_index</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">smallradius</span><span class="p">:</span>
+                                <span class="n">core_den</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">site_index</span><span class="p">](</span><span class="n">dist</span><span class="p">)</span>
+                            <span class="c1"># For small distances, integrate over the small volume dv around the point as the core</span>
+                            <span class="c1"># density is extremely high close to the atom</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+                                <span class="n">nnx</span><span class="p">,</span> <span class="n">nny</span><span class="p">,</span> <span class="n">nnz</span> <span class="o">=</span> <span class="n">small_dist_mesh</span>
+                                <span class="n">ddvx</span> <span class="o">=</span> <span class="n">dvx</span><span class="o">/</span><span class="n">nnx</span>
+                                <span class="n">ddvy</span> <span class="o">=</span> <span class="n">dvy</span><span class="o">/</span><span class="n">nny</span>
+                                <span class="n">ddvz</span> <span class="o">=</span> <span class="n">dvz</span><span class="o">/</span><span class="n">nnz</span>
+                                <span class="n">rpi</span> <span class="o">=</span> <span class="n">rpoint</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">dvy</span> <span class="o">+</span> <span class="n">dvz</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvx</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvy</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvz</span>
+                                <span class="k">for</span> <span class="n">iix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nnx</span><span class="p">):</span>
+                                    <span class="k">for</span> <span class="n">iiy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nny</span><span class="p">):</span>
+                                        <span class="k">for</span> <span class="n">iiz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nnz</span><span class="p">):</span>
+                                            <span class="n">rpoint2</span> <span class="o">=</span> <span class="n">rpi</span> <span class="o">+</span> <span class="n">iix</span><span class="o">*</span><span class="n">ddvx</span> <span class="o">+</span> <span class="n">iiy</span><span class="o">*</span><span class="n">ddvy</span> <span class="o">+</span> <span class="n">iiz</span><span class="o">*</span><span class="n">ddvz</span>
+                                            <span class="n">dist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">rpoint2</span> <span class="o">-</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+                                            <span class="n">total</span> <span class="o">+=</span> <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">site_index</span><span class="p">](</span><span class="n">dist2</span><span class="p">)</span>
+                                <span class="n">total</span> <span class="o">/=</span> <span class="p">(</span><span class="n">nnx</span><span class="o">*</span><span class="n">nny</span><span class="o">*</span><span class="n">nnz</span><span class="p">)</span>
+                                <span class="n">core_den</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">]</span> <span class="o">+=</span> <span class="n">total</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;mesh3d_dist_gridpoints&#39;</span><span class="p">:</span>
+            <span class="n">site_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]</span>
+            <span class="n">dist_gridpoints_sites</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dist_gridpoints_in_spheres</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">site_coords</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">maxr</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">isite</span><span class="p">,</span> <span class="n">dist_gridpoints_site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dist_gridpoints_sites</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">igp_uc</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">igp</span> <span class="ow">in</span> <span class="n">dist_gridpoints_site</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">smallradius</span><span class="p">:</span>
+                        <span class="n">core_den</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">isite</span><span class="p">](</span><span class="n">dist</span><span class="p">)</span>
+                    <span class="c1"># For small distances, integrate over the small volume dv around the point as the core density</span>
+                    <span class="c1"># is extremely high close to the atom</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+                        <span class="n">nnx</span><span class="p">,</span> <span class="n">nny</span><span class="p">,</span> <span class="n">nnz</span> <span class="o">=</span> <span class="n">small_dist_mesh</span>
+                        <span class="n">ddvx</span> <span class="o">=</span> <span class="n">dvx</span><span class="o">/</span><span class="n">nnx</span>
+                        <span class="n">ddvy</span> <span class="o">=</span> <span class="n">dvy</span><span class="o">/</span><span class="n">nny</span>
+                        <span class="n">ddvz</span> <span class="o">=</span> <span class="n">dvz</span><span class="o">/</span><span class="n">nnz</span>
+                        <span class="n">rpoint</span> <span class="o">=</span> <span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">rpoint</span><span class="p">(</span><span class="n">ix</span><span class="o">=</span><span class="n">igp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">iy</span><span class="o">=</span><span class="n">igp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">iz</span><span class="o">=</span><span class="n">igp</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="n">rpi</span> <span class="o">=</span> <span class="n">rpoint</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">dvy</span> <span class="o">+</span> <span class="n">dvz</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvx</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvy</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddvz</span>
+                        <span class="k">for</span> <span class="n">iix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nnx</span><span class="p">):</span>
+                            <span class="k">for</span> <span class="n">iiy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nny</span><span class="p">):</span>
+                                <span class="k">for</span> <span class="n">iiz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nnz</span><span class="p">):</span>
+                                    <span class="n">rpoint2</span> <span class="o">=</span> <span class="n">rpi</span> <span class="o">+</span> <span class="n">iix</span><span class="o">*</span><span class="n">ddvx</span> <span class="o">+</span> <span class="n">iiy</span><span class="o">*</span><span class="n">ddvy</span> <span class="o">+</span> <span class="n">iiz</span><span class="o">*</span><span class="n">ddvz</span>
+                                    <span class="n">dist2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">rpoint2</span> <span class="o">-</span> <span class="n">site_coords</span><span class="p">[</span><span class="n">isite</span><span class="p">])</span>
+                                    <span class="n">total</span> <span class="o">+=</span> <span class="n">rhoc_atom_splines</span><span class="p">[</span><span class="n">isite</span><span class="p">](</span><span class="n">dist2</span><span class="p">)</span>
+                        <span class="n">total</span> <span class="o">/=</span> <span class="p">(</span><span class="n">nnx</span><span class="o">*</span><span class="n">nny</span><span class="o">*</span><span class="n">nnz</span><span class="p">)</span>
+                        <span class="n">core_den</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">igp_uc</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">total</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Method &quot;</span><span class="si">{}</span><span class="s1">&quot; is not allowed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nelec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sum_elec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">core_den</span><span class="p">)</span><span class="o">*</span><span class="n">valence_density</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">dv</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sum_elec</span><span class="o">-</span><span class="n">nelec</span><span class="p">)</span> <span class="o">/</span> <span class="n">nelec</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Summed electrons is different from the actual number of electrons by &#39;</span>
+                                 <span class="s1">&#39;more than 1% ...&#39;</span><span class="p">)</span>
+            <span class="n">core_den</span> <span class="o">=</span> <span class="n">core_den</span> <span class="o">/</span> <span class="n">sum_elec</span> <span class="o">*</span> <span class="n">nelec</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rhor</span><span class="o">=</span><span class="n">core_den</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">rhor</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            nspinor: Number of spinorial components.</span>
+<span class="sd">            nsppol: Number of spins.</span>
+<span class="sd">            nspden: Number of spin density components.</span>
+<span class="sd">            datar:</span>
+<span class="sd">                `numpy` array with the field in real space.</span>
+<span class="sd">            structure: pymatgen structure</span>
+<span class="sd">            iorder: Order of the array. &quot;c&quot; for C ordering, &quot;f&quot; for Fortran ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Density</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">rhor</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="n">iorder</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self + other&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_other</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                              <span class="n">rhor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
+                              <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self - other&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_other</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
+                              <span class="n">rhor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">datar</span><span class="p">,</span>
+                              <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Density.get_nelect"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.get_nelect">[docs]</a>    <span class="k">def</span> <span class="nf">get_nelect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of electrons with given spin.</span>
+
+<span class="sd">        If spin is None, the total number of electrons is computed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">:</span>
+            <span class="n">nelect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nelect</span><span class="p">)</span> <span class="k">if</span> <span class="n">spin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nelect</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.total_rhor"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.total_rhor">[docs]</a>    <span class="k">def</span> <span class="nf">total_rhor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        numpy array with the total density in real space on the FFT mesh</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1">#tot_rhor = np.sum(self.datar, axis=0)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You should not be here&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Non collinear case.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Density.total_rhor_as_density"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.total_rhor_as_density">[docs]</a>    <span class="k">def</span> <span class="nf">total_rhor_as_density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Density</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rhor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">total_rhor</span><span class="p">,</span>
+                       <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iorder</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.total_rhog"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.total_rhog">[docs]</a>    <span class="k">def</span> <span class="nf">total_rhog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;numpy array with the total density in G-space.&quot;&quot;&quot;</span>
+        <span class="c1"># FFT R --&gt; G.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">fft_r2g</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_rhor</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.magnetization_field"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.magnetization_field">[docs]</a>    <span class="k">def</span> <span class="nf">magnetization_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: numpy array with the magnetization field in real space on the FFT mesh:</span>
+
+<span class="sd">            #. 0 if spin-unpolarized calculation</span>
+<span class="sd">            #. spin_up - spin_down if collinear spin-polarized</span>
+<span class="sd">            #. numpy array with (mx, my, mz) components if non-collinear magnetism</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># zero magnetization by definition.</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">zeros</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># spin_up - spin_down.</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># mx, my, mz</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.magnetization"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.magnetization">[docs]</a>    <span class="k">def</span> <span class="nf">magnetization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Magnetization field integrated over the unit cell.</span>
+<span class="sd">        Scalar if collinear, vector with mx, my, mz components if non-collinear.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magnetization_field</span><span class="p">)</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.nelect_updown"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.nelect_updown">[docs]</a>    <span class="k">def</span> <span class="nf">nelect_updown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+            <span class="n">nup</span> <span class="o">=</span> <span class="n">ndown</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ndown</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datar</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">nup</span><span class="p">,</span> <span class="n">ndown</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Density.zeta"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.zeta">[docs]</a>    <span class="k">def</span> <span class="nf">zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Magnetization(r) / total_density(r)&quot;&quot;&quot;</span>
+        <span class="n">fact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_rhor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_rhor</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetization</span> <span class="o">*</span> <span class="n">fact</span></div>
+
+<div class="viewcode-block" id="Density.vhartree"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.vhartree">[docs]</a>    <span class="k">def</span> <span class="nf">vhartree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solve the Poisson&#39;s equation in reciprocal space.</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            (vhr, vhg) Hartree potential in real, reciprocal space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="c1"># Compute |G| for each G in the mesh and treat G=0.</span>
+        <span class="n">gvecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">gvecs</span>
+        <span class="n">gwork</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">zeros</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">gnorm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">gnorm</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">gg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gvecs</span><span class="p">):</span>
+            <span class="c1">#gnorm = self.structure.gnorm(gg)</span>
+            <span class="n">gnorm</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># self.structure.gnorm(gg)</span>
+
+            <span class="c1">#gg = np.atleast_2d(gg)</span>
+            <span class="c1">#mv = np.dot(self.structure.gmet, gg.T)</span>
+            <span class="c1">#norm2 = 2*np.pi * np.dot(gg, mv)</span>
+            <span class="c1">#gnorm = np.sqrt(norm2)</span>
+
+            <span class="c1">#print gg, gnorm</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gwork</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">gnorm</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gwork</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">new_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">ndivs</span>
+        <span class="n">gwork</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">gwork</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">)</span>
+        <span class="c1">#gwork = self.mesh.reshape(gwork)</span>
+
+        <span class="c1"># FFT to obtain vh in real space.</span>
+        <span class="n">vhg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_rhog</span> <span class="o">*</span> <span class="n">gwork</span>
+        <span class="n">vhr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">fft_g2r</span><span class="p">(</span><span class="n">vhg</span><span class="p">,</span> <span class="n">fg_ishifted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">vhr</span><span class="p">,</span> <span class="n">vhg</span></div>
+
+<div class="viewcode-block" id="Density.export_to_cube"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.export_to_cube">[docs]</a>    <span class="k">def</span> <span class="nf">export_to_cube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">spin</span> <span class="o">!=</span> <span class="s1">&#39;total&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Argument &quot;spin&quot; should be &quot;total&quot;&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">cube</span><span class="o">.</span><span class="n">cube_write_structure_mesh</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">fh</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">)</span>
+            <span class="n">cube</span><span class="o">.</span><span class="n">cube_write_data</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">fh</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">total_rhor</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Density.from_cube"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.from_cube">[docs]</a>    <span class="k">def</span> <span class="nf">from_cube</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">spin</span> <span class="o">!=</span> <span class="s1">&#39;total&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Argument &quot;spin&quot; should be &quot;total&quot;&#39;</span><span class="p">)</span>
+        <span class="n">structure</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">cube_read_structure_mesh_data</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">nspinor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsppol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rhor</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def kinden(self):</span>
+        <span class="c1">#&quot;&quot;&quot;Compute the kinetic energy density in real- and reciprocal-space.&quot;&quot;&quot;</span>
+        <span class="c1">#return kindr, kindgg</span>
+
+    <span class="c1">#def vxc(self, xc=None):</span>
+        <span class="c1">#&quot;&quot;&quot;Compute the exchange-correlation potential in real- and reciprocal-space.&quot;&quot;&quot;</span>
+        <span class="c1">#return vxcr, vxcg</span>
+
+<div class="viewcode-block" id="Density.to_chgcar"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.fields.Density.to_chgcar">[docs]</a>    <span class="k">def</span> <span class="nf">to_chgcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Poscar</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Chgcar</span>
+
+        <span class="c1"># From: http://cms.mpi.univie.ac.at/vasp/vasp/CHGCAR_file.html</span>
+        <span class="c1"># This file contains the total charge density multiplied by the volume</span>
+        <span class="c1"># For spinpolarized calculations, two sets of data can be found in the CHGCAR file.</span>
+        <span class="c1"># The first set contains the total charge density (spin up plus spin down),</span>
+        <span class="c1"># the second one the magnetization density (spin up minus spin down).</span>
+        <span class="c1"># For non collinear calculations the CHGCAR file contains the total charge density</span>
+        <span class="c1"># and the magnetisation density in the x, y and z direction in this order.</span>
+        <span class="n">myrhor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="n">myrhor</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;diff&quot;</span><span class="p">:</span> <span class="n">myrhor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">myrhor</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;pymatgen Chgcar does not implement nspinor == 2&quot;</span><span class="p">)</span>
+
+        <span class="n">chgcar</span> <span class="o">=</span> <span class="n">Chgcar</span><span class="p">(</span><span class="n">Poscar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="n">data_dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">chgcar</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chgcar</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">DensityReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This object reads density data from a netcdf file.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">read_den_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns an :class:`AttrDict` dictionary with the basic dimensions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">AttrDict</span><span class="p">(</span>
+            <span class="n">cplex_den</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;real_or_complex_density&quot;</span><span class="p">),</span>
+            <span class="n">nspinor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_spinor_components&quot;</span><span class="p">),</span>
+            <span class="n">nsppol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_spins&quot;</span><span class="p">),</span>
+            <span class="c1">#nspden=self.read_dimvalue(&quot;number_of_spin_density_components&quot;),</span>
+            <span class="n">nspden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_components&quot;</span><span class="p">),</span>
+            <span class="n">nfft1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector1&quot;</span><span class="p">),</span>
+            <span class="n">nfft2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector2&quot;</span><span class="p">),</span>
+            <span class="n">nfft3</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector3&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls</span><span class="o">=</span><span class="n">Density</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory function that builds and returns a `Density` object.</span>
+<span class="sd">        Note that unlike Abinit, datar[nspden] contains the up/down components if nsppol = 2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_den_dims</span><span class="p">()</span>
+
+        <span class="c1"># Abinit conventions:</span>
+        <span class="c1"># rhor(nfft, nspden) = electron density in r space</span>
+        <span class="c1"># (if spin polarized, array contains total density in first half and spin-up density in second half)</span>
+        <span class="c1"># (for non-collinear magnetism, first element: total density, 3 next ones: mx,my,mz in units of hbar/2)</span>
+        <span class="n">rhor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Store rho_up, rho_down instead of rho_total, rho_up</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">rhor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">rhor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">rhor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">rhor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">total</span> <span class="o">-</span> <span class="n">rhor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You should not be here&quot;</span><span class="p">)</span>
+
+        <span class="c1"># use iorder=&quot;f&quot; to transpose the last 3 dimensions since ETSF</span>
+        <span class="c1"># stores data in Fortran order while abipy uses C-ordering.</span>
+        <span class="k">if</span> <span class="n">dims</span><span class="o">.</span><span class="n">cplex_den</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Get rid of fake last dimensions (cplex).</span>
+            <span class="n">rhor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rhor</span><span class="p">,</span> <span class="p">(</span><span class="n">dims</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nfft1</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nfft2</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nfft3</span><span class="p">))</span>
+
+            <span class="c1"># Structure uses Angstrom. Abinit uses bohr.</span>
+            <span class="n">rhor</span> <span class="o">/=</span> <span class="p">(</span><span class="n">bohr_to_angstrom</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">dims</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">dims</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">rhor</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">iorder</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;cplex_den </span><span class="si">%s</span><span class="s2"> not coded&quot;</span> <span class="o">%</span> <span class="n">dims</span><span class="o">.</span><span class="n">cplex_den</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, The ABINIT group.
+      Last updated on Mar 07, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
