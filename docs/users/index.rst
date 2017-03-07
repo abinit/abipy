@@ -15,6 +15,7 @@ User's Guide
     intro.rst
     howto_anaconda.rst
     howto_compile_python_and_bootstrap_pip.rst
-    manager_configuration.rst
+    analyzing_results.rst
+    running_calculations.rst
     whats_new.rst
     license.rst

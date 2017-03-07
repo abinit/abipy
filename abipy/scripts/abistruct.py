@@ -104,9 +104,14 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
                                       help="Open IPython shell for advanced operations on structure object.")
 
+    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
+                                       help="Read structure from file and generate jupyter notebook.")
+    p_notebook.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
+
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
-                             help="Read structure from file, generate k-path for band-structure calculations.")
+                                    help="Read structure from file, generate k-path for band-structure calculations.")
 
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
@@ -249,6 +254,10 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         print("Invoking Ipython, `structure` object will be available in the Ipython terminal")
         import IPython
         IPython.start_ipython(argv=[], user_ns={"structure": structure})
+
+    elif options.command == "notebook":
+        structure = abilab.Structure.from_file(options.filepath)
+        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground)
 
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)

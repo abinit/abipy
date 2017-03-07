@@ -149,8 +149,8 @@ class TestAbicomp(ScriptTest):
 class TestAbirun(ScriptTest):
     script = os.path.join(script_dir, "abirun.py")
 
-    def test_manager_scheduler_docs(self):
-        """Testing abirun.py documentation for manager and scheduler"""
+    def test_without_flow(self):
+        """Testing abirun.py commands without flow"""
         env = self.get_env()
         no_logo_colors = ["--no-logo", "--no-colors"]
 
@@ -165,9 +165,12 @@ class TestAbirun(ScriptTest):
         r = env.run(self.script, "doc_scheduler", self.loglevel, self.verbose, *no_logo_colors,
                     expect_stderr=self.expect_stderr)
 
+        # Test abibuild
+        r = env.run(self.script, "abibuild", self.loglevel, self.verbose, *no_logo_colors,
+                    expect_stderr=self.expect_stderr)
 
-    def test_abirun_with_flow(self):
-        """Testing abirun.py with flow (no execution)"""
+    def test_with_flow(self):
+        """Testing abirun.py commands with flow (no execution)"""
         env = self.get_env(check_help_version=False)
         no_logo_colors = ["--no-logo", "--no-colors"]
 

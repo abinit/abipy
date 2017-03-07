@@ -56,6 +56,7 @@ extensions = [
 'sphinx.ext.viewcode',
 'sphinx.ext.graphviz',
 'sphinx.ext.inheritance_diagram',
+'sphinxcontrib.programoutput',
 ]
 
 # Add any Sphinx extension module names here, as strings. They can

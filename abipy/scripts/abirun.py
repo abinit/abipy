@@ -375,7 +375,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for abibuild
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
-                                       help="Show Abinit build information and exit.")
+                                        help="Show Abinit build information and exit.")
 
     # Subparser for doc_scheduler
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
@@ -560,6 +560,18 @@ Specify the files to open. Possible choices:
         print(abilab.PyFlowScheduler.autodoc())
         return 0
 
+    if options.command == "abibuild":
+        #abilab.abicheck():
+        abinit_build = abilab.AbinitBuild()
+        print()
+        print(abinit_build)
+        print()
+        if not options.verbose:
+            print("Use --verbose for additional info")
+        else:
+            print(abinit_build.info)
+        return 0
+
     # After this point we start to operate on the flow.
     # 0) Print logo
     # 1) Read flow from pickle file and construct nids set if needed.
@@ -621,19 +633,7 @@ Specify the files to open. Possible choices:
 
     retcode = 0
 
-    if options.command == "abibuild":
-        #abilab.abicheck():
-        abinit_build = abilab.AbinitBuild()
-        print()
-        print(abinit_build)
-        print()
-        if not options.verbose:
-            print("Use --verbose for additional info")
-        else:
-            print(abinit_build.info)
-        #print(flow.manager)
-
-    elif options.command == "gui":
+    if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
             print("Will chroot to %s..." % options.chroot)

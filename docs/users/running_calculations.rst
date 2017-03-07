@@ -1,5 +1,8 @@
-Introduction
-============
+.. _running_calculations:
+
+====================
+Running calculations
+====================
 
 Besides post-processing tools and a programmatic interface to generate input files,
 AbiPy also provides a pythonic interface to execute small Abinit tasks or submit calculations on supercomputing centers.
@@ -13,8 +16,10 @@ so that the operating system can load and execute code.
 .. IMPORTANT:: Please make sure that you can execute Abinit interactively with simple input files and 
                that the code works as expected before proceeding with the rest of the tutorial.
 
+
+--------------------------------
 How to configure the TaskManager
-================================
+--------------------------------
 
 The `TaskManager` is responsible for task submission 
 (creation of the submission script, initialization of the environment) as well as for the 
@@ -35,8 +40,9 @@ Configuration files for typical cases are available in `~abipy/data/managers`.
 We first discuss how to configure Abipy on a personal computer and then we look at the more
 complicated cases in which the calculation must be submitted to a queue.
 
+-----------------------------------
 TaskManager for a personal computer
-===================================
+-----------------------------------
 
 Let's start from the simplest case i.e. a personal computer in which we can execute Abinit directly from the shell.
 In this case, the configuration is relatively easy because we can execute the code 
@@ -116,41 +122,7 @@ your machine, change `pre_run` so that the Abinit executables can be found in `$
 Save the file in the current working directory and run `abicheck.py`.
 If everything is configured properly, you should see something like this in the terminal.
 
-.. code-block:: shell
-
-    $ abicheck.py
-    AbiPy Manager:
-    [Qadapter 0]
-    ShellAdapter:localhost
-    Hardware:
-       num_nodes: 1, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
-    Qadapter selected: 0
-
-    Abinitbuild:
-    Abinit Build Information:
-	Abinit version: 8.3.1
-	MPI: True, MPI-IO: True, OpenMP: False
-	Netcdf: True, ETSF-IO: False
-
-    Abipy Scheduler:
-    PyFlowScheduler, Pid: 71013
-    Scheduler options: {'seconds': 10, 'hours': 0, 'weeks': 0, 'minutes': 0, 'days': 0}
-
-    Installed packages:
-    Package      Version
-    -----------  -----------------------
-    numpy        1.10.4
-    scipy        0.17.0
-    netCDF4      1.2.4
-    apscheduler  2.1.0
-    pydispatch   2.0.5
-    yaml         3.11
-    pymatgen     4.6.2
-    matplotlib   1.5.1 (backend: Qt4Agg)
-
-
-    Abipy requirements are properly configured
-
+.. command-output:: abicheck.py --no-colors
 
 This message tells us that everything is in place and we can finally run our first calculation with Abipy.
 The directory `abipy/data/runs` contains python scripts to generate workflows for typical ab-initio calculations.
@@ -229,11 +201,11 @@ Let's start to play with our flow.
 
 Use::
 
-	abirun.py flow_si_ebands status
+    abirun.py flow_si_ebands status
 
 to have a summary with the status of the different tasks and::
 
-	abirun.py flow_si_ebands deps
+    abirun.py flow_si_ebands deps
 
 to print the interconnection among the tasks in text format.
 
@@ -371,8 +343,9 @@ Expert users may want to use::
 
 to open the `flow` in the `ipython` terminal so to have direct access to the API provided by the object.
 
+------------------------------
 How to configure the scheduler
-==============================
+------------------------------
 
 In the previous example, we ran a simple band structure calculation for silicon in a few seconds 
 on a laptop but one might have more complicated flows requiring hours or even days to complete.
@@ -396,7 +369,7 @@ Crate a `scheduler.yml` in the working directory by copying the example below:
 This file tells the scheduler to wake up every 10 seconds, inspect the status of the tasks
 in the flow and perform the actions required for reach completion
 
-.. TIP:: Use `abirun.py . doc_scheduler` to get the full list of options supported by the scheduler.
+
 
 .. IMPORTANT::
 
@@ -440,11 +413,13 @@ We will see that the scheduler PID is extremely important when we start to run l
 
 .. IMPORTANT:: Note that there must be only one scheduler associated to a given flow.
 
-How to configure the scheduler
-==============================
+.. TIP:: Use `abirun.py . doc_scheduler` to get the full list of options supported by the scheduler.
 
+.. command-output:: abirun.py doc_scheduler
+
+------------------------------
 Configuring AbiPy on a cluster
-==============================
+------------------------------
 
 In this section we discuss how to configure the manager to run flows on a cluster.
 The configuration depends on specific queue management system (Slurm, PBS, etc) so
@@ -494,9 +469,9 @@ scripts, submit them, kill jobs in the queue and how to interpret the other opti
  We use the *normalized* version of the options i.e dashes in the official name of the parameter 
  are replaced by underscores  (for the list of supported options see ...)
 
-The complete list of options (`qparams`) supported by the `TaskManager` with Slurm  can be obtained with::
+The complete list of options (`qparams`) supported by the `TaskManager` with Slurm  can be obtained with
 
-    abirun.py . doc_manager slurm
+.. command-output:: abirun.py . doc_manager slurm
 
 `modules` is the list of modules to load, while `shell_env` allows the user 
 to specify or to modify the values of the environment variables.
@@ -558,6 +533,7 @@ and kill the active session without killing the scheduler thanks to the `nohup` 
 In this case, the PID gives as a handle that can be used to check whether the scheduler
 is still running or kill it when we login again.
 
+---------------
 Troubleshooting
 ---------------
 
@@ -573,9 +549,9 @@ to print the events (Abinit Warnings/Errors/Comments) found in the log files and
 
 to analyze error files and log files for possible error messages.
 
-To get information on the Abinit build, use::
+To get information on the Abinit build, use
 
-    abirun.py abibuild --verbose 
+.. command-output:: abirun.py abibuild --verbose 
 
 while::
 

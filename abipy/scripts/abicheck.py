@@ -7,6 +7,7 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import argparse
 
+from monty import termcolor
 from monty.termcolor import cprint
 from monty.functools import prof_main
 from abipy import abilab
@@ -35,6 +36,7 @@ Usage example:
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity.')
+    parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
 
     # Parse the command line.
     try:
@@ -49,6 +51,10 @@ Usage example:
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
+
+    if options.no_colors:
+        # Disable colors
+        termcolor.enable(False)
 
     errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
