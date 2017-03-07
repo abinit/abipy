@@ -152,7 +152,7 @@ from abipy import abilab
 """),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
-        nbf.new_code_cell("#flow.debug()"),
+        nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
         nbf.new_code_cell("flow.show_dependencies()"),
         nbf.new_code_cell("fig = flow.plot_networkx()"),
@@ -676,7 +676,7 @@ Specify the files to open. Possible choices:
         if options.doc:
             autodoc_event_handlers()
         else:
-            flow.show_event_handlers()
+            flow.show_event_handlers(verbose=options.verbose)
 
     elif options.command  == "single":
         nlaunch = flow.single_shot()

@@ -13,7 +13,7 @@
 About
 =====
 
-Abipy is a Python library to analyze he results produced by `ABINIT <http://www.abinit.org>`_,
+Abipy is a Python library to analyze the results produced by `ABINIT <http://www.abinit.org>`_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Maby-Body perturbation theory.
 It also provides tools to generate input files and workflows to automate

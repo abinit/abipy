@@ -69,9 +69,6 @@ from abipy import abilab\
 
         process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL) #, stderr=DEVNULL)
         cprint("pid: %s" % str(process.pid), "yellow")
-        #import daemon
-        #with daemon.DaemonContext():
-        #    return os.system(cmd)
 
 
 @prof_main
