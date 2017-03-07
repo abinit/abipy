@@ -9,13 +9,12 @@ AbiPy also provides a pythonic interface to execute small Abinit tasks or submit
 This section discusses how to create the configuration files required to interface AbiPy with Abinit.
 
 We assume that Abinit is already available on your machine and that you know how to configure
-your environment: set the `$PATH` and `$LD_LIBRARY_PATH`(`DYLD_LIBRARY_PATH` on Mac) 
-environment variables, load modules with `module load`, etc.)
-so that the operating system can load and execute code. 
+your environment so that the operating system can load and execute code e.g. 
+set the `$PATH` and `$LD_LIBRARY_PATH` (`DYLD_LIBRARY_PATH` on Mac) environment variables, 
+load modules with `module load`, etc.
 
 .. IMPORTANT:: Please make sure that you can execute Abinit interactively with simple input files and 
                that the code works as expected before proceeding with the rest of the tutorial.
-
 
 --------------------------------
 How to configure the TaskManager
@@ -24,7 +23,7 @@ How to configure the TaskManager
 The `TaskManager` is responsible for task submission 
 (creation of the submission script, initialization of the environment) as well as for the 
 optimization of the parameters used in parallel runs 
-(number of MPI processes, number of OpenMP threads, automatic parallelization with ABINIT `autoparal` feature). 
+(number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit `autoparal` feature). 
 
 AbiPy knows how to run/submit the code with the correct environment and the appropriate syntax
 thanks to the options given in the `manager.yml` configuration file.
@@ -37,7 +36,7 @@ By default, AbiPy looks for a `manager.yml` file in the current working director
 the directory in which you execute your script and then inside `$HOME/.abinit/abipy`.
 If no `manager.yml` is found, the code aborts immediately.
 Configuration files for typical cases are available in `~abipy/data/managers`.
-We first discuss how to configure Abipy on a personal computer and then we look at the more
+We first discuss how to configure AbiPy on a personal computer and then we look at the more
 complicated cases in which the calculation must be submitted to a queue.
 
 -----------------------------------
@@ -47,7 +46,17 @@ TaskManager for a personal computer
 Let's start from the simplest case i.e. a personal computer in which we can execute Abinit directly from the shell.
 In this case, the configuration is relatively easy because we can execute the code 
 directly without having to submit a script to the resource manager to allocate resources (memory, MPI ranks, threads ...)
+In its simplest form, the `manager.yml` consist of a list of `qadapters`
 `manager.yml` contains a list of `QueueAdapters` objects. 
+
+.. code-block:: yaml
+
+    qadapters:
+        # List of qadapters objects (mandatory)
+        -  # qadapter_1
+        -  # qadapter_2
+
+Each `qadapter` is essentially a dictionary with 
 Each `QueueAdapter` is responsible for all interactions with a specific queue management system (Slurm, PBS, bash, etc).
 This includes handling all details of queue script format as well as queue submission and management.
 
@@ -82,7 +91,7 @@ For the sake of brevity, we give a brief description of the meaning
 of the different sections without entering into detail:
 
     * queue: dictionary with the name of the queue and optional parameters 
-      used to build/customize the header of the submission script
+             used to build/customize the header of the submission script
 
     * job: dictionary with the options used to prepare the environment before submitting the job
 
@@ -96,6 +105,8 @@ Use::
     abirun.py doc_manager
 
 to get the complete documentation of the `manager.yml` file
+
+.. command-output:: abirun.py doc_manager slurm
 
 In this simple case, we have one `QueueAdapter` named `gmac` that will submit `Tasks`
 in a shell subprocess (`qtype: shell`) with mpirun. 
@@ -139,7 +150,7 @@ Cd to ~abipy/data/runs and execute `run_si_ebands.py` to generate the flow::
 
 At this point, you should have a directory named `flow_si_ebands` with the following structure:
 
-.. code-block:: shell
+.. code-block:: console
 
     $ tree flow_si_ebands/
 
@@ -170,12 +181,12 @@ At this point, you should have a directory named `flow_si_ebands` with the follo
     15 directories, 7 files
 
 `w0` is the directory containing the input files of the first workflow (well, we have only one workflow in our example).
-`t0` and `t1` contain the input files need to run the SCF and the NSC run, respectively.
+`w0/t0` and `w0/t1` contain the input files need to run the SCF and the NSC run, respectively.
 
-You might have noticed that each `Task` directory (w0/t0, w0/t1) presents the same structure:
+You might have noticed that each `Task` directory (`w0/t0`, `w0/t1`) presents the same structure:
     
-   * run.abi: ABINIT input file
-   * run.files: ABINIT files file
+   * run.abi: Abinit input file
+   * run.files: Abinit files file
    * job.sh: Submission/shell script
    * outdata: Directory with output data files
    * indata: Directory with input data files 
@@ -209,7 +220,7 @@ to have a summary with the status of the different tasks and::
 
 to print the interconnection among the tasks in text format.
 
-.. code-block:: shell
+.. code-block:: console
 
     <ScfTask, node_id=75244, workdir=flow_si_ebands/w0/t0>
 
@@ -219,8 +230,8 @@ to print the interconnection among the tasks in text format.
 .. TIP:: Alternatively one can use `abirun.py flow_si_ebands/ networkx`
 	 to visualize the connections with the `networkx` package.
 
-In this case, we have a flow with two tasks and the second task (w0/t1) 
-depends on the ScfTask, more specifically on the density file produced by it.
+In this case, we have a flow with two tasks and the second task (`w0/t1`) 
+depends on the `ScfTask`, more specifically on the density file produced by it.
 This means that the second task cannot be executed/submitted until we have completed the first task. 
 `abirun.py` knows the dependencies of our flow and will use this information to manage the submission/execution
 of our tasks.
@@ -230,7 +241,7 @@ The `single` command execute the first `Task` in the flow that is in the `READY`
 whose dependencies have been fulfilled while `rapid` submits all task of the flow that are in the `READY` state.
 Let's try to run the flow with the `rapid` command and see what happens.
 
-.. code-block:: shell
+.. code-block:: console
 
     abirun.py flow_si_ebands rapid
 
@@ -250,7 +261,7 @@ Let's try to run the flow with the `rapid` command and see what happens.
 What's happening here?
 The `rapid` command tried to execute all tasks that are `READY` but since the second task depends on the first
 one only the first task gets submitted.
-Note that the SCF task (w0_t0) has been submitted with 2 MPI processors. 
+Note that the SCF task (`w0_t0`) has been submitted with 2 MPI processors. 
 Before submitting the task, indeed, AbiPy
 invokes Abinit to get all the possible parallel configurations compatible with the constrains specified by the user,
 select the "optimal" configuration according to some policy and submit the task with the optimized parameters.
@@ -285,7 +296,7 @@ completed successfully.
 To understand what happened in more detail, use the `history` command to get the list of operations
 performed by AbiPy on each task.
 
-.. code-block:: shell
+.. code-block:: console
 
     $ abirun.py flow_si_ebands history
 
@@ -321,8 +332,7 @@ performed by AbiPy on each task.
 
 A closer inspection of the logs reveal that before submitting the first task, `abirun.py` has executed
 Abinit in `autoparal` mode to get the list of possible parallel configuration and the calculation is then submitted.
-At this point, `abirun.py` starts to look at the output files produced by the task to understand 
-what's happening.
+At this point, `abirun.py` starts to look at the output files produced by the task to understand  what's happening.
 When the first task reaches completion, the second task is automatically changed to READY, 
 the `irdden` input variable is added to the input file of the second task and a symbolic link to
 the DEN file produced by the first task is created in the `indata` directory of the second task.
@@ -334,14 +344,14 @@ The command::
 
     abirun.py flow_si_ebands notebook
 
-generates a jupyter notebook with pre-defined calls that can be executed 
+generates a `jupyter` notebook with pre-defined calls that can be executed 
 in order to get a graphical representation of the status of our flow inside a web browser
 (requires `jupyter`, `nbformat` and, obviously, a web browser).
 Expert users may want to use::
 
     abirun.py flow_si_ebands ipython
 
-to open the `flow` in the `ipython` terminal so to have direct access to the API provided by the object.
+to open the `flow` in the `ipython` terminal to have direct access to the API provided by the object.
 
 ------------------------------
 How to configure the scheduler
@@ -368,8 +378,6 @@ Crate a `scheduler.yml` in the working directory by copying the example below:
 
 This file tells the scheduler to wake up every 10 seconds, inspect the status of the tasks
 in the flow and perform the actions required for reach completion
-
-
 
 .. IMPORTANT::
 
@@ -400,7 +408,7 @@ and let the scheduler manage the task submission with::
 
 You should see the following output on the terminal
 
-.. code-block:: shell
+.. code-block:: console
 
     abirun.py flow_si_ebands scheduler
 
@@ -508,7 +516,7 @@ Use::
     abirun.py FLOWDIR cancel
 
 to cancel all tasks that have been submitted to the resource manager (the script asks for confirmation).
-Abipy detects if there's a scheduler attached to the flow and it will also kill the scheduler
+AbiPy detects if there's a scheduler attached to the flow and it will also kill the scheduler
 
 In the previous sections, we have discussed how to define, build and run a `Flow`, but there is a very 
 important point that we haven't discussed yet.
@@ -560,7 +568,7 @@ while::
 show the so-called events handlers that have been installed in the flow 
 (an event handler is an action that will be executed in response of a particular event
 
-.. code-block:: shell
+.. code-block:: console
 
     $ abirun.py flow_si_ebands handlers --verbose
 

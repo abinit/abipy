@@ -40,6 +40,7 @@ Usage example:
                                                  following doi:10.1016/j.commatsci.2010.05.010
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
+    abistruct.py notebook filepath            => Read structure from filepath and generate jupyter notebook.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
 

@@ -372,7 +372,8 @@ Usage example:
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for robot command.
-    p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
+    # TODO
+    #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
