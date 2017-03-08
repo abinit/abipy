@@ -3,7 +3,7 @@
 This script opens an output file produced by Abinit (usually in netcdf format but
 other files are supported as well). By default the script starts an interactive ipython
 session so that one can interact with the file and call its methods.
-Alternatively, it is possible to generate automatically an ipython notebook to execute code.
+Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
 
@@ -20,7 +20,7 @@ from abipy import abilab
 
 def make_and_open_notebook(options):
     """
-    Generate an ipython notebook and open it in the browser.
+    Generate an jupyter notebook and open it in the browser.
     Return system exit code.
 
     Raise:
@@ -78,7 +78,7 @@ def main():
         s = """\
 Usage example:
     abiopen.py out_GSR.nc
-    abiopen.py out_DDB
+    abiopen.py out_DDB -nb  # To generate jupyter notebook
 
 File extensions supported:
 """

@@ -18,7 +18,7 @@ To build the users guide in html format, cd into :file:`docs/` and do::
 The output produced by Sphinx can be configured by editing the :file:`conf.py` file located in the :file:`docs/`.
 
 
-Organization of abipy's documentation
+Organization of AbiPy's documentation
 =====================================
 
 The actual ReStructured Text files are kept in :file:`docs/users`, :file:`docs/devel`, :file:`docs/api`. 
