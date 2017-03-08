@@ -21,24 +21,29 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem
 
+
+
+
+
+Official documentation of the stable version available at `abipy docpage`_.
+
+AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_,
+`ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
+thus providing a powerful still user-friendly environment for data analysis and visualization.
+Check out the list of plotting scripts available in the
+`examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
+To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
+<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
+and the
+`AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+
 AbiPy supports both Python 2.7 as well as Python >= 3.4.
 Note however that Python 2.7 is more intensively tested than py3k especially at the level of workflows
 so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
-Official documentation of the stable version available at `abipy docpage`_.
-Check out the list of plotting scripts available in the
-`examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
-To learn more about AbiPy, visit our example collection of `jupyter notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the
-`abipy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
-
-AbiPy can be used in conjunction with
-`ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
-thus providing a powerful still user-friendly environment for data analysis and visualization.
 Note, however, that the majority of the post-processing tools available in AbiPy require output files in
-netcdf format so we strongly suggest to compile Abinit with netcdf support
-(use `--with_trio_flavor="netcdf-fallback"` at configure time to activate the internal netcdf library,
+``netcdf`` format so we strongly suggest to compile Abinit with netcdf support
+(use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
 provided by `abiconfig <https://github.com/abinit/abiconfig>`_.
 
@@ -86,27 +91,27 @@ The developmental version is at the AbiPy's `Github repo <https://github.com/abi
 The Github version include test files for complete unit testing.
 After cloning the source, type::
 
-    python setup.py install
+    $ python setup.py install
 
 or::
 
-    python setup.py develop
+    $ python setup.py develop
 
 to install the package in developmental mode (this is the recommended approach, especially if you are
 planning to implement new features).
 
 To run the suite of unit tests, make sure you have py.test (nose) installed and then just type::
 
-    py.test
+    $ py.test
 
 or::
 
-    nosetests
+    $ nosetests
 
 in the AbiPy root directory.
-Unit tests require two additional packages that can be installed with
+Unit tests require two additional packages that can be installed with::
 
-   `pip install nose-exclude scripttest`
+   $ pip install nose-exclude scripttest
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -178,7 +183,6 @@ The following scripts can be invoked directly from the terminal:
   * `abistruct.py`
 
     Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
-
 
   * `abicomp.py`
 

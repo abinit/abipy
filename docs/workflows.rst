@@ -1,32 +1,36 @@
-.. _running_calculations:
+.. _workflows:
 
-====================
-Running calculations
-====================
+=========
+Workflows
+=========
 
 Besides post-processing tools and a programmatic interface to generate input files,
-AbiPy also provides a pythonic interface to execute small Abinit tasks or submit calculations on supercomputing centers.
+AbiPy also provides a pythonic API to execute small Abinit tasks or submit calculations on supercomputing centers.
 This section discusses how to create the configuration files required to interface AbiPy with Abinit.
 
 We assume that Abinit is already available on your machine and that you know how to configure
-your environment so that the operating system can load and execute code e.g. 
-set the ``$PATH`` and ``$LD_LIBRARY_PATH`` (``DYLD_LIBRARY_PATH`` on Mac) environment variables, 
-load modules with ``module load``, etc.
+your environment so that the operating system can load and execute the code.
+In other words, we assume that you know how to set the ``$PATH`` and ``$LD_LIBRARY_PATH`` (``DYLD_LIBRARY_PATH`` on Mac) 
+environment variables, load modules with ``module load``, run MPI applications with ``mpirun``, etc.
 
-.. IMPORTANT:: Please make sure that you can execute Abinit interactively with simple input files and 
-               that the code works as expected before proceeding with the rest of the tutorial.
+.. IMPORTANT:: 
+
+    Please make sure that you can execute Abinit interactively with simple input files and 
+    that the code works as expected before proceeding with the rest of the tutorial.
+    It's also a very good idea to run the Abinit test suite with the `runtest.py script <https://asciinema.org/a/40324>`_ 
+    before running production calculations.
 
 --------------------------------
 How to configure the TaskManager
 --------------------------------
 
-The `TaskManager` is responsible for task submission 
+The ``TaskManager`` is responsible for task submission 
 (creation of the submission script, initialization of the environment) as well as for the 
-optimization of the parameters used in parallel executions
-(number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit `autoparal` feature). 
+optimization of the parallel algorithms 
+(number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit ``autoparal`` feature). 
 
 AbiPy knows how to run/submit the code with the correct environment and the appropriate syntax
-thanks to the options given in the ``manager.yml`` configuration file.
+thanks to the options specified in the ``manager.yml`` configuration file.
 The configuration file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_,
 a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
@@ -35,7 +39,8 @@ See also this `reference card <http://www.yaml.org/refcard.html>`_)
 By default, AbiPy looks for a ``manager.yml`` file in the current working directory i.e.
 the directory in which you execute your script and then inside ``$HOME/.abinit/abipy``.
 If no file is found, the code aborts immediately.
-Configuration files for typical cases are available in `~abipy/data/managers`.
+Configuration files for typical cases are available inside ``~abipy/data/managers``.
+
 We first discuss how to configure AbiPy on a personal computer and then we look at the more
 complicated case in which the calculation must be submitted to a queue.
 
@@ -45,7 +50,7 @@ TaskManager for a personal computer
 
 Let's start from the simplest case i.e. a personal computer in which we can execute Abinit directly from the shell.
 In this case, the configuration is relatively easy because we can execute the code 
-directly without having to submit a script to the resource manager to allocate resources (memory, MPI ranks, threads ...)
+directly without having to submit a script to the resource manager to allocate resources.
 In its simplest form, the ``manager.yml`` file consists of a list of ``qadapters``:
 
 .. code-block:: yaml
@@ -55,22 +60,27 @@ In its simplest form, the ``manager.yml`` file consists of a list of ``qadapters
         -  # qadapter_0
         -  # qadapter_0
 
-Each ``qadapter`` is essentially a YAML dictionary with the following entries (sub-dictionaries):
-
-    * ``queue``: dictionary with the name of the queue and optional parameters 
-      used to build/customize the header of the submission script
-
-    * ``job``: dictionary with the options used to prepare the environment before submitting the job
-
-    * ``limits``: dictionary with the constraints that must be fulfilled in order to run with this queueadapter
-
-    * ``hardware``: dictionary with information on the hardware available on this particular queue.
-
-The `qadapter` is responsible for all interactions with a specific queue management system (shell, Slurm, PBS, etc).
+The ``qadapter`` is responsible for all interactions with a specific queue management system (shell, Slurm, PBS, etc).
 This includes handling all details of queue script format as well as queue submission and management.
-Multiple `qadapters` could be useful if you are running on a cluster that provides different queues 
-but on a personal computer we only need a single entry. 
+From the point of view of the user, ``qadapter`` is essentially a YAML dictionary 
+with the following entries (sub-dictionaries):
 
+``queue``
+    Dictionary with the name of the queue and optional parameters 
+    used to build and customize the header of the submission script.
+
+``job``
+    Dictionary with the options used to prepare the environment before submitting the job.
+
+``limits``
+    Dictionary with the constraints that must be fulfilled in order to run with this ``qadapter``.
+
+``hardware``
+    Dictionary with information on the hardware available on this particular queue.
+
+Multiple ``qadapters`` are useful if you are running on a cluster with different queues 
+but we post-pone the discussion of this rather technical point and, for the time being, 
+we employ a ``manager.yml`` with a single adapter. 
 The configuration file I use on my laptop to run jobs via the shell is:
 
 .. code-block:: yaml
@@ -98,41 +108,39 @@ The configuration file I use on my laptop to run jobs via the shell is:
 	     cores_per_socket: 2
 	     mem_per_node: 4 Gb
 
-In this simple case, we have one `QueueAdapter` named `gmac` that will submit `Tasks`
-in a shell subprocess (`qtype: shell`) with mpirun. 
-`env.sh` is the bash script I use to set the value of the environment variables 
-(e.g. `PATH` and `LD_LIBRARY_PATH`) before running ABINIT.
-
 Note that my laptop has 1 socket with 2 CPUs and 4 Gb of memory in total, hence I don't want
-to run ABINIT tasks with more than 2 CPUs. This is the reason why `max_cores` is set to 2.
-`Timelimit` is not used when you are using `qname=shell`, but it is very important when you 
+to run ABINIT tasks with more than 2 CPUs. This is the reason why ``max_cores`` is set to 2.
+``timelimit`` is not used when you are using ``qname: shell``, but it is very important when you 
 are submitting jobs on a cluster because this value is used to generate the submission script.
 
 At this point, you may wonder why we need to specify all these parameters in the configuration file.
-The reason is that, before submitting a job to a resource manager, `AbiPy` will use the autoparal 
+The reason is that, before submitting a job to a resource manager, AbiPy will use the autoparal 
 feature of ABINIT to get all the possible parallel configurations with `ncpus <= max_cores`. 
 On the basis of these results, `AbiPy` selects the "optimal" one, and changes the ABINIT input file 
 and the submission script accordingly .
 (this is a very useful feature, especially for calculations done with `paral_kgb=1` that require 
-the specification of `npkpt`, `npfft`, `npband`, etc).
-If more than one `QueueAdapter` is specified, `AbiPy` will first compute all the possible 
+the specification of ``npkpt``, ``npfft``, ``npband``, etc).
+If more than one `QueueAdapter` is specified, AbiPy will first compute all the possible 
 configuration and then select the "optimal" `QueueAdapter` according to some kind of policy
 
-Copy this example, change the entries in the `hardware` and the `limits` section according to
-your machine, change `pre_run` so that the Abinit executables can be found in `$PATH`.
-Save the file in the current working directory and run ``abicheck.py``.
+Copy this example, change the entries in the ``hardware`` and the ``limits`` section according to
+your machine, change ``pre_run`` so that the Abinit executables can be found in ``$PATH``.
+Save the file in the current working directory and run the ``abicheck.py`` script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.
 
 .. command-output:: abicheck.py --no-colors
 
-This message tells us that everything is in place and we can finally run our first calculation with Abipy.
+This message tells us that everything is in place and we can finally run our first calculation.
 The directory ``~abipy/data/runs`` contains python scripts to generate workflows for typical ab-initio calculations.
 Here we focus on the configuration of the manager and the execution of the flow so we don't to explain how to 
 generate input files and create Flow objects in python.
+This topic is covered in more detail in our collection of `jupyter notebooks
+<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
 
 Let's start from the simplest example i.e. the ``run_si_ebands.py`` script that generates 
 a flow to compute the band structure of silicon at the Kohn-Sham level 
 (GS calculation to get the density followed by a NSCF run along a k-path in the first Brillouin zone).
+
 Cd to ``~abipy/data/runs`` and execute ``run_si_ebands.py`` to generate the flow::
 
     $ cd ~abipy/data/runs
@@ -175,21 +183,22 @@ At this point, you should have a directory named ``flow_si_ebands`` with the fol
 
 You might have noticed that each `Task` directory (``w0/t0``, ``w0/t1``) presents the same structure:
     
-   * ``run.abi``: Abinit input file
-   * ``run.files``: Abinit files file
-   * ``job.sh``: Submission/shell script
-   * ``outdata``: Directory with output data files
-   * ``indata``: Directory with input data files 
-   * ``tmpdata``: Directory with temporary files
+   * ``run.abi``: Abinit input file.
+   * ``run.files``: Abinit files file.
+   * ``job.sh``: Submission/shell script.
+   * ``outdata``: Directory with output data files.
+   * ``indata``: Directory with input data files.
+   * ``tmpdata``: Directory with temporary files.
 
 .. DANGER::
+
    ``__AbinitFlow__.pickle`` is the pickle file used to save the status of the `Flow`. Don't touch it! 
 
 The ``job.sh`` script has been generated using the information provided by ``manager.yml``. 
 In this case it's a simple shell script that executes the code but this is normal because we are using ``qtype: shell``. 
 The script will be more complicated when we start to submit jobs on a cluster with a resource manager.
 
-We usually interact with the Abipy flow via the ``abirun.py`` script.
+We usually interact with the AbiPy flow via the ``abirun.py`` script.
 The script uses the syntax::
 
      $ abirun.py FLOWDIR command [options]
@@ -208,7 +217,7 @@ to have a summary with the status of the different tasks and::
 
     $ abirun.py flow_si_ebands deps
 
-to print the interconnection among the tasks in text format.
+to print the interconnection among the tasks in textual format.
 
 .. code-block:: console
 
@@ -223,15 +232,15 @@ to print the interconnection among the tasks in text format.
     to visualize the connections with the ``networkx`` package.
 
 In this case, we have a flow with two tasks and the second task (``w0/t1``) 
-depends on the `ScfTask`, more specifically on the density file produced by it.
+depends on the ``ScfTask``, more specifically on the density file produced by it.
 This means that the second task cannot be executed/submitted until we have completed the first task. 
-`abirun.py` knows the dependencies of our flow and will use this information to manage the submission/execution
+``abirun.py`` knows the dependencies of our flow and will use this information to manage the submission/execution
 of our tasks.
 
 There are two commands that can be used to launch tasks: ``single`` and ``rapid``.
-The ``single`` command execute the first `Task` in the flow that is in the ``READY`` state that is a task
+The ``single`` command execute the first ``Task`` in the flow that is in the ``READY`` state that is a task
 whose dependencies have been fulfilled while ``rapid`` submits all task of the flow that are in the ``READY`` state.
-Let's try to run the flow with the `rapid` command and see what happens.
+Let's try to run the flow with the ``rapid`` command and see what happens.
 
 .. code-block:: console
 
@@ -294,7 +303,7 @@ The meaning of the columns is as follows:
 
 If you execute ``status`` again, you should see that the first task is completed.
 We can thus run ``rapid`` again to launch the ``NscfTask``.
-The second task won't take long and if you issue `status` again, you should see that the entire flow
+The second task won't take long and if you issue ``status`` again, you should see that the entire flow
 completed successfully.
 
 To understand what happened in more detail, use the ``history`` command to get 
@@ -357,14 +366,28 @@ Expert users may want to use::
 
 to open the flow in the ``ipython`` terminal to have direct access to the API provided by the object.
 
+Once ``manager.yml`` is properly configured, it is possible 
+to use the AbiPy objects to invoke Abinit and perform small but quite useful operations.
+For example, one can use the ``AbinitInput`` object to get the list of k-points in the IBZ, 
+the list of independent DFPT perturbations, the possible parallel configurations reported by ``autoparal`` etc.
+This programmatic interface can be used in scripts to facilitate the creation of input files and workflows.
+For example, one can call Abinit to get the list of perturbations for each q-point in the IBZ and then
+generate automatically all the input files for DFPT calculations (actually this is the approach used to
+generated DFPT workflows in the AbiPy factory functions).
+Note that ``manager.yml`` is also used to invoke other executables (``anaddb``, ``optic``, ``mrgddbb``, etcetera)
+thus creating some sort of interface between the python language and the Fortran executables.
+Thanks to this interface, one can perform relatively simple ab-initio calculations directly in AbiPy, 
+for instance it is possible to open a ``DDB`` file in a jupyter notebook, call ``anaddb`` to compute 
+the phonon frequencies and plot the DOS and phonon band structure with matplotlib.
+
 ------------------------------
 How to configure the scheduler
 ------------------------------
 
 In the previous example, we ran a simple band structure calculation for silicon in a few seconds 
 on a laptop but one might have more complicated flows requiring hours or even days to complete.
-For such cases, the `single` and `rapid` commands are not handy because we are supposed 
-to monitor the evolution of the flow and re-run `abirun.py` when a new task is `READY`.
+For such cases, the ``single`` and ``rapid`` commands are not handy because we are supposed 
+to monitor the evolution of the flow and re-run ``abirun.py`` when a new task is ``READY``.
 In these cases, it is much easier to delegate all the repetitive work to a ``python scheduler``,
 a sort of job that runs in the background and submits tasks automatically and perform the actions
 required to complete the flow.
@@ -378,7 +401,6 @@ Create a ``scheduler.yml`` in the working directory by copying the example below
     seconds: 5   # number of seconds to wait.
     #minutes: 0  # number of minutes to wait.
     #hours: 0    # number of hours to wait.
-    #days: 0     # number of days to wait.
 
 This file tells the scheduler to wake up every 5 seconds, inspect the status of the tasks
 in the flow and perform the actions required for reach completion
@@ -396,17 +418,17 @@ To make things more interesting, we execute a slightly more complicated flow tha
 the G0W0 corrections to the direct band gap of silicon at the Gamma point.
 The flow consists of the following six tasks:
 
-0. Ground state calculation to get the density.
-1. NSCF calculation with several empty states. 
-2. Calculation of the screening using the WFK produced by task 2.
-3-4-5. Evaluation of the Self-Energy matrix elements with different values of nband 
-       using the WFK produced by task 2 and the SCR file produced by task 3
+0: Ground state calculation to get the density.
+1: NSCF calculation with several empty states. 
+2: Calculation of the screening using the WFK produced by task 2.
+3-4-5: Evaluation of the Self-Energy matrix elements with different values of nband 
+  using the WFK produced by task 2 and the SCR file produced by task 3
 
 Generate the flow with::
 
     $ ./run_si_g0w0.py
 
-and let the scheduler manage the task submission with::
+and let the scheduler manage the submission with::
 
      $ abirun.py flow_si_g0w0 scheduler
 
@@ -421,7 +443,7 @@ You should see the following output on the terminal
     Scheduler options: {'seconds': 10, 'hours': 0, 'weeks': 0, 'minutes': 0, 'days': 0}
 
 ``Pid`` is the process identifier of the scheduler (also reported in the ... file)
-We will see that the scheduler Pid is extremely important when we start to run large flows on clusters. 
+We will see that the scheduler pid is extremely important when we start to run large flows on clusters. 
 
 .. IMPORTANT:: 
 
@@ -433,6 +455,16 @@ We will see that the scheduler Pid is extremely important when we start to run l
 
 .. command-output:: abirun.py doc_scheduler
 
+As you can easily understand the scheduler brings additional power to the AbiPy flow because
+it is possible to automate complicated ab-initio workflows with little effort (write
+a script to implement the flow in python, save the flow to disk, run it with 
+abirun.py and the scheduler and finally use the AbiPy/Pymatgen tools to analyze the final results).
+Even complicated convergence studies for G0W0 calculations can be implemented along these lines
+as show by this `video <https://youtu.be/M9C6iqJsvJI>`_.
+The only problem is that at a certain point our flow will become too big or too computational expensive
+that we cannot run it on a personal computer anymore and we have to move to a supercomputing center.
+The next section discusses how to configure AbiPy to run on a cluster with a queue management system.
+
 ------------------------------
 Configuring AbiPy on a cluster
 ------------------------------
@@ -441,7 +473,7 @@ Use::
 
     $ abirun.py doc_manager
 
-to get the complete documentation of the `manager.yml` file
+to get the full documentation for the different entries of ``manager.yml``.
 
 .. command-output:: abirun.py . doc_manager
 
@@ -452,7 +484,7 @@ that mush be specified in the job script in order to have your submission accept
 by the management system (username, name of the queue ...)
 
 Let's assume that your computing center uses Slurm and your jobs must be submitted to the `Oban` partition 
-A `manager.yml` with a single `qadapter` will look like:
+A `manager.yml` with a single `qadapter` looks like:
 
 .. code-block:: yaml
 
@@ -486,23 +518,30 @@ A `manager.yml` with a single `qadapter` will look like:
 
 Description:
 
-`qtype` specifies the queue resource manager. This option tells Abipy how to generate submission
-scripts, submit them, kill jobs in the queue and how to interpret the other options passed by the user. 
+``qtype`` 
+    string specifying the resource manager. This option tells AbiPy how to generate the submission
+    script, submit them, kill jobs in the queue and how to interpret the other options passed by the user. 
 
-`qparams` is a dictionary with the parameters passed to the resource manager. 
- We use the *normalized* version of the options i.e dashes in the official name of the parameter 
- are replaced by underscores  (for the list of supported options see ...)
+``qparams`` 
+    Dictionary with the parameters passed to the resource manager. 
+    We use the *normalized* version of the options i.e dashes in the official name of the parameter 
+    are replaced by underscores (for the list of supported options see ...)
 
-The complete list of options (`qparams`) supported by the `TaskManager` with Slurm  can be obtained with
+``modules`` 
+    List of modules to load.
+
+``shell_env`` 
+    allows the user to specify or to modify the values of the environment variables.
+
+``policy`` 
+    section governs the automatic parallelization of the run: in this case abipy will use 
+    the ``autoparal`` capabilities of abinit to determine an optimal configuration with **maximum** ``max_ncpus`` MPI nodes. 
+    Setting ``autoparal`` to 0 disables the automatic parallelization. 
+    **Other values of autoparal are not supported**.
+
+The complete list of options (`qparams`) supported by the `TaskManager` with Slurm can be obtained with
 
 .. command-output:: abirun.py . doc_manager slurm
-
-`modules` is the list of modules to load, while `shell_env` allows the user 
-to specify or to modify the values of the environment variables.
-
-The `policy` section governs the automatic parallelization of the run: in this case abipy will use 
-the `autoparal` features of abinit to determine an optimal configuration with **maximum** `max_ncpus` MPI nodes. 
-Setting `autoparal` to 0 disables the automatic parallelization. **Other values of autoparal are not supported**.
 
 In some cases, you may want to enforce some constraint on the "optimal" configuration. 
 For example, you may want to select only those configurations whose parallel efficiency is greater than 0.7 
@@ -520,7 +559,7 @@ The parallel efficiency is defined as $\epsilon = \dfrac{T_1}{T_N * N}$ where $N
 of MPI processes and $T_j$ is the wall time needed to complete the calculation with $j$ MPI processes. 
 For a perfect scaling implementation $\epsilon$ is equal to one.
 The parallel speedup with N processors is given by $S = T_N / T_1$.
-Note that `autoparal = 1` will automatically change your `job.sh` script as well as the input file 
+Note that ``autoparal = 1`` will automatically change your ``job.sh`` script as well as the input file 
 so that we can run the job in parallel with the optimal configuration required by the user. 
 For example, you can use ``paral_kgb = 1`` in GS calculations and AbiPy will automatically set the values 
 of ``npband``, ``npfft``, ``npkpt`` ... for you! 
@@ -561,14 +600,14 @@ is still running or kill it when we login again.
 Troubleshooting
 ---------------
 
-There are two other `abirun` commands that are very handy, especially if something goes wrong:
-``events`` and ``debug``.
+There are two other `abirun` commands that are very handy, especially if 
+something goes wrong: ``events`` and ``debug``.
 
 Use::
 
     $ abirun.py FLOWDIR events
 
-to print the events (Abinit Warnings/Errors/Comments) found in the log files and::
+to print the events (Abinit Warnings/Errors/Comments) found in the log files of the tasks and::
 
     $ abirun.py FLOWDIR debug
 

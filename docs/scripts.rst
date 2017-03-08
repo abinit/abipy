@@ -1,4 +1,6 @@
-.. _analyzing_results:
+==================
+Command line tools
+==================
 
 .. _abiopen:
 
@@ -42,9 +44,9 @@ The list of supported file extensions is obtained with:
 ^^^^^^^^^^^^^^^^
 
 This script is useful if you want to analyze/export/visualize the crystalline structure 
-reported in one the `netcdf` files produced by ABINIT.
-Also in this case, it is possible to analyze the structure object either inside `ipython` or
-`jupyter` notebooks.
+reported in one the ``netcdf`` files produced by ABINIT (other formats are supported, see docs belows).
+Also in this case, it is possible to analyze the structure object either inside ``ipython`` or
+``jupyter`` notebooks.
 
 To get the list of options, use
 
@@ -57,11 +59,11 @@ To get the list of options, use
 ``abicomp.py``
 ^^^^^^^^^^^^^^
 
-This script is used to analyze/compare results stored in multiple `netcdf` files.
+This script is used to analyze/compare results stored in multiple ``netcdf`` files.
 For example, one can compare the crystalline structure used in different calculations
-or compare the electronic bands stored in two or more `netcdf` files. 
+or compare the electronic bands stored in two or more ``netcdf`` files. 
 By default the script displays the results/plots directly within the shell.
-Use ``--ipython`` to start an `ipython` terminal or ``-nb`` to generate a `jupyter` notebook.
+Use ``--ipython`` to start an ``ipython`` terminal or ``-nb`` to generate a ``jupyter`` notebook.
 
 .. command-output:: abicomp.py --help
 
@@ -79,3 +81,40 @@ For example, the documentation for the ``ecut`` input variable can be obtained w
 For the full list of commands supported use:
 
 .. command-output:: abidoc.py --help
+
+
+^^^^^^^^^^^^^^^
+``abicheck.py``
+^^^^^^^^^^^^^^^
+
+This script checks that the options in ``manager.yml``, ``scheduler.yml``,
+and the environment on the local machine are properly configured.
+
+.. command-output:: abicheck.py --no-colors
+
+^^^^^^^^^^^^^
+``abirun.py``
+^^^^^^^^^^^^^
+
+This script allows the user to submit the calculations contained in the `Flow`.
+It provides a command line interface as well as a graphical interface based on wxpython.
+
+.. command-output:: abirun.py --help
+
+.. command-output:: abirun.py doc_scheduler
+
+.. command-output:: abirun.py . doc_manager
+
+To obtain the list of options supported by a particular resource manager use e.g. slurm, use::
+
+    $ abirun.py . doc_manager slurm
+
+At the time of writing (|date|), AbiPy supports the following resource managers:
+
+    . bluegene
+    . moab
+    . pbspro
+    . sge
+    . shell
+    . slurm
+    . torque
