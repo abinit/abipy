@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting AbiPy &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="index.html"/>
+        <link rel="next" title="What’s new in abipy" href="whats_new.html"/>
+        <link rel="prev" title="Feature Overview" href="features.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting AbiPy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stable-version">Stable version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-dependencies">Optional dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#anaconda-howto">Anaconda Howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developmental-version">Developmental version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-compile-the-python-interpreter">How to compile the Python interpreter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings">How to install HDF5/Netcdf4 and the python bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What&#8217;s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/plot/index.html">plot Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Getting AbiPy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/installation.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-abipy">
+<h1>Getting AbiPy<a class="headerlink" href="#getting-abipy" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="stable-version">
+<h2>Stable version<a class="headerlink" href="#stable-version" title="Permalink to this headline">¶</a></h2>
+<p>The version at the Python Package Index (PyPI) is always the latest stable release
+that can be installed with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install abipy
+</pre></div>
+</div>
+<p>Note that you may need to install pymatgen and other critical dependencies manually.
+In this case, please consult the detailed installation instructions provided by the
+<a class="reference external" href="http://pymatgen.org/index.html#standard-install">pymatgen howto</a> to install pymatgen
+and then follow the instructions in the <a class="reference internal" href="#netcdf4-installation"><span class="std std-ref">How to install HDF5/Netcdf4 and the python bindings</span></a> section.</p>
+<p>Note, however, that the installation process is greatly simplified if you install the required
+python packages through one of the following python distributions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://continuum.io/downloads">Anaconda</a></li>
+<li><a class="reference external" href="https://www.enthought.com/products/canopy">Canopy</a></li>
+</ul>
+</div></blockquote>
+<p>We routinely use <code class="docutils literal"><span class="pre">conda</span></code> to test new developments with multiple versions of Python and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (<code class="docutils literal"><span class="pre">matplotlib</span></code>, <code class="docutils literal"><span class="pre">scipy</span></code> ...)
+in the form of pre-compiled packages and <code class="docutils literal"><span class="pre">netcdf4</span></code> can be easily installed with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">netcdf4</span>
+</pre></div>
+</div>
+<p>Additional information on the steps required to install AbiPy with anaconda
+are available in the <a class="reference internal" href="#anaconda-howto"><span class="std std-ref">Anaconda Howto</span></a> howto as well as in the
+<a class="reference external" href="http://pymatgen.org/installation.html#conda-based-install">conda-based-install</a>
+section of the pymatgen documentation.</p>
+<p>We are also working with the <a class="reference external" href="https://github.com/LLNL/spack">Spack</a> community
+to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.</p>
+<p>Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
+manually can consult the <a class="reference internal" href="#howto-compile-python-and-bootstrap-pip"><span class="std std-ref">How to compile the Python interpreter</span></a> document.</p>
+</div>
+<div class="section" id="optional-dependencies">
+<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Optional libraries that are required if you need certain features:</p>
+<p><code class="docutils literal"><span class="pre">ipython</span></code></p>
+<blockquote>
+<div>Required to interact with the AbiPy/Pymatgen objects in the ipython shell
+(strongly recommended, already provided by conda).</div></blockquote>
+<p><code class="docutils literal"><span class="pre">jupyter</span></code> and <code class="docutils literal"><span class="pre">nbformat</span></code></p>
+<blockquote>
+<div>Required to generate jupyter notebooks.
+Install these two packages with <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyter</span> <span class="pre">nbformat</span></code> or use <code class="docutils literal"><span class="pre">pip</span></code>.
+Recommended but you will also need a web browser to open the notebook.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">seaborn</span></code></p>
+<blockquote>
+<div>Python visualization library based on matplotlib.
+It provides a high-level interface for drawing attractive statistical graphics.
+Used in AbiPy for particular plots.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">wxPython</span></code> and <code class="docutils literal"><span class="pre">wxmplot</span></code> for the GUI</p>
+<blockquote>
+<div>Use <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">wxpython</span></code>
+The directory <code class="docutils literal"><span class="pre">abipy.gui.demos</span></code> contains demos that can be used to test the installation.
+of the GUI (run the script <code class="docutils literal"><span class="pre">runall.py</span></code> to have an overview of the different graphical interfaces).</div></blockquote>
+</div>
+<div class="section" id="anaconda-howto">
+<span id="id1"></span><h2>Anaconda Howto<a class="headerlink" href="#anaconda-howto" title="Permalink to this headline">¶</a></h2>
+<p>Download the anaconda installer from the <a class="reference external" href="https://www.continuum.io/downloads">official web-site</a>.
+Choose the version that matches your OS and select python2.7.
+You may want to use the <code class="docutils literal"><span class="pre">wget</span></code> utility to download the anaconda script directly from the terminal
+(useful if you are installing anaconda on a cluster).</p>
+<p>Run the bash script in the terminal and follow the instructions.
+By default, the installer creates the <code class="docutils literal"><span class="pre">anaconda</span></code> directory in your home.
+Once the installation is completed, execute:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ source ~/anaconda/bin/activate root
+</pre></div>
+</div>
+<p>to activate the <code class="docutils literal"><span class="pre">root</span></code> environment.
+The output of <code class="docutils literal"><span class="pre">which</span> <span class="pre">python</span></code> should show that you are using the python interpreter provided by anaconda.</p>
+<p>Use the <code class="docutils literal"><span class="pre">conda</span></code> command-line interface to install the packages not included in the official distribution.
+For example, you can install <code class="docutils literal"><span class="pre">pyyaml</span></code> and <code class="docutils literal"><span class="pre">netcdf4</span></code> with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pyyaml, netcdf4
+</pre></div>
+</div>
+<p>Remember that if a package is not available in the official conda repository, you can always
+use <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span></code> or download the package from one of the conda channels.
+For example, if you encounter problems while installing the spacegroup library
+with <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyspglib</span></code>, you can install the pre-compiled library from the <code class="docutils literal"><span class="pre">jochym</span></code> channel with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install -c jochym pyspglib
+</pre></div>
+</div>
+<p>Now you can install the stable version of <code class="docutils literal"><span class="pre">abipy</span></code> with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install abipy
+</pre></div>
+</div>
+<p>If you want to use the developmental version, clone (or fork) the repositories on github
+(see also the <a class="reference internal" href="#developmental-version"><span class="std std-ref">Developmental version</span></a> section).</p>
+<p>Once you have completed the installation of AbiPy and pymatgen, open the <code class="docutils literal"><span class="pre">ipython</span></code> shell and type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+</pre></div>
+</div>
+<p>to check the installation.</p>
+<p>Optionally, you may want to execute:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install wxpython
+</pre></div>
+</div>
+<p>to install the <code class="docutils literal"><span class="pre">wxpython</span></code> graphical toolkit required for the GUIs.</p>
+<p>Note that one can use <code class="docutils literal"><span class="pre">conda</span></code> to create different environments with different
+versions of the python interpreter or different libraries.
+Further information are available on the <a class="reference external" href="http://conda.pydata.org/docs/test-drive.html">official website</a>.</p>
+</div>
+<div class="section" id="developmental-version">
+<span id="id2"></span><h2>Developmental version<a class="headerlink" href="#developmental-version" title="Permalink to this headline">¶</a></h2>
+<p>Getting the developmental version of AbiPy is easy. You can clone it from the
+<a class="reference external" href="https://github.com/abinit/abipy">github repository</a> using this command:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone https://github.com/abinit/abipy
+</pre></div>
+</div>
+<p>After cloning the repository, type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py install
+</pre></div>
+</div>
+<p>or alternately:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py develop
+</pre></div>
+</div>
+<p>to install the package in developmental mode
+(this is the recommended approach, especially if you are planning to implement new features).</p>
+<p>The Github version include test files for complete unit testing.
+To run the suite of unit tests, make sure you have <code class="docutils literal"><span class="pre">py.test</span></code> (recommended)
+or <code class="docutils literal"><span class="pre">nose</span></code> installed and then just type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ py.test
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ nosetests
+</pre></div>
+</div>
+<p>in the AbiPy root directory.
+Unit tests require two additional packages that can be installed with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install nose-exclude scripttest
+</pre></div>
+</div>
+<p>Contributing to AbiPy is relatively easy.
+Just send us a <a class="reference external" href="https://help.github.com/articles/using-pull-requests/">pull request</a>.
+When you send your request, make <code class="docutils literal"><span class="pre">develop</span></code> the destination branch on the repository
+AbiPy uses the <a class="reference external" href="http://nvie.com/posts/a-successful-git-branching-model/">Git Flow</a> branching model.
+The <code class="docutils literal"><span class="pre">develop</span></code> branch contains the latest contributions, and <code class="docutils literal"><span class="pre">master</span></code> is always tagged and points
+to the latest stable release.</p>
+</div>
+<div class="section" id="how-to-compile-the-python-interpreter">
+<span id="howto-compile-python-and-bootstrap-pip"></span><h2>How to compile the Python interpreter<a class="headerlink" href="#how-to-compile-the-python-interpreter" title="Permalink to this headline">¶</a></h2>
+<p>This section discusses how to install a local version of the python interpreter as well
+as the most important dependencies needed by AbiPy.
+This approach may be needed if you want to use AbiPy on a machine (e.g. a cluster)
+in which you don&#8217;t have root privileges and the version of the python interpreter is too old
+or if for some reasons you prefer not to use <code class="docutils literal"><span class="pre">anaconda</span></code>.
+In this case you cannot use a <a class="reference external" href="https://virtualenv.pypa.io/en/latest/">virtual environment</a>
+on top of the preexisting python library.</p>
+<p>First of all, you have to create a new directory containing your python interpreter
+as well as as the libraries and the other executables needed by AbiPy.
+Let&#8217;s assume we decided to create this directory inside <code class="docutils literal"><span class="pre">$HOME</span></code> and let&#8217;s call it <code class="docutils literal"><span class="pre">local</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir $HOME/local
+</pre></div>
+</div>
+<p>Now change your <code class="docutils literal"><span class="pre">~/.bashrc</span></code> file and add the following three lines:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export PATH=$HOME/local/bin:$PATH
+export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$HOME/include/:$C_INCLUDE_PATH
+</pre></div>
+</div>
+<p>so that other scripts and tools will know where to find the new binaries/libraries/include files they need.</p>
+<p>Get the python tarball from the <a class="reference external" href="https://www.python.org">official site</a> and unpack it.
+Configure the package with the <code class="docutils literal"><span class="pre">--prefix</span></code> option and compile the code
+(use the <code class="docutils literal"><span class="pre">-j</span></code> option to speedup the compilation with threads):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./configure --prefix=$HOME/local
+$ make -j4
+</pre></div>
+</div>
+<p>At the end, you should get the list of modules that could not be built because
+your system does not provide the required libraries.
+The installation should be OK for AbiPy if you get:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Python</span> <span class="n">build</span> <span class="n">finished</span><span class="p">,</span> <span class="n">but</span> <span class="n">the</span> <span class="n">necessary</span> <span class="n">bits</span> <span class="n">to</span> <span class="n">build</span> <span class="n">these</span> <span class="n">modules</span> <span class="n">were</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+<span class="n">_sqlite3</span>           <span class="n">bsddb185</span>           <span class="n">dl</span>
+<span class="n">imageop</span>            <span class="n">sunaudiodev</span>
+<span class="n">To</span> <span class="n">find</span> <span class="n">the</span> <span class="n">necessary</span> <span class="n">bits</span><span class="p">,</span> <span class="n">look</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="ow">in</span> <span class="n">detect_modules</span><span class="p">()</span> <span class="k">for</span> <span class="n">the</span> <span class="n">module</span><span class="s1">&#39;s name.</span>
+</pre></div>
+</div>
+<p>If, on the other hand, python has been built without <code class="docutils literal"><span class="pre">bz2</span></code> or <code class="docutils literal"><span class="pre">_tkinter</span></code> you are in trouble
+because these packages are required.</p>
+<p><code class="docutils literal"><span class="pre">bz2</span></code> is more fundamental than <code class="docutils literal"><span class="pre">_tkinter</span></code> because it is used to compress/uncompress files.
+AbiPy/Pymatgen won&#8217;t work without <code class="docutils literal"><span class="pre">bz2</span></code> and you have to install the <code class="docutils literal"><span class="pre">bzip</span></code> library with the C headers.
+The source code is available from <a class="reference external" href="www.bzip.org">bzip.org</a>
+See also <a class="reference external" href="http://stackoverflow.com/questions/12806122/missing-python-bz2-module">this post</a> on stackoverflow.</p>
+<p><code class="docutils literal"><span class="pre">Tkinter</span></code> is less important than <code class="docutils literal"><span class="pre">bz2</span></code> but without it you won&#8217;t be able to use the <code class="docutils literal"><span class="pre">matplotlib</span></code> graphical back-end.
+If you want <code class="docutils literal"><span class="pre">matplotlib</span></code> with the Tk back-end, you have to install Tk/Tcl.
+Get the tarball from the <a class="reference external" href="www.tcl.tk/software/tcltk/downloads.html">tcl.tk site</a>, configure
+with <code class="docutils literal"><span class="pre">--prefix</span></code> and <code class="docutils literal"><span class="pre">make</span> <span class="pre">&amp;&amp;</span> <span class="pre">make</span> <span class="pre">install</span></code> as usual.
+Then reconfigure python.</p>
+<p>Once you have solved the problem with the missing modules, you can run the tests with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ make test
+</pre></div>
+</div>
+<p>and install the python interpreter with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ make install
+</pre></div>
+</div>
+<p>Now we have our python interpreter installed in <code class="docutils literal"><span class="pre">$HOME/local</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ which python
+$HOME/local/bin/python
+</pre></div>
+</div>
+<p>but we still need to install <code class="docutils literal"><span class="pre">easy_install</span></code> and <code class="docutils literal"><span class="pre">pip</span></code> so that we can automatically
+download and install other python packages.</p>
+<p>To install <code class="docutils literal"><span class="pre">easy_install</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+
+$ which easy_install
+$HOME/local/bin/easy_install
+</pre></div>
+</div>
+<p>For more info, consult the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">setuptools page</a></p>
+<p>Now use <code class="docutils literal"><span class="pre">easy_install</span></code> to install <code class="docutils literal"><span class="pre">pip</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ easy_install pip
+
+# Upgrade setuptools with
+$ pip install setuptools --upgrade
+</pre></div>
+</div>
+<p>Henceforth we can start to use <code class="docutils literal"><span class="pre">pip</span></code> to install the python modules.
+Start with <code class="docutils literal"><span class="pre">cython</span></code> and <code class="docutils literal"><span class="pre">numpy</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install cython
+$ pip install numpy
+</pre></div>
+</div>
+<p>The installation of <code class="docutils literal"><span class="pre">scipy</span></code> is more complicated due to the need for the BLAS and LAPACK libraries.
+Try first:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install scipy
+</pre></div>
+</div>
+<p>If the installer does not find <code class="docutils literal"><span class="pre">BLAS/LAPACK</span></code> in your system, consult the
+<a class="reference external" href="http://www.scipy.org/scipylib/building/linux.html#id1">scipy documentation</a>.</p>
+</div>
+<div class="section" id="how-to-install-hdf5-netcdf4-and-the-python-bindings">
+<span id="netcdf4-installation"></span><h2>How to install HDF5/Netcdf4 and the python bindings<a class="headerlink" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings" title="Permalink to this headline">¶</a></h2>
+<p>Obtain the latest <code class="docutils literal"><span class="pre">HDF5</span></code> software from the <a class="reference external" href="http://www.hdfgroup.org/HDF5/release/obtain5.html">official web-site</a>.
+Configure the package with <code class="docutils literal"><span class="pre">--enable-hl</span> <span class="pre">--enable-shared</span></code> and the <code class="docutils literal"><span class="pre">--prefix</span></code> option as usual.
+Build and install with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span>
+<span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>Finally define the environment variable <code class="docutils literal"><span class="pre">$HDF5_DIR</span></code> with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export HDF5_DIR=$HOME/local
+</pre></div>
+</div>
+<p>Get the latest stable netCDF-C release from <a class="reference external" href="http://www.unidata.ucar.edu/downloads/netcdf/index.jsp">this page</a>.
+Configure with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>configure --prefix=$HOME/local --enable-netcdf-4 --enable-shared \
+  CPPFLAGS=&quot;-I$HDF5_DIR/include&quot; LDFLAGS=&quot;-L$HDF5_DIR/lib&quot;
+</pre></div>
+</div>
+<p>Build and install with <code class="docutils literal"><span class="pre">make</span> <span class="pre">&amp;&amp;</span> <span class="pre">make</span> <span class="pre">install</span></code>
+Define the environment variable <code class="docutils literal"><span class="pre">$NETCDF4_DIR</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>export NETCDF4_DIR=$HOME/local
+</pre></div>
+</div>
+<p>Now we can download and install the python interface with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">netcdf4</span>
+</pre></div>
+</div>
+<p>You may want to consult the official <a class="reference external" href="http://unidata.github.io/netcdf4-python">netcdf4-python documentation</a>.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>If python stops with the error message:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;ValueError: unknown locale: UTF-8&quot;</span>
+</pre></div>
+</div>
+<p>add the following line to your <code class="docutils literal"><span class="pre">.bashrc</span></code> file inside your <code class="docutils literal"><span class="pre">$HOME</span></code> (<code class="docutils literal"><span class="pre">.profile</span></code> if MacOSx):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">LC_ALL</span><span class="o">=</span><span class="n">C</span>
+</pre></div>
+</div>
+<p>reload the environment with <code class="docutils literal"><span class="pre">source</span> <span class="pre">~/.bashrc</span></code> and rerun the code.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="whats_new.html" class="btn btn-neutral float-right" title="What’s new in abipy" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="features.html" class="btn btn-neutral" title="Feature Overview" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, The ABINIT group.
+      Last updated on Mar 09, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

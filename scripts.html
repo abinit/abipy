@@ -1,0 +1,777 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command line tools &mdash; abipy 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="abipy 0.1.0 documentation" href="index.html"/>
+        <link rel="next" title="plot Examples" href="examples/plot/index.html"/>
+        <link rel="prev" title="What’s new in abipy" href="whats_new.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> abipy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What&#8217;s new in abipy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command line tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#abiopen-py"><code class="docutils literal"><span class="pre">abiopen.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abistruct-py"><code class="docutils literal"><span class="pre">abistruct.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abicomp-py"><code class="docutils literal"><span class="pre">abicomp.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abidoc-py"><code class="docutils literal"><span class="pre">abidoc.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abicheck-py"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abirun-py"><code class="docutils literal"><span class="pre">abirun.py</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/plot/index.html">plot Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">abipy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Command line tools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/scripts.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-line-tools">
+<h1>Command line tools<a class="headerlink" href="#command-line-tools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="abiopen-py">
+<span id="abiopen"></span><h2><code class="docutils literal"><span class="pre">abiopen.py</span></code><a class="headerlink" href="#abiopen-py" title="Permalink to this headline">¶</a></h2>
+<p>AbiPy provides python objects associated to several Abinit output files
+and these objects implement methods to analyze and plot the results.
+The examples in our <a class="reference internal" href="examples/index.html"><span class="doc">gallery</span></a> use this API to plot data with <code class="docutils literal"><span class="pre">matplotlib</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">abiopen.py</span></code> script provides a handy interface to the AbiPy objects since
+users can open Abinit files directly in the <code class="docutils literal"><span class="pre">ipython`</span></code> shell and interact with the object
+(called <code class="docutils literal"><span class="pre">abifile</span></code> in the <code class="docutils literal"><span class="pre">ipython</span></code> terminal).
+The syntax of the script is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py FILE [options]
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <code class="docutils literal"><span class="pre">netcdf</span></code> format but other
+files are supported as well).
+Alternatively, it is possible to generate automatically a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_FATBANDS.nc -nb
+</pre></div>
+</div>
+<p>will produce a notebook to visualize the electronic fatbands produced with <code class="docutils literal"><span class="pre">prtdos</span> <span class="pre">3</span></code> inside a web browser.</p>
+<p>Use the <code class="docutils literal"><span class="pre">-p</span></code> option if you just want to get information on the file without opening it, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_GSR.nc -p
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">abiopen.py</span></code> employs the file extension to decide what to do with the file and the type
+of python object that should be instantiated.
+The list of supported file extensions is obtained with:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abiopen.py --help
+usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-nb] [--foreground] [-p]
+                  filepath
+
+positional arguments:
+  filepath             File to open. See table below for the list of supported
+                       extensions.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --loglevel LOGLEVEL  Set the loglevel. Possible values: CRITICAL, ERROR
+                       (default), WARNING, INFO, DEBUG
+  -V, --version        show program&#39;s version number and exit
+  -nb, --notebook      Open file in jupyter notebook
+  --foreground         Run jupyter notebook in the foreground.
+  -p, --print          Print python object and return.
+
+Usage example:
+    abiopen.py out_GSR.nc
+    abiopen.py out_DDB -nb  # To generate jupyter notebook
+
+File extensions supported:
+Extension    Class
+-----------  ---------------------------------------------------
+.abi         &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.in          &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.abo         &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.out         &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.log         &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
+.cif         &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+POSCAR       &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cssr        &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cube        &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
+anaddb.nc    &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
+DEN          &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
+.psp8        &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.xml         &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+GSR.nc       &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
+DEN.nc       &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
+OUT.nc       &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
+WFK.nc       &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
+HIST.nc      &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
+PSPS.nc      &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
+DDB          &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
+PHBST.nc     &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
+PHDOS.nc     &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
+SCR.nc       &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
+SIGRES.nc    &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
+MDF.nc       &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
+FATBANDS.nc  &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">AbiPy uses the <code class="docutils literal"><span class="pre">.abi</span></code> extension for Abinit input files, <code class="docutils literal"><span class="pre">.abo</span></code> for output files and <code class="docutils literal"><span class="pre">.log</span></code> for log files.
+Try to follow this convention in your calculations to facilitate the integration with AbiPy.</p>
+</div>
+</div>
+<div class="section" id="abistruct-py">
+<span id="abistruct"></span><h2><code class="docutils literal"><span class="pre">abistruct.py</span></code><a class="headerlink" href="#abistruct-py" title="Permalink to this headline">¶</a></h2>
+<p>This script is useful if you want to analyze/export/visualize the crystalline structure
+stored in one the <code class="docutils literal"><span class="pre">netcdf</span></code> files produced by ABINIT (other formats are supported e.g.
+<code class="docutils literal"><span class="pre">cif</span></code> files or <code class="docutils literal"><span class="pre">POSCAR</span></code>, see also docs below).
+Also in this case, it is possible to analyze the structure object either inside <code class="docutils literal"><span class="pre">ipython</span></code> or
+<code class="docutils literal"><span class="pre">jupyter</span></code> notebooks.</p>
+<p>The syntax of the command is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command FILE [options]
+</pre></div>
+</div>
+<p>The documentation for a given <code class="docutils literal"><span class="pre">command</span></code> is accessible with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command --help
+</pre></div>
+</div>
+<p>Use e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py spglib --help
+</pre></div>
+</div>
+<p>to get the options supported by the <code class="docutils literal"><span class="pre">spglib</span></code> command.</p>
+<p>The <code class="docutils literal"><span class="pre">convert</span></code> command is quite useful if you need to convert the crystalline structure
+from one format to another one.
+For example, one can read a <code class="docutils literal"><span class="pre">cif</span></code> file and print the corresponding Abinit variables with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert CIF abivars
+</pre></div>
+</div>
+<p>To get the list of options, use</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abistruct.py --help
+usage: abistruct.py [-h] [-V]
+                    {spglib,convert,abisanitize,conventional,ipython,notebook,kpath,bz,kmesh,visualize,pmgdata,animate}
+                    ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands, use command --help for help
+
+  {spglib,convert,abisanitize,conventional,ipython,notebook,kpath,bz,kmesh,visualize,pmgdata,animate}
+                        sub-command help
+    spglib              Analyze structure with spglib.
+    convert             Convert structure to the specified format.
+    abisanitize         Sanitize structure with abi_sanitize, compare
+                        structures and save result to file.
+    conventional        Gives a structure with a conventional cell according
+                        to certain standards. The standards are defined in
+                        doi:10.1016/j.commatsci.2010.05.010
+    ipython             Open IPython shell for advanced operations on
+                        structure object.
+    notebook            Read structure from file and generate jupyter
+                        notebook.
+    kpath               Read structure from file, generate k-path for band-
+                        structure calculations.
+    bz                  Read structure from file, plot Brillouin zone with
+                        matplotlib.
+    kmesh               Read structure from filepath, call spglib to sample
+                        the BZ,print k-points in the IBZ with weights.
+    visualize           Visualize the structure with the specified visualizer
+    pmgdata             Get structure from the pymatgen database. Requires
+                        internet connection and MAPI_KEY
+    animate             Read structures from HIST or XDATCAR. Print structures
+                        in Xrysden AXSF format to stdout
+
+Usage example:
+    abistruct.py spglib  filepath             =&gt; Read the structure from file and analyze it with spglib.
+    abistruct.py convert filepath cif         =&gt; Read the structure from file and print CIF file.
+    abistruct.py convert filepath abivars     =&gt; Print the ABINIT variables defining the structure.
+    abistruct.py convert out_HIST abivars     =&gt; Read the last structure from the HIST file and
+                                                 print the corresponding Abinit variables.
+    abistruct.py kpath filepath               =&gt; Read structure from filepath and print Abinit variables for k-path.
+    abistruct.py bz filepath                  =&gt; Read structure from filepath, plot BZ with matplotlib.
+    abistruct.py kmesh filepath -m 2 2 2      =&gt; Read structure from filepath, call spglib to sample the BZ with a 2,2,2 mesh,
+                                                 print points in IBZ with weights.
+
+    abistruct.py abisanitize FILE             =&gt; Read structure from FILE, call abisanitize, compare structures and save
+                                                 &quot;abisanitized&quot; structure to file.
+    abistruct.py conventional FILE            =&gt; Read structure from FILE, generate conventional structure
+                                                 following doi:10.1016/j.commatsci.2010.05.010
+    abistruct.py visualize filepath xcrysden  =&gt; Visualize the structure with XcrysDen.
+    abistruct.py ipython filepath             =&gt; Read structure from filepath and open Ipython terminal.
+    abistruct.py notebook filepath            =&gt; Read structure from filepath and generate jupyter notebook.
+    abistruct.py pmgdata mp-149               =&gt; Get structure from pymatgen database and print its JSON representation.
+</pre></div>
+</div>
+</div>
+<div class="section" id="abicomp-py">
+<span id="abicomp"></span><h2><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h2>
+<p>This script is used to analyze/compare results stored in multiple <code class="docutils literal"><span class="pre">netcdf</span></code> files.
+For example, one can compare the crystalline structure used in different calculations
+or compare the electronic bands stored in two or more <code class="docutils literal"><span class="pre">netcdf</span></code> files (e.g. <code class="docutils literal"><span class="pre">GSR.nc</span></code> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
+By default the script displays the results/plots directly within the shell.
+Use the command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py struct out1_GSR.nc out2_GSR.nc
+</pre></div>
+</div>
+<p>to compare the structures reported in two <code class="docutils literal"><span class="pre">GSR</span></code> files and print the result to screen.
+Use <code class="docutils literal"><span class="pre">--ipython</span></code> to start an <code class="docutils literal"><span class="pre">ipython</span></code> terminal or <code class="docutils literal"><span class="pre">-nb</span></code> to generate a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
+</pre></div>
+</div>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
+usage: abicomp.py [-h] [-V] [--loglevel LOGLEVEL]
+                  {structure,ebands,edos,time,gs_scf,dfpt2_scf} ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+  --loglevel LOGLEVEL   set the loglevel. Possible values: CRITICAL, ERROR
+                        (default), WARNING, INFO, DEBUG
+
+subcommands:
+  Valid subcommands
+
+  {structure,ebands,edos,time,gs_scf,dfpt2_scf}
+                        sub-command help
+    structure           Compare crystalline structures.
+    ebands              Plot electron bands on a grid.
+    edos                Plot electron DOSes on a grid.
+    time                Analyze/plot the timing data of single or multiple
+                        runs.
+    gs_scf              Compare ground-state SCF cycles.
+    dfpt2_scf           Compare DFPT SCF cycles.
+
+Usage example:
+
+  abicomp.py structure */*/outdata/out_GSR.nc         =&gt; Compare structures in multiple files.
+  abicomp.py ebands out1_GSR.nc out2_GSR.nc           =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                     =&gt; Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                      =&gt; Interact with the plotter via the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                        =&gt; Compare electron DOS in the jupyter notebook.
+  abicomp.py gs_scf run1.abo run2.abo                 =&gt; Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo              =&gt; Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                      =&gt; Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                      =&gt; Scan directory tree from `.`, look for files with extension `abo`
+                                                         parse timing data and plot results.
+</pre></div>
+</div>
+</div>
+<div class="section" id="abidoc-py">
+<span id="abidoc"></span><h2><code class="docutils literal"><span class="pre">abidoc.py</span></code><a class="headerlink" href="#abidoc-py" title="Permalink to this headline">¶</a></h2>
+<p>This script provides a command line interface to the Abinit documentation.
+For example, the documentation for the <code class="docutils literal"><span class="pre">ecut</span></code> input variable can be obtained with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abidoc.py man ecut
+</pre></div>
+</div>
+<p>For the full list of commands supported use:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abidoc.py --help
+usage: abidoc.py [-h] [-V] {man,apropos,find,withdim,list} ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {man,apropos,find,withdim,list}
+                        sub-command help
+    man                 Show documentation for varname.
+    apropos             Find variables related to varname.
+    find                Find all variables whose name contains varname.
+    withdim             Find all arrays depending on the given dimension.
+    list                List all variables.
+
+Usage example:
+    abidoc.py man ecut        --&gt; Show documentation for ecut input variable.
+    abidoc.py apropos ecut    --&gt; To search in the database for the variables related to ecut.
+    abidoc.py find paw        --&gt; To search in the database for the variables whose name contains paw
+    abidoc.py list            --&gt; Print full list of variables
+    abidoc.py withdim natom   --&gt; Print arrays depending on natom.
+</pre></div>
+</div>
+</div>
+<div class="section" id="abicheck-py">
+<span id="abicheck"></span><h2><code class="docutils literal"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h2>
+<p>This script checks that the options specified in <code class="docutils literal"><span class="pre">manager.yml</span></code>, <code class="docutils literal"><span class="pre">scheduler.yml</span></code>,
+and the environment on the local machine are properly configured.
+Please consult the documentation on <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Workflows</span></a> for a more detailed description of these YAML files.</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
+AbiPy Manager:
+[Qadapter 0]
+ShellAdapter:localhost
+Hardware:
+   num_nodes: 1, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
+Qadapter selected: 0
+
+Abinitbuild:
+Abinit Build Information:
+    Abinit version: 8.3.1
+    MPI: True, MPI-IO: True, OpenMP: False
+    Netcdf: True, ETSF-IO: False
+
+Abipy Scheduler:
+PyFlowScheduler, Pid: 3599
+Scheduler options: {&#39;seconds&#39;: 10, &#39;hours&#39;: 0, &#39;weeks&#39;: 0, &#39;minutes&#39;: 0, &#39;days&#39;: 0}
+
+Installed packages:
+Package      Version
+-----------  -----------------------
+numpy        1.10.4
+scipy        0.17.0
+netCDF4      1.2.4
+apscheduler  2.1.0
+pydispatch   2.0.5
+yaml         3.11
+pymatgen     4.6.2
+matplotlib   1.5.1 (backend: Qt4Agg)
+
+
+Abipy requirements are properly configured
+</pre></div>
+</div>
+</div>
+<div class="section" id="abirun-py">
+<span id="abirun"></span><h2><code class="docutils literal"><span class="pre">abirun.py</span></code><a class="headerlink" href="#abirun-py" title="Permalink to this headline">¶</a></h2>
+<p>This script allows the user to submit the calculations contained in the AbiPy Flow
+(for further detail, consult the <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Workflows</span></a> documentation).
+It provides a command line interface as well as a graphical interface based on <code class="docutils literal"><span class="pre">wxpython</span></code>.</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py --help
+usage: abirun.py [-h] [-V]
+                 [flowdir]
+                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,ncopen,abibuild,doc_scheduler,gui,new_manager,tail,qstat,deps,robot,plot,inspect,inputs,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,debug,group,diff,networkx,listext,timer}
+                 ...
+
+positional arguments:
+  flowdir               File or directory containing the ABINIT
+                        flow/work/task. If not given, the flow in the current
+                        workdir is selected.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,ncopen,abibuild,doc_scheduler,gui,new_manager,tail,qstat,deps,robot,plot,inspect,inputs,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,debug,group,diff,networkx,listext,timer}
+                        sub-command help
+    single              Run single task and exit.
+    rapid               Run all tasks in rapidfire mode.
+    scheduler           Run all tasks with a Python scheduler. Requires
+                        scheduler.yml.
+    batch               Run scheduler in batch script.
+    status              Show status table.
+    set_status          Change the status of the task. WARNING: Option for
+                        developers!
+    cancel              Cancel the tasks in the queue. Not available if
+                        qtype==shell.
+    restart             Restart the tasks of the flow. By default, only the
+                        task with status==Unconverged are restarted. Use -S
+                        `status` and/or -n node_ids to select particular
+                        tasks.
+    reset               Reset the tasks of the flow with the specified status.
+    move                Move the flow to a new directory and change the
+                        absolute paths.
+    open                Open files in $EDITOR, type `abirun.py FLOWDIR open
+                        --help` for help).
+    ncopen              Open netcdf files in ipython. Use --help for more
+                        info.
+    abibuild            Show Abinit build information and exit.
+    doc_scheduler       Document the options available in scheduler.yml.
+    gui                 Open the GUI (requires wxPython).
+    new_manager         Change the TaskManager.
+    tail                Use tail to follow the main output files of the flow.
+    qstat               Show additional info on the jobs in the queue.
+    deps                Show dependencies.
+    robot               Use a robot to analyze the results of multiple tasks
+                        (requires ipython).
+    plot                Plot data. Use --help for more info.
+    inspect             Inspect the tasks.
+    inputs              Show the input files of the tasks.
+    doc_manager         Document the TaskManager options.
+    events              Show ABINIT events (error messages, warnings,
+                        comments).
+    corrections         Show abipy corrections.
+    history             Show Node history.
+    handlers            Show event handlers installed in the flow.
+    notebook            Create and open an ipython notebook to interact with
+                        the flow.
+    ipython             Embed IPython. Useful for advanced operations or
+                        debugging purposes.
+    tar                 Create tarball file.
+    debug               Analyze error files and log files for possible error
+                        messages.
+    group               Group tasks according to property.
+    diff                Compare files produced by two or three nodes.
+    networkx            Draw flow and node dependecies with networkx package.
+    listext             List all the output files with the given extension
+                        that have been produced by the nodes.
+    timer               Read the section with timing info from the main ABINIT
+                        output file (requires timopt != 0)Open Ipython
+                        terminal to inspect data.
+
+Usage example:
+    abirun.py [FLOWDIR] rapid                 =&gt; Keep repeating, stop when no task can be executed.
+    abirun.py [FLOWDIR] scheduler             =&gt; Execute flow with the scheduler.
+    abirun.py [FLOWDIR] events                =&gt; Print ABINIT events (Warning/Error/Comment).
+    abirun.py [FLOWDIR] history               =&gt; Print Task history.
+    abirun.py [FLOWDIR] debug                 =&gt; Analyze error files and log files for possible error messages.
+    abirun.py [FLOWDIR] gui                   =&gt; Open the GUI.
+    abirun.py [FLOWDIR] doc_manager slurm     =&gt; Document the TaskManager options availabe for Slurm.
+    abirun.py . doc_manager script            =&gt; Show the job script that will be produced with the current settings.
+    abirun.py . doc_scheduler                 =&gt; Document the options available in scheduler.yml.
+
+    nohup abirun.py [FLOWDIR] scheduler -s 30 &amp;  =&gt; Start the scheduler to schedule task submission.
+
+    If FLOWDIR is not given, abirun.py automatically selects the database located within
+    the working directory. An Exception is raised if multiple databases are found.
+
+    Note, moreover, that you can also replace FLOWDIR with the directory of a work/task
+    to make the command operate on this node of the flow without having to specify --nids.
+    To have the list of events of the task in `FLOWDIR/w0/t1`, for example, use:
+
+        abirun.py FLOWDIR/w0/t1 events
+
+    instead of
+
+        abirun.py FLOWDIR events -n 123
+
+    where 123 is the node identifier associated to w0/t1.
+
+Options for developers:
+    abirun.py prof ABIRUN_ARGS               =&gt; to profile abirun.py
+    abirun.py tracemalloc ABIRUN_ARGS        =&gt; to trace memory blocks allocated by Python
+</pre></div>
+</div>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
+Options that can be specified in scheduler.yml:
+
+            weeks: number of weeks to wait (DEFAULT: 0).
+            days: number of days to wait (DEFAULT: 0).
+            hours: number of hours to wait (DEFAULT: 0).
+            minutes: number of minutes to wait (DEFAULT: 0).
+            seconds: number of seconds to wait (DEFAULT: 0).
+            mailto: The scheduler will send an email to `mailto` every `remindme_s` seconds.
+                (DEFAULT: None i.e. not used).
+            verbose: (int) verbosity level. (DEFAULT: 0)
+            use_dynamic_manager: &quot;yes&quot; if the :class:`TaskManager` must be re-initialized from
+                file before launching the jobs. (DEFAULT: &quot;no&quot;)
+            max_njobs_inqueue: Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
+            remindme_s: The scheduler will send an email to the user specified by `mailto` every `remindme_s` seconds.
+                (int, DEFAULT: 1 day).
+            max_num_pyexcs: The scheduler will exit if the number of python exceptions is &gt; max_num_pyexcs
+                (int, DEFAULT: 0)
+            max_num_abierrs: The scheduler will exit if the number of errored tasks is &gt; max_num_abierrs
+                (int, DEFAULT: 0)
+            safety_ratio: The scheduler will exits if the number of jobs launched becomes greater than
+               `safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
+            max_nlaunches: Maximum number of tasks launched in a single iteration of the scheduler.
+                (DEFAULT: -1 i.e. no limit)
+            debug: Debug level. Use 0 for production (int, DEFAULT: 0)
+            fix_qcritical: &quot;yes&quot; if the launcher should try to fix QCritical Errors (DEFAULT: &quot;yes&quot;)
+            rmflow: If &quot;yes&quot;, the scheduler will remove the flow directory if the calculation
+                completed successfully. (DEFAULT: &quot;no&quot;)
+            killjobs_if_errors: &quot;yes&quot; if the scheduler should try to kill all the runnnig jobs
+                before exiting due to an error. (DEFAULT: &quot;yes&quot;)
+</pre></div>
+</div>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager
+
+# TaskManager configuration file (YAML Format)
+
+policy:
+    # Dictionary with options used to control the execution of the tasks.
+
+qadapters:
+    # List of qadapters objects (mandatory)
+    -  # qadapter_1
+    -  # qadapter_2
+
+db_connector:
+    # Connection to MongoDB database (optional)
+
+batch_adapter:
+    # Adapter used to submit flows with batch script. (optional)
+
+##########################################
+# Individual entries are documented below:
+##########################################
+
+policy: 
+    autoparal:                # (integer). 0 to disable the autoparal feature (DEFAULT: 1 i.e. autoparal is on)
+    condition:                # condition used to filter the autoparal configurations (Mongodb-like syntax).
+                              # DEFAULT: empty i.e. ignored.
+    vars_condition:           # Condition used to filter the list of ABINIT variables reported by autoparal
+                              # (Mongodb-like syntax). DEFAULT: empty i.e. ignored.
+    frozen_timeout:           # A job is considered frozen and its status is set to ERROR if no change to
+                              # the output file has been done for `frozen_timeout` seconds. Accepts int with seconds or
+                              # string in slurm form i.e. days-hours:minutes:seconds. DEFAULT: 1 hour.
+    precedence:               # Under development.
+    autoparal_priorities:     # Under development.
+
+qadapter: 
+# Dictionary with info on the hardware available on this queue.
+hardware:
+    num_nodes:           # Number of nodes available on this queue (integer, MANDATORY).
+    sockets_per_node:    # Number of sockets per node (integer, MANDATORY).
+    cores_per_socket:    # Number of cores per socket (integer, MANDATORY).
+                         # The total number of cores available on this queue is
+                         # `num_nodes * sockets_per_node * cores_per_socket`.
+
+# Dictionary with the options used to prepare the enviroment before submitting the job
+job:
+    setup:            # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:          # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:          # List of modules to be imported before running the code (DEFAULT: empty).
+                      # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:        # Dictionary with shell environment variables.
+    mpi_runner:       # MPI runner. Possible values in [mpirun, mpiexec, None]
+                      # DEFAULT: None i.e. no mpirunner is used.
+    shell_runner:     # Used for running small sequential jobs on the front-end. Set it to None
+                      # if mpirun or mpiexec are not available on the fron-end. If not
+                      # given, small sequential jobs are executed with `mpi_runner`.
+    pre_run:          # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:         # List of commands (strings) executed after the run (DEFAULT: empty)
+
+# dictionary with the name of the queue and optional parameters
+# used to build/customize the header of the submission script.
+queue:
+    qname:            # Name of the queue (string, MANDATORY)
+    qparams:          # Dictionary with values used to generate the header of the job script
+                      # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+
+# dictionary with the constraints that must be fulfilled in order to run on this queue.
+limits:
+    min_cores:         # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:         # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                       # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:        # The limit used in the initial setup of jobs.
+                       # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:  # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                       # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:  # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                       # (DEFAULT: hardware.mem_per_node)
+    timelimit:         # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                       # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                       # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:    # The hard time-limit for this queue. Same format as timelimit.
+                       # Error handlers could try to submit jobs with increased timelimit
+                       # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:         # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:        # String defining the policy used to select the optimal number of CPUs.
+                       # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                       # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                       # This is a soft limit, in the sense that the qadapter may use a configuration
+                       # that does not fulfill this requirement. In case of failure, it will try to use the
+                       # smallest number of nodes compatible with the optimal configuration.
+                       # Use `force_nodes` to enfore entire nodes allocation.
+                       # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+
+
+qtype supported: [u&#39;bluegene&#39;, u&#39;moab&#39;, u&#39;pbspro&#39;, u&#39;sge&#39;, u&#39;shell&#39;, u&#39;slurm&#39;, u&#39;torque&#39;]
+Use `abirun.py . manager slurm` to have the list of qparams for slurm.
+</pre></div>
+</div>
+<p>At the time of writing (Mar 09, 2017), AbiPy supports the following resource managers:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
+<li><code class="docutils literal"><span class="pre">moab</span></code></li>
+<li><code class="docutils literal"><span class="pre">pbspro</span></code></li>
+<li><code class="docutils literal"><span class="pre">sge</span></code></li>
+<li><code class="docutils literal"><span class="pre">shell</span></code></li>
+<li><code class="docutils literal"><span class="pre">slurm</span></code></li>
+<li><code class="docutils literal"><span class="pre">torque</span></code></li>
+</ul>
+</div></blockquote>
+<p>To obtain the list of options supported by a particular resource manager e.g. slurm:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager slurm
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples/plot/index.html" class="btn btn-neutral float-right" title="plot Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="whats_new.html" class="btn btn-neutral" title="What’s new in abipy" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, The ABINIT group.
+      Last updated on Mar 09, 2017.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

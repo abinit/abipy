@@ -31,9 +31,9 @@
 
   
     <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="The AbiPy API" href="index.html"/>
+        <link rel="up" title="API documentation" href="index.html"/>
         <link rel="next" title="tools Package" href="tools_api.html"/>
-        <link rel="prev" title="The AbiPy API" href="index.html"/> 
+        <link rel="prev" title="API documentation" href="index.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -83,9 +83,13 @@
             
             
                 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../users/index.html">User&#8217;s Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Abipy Examples</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">The AbiPy API</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What&#8217;s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/plot/index.html">plot Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">core Package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">core</span></code> Package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#abinit-units-module"><code class="docutils literal"><span class="pre">abinit_units</span></code> Module</a></li>
@@ -146,7 +150,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
-          <li><a href="index.html">The AbiPy API</a> &raquo;</li>
+          <li><a href="index.html">API documentation</a> &raquo;</li>
       
     <li>core Package</li>
       <li class="wy-breadcrumbs-aside">
@@ -1711,7 +1715,7 @@ as well as the mapping BZ &#8211;&gt; IBZ.</p>
 <dl class="class">
 <dt id="abipy.core.structure.Structure">
 <em class="property">class </em><code class="descclassname">abipy.core.structure.</code><code class="descname">Structure</code><span class="sig-paren">(</span><em>lattice</em>, <em>species</em>, <em>coords</em>, <em>validate_proximity=False</em>, <em>to_unit_cell=False</em>, <em>coords_are_cartesian=False</em>, <em>site_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v4.6.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v4.7.0)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Extends <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code> with Abinit-specific methods.</p>
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.ABO3">
@@ -2857,7 +2861,7 @@ in a single location, so that test scripts can just import it and work right awa
 <dl class="class">
 <dt id="abipy.core.testing.AbipyTest">
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v4.6.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v4.7.0)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
 <p>Extends PymatgenTest with Abinit-specific methods</p>
 <dl class="method">
 <dt id="abipy.core.testing.AbipyTest.assertFwSerializable">
@@ -3056,7 +3060,7 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
         <a href="tools_api.html" class="btn btn-neutral float-right" title="tools Package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="The AbiPy API" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="API documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -3065,8 +3069,8 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2016, The ABINIT group.
-      Last updated on Mar 07, 2017.
+        &copy; Copyright 2017, The ABINIT group.
+      Last updated on Mar 09, 2017.
 
     </p>
   </div>
