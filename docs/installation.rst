@@ -12,46 +12,146 @@ that can be installed with::
     $ pip install abipy
 
 Note that you may need to install pymatgen and other critical dependencies manually.
-For this reason, we strongly suggest to install the required python packages through one
-of the following python distributions:
+In this case, please consult the detailed installation instructions provided by the
+`pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
+and then follow the instructions in the :ref:`netcdf4_installation` section.
+
+Note, however, that the installation process is greatly simplified if you install the required 
+python packages through one of the following python distributions:
 
   * `Anaconda <https://continuum.io/downloads>`_
 
   * `Canopy <https://www.enthought.com/products/canopy>`_
 
 We routinely use ``conda`` to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (``matplotlib``, ``scipy``, ``numpy``)
+The anaconda distribution already provides the most critical dependencies (``matplotlib``, ``scipy`` ...)
 in the form of pre-compiled packages and ``netcdf4`` can be easily installed with::
 
     conda install netcdf4
 
 Additional information on the steps required to install AbiPy with anaconda 
-are available in the :doc:`anaconda_howto` howto.
+are available in the :ref:`anaconda_howto` howto as well as in the 
+`conda-based-install <http://pymatgen.org/installation.html#conda-based-install>`_
+section of the pymatgen documentation.
 
 We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
 Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
-manually can consult the :doc:`howto_compile_python_and_bootstrap_pip` document.
+manually can consult the :ref:`howto_compile_python_and_bootstrap_pip` document.
+
+---------------------
+Optional dependencies
+---------------------
+
+Optional libraries that are required if you need certain features:
+
+``ipython``
+
+    Required to interact with the AbiPy/Pymatgen objects in the ipython shell
+    (strongly recommended, already provided by conda).
+
+``jupyter`` and ``nbformat``
+
+    Required to generate jupyter notebooks.
+    Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
+    Recommended but you will also need a web browser to open the notebook.
+
+``seaborn``
+
+    Python visualization library based on matplotlib. 
+    It provides a high-level interface for drawing attractive statistical graphics
+    Used in AbiPy for particular plots.
+
+``wxPython`` and ``wxmplot`` for the GUI
+
+    Use ``conda install wxpython``
+    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
+    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
+
+.. _anaconda_howto:
+
+--------------
+Anaconda Howto
+--------------
+
+Download the anaconda installer from the `official web-site <https://www.continuum.io/downloads>`_.
+Choose the version that matches your OS and select python2.7.
+You may want to use the ``wget`` utility to download the anaconda script directly from the terminal
+(useful if you are installing anaconda on a cluster).
+
+Run the bash script in the terminal and follow the instructions.
+By default, the installer creates the ``anaconda`` directory in your home.
+Once the installation is completed, execute::
+
+    $ source ~/anaconda/bin/activate root
+
+to activate the ``root`` environment.
+The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
+
+Use the ``conda`` command-line interface to install the packages not included in the official distribution.
+For example, you can install ``pyyaml`` and ``netcdf4`` with::
+
+    $ conda install pyyaml, netcdf4
+
+Remember that if a package is not available in the official conda repository, you can always
+use ``pip install`` or download the package from one of the conda channels.
+For example, if you encounter problems while installing the spacegroup library
+with ``pip install pyspglib``, you can install the pre-compiled library from the ``jochym`` channel with::
+
+    $ conda install -c jochym pyspglib
+
+Now you can install the stable version of ``abipy`` with::
+
+    $ pip install abipy
+
+If you want to use the developmental version, clone (or fork) the repositories on github
+(see also the :ref:`developmental_version` section).
+
+Once you have completed the installation of abipy and pymatgen, open the ``ipython`` shell and type::
+
+    from abipy import abilab
+
+to check the installation.
+
+Optionally, you may want to execute::
+
+    $ conda install wxpython
+
+to install the ``wxpython`` graphical toolkit required for the GUIs.
+
+Note that one can use ``conda`` to create different enviroments with different
+versions of the python interpreter or different libraries.
+Further information are available on the `official website <http://conda.pydata.org/docs/test-drive.html>`_.
+
+
+.. _developmental_version:
 
 ---------------------
 Developmental version
 ---------------------
 
-The developmental version is at the AbiPy's `Github repo <https://github.com/abinit/abipy>`_.
-The Github version include test files for complete unit testing.
-After cloning the source, type::
+Getting the developmental version of AbiPy is easy. You can clone it from the 
+`github repository <https://github.com/abinit/abipy>`_ using this command:
+
+.. code-block:: console
+
+   $ git clone https://github.com/abinit/abipy
+
+After cloning the repository, type::
 
     $ python setup.py install
 
-or::
+or alternately::
 
     $ python setup.py develop
 
-to install the package in developmental mode (this is the recommended approach, especially if you are
-planning to implement new features).
+to install the package in developmental mode 
+(this is the recommended approach, especially if you are planning to implement new features).
 
-To run the suite of unit tests, make sure you have py.test (nose) installed and then just type::
+The Github version include test files for complete unit testing.
+To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
+or ``nose`` installed and then just type::
 
     $ py.test
 
@@ -71,92 +171,6 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
----------------------
-Optional dependencies
----------------------
-
-Optional libraries that are required if you need certain features:
-
-  * ``matplotlib``
-
-  * ``seaborn``
-
-  * ``ipython``
-
-    Required to interact with the AbiPy/Pymatgen objects in the ipython shell.
-
-  * ``jupyter`` and ``nbformat``
-
-    Required to generate jupyter notebooks to analyze data.
-    Install these two packages with `conda install jupyter nbformat`
-
-  * ``wxPython`` and ``wxmplot`` for the GUI
-
-    Use ``conda install wxpython``
-    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
-    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
-
-.. _anaconda_howto:
-
--------------------
-Conda-based install
--------------------
-
-Download the anaconda installer from the `official web-site <https://www.continuum.io/downloads>`_.
-Choose the version that matches your OS and select python2.7.
-You may want to use the ``wget`` utility to download the anaconda script directly from the terminal
-(useful if you are installing anaconda on a cluster).
-
-Run the bash script in the terminal and follow the instructions.
-By default, the installer creates the ``anaconda`` directory in your home.
-Once the installation is completed, execute::
-
-    $ source ~/anaconda/bin/activate root
-
-to activate the ``root`` environment.
-The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
-
-Use the ``conda`` command-line interface to install the packages not included in the official distribution.
-For example, you can install ``pyyaml`` and ``netcdf4`` by simply typing::
-
-    $ conda install pyyaml, netcdf4
-
-Remember that if a package is not available in the official conda repository, you can always
-use ``pip install`` or download the package from one of the conda channels.
-For example, if you encounter problems while installing the spacegroup library
-with ``pip install pyspglib``, you can install the pre-compiled library from the ``jochym`` channel with::
-
-    $ conda install -c jochym pyspglib
-
-Now you can install ``pymatgen`` and ``abipy``.
-Use::
-
-    $ pip install pymatgen
-    $ pip install abipy
-
-for the stable version.
-If you want to use the developmental version, clone (or fork) the repositories on github
-and install the packages with::
-
-    $ python setup.py install
-
-Once you have completed the installation of abipy and pymatgen, open the ``ipython`` shell and type::
-
-    from abipy import abilab
-
-to check the installation.
-
-Optionally, you may want to execute::
-
-    $ conda install wxpython
-
-to install the ``wxpython`` graphical toolkit required for the GUIs.
-
-Note that one can use ``conda`` to create different enviroments with different
-versions of the python interpreter or different libraries.
-Further information are available on the
-`official website <http://conda.pydata.org/docs/test-drive.html>`_.
-
 
 .. _howto_compile_python_and_bootstrap_pip:
 
@@ -164,11 +178,11 @@ Further information are available on the
 How to compile the Python interpreter
 -------------------------------------
 
-This document discusses how to install a local version of the python interpreter as well
+This section discusses how to install a local version of the python interpreter as well
 as the most important dependencies needed by AbiPy.
-
 This approach may be needed if you want to use AbiPy on a machine (e.g. a cluster)
-in which you don't have root privileges and the version of the python interpreter is too old.
+in which you don't have root privileges and the version of the python interpreter is too old 
+or if for some reasons you prefer not to use ``anaconda``.
 In this case you cannot use a `virtual environment <https://virtualenv.pypa.io/en/latest/>`_ 
 on top of the preexisting python library.
 
@@ -206,7 +220,7 @@ If, on the other hand, python has been built without ``bz2`` or ``_tkinter`` you
 because these packages are required.
 
 ``bz2`` is more fundamental than ``_tkinter`` because it is used to compress/uncompress files.
-AbiPy won't work without ``bz2`` and you have to install the ``bzip`` library with the C headers.
+AbiPy/Pymatgen won't work without ``bz2`` and you have to install the ``bzip`` library with the C headers.
 The source code is available from `bzip.org <www.bzip.org>`_
 See also `this post <http://stackoverflow.com/questions/12806122/missing-python-bz2-module>`_ on stackoverflow.
 
@@ -261,6 +275,8 @@ Try first::
 
 If the installer does not find BLAS/LAPACK in your system, consult the
 `scipy documentation <http://www.scipy.org/scipylib/building/linux.html#id1>`_.
+
+.. _netcdf4_installation:
 
 ---------------------------------------------------
 How to install HDF5/Netcdf4 and the python bindings

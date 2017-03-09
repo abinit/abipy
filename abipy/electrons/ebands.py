@@ -2525,7 +2525,7 @@ class ElectronBandsPlotter(NotebookWriter):
             nbv.new_code_cell("fig = plotter.combiplot(ylims=ylims)"),
             nbv.new_code_cell("fig = plotter.boxplot()"),
             nbv.new_code_cell("fig = plotter.combiboxplot()"),
-            nbv.new_code_cell("anim = plotter.animate()"),
+            nbv.new_code_cell("if False: anim = plotter.animate()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

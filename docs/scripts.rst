@@ -8,24 +8,30 @@ Command line tools
 ``abiopen.py``
 ^^^^^^^^^^^^^^
 
-This script opens Abinit outputs file (usually in ``netcdf`` format but other files are supported as well). 
-The syntax of the command is::
+AbiPy provides python objects associated to several Abinit output files 
+and these objects implement methods to analyze and plot the results. 
+The examples in our :doc:`gallery </examples/index>` use this API to plot data with matplotlib.
 
-    $ abiopen.py command FILE [options]
+The ``abiopen.py`` script provides a handy interface to the AbiPy objects since 
+users can open Abinit files directly in the ``ipython``` shell and interact with the object 
+(called ``abifile`` in the ``ipython`` terminal).
+The syntax is of the script is::
 
-The documentation for a given `command` is accessible with::
+    $ abiopen.py FILE [options]
 
-    $ abiopen.py command --help 
+where ``FILE`` is one of the files supported by AbiPy (usually in ``netcdf`` format but other 
+files are supported as well). 
+Alternatively, it is possible to generate automatically a ``jupyter`` notebook with the ``-nb`` option e.g.::
 
-e.g. ``abiopen.py spglib --help``.
+    $ abiopen.py out_FATBANDS.nc -nb
 
-By default the script starts an interactive ``ipython`` session so that the use can interact with the file 
-(called ``abifile`` in the ``ipython`` terminal) and have access to its methods.
-Alternatively, it is possible to generate automatically a ``jupyter`` notebook with the ``-nb`` option
-to execute code and visualize the results inside a web browser.
+The notebook contains automatically generated code to visualize the results inside a web browser.
+Use the ``-p`` option if you just want to get information on the file without opening it, e.g.::
+
+    $ abiopen.py out_GSR.nc -p
+
 ``abiopen.py`` employs the file extension to decide what to do with the file and the type
 of python object that should be instantiated.
-
 The list of supported file extensions is obtained with:
 
 .. command-output:: abiopen.py --help
@@ -48,6 +54,16 @@ reported in one the ``netcdf`` files produced by ABINIT (other formats are suppo
 Also in this case, it is possible to analyze the structure object either inside ``ipython`` or
 ``jupyter`` notebooks.
 
+The syntax of the command is::
+
+    $ abistruct.py command FILE [options]
+
+The documentation for a given `command` is accessible with::
+
+    $ abistruct.py command --help 
+
+e.g. ``abistruct.py spglib --help``.
+
 To get the list of options, use
 
 .. command-output:: abistruct.py --help
@@ -61,9 +77,16 @@ To get the list of options, use
 
 This script is used to analyze/compare results stored in multiple ``netcdf`` files.
 For example, one can compare the crystalline structure used in different calculations
-or compare the electronic bands stored in two or more ``netcdf`` files. 
+or compare the electronic bands stored in two or more ``netcdf`` files (e.g. ``GSR.nc`` or ``WFK.nc``).
 By default the script displays the results/plots directly within the shell.
-Use ``--ipython`` to start an ``ipython`` terminal or ``-nb`` to generate a ``jupyter`` notebook.
+For example, the command::
+
+    $ abicomp.py struct out1_GSR.nc out2_GSR.nc
+
+compares the structures reported in two ``GSR`` files and print the result to screen.
+Use ``--ipython`` to start an ``ipython`` terminal or ``-nb`` to generate a ``jupyter`` notebook, e.g.::
+
+    $ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
 
 .. command-output:: abicomp.py --help
 
