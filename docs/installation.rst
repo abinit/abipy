@@ -60,7 +60,7 @@ Optional libraries that are required if you need certain features:
 ``seaborn``
 
     Python visualization library based on matplotlib. 
-    It provides a high-level interface for drawing attractive statistical graphics
+    It provides a high-level interface for drawing attractive statistical graphics.
     Used in AbiPy for particular plots.
 
 ``wxPython`` and ``wxmplot`` for the GUI
@@ -108,7 +108,7 @@ Now you can install the stable version of ``abipy`` with::
 If you want to use the developmental version, clone (or fork) the repositories on github
 (see also the :ref:`developmental_version` section).
 
-Once you have completed the installation of abipy and pymatgen, open the ``ipython`` shell and type::
+Once you have completed the installation of AbiPy and pymatgen, open the ``ipython`` shell and type::
 
     from abipy import abilab
 
@@ -120,7 +120,7 @@ Optionally, you may want to execute::
 
 to install the ``wxpython`` graphical toolkit required for the GUIs.
 
-Note that one can use ``conda`` to create different enviroments with different
+Note that one can use ``conda`` to create different environments with different
 versions of the python interpreter or different libraries.
 Further information are available on the `official website <http://conda.pydata.org/docs/test-drive.html>`_.
 
@@ -255,7 +255,7 @@ To install ``easy_install``::
 
 For more info, consult the `setuptools page <https://pypi.python.org/pypi/setuptools>`_
 
-Now use ``easy_install`` to install `pip`::
+Now use ``easy_install`` to install ``pip``::
 
     $ easy_install pip
 
@@ -273,7 +273,7 @@ Try first::
 
     $ pip install scipy
 
-If the installer does not find BLAS/LAPACK in your system, consult the
+If the installer does not find ``BLAS/LAPACK`` in your system, consult the
 `scipy documentation <http://www.scipy.org/scipylib/building/linux.html#id1>`_.
 
 .. _netcdf4_installation:
@@ -282,7 +282,7 @@ If the installer does not find BLAS/LAPACK in your system, consult the
 How to install HDF5/Netcdf4 and the python bindings
 ---------------------------------------------------
 
-Obtain the latest HDF5 Software from the `official web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
+Obtain the latest ``HDF5`` software from the `official web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
 Configure the package with ``--enable-hl --enable-shared`` and the ``--prefix`` option as usual.
 Build and install with::
 

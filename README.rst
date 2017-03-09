@@ -29,7 +29,7 @@ Official documentation of the stable version available at `abipy docpage`_.
 
 AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
-thus providing a powerful still user-friendly environment for data analysis and visualization.
+thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in the
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
 To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks

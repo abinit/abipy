@@ -97,7 +97,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'abipy'
-copyright = u'2016, ' + release.author
+copyright = u'2017, ' + release.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

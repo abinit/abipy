@@ -10,12 +10,12 @@ Command line tools
 
 AbiPy provides python objects associated to several Abinit output files 
 and these objects implement methods to analyze and plot the results. 
-The examples in our :doc:`gallery </examples/index>` use this API to plot data with matplotlib.
+The examples in our :doc:`gallery </examples/index>` use this API to plot data with ``matplotlib``.
 
 The ``abiopen.py`` script provides a handy interface to the AbiPy objects since 
 users can open Abinit files directly in the ``ipython``` shell and interact with the object 
 (called ``abifile`` in the ``ipython`` terminal).
-The syntax is of the script is::
+The syntax of the script is::
 
     $ abiopen.py FILE [options]
 
@@ -25,7 +25,8 @@ Alternatively, it is possible to generate automatically a ``jupyter`` notebook w
 
     $ abiopen.py out_FATBANDS.nc -nb
 
-The notebook contains automatically generated code to visualize the results inside a web browser.
+will produce a notebook to visualize the electronic fatbands produced with ``prtdos 3`` inside a web browser.
+
 Use the ``-p`` option if you just want to get information on the file without opening it, e.g.::
 
     $ abiopen.py out_GSR.nc -p
@@ -38,10 +39,8 @@ The list of supported file extensions is obtained with:
 
 .. WARNING::
 
-    AbiPy uses the ``.abi`` extension for Abinit input files, ``.abo`` for output files 
-    and ``.log`` for log files.
+    AbiPy uses the ``.abi`` extension for Abinit input files, ``.abo`` for output files and ``.log`` for log files.
     Try to follow this convention in your calculations to facilitate the integration with AbiPy.
-
 
 .. _abistruct:
 
@@ -50,7 +49,8 @@ The list of supported file extensions is obtained with:
 ^^^^^^^^^^^^^^^^
 
 This script is useful if you want to analyze/export/visualize the crystalline structure 
-reported in one the ``netcdf`` files produced by ABINIT (other formats are supported, see docs belows).
+stored in one the ``netcdf`` files produced by ABINIT (other formats are supported e.g. 
+``cif`` files or ``POSCAR``, see also docs below).
 Also in this case, it is possible to analyze the structure object either inside ``ipython`` or
 ``jupyter`` notebooks.
 
@@ -58,11 +58,21 @@ The syntax of the command is::
 
     $ abistruct.py command FILE [options]
 
-The documentation for a given `command` is accessible with::
+The documentation for a given ``command`` is accessible with::
 
     $ abistruct.py command --help 
 
-e.g. ``abistruct.py spglib --help``.
+Use e.g.:: 
+
+    $ abistruct.py spglib --help
+
+to get the options supported by the ``spglib`` command.
+
+The ``convert`` command is quite useful if you need to convert the crystalline structure
+from one format to another one.
+For example, one can read a ``cif`` file and print the corresponding Abinit variables with::
+
+    $ abistruct.py convert CIF abivars
 
 To get the list of options, use
 
@@ -79,11 +89,11 @@ This script is used to analyze/compare results stored in multiple ``netcdf`` fil
 For example, one can compare the crystalline structure used in different calculations
 or compare the electronic bands stored in two or more ``netcdf`` files (e.g. ``GSR.nc`` or ``WFK.nc``).
 By default the script displays the results/plots directly within the shell.
-For example, the command::
+Use the command::
 
     $ abicomp.py struct out1_GSR.nc out2_GSR.nc
 
-compares the structures reported in two ``GSR`` files and print the result to screen.
+to compare the structures reported in two ``GSR`` files and print the result to screen.
 Use ``--ipython`` to start an ``ipython`` terminal or ``-nb`` to generate a ``jupyter`` notebook, e.g.::
 
     $ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
@@ -105,22 +115,27 @@ For the full list of commands supported use:
 
 .. command-output:: abidoc.py --help
 
+.. _abicheck:
 
 ^^^^^^^^^^^^^^^
 ``abicheck.py``
 ^^^^^^^^^^^^^^^
 
-This script checks that the options in ``manager.yml``, ``scheduler.yml``,
+This script checks that the options specified in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
+Please consult the documentation on :ref:`workflows` for a more detailed description of these YAML files.
 
 .. command-output:: abicheck.py --no-colors
+
+.. _abirun:
 
 ^^^^^^^^^^^^^
 ``abirun.py``
 ^^^^^^^^^^^^^
 
-This script allows the user to submit the calculations contained in the `Flow`.
-It provides a command line interface as well as a graphical interface based on wxpython.
+This script allows the user to submit the calculations contained in the AbiPy Flow 
+(for further detail, consult the :ref:`workflows` documentation).
+It provides a command line interface as well as a graphical interface based on ``wxpython``.
 
 .. command-output:: abirun.py --help
 
@@ -128,16 +143,16 @@ It provides a command line interface as well as a graphical interface based on w
 
 .. command-output:: abirun.py . doc_manager
 
-To obtain the list of options supported by a particular resource manager use e.g. slurm, use::
+At the time of writing (|today|), AbiPy supports the following resource managers:
+
+    * ``bluegene``
+    * ``moab``
+    * ``pbspro``
+    * ``sge``
+    * ``shell``
+    * ``slurm``
+    * ``torque``
+
+To obtain the list of options supported by a particular resource manager e.g. slurm::
 
     $ abirun.py . doc_manager slurm
-
-At the time of writing (|date|), AbiPy supports the following resource managers:
-
-    . bluegene
-    . moab
-    . pbspro
-    . sge
-    . shell
-    . slurm
-    . torque
