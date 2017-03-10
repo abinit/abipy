@@ -42,6 +42,7 @@ install:
   - mkdir -p ${HOME}/.abinit/abipy 
   - cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
   - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
+  - ./dev_scripts/pyclean.py .
 
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
