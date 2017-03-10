@@ -32,12 +32,16 @@ install:
   - source activate test-environment
   - conda install gcc scipy
   - conda install pandas netcdf4 pytest
+  - pip install scripttest
   #- conda install matplotlib seaborn
   #- conda install ipython jupyter nbformat
   - conda install abinit
   #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && python setup.py install && cd ..
   - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
   - python setup.py install
+  - mkdir -p ${HOME}/.abinit/abipy 
+  - cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
+  - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
 
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
