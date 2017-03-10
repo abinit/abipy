@@ -30,28 +30,13 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install gcc, scipy
-  - conda install netcdf4, pytest
+  - conda install gcc scipy
+  - conda install netcdf4 pytest
   - conda install abinit
   - conda install git
   #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && python setup.py install && cd ..
   - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && cd ../
   - python setup.py install
-
-#before_install:
-#  - sudo apt-get install build-essential gfortran python-dev
-#  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev 
-#  - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
-#  - sudo apt-get install python-numpy 
-#  - sudo apt-get install python-scipy
-
-# command to install dependencies
-#sudo: false
-#install:
-#  - easy_install -U setuptools
-#  - travis_wait pip install -r requirements.txt
-#  - pip install nose-exclude
-#  - pip install coveralls
 
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
