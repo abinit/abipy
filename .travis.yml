@@ -30,10 +30,12 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install gcc
-  - conda install netcdf4
-  - conda install pytest
+  - conda install gcc, scipy
+  - conda install netcdf4, pytest
   - conda install abinit
+  - conda install git
+  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && python setup.py install && cd ..
+  - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && cd ../
   - python setup.py install
 
 #before_install:
