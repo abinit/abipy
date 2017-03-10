@@ -6,6 +6,7 @@ import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -56,13 +57,13 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create a Work, all tasks in work will start from the DEN file.
     # Note that the file must exist when the work is created
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    work = abilab.Work()
+    work = flowapi.Work()
     denfile = abidata.ref_file("si_DEN.nc")
     work.register(nscf_input, deps={denfile: "DEN"})
     flow.register_work(work)

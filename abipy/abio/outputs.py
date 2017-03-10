@@ -6,11 +6,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 
 from monty.string import is_string
-#from abipy.iotools.cube import cube_read_structure_mesh_data
-from pymatgen.io.abinit.events import EventsParser
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
-from pymatgen.io.abinit.abitimer import AbinitTimerParser
-from pymatgen.io.abinit.netcdf import NetcdfReader
+from abipy.flowapi import EventsParser, NetcdfReader, AbinitTimerParser, GroundStateScfCycle, D2DEScfCycle
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 
 

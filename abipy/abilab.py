@@ -6,24 +6,26 @@ from __future__ import print_function, division, unicode_literals
 import os
 import collections
 
+####################
+### Monty import ###
+####################
 from monty.os.path import which
-from pymatgen.core.units import *
-from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
-from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
-from pymatgen.io.abinit.tasks import *
-from pymatgen.io.abinit.works import *
-from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
-    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
+#######################
 ### Pymatgen import ###
-from pymatgen.io.abinit.launcher import PyFlowScheduler
-from pymatgen.io.abinit.pseudos import Pseudo
+#######################
 # Tools for unit conversion
 import pymatgen.core.units as units
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
+####################
 ### Abipy import ###
+####################
+from abipy.flowapi import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager
+#from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
+#    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
+
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
 from abipy.core.mixins import CubeFile
@@ -281,7 +283,7 @@ def abicheck(verbose=0):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
 
     # Get info on the scheduler.
-    from pymatgen.io.abinit.launcher import PyFlowScheduler
+    from abipy.flowapi import PyFlowScheduler
     try:
         scheduler = PyFlowScheduler.from_user_config()
         cprint("Abipy Scheduler:\n%s\n" % str(scheduler), color="yellow")

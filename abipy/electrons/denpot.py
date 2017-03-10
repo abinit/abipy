@@ -144,7 +144,7 @@ class DensityFortranFile(AbinitFortranFile):
         workdir = tempfile.mkdtemp() if workdir is None else workdir
 
         # local import to avoid circular references
-        from pymatgen.io.abinit.wrappers import Cut3D
+        from abipy.flowapi import Cut3D
         outfile, converted_file = Cut3D().cut3d(cut3d_input, workdir)
 
         return converted_file
@@ -270,7 +270,7 @@ class DensityFortranFile(AbinitFortranFile):
             raise ValueError("all_el_dens_paths and fhi_all_el_path are mutually exclusive.")
 
         # local import to avoid circular references
-        from pymatgen.io.abinit.wrappers import Cut3D
+        from abipy.flowapi import Cut3D
         from abipy.abio.inputs import Cut3DInput
 
         if all_el_dens_paths is not None:

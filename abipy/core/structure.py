@@ -19,8 +19,9 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.plotting import add_fig_kwargs #, get_ax_fig_plt
-from pymatgen.io.abinit.pseudos import PseudoTable
+from pymatgen.io.abinit.abiobjects import structure_from_abivars, structure_to_abivars
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from abipy.flowapi import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
@@ -341,12 +342,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         `xred` can be replaced with `xcart` or `xangst`.
         """
-        from pymatgen.io.abinit.abiobjects import structure_from_abivars
         return structure_from_abivars(cls, *args, **kwargs)
 
     def to_abivars(self, **kwargs):
         """Returns a dictionary with the ABINIT variables."""
-        from pymatgen.io.abinit.abiobjects import structure_to_abivars
         return structure_to_abivars(self, **kwargs)
 
     @property

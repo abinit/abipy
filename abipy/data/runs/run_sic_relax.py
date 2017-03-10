@@ -8,6 +8,7 @@ import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data
+import abipy.flowapi as flowapi
 
 
 def build_flow(options):
@@ -16,7 +17,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
 
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")
@@ -56,10 +57,10 @@ def build_flow(options):
     nscf_inp.tolwfr = 1e-22
 
     # Initialize the work.
-    relax_task = flow.register_task(relax_inp, task_class=abilab.RelaxTask)
+    relax_task = flow.register_task(relax_inp, task_class=flowapi.RelaxTask)
 
     #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
-    #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=abilab.NscfTask)
+    #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=flowapi.NscfTask)
 
     return flow
 

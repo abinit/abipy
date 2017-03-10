@@ -4,15 +4,16 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 
-import pymatgen.io.abinit.mocks as mocks
+from abipy.flowapi import mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                               pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
@@ -37,8 +38,8 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     multi[1].set_kpath(ndivsm=2, kptbounds=kptbounds)
     multi[1].set_vars(tolwfr=1e-4)
-    
-    # Generate two input files for the GS and the NSCF run 
+
+    # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
@@ -53,12 +54,12 @@ def itest_flow_with_deadlocks(fwp):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
-    work0 = abilab.BandStructureWork(scf_input, nscf_input, dos_inputs=nscf_input)
+    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    work0 = flowapi.BandStructureWork(scf_input, nscf_input, dos_inputs=nscf_input)
     flow.register_work(work0)
     scf_task, nscf_task, dos_task = work0[0], work0[1], work0[2]
 
-    work1 = abilab.Work()
+    work1 = flowapi.Work()
     work1.register_nscf_task(nscf_input, deps={scf_task: "DEN", dos_task: "WFK"})
     # This task will deadlock when nscf_task reaches S_ERROR.
     work1.register_nscf_task(nscf_input, deps={scf_task: "DEN", nscf_task: "WFK"})
@@ -86,7 +87,7 @@ def itest_flow_with_deadlocks(fwp):
 
 def itest_flow_without_runnable_tasks(fwp):
     """
-    Test the behaviour of the scheduler when we ignore errrors and 
+    Test the behaviour of the scheduler when we ignore errrors and
     all the task that can be executed have been submitted.
     The scheduler should detect this condition and exit.
     """
@@ -94,8 +95,8 @@ def itest_flow_without_runnable_tasks(fwp):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
-    work0 = abilab.BandStructureWork(scf_input, nscf_input)
+    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    work0 = flowapi.BandStructureWork(scf_input, nscf_input)
     flow.register_work(work0)
     scf_task, nscf_task = work0.scf_task, work0.nscf_task
 

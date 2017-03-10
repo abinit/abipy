@@ -6,7 +6,7 @@ import types
 
 
 from monty.termcolor import cprint
-from pymatgen.io.abinit.flows import Flow
+from abipy.flowapi import Flow
 
 
 def as_orderedset(token, options):
@@ -55,7 +55,7 @@ def as_orderedset(token, options):
 def bench_main(main):
     """
     This decorator is used to decorate main functions producing `AbinitFlows`.
-    It adds the initialization of the logger and an argument parser that allows one to select 
+    It adds the initialization of the logger and an argument parser that allows one to select
     the loglevel, the workdir of the flow as well as the YAML file with the parameters of the `TaskManager`.
     The main function shall have the signature:
 
@@ -82,13 +82,13 @@ def bench_main(main):
 
         parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
 
-        parser.add_argument("-m", '--manager', default=None, 
-                            help="YAML file with the parameters of the task manager. " 
+        parser.add_argument("-m", '--manager', default=None,
+                            help="YAML file with the parameters of the task manager. "
                                  "Default None i.e. the manager is read from standard locations: "
                                  "working directory first then ~/.abinit/abipy/manager.yml.")
 
         parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
-                            "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n" 
+                            "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n"
                             "--mpi-list=16x for multiple of 16 up to max--ncpus, --mpi-list=pow2 for powers of 2")
         parser.add_argument("--omp-list", default=None, type=str, help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
 
@@ -106,7 +106,7 @@ def bench_main(main):
 
         options = parser.parse_args()
 
-        # loglevel is bound to the string value obtained from the command line argument. 
+        # loglevel is bound to the string value obtained from the command line argument.
         # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
         import logging
         numeric_level = getattr(logging, options.loglevel.upper(), None)
@@ -123,7 +123,7 @@ def bench_main(main):
         else:
             options.omp_list = as_orderedset(options.omp_list, options)
 
-        # Monkey patch options to add useful method 
+        # Monkey patch options to add useful method
         def monkey_patch(opts):
 
             # options.accept_mpi_omp(mpi_proc, omp_threads)
@@ -141,25 +141,25 @@ def bench_main(main):
                         cprint("Skipping %d because of max_ncpus" % tot_ncpus, color="magenta")
                     return False
 
-                return True 
+                return True
 
             opts.accept_mpi_omp = types.MethodType(accept_mpi_omp, opts)
 
             def accept_conf(opts, conf, omp_threads):
                 """Return True if we can run a benchmark with mpi_procs and omp_threads"""
                 tot_ncpus = conf.mpi_procs * omp_threads
-                                                                                                      
+
                 if tot_ncpus < opts.min_ncpus:
                     if options.verbose:
                         cprint("Skipping %d because of min_ncpus" % tot_ncpus, color="magenta")
                     return False
-                                                                                                      
+
                 if opts.max_ncpus is not None and tot_ncpus > opts.max_ncpus:
                     if options.verbose:
                         cprint("Skipping %d because of max_ncpus" % tot_ncpus, color="magenta")
                     return False
 
-                if opts.min_eff is not None and conf.efficiency < opts.min_eff: 
+                if opts.min_eff is not None and conf.efficiency < opts.min_eff:
                     if options.verbose:
                         cprint("Skipping %d because of parallel efficiency" % tot_ncpus, color="magenta")
                     return False
@@ -167,21 +167,21 @@ def bench_main(main):
                 if options.verbose:
                     cprint("Accepting omp_threads:%s with conf\n%s" % (omp_threads, conf), color="green")
 
-                return True 
+                return True
 
             opts.accept_conf = types.MethodType(accept_conf, opts)
 
             # options.get_workdir(__file__)
             def get_workdir(opts, _file_):
                 """
-                Return the workdir of the benchmark. 
+                Return the workdir of the benchmark.
                 A default value if constructed from the name of the scrip if no cmd line arg.
                 """
                 if options.workdir: return options.workdir
                 return "bench_" + os.path.basename(_file_).replace(".py", "")
 
             opts.get_workdir = types.MethodType(get_workdir, opts)
-            
+
         monkey_patch(options)
 
         # Istantiate the manager.
@@ -197,7 +197,7 @@ def bench_main(main):
             for task in flow.iflat_tasks():
                 v = task.input.abivalidate()
                 if v.retcode != 0: cprint(v, color="red")
-                retcode += v.retcode 
+                retcode += v.retcode
             print("input validation retcode: %d" % retcode)
             return retcode
 
@@ -225,7 +225,7 @@ class BenchmarkFlow(Flow):
     @property
     def exclude_nodeids(self):
         if not hasattr(self, "_exclude_nodeids"): self._exclude_nodeids = set()
-        return self._exclude_nodeids 
+        return self._exclude_nodeids
 
     def get_parser(self):
         """
@@ -241,10 +241,10 @@ class BenchmarkFlow(Flow):
 
         parser = self.parse_timing(nids=nids)
 
-        if parser is None: 
+        if parser is None:
             print("flow.parse_timing returned None!")
         else:
-            if len(parser) != len(nids): 
+            if len(parser) != len(nids):
                 print("Not all timing sections have been parsed!")
 
         return parser
@@ -254,7 +254,7 @@ class BenchmarkFlow(Flow):
         for task in self.iflat_tasks():
             if task.node_id in self.exclude_nodeids: continue
             cnt += 1
-            print("%s: mpi_procs %d, omp_threads %d" % 
+            print("%s: mpi_procs %d, omp_threads %d" %
               (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
         print("Total number of benchmarks: %d" % cnt)
 

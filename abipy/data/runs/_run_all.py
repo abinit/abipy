@@ -11,7 +11,8 @@ import shutil
 import tempfile
 
 from subprocess import call, Popen
-from abipy.abilab import Flow, __version__
+from abipy.abilab import __version__
+from abipy.flowapi import Flow
 
 
 def main():

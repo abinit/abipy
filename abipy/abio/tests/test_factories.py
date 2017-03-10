@@ -2,6 +2,8 @@ from __future__ import unicode_literals, division, print_function
 
 import abipy.data as abidata
 import abipy.abilab as abilab
+
+from abipy.flowapi import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
@@ -32,7 +34,7 @@ class FactoryTest(AbipyTest):
         """Testing gs_input factory."""
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
 
-        flow = abilab.Flow.temporary_flow()
+        flow = Flow.temporary_flow()
         flow.register_scf_task(inp)
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
@@ -42,8 +44,8 @@ class FactoryTest(AbipyTest):
 
         scf_inp, nscf_inp = multi.split_datasets()
 
-        flow = abilab.Flow.temporary_flow()
-        flow.register_work(abilab.BandStructureWork(scf_inp, nscf_inp))
+        flow = Flow.temporary_flow()
+        flow.register_work(BandStructureWork(scf_inp, nscf_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
     def test_ion_ioncell_relax_input(self):
@@ -54,8 +56,8 @@ class FactoryTest(AbipyTest):
 
         ion_inp, ioncell_inp = multi.split_datasets()
 
-        flow = abilab.Flow.temporary_flow()
-        flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
+        flow = Flow.temporary_flow()
+        flow.register_work(RelaxWork(ion_inp, ioncell_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
     #def test_ion_ioncell_relax_and_ebands_input(self):
@@ -67,8 +69,8 @@ class FactoryTest(AbipyTest):
 
     #    ion_inp, ioncell_inp = multi.split_datasets()
 
-    #    flow = abilab.Flow.temporary_flow()
-    #    flow.register_work(abilab.RelaxWork(ion_inp, ioncell_inp))
+    #    flow = Flow.temporary_flow()
+    #    flow.register_work(RelaxWork(ion_inp, ioncell_inp))
     #    assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
     def test_g0w0_with_ppmodel_inputs(self):
@@ -82,8 +84,8 @@ class FactoryTest(AbipyTest):
 
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
 
-        flow = abilab.Flow.temporary_flow()
-        flow.register_work(abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
+        flow = Flow.temporary_flow()
+        flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
     def test_convergence_inputs_single(self):
@@ -169,8 +171,8 @@ class FactoryTest(AbipyTest):
 
         scf_input, nscf_input, bse_input = multi.split_datasets()
 
-        flow = abilab.Flow.temporary_flow()
-        flow.register_work(abilab.BseMdfWork(scf_input, nscf_input, bse_input))
+        flow = Flow.temporary_flow()
+        flow.register_work(BseMdfWork(scf_input, nscf_input, bse_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
     def test_scf_phonons_inputs(self):

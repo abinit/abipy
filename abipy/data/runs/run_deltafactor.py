@@ -6,6 +6,7 @@ import os
 import sys
 import abipy.data as data
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 
 from pseudo_dojo.dojo.works import DeltaFactory
 
@@ -21,7 +22,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Build the workflow for the computation of the deltafactor.
     # The calculation is done with the parameters and the cif files

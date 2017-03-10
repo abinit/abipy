@@ -20,9 +20,7 @@ from monty.string import is_string, list_strings
 from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
-from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinit.tasks import AbinitTask, ParalHintsParser
-from pymatgen.io.abinit.netcdf import NetcdfReader
+from abipy.flowapi import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from pymatgen.io.abinit import abiobjects as aobj
 from abipy.core.structure import Structure

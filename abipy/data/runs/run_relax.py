@@ -12,6 +12,7 @@ import sys
 import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 
 
 def make_ion_ioncell_inputs(paral_kgb=0):
@@ -73,16 +74,16 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
 
     # Create the flow
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
 
-    relax_work = abilab.RelaxWork(ion_inp, ioncell_inp)
+    relax_work = flowapi.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(relax_work)
 
-    #bands_work = abilab.BandStructureWork(scf_input, nscf_input)
-    bands_work = abilab.Work()
+    #bands_work = flowapi.BandStructureWork(scf_input, nscf_input)
+    bands_work = flowapi.Work()
     deps = {relax_work[-1]: "@structure"}
     deps = {relax_work[-1]: ["DEN", "@structure"]}  # --> This is not possible because the file ext is changed!
     #deps = {relax_work[-1]: ["WFK", "@structure"]} # --> This triggers an infamous bug in abinit

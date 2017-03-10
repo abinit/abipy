@@ -10,8 +10,7 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
-from pymatgen.io.abinit.abiobjects import KSampling
-from pymatgen.io.abinit.pseudos import PseudoTable
+from abipy.flowapi import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *
@@ -567,15 +566,15 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # all these too many options are for development only the current idea for the final version is
     #if gamma:
-    #    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
-    #    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+    #    scf_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
+    #    nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
     #    if kppa <= 13:
-    #        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
+    #        nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
     #    else:
-    #        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
+    #        nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
     #else:
-    #    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
-    #    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
     if gamma:
         if kppa == 1:
@@ -595,8 +594,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
             nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
         # this is the original behaviour before the devellopment of the gwwrapper
-        scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-        nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
+        scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+        nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
 
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,

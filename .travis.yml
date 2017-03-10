@@ -1,29 +1,61 @@
+# https://conda.io/docs/travis.html
 language: python
 python:
+  # We don't actually use the Travis Python, but this keeps it organized.
   - "2.7"
-  #- "3.3"
-  #- "3.4"
-before_install:
-  - sudo apt-get install build-essential gfortran python-dev
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev 
-  - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
-  - sudo apt-get install python-numpy 
-  - sudo apt-get install python-scipy
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install:
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Add my channel
+  - conda config --add channels gmatteo
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # Replace dep1 dep2 ... with your dependencies
+  #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - source activate test-environment
+  - conda install netcdf4
+  - conda install py.test
+  #- conda install abinit
+  - python setup.py install
+
+#before_install:
+#  - sudo apt-get install build-essential gfortran python-dev
+#  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev 
+#  - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
+#  - sudo apt-get install python-numpy 
+#  - sudo apt-get install python-scipy
 
 # command to install dependencies
-install:
-  - easy_install -U setuptools
-  - travis_wait pip install -r requirements.txt
-  - pip install nose-exclude
-  - pip install coveralls
+sudo: false
+#install:
+#  - easy_install -U setuptools
+#  - travis_wait pip install -r requirements.txt
+#  - pip install nose-exclude
+#  - pip install coveralls
 
 # This is needed, otherwise, nosetests will import try to import wx.
 before_script:
     - rm abipy/gui/__init__.py 
-    - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
+    #- export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
 
 # command to run tests
-script: nosetests
+script: py.test -v abipy
 branches:
   only:
     - master
@@ -36,6 +68,3 @@ notifications:
       - gmatteo@gmail.com
     on_success: change
     on_failure: always
-
-
-

@@ -6,8 +6,9 @@ import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowapi as flowapi
 
-from abipy.flows.abiphonopy import PhonopyGruneisenWork
+from abipy.flowapi.abiphonopy import PhonopyGruneisenWork
 
 
 def build_flow(options):
@@ -31,7 +32,7 @@ def build_flow(options):
     gsinp.set_autokmesh(nksmall=4)
     #gsinp.set_vars(ngkpt=[4, 4, 4])
 
-    flow = abilab.Flow(workdir=workdir)
+    flow = flowapi.Flow(workdir=workdir)
     # Use a 2x2x2 supercell to compute phonons with phonopy
     work = PhonopyGruneisenWork.from_gs_input(gsinp, voldelta=0.01, scdims=[4, 4, 4])
     flow.register_work(work)

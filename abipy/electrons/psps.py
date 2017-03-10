@@ -7,7 +7,7 @@ import numpy as np
 from monty.string import list_strings
 from monty.bisect import find_gt
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
-from pymatgen.io.abinit.pseudos import Pseudo
+from abipy.flowapi import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile
 

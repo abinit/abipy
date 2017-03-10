@@ -8,7 +8,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 
-from pymatgen.io.abinit.pseudos import PseudoParser, PseudoTable
+from abipy.flowapi import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
@@ -62,7 +62,7 @@ pseudo_dir = _PSEUDOS_DIRPATH
 def pseudo(filename):
     """Returns a `Pseudo` object."""
     filepath = os.path.join(_PSEUDOS_DIRPATH, filename)
-    return PseudoParser().parse(filepath)
+    return Pseudo.from_file(filepath)
 
 
 def pseudos(*filenames):

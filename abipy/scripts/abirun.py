@@ -11,6 +11,8 @@ import argparse
 import shlex
 import time
 import platform
+import abipy.flowapi as flowapi
+import abipy.abilab as abilab
 
 from pprint import pprint
 from collections import defaultdict
@@ -20,9 +22,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
-from pymatgen.io.abinit.nodes import Status
-from pymatgen.io.abinit.events import autodoc_event_handlers
-import abipy.abilab as abilab
+from abipy.flowapi import Status
 
 
 def straceback():
@@ -544,14 +544,12 @@ Specify the files to open. Possible choices:
 
         else:
             print(abilab.TaskManager.autodoc())
-            from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
-
-            print("qtype supported: %s" % all_qtypes())
+            print("qtype supported: %s" % flowapi.all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
 
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)
-                show_qparams(qtype)
+                flowapi.show_qparams(qtype)
 
         return 0
 
@@ -674,7 +672,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "handlers":
         if options.doc:
-            autodoc_event_handlers()
+            flowapi.autodoc_event_handlers()
         else:
             flow.show_event_handlers(verbose=options.verbose)
 

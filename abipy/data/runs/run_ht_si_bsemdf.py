@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import abipy.data as abidata  
+import abipy.flowapi as flowapi
 
 from abipy import abilab
 
@@ -30,7 +31,7 @@ def build_flow(options):
     ecuteps = 2
     ecut = 12
 
-    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # BSE calculation with model dielectric function.
     multi = abilab.bse_with_mdf_inputs(
@@ -42,7 +43,7 @@ def build_flow(options):
         smearing=None)
         #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
-    work = abilab.BseMdfWork(scf_input=multi[0], nscf_input=multi[1], bse_inputs=multi[2:])
+    work = flowapi.BseMdfWork(scf_input=multi[0], nscf_input=multi[1], bse_inputs=multi[2:])
 
     #from pymatgen.io.abinit.calculations import bse_with_mdf_work
     #work = bse_with_mdf_work(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,

@@ -7,11 +7,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import sys
-
-from abipy import abilab
 import abipy.data as abidata
 
-from abipy.abilab import FloatWithUnit
+from abipy import abilab
+from abipy import flowapi
 
 
 def special_positions(lattice, u):
@@ -48,7 +47,7 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
@@ -65,7 +64,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     """
     # Variables global to the SCF and the NSCF run.
     global_vars = dict(
-        ecut=FloatWithUnit(100, "eV").to("Ha"),
+        ecut=abilab.FloatWithUnit(100, "eV").to("Ha"),
         paral_kgb=paral_kgb,
         #nband=8,
     )
@@ -89,7 +88,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 
     gs_inp, nscf_inp = multi.split_datasets()
 
-    return abilab.BandStructureWork(gs_inp, nscf_inp)
+    return flowapi.BandStructureWork(gs_inp, nscf_inp)
 
 
 @abilab.flow_main
