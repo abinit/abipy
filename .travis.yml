@@ -31,8 +31,8 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda install netcdf4
-  - conda install py.test
-  #- conda install abinit
+  - conda install pytest
+  - conda install abinit
   - python setup.py install
 
 #before_install:
@@ -56,7 +56,7 @@ before_script:
     #- export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
 
 # command to run tests
-script: py.test -v abipy
+script: pytest -v abipy
 branches:
   only:
     - master
