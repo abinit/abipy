@@ -92,7 +92,7 @@ The output of ``which python`` should show that you are using the python interpr
 Use the ``conda`` command-line interface to install the packages not included in the official distribution.
 For example, you can install ``pyyaml`` and ``netcdf4`` with::
 
-    $ conda install pyyaml, netcdf4
+    $ conda install pyyaml netcdf4
 
 Remember that if a package is not available in the official conda repository, you can always
 use ``pip install`` or download the package from one of the conda channels.
