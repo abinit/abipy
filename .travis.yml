@@ -49,8 +49,8 @@ before_script:
     - rm abipy/gui/__init__.py 
 
 # command to run tests
-#script: pytest -v abipy
-script: nosetests -v abipy
+#script: abicheck.py; pytest -v abipy
+script: abicheck.py; nosetests -v abipy
 branches:
   only:
     - master

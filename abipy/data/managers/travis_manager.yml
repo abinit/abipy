@@ -6,6 +6,8 @@ qadapters:
         qtype: shell
       job:
         mpi_runner: null
+        pre_run: 
+            - source activate test-environment
       limits:
          min_cores: 1
          max_cores: 1
