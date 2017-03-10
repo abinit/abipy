@@ -30,6 +30,7 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
+  - conda install gcc
   - conda install netcdf4
   - conda install pytest
   - conda install abinit
