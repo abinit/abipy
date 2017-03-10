@@ -21,17 +21,13 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem
 
-
-
-
-
 Official documentation of the stable version available at `abipy docpage`_.
 
-AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_,
+AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
-Check out the list of plotting scripts available in the
-`examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ directory.
+Check out the list of plotting scripts available in our
+`examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ gallery.
 To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
 <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
 and the
@@ -65,6 +61,14 @@ Note that you may need to install pymatgen and other critical dependencies manua
 For this reason, we strongly suggest to install the required python packages through one
 of the following python distributions:
 
+Note that you may need to install pymatgen and other critical dependencies manually.
+In this case, please consult the detailed installation instructions provided by the
+`pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
+and then follow the instructions in `ourhowto <http://pythonhosted.org/abipy/installation.html>`_.
+
+Note, however, that the installation process is greatly simplified if you install the required 
+python packages through one of the following python distributions:
+
   * `Anaconda <https://continuum.io/downloads>`_
 
   * `Canopy <https://www.enthought.com/products/canopy>`_
@@ -76,31 +80,66 @@ in the form of pre-compiled packages and ``netcdf4`` can be easily installed wit
     conda install netcdf4
 
 Additional information on the steps required to install AbiPy with anaconda are available
-in the `anaconda howto <http://pythonhosted.org/abipy/users/howto_anaconda.html>`_.
+in the `anaconda howto <http://pythonhosted.org/abipy/installation.html>`_.
 
 We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
-Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
-manually can consult this `howto <http://pythonhosted.org/abipy/users/howto_compile_python_and_bootstrap_pip.html>`_.
+---------------------
+Optional dependencies
+---------------------
+
+Optional libraries that are required if you need certain features:
+
+``ipython``
+
+    Required to interact with the AbiPy/Pymatgen objects in the ipython shell
+    (strongly recommended, already provided by conda).
+
+``jupyter`` and ``nbformat``
+
+    Required to generate jupyter notebooks.
+    Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
+    Recommended but you will also need a web browser to open the notebook.
+
+``seaborn``
+
+    Python visualization library based on matplotlib. 
+    It provides a high-level interface for drawing attractive statistical graphics.
+    Used in AbiPy for particular plots.
+
+``wxPython`` and ``wxmplot`` for the GUI
+
+    Use ``conda install wxpython``
+    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
+    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
 
 Developmental version
 ---------------------
 
-The developmental version is at the AbiPy's `Github repo <https://github.com/abinit/abipy>`_.
-The Github version include test files for complete unit testing.
-After cloning the source, type::
+Getting the developmental version of AbiPy is easy. You can clone it from the 
+`github repository <https://github.com/abinit/abipy>`_ using this command:
+
+.. code-block:: console
+
+   $ git clone https://github.com/abinit/abipy
+
+After cloning the repository, type::
 
     $ python setup.py install
 
-or::
+or alternately::
 
     $ python setup.py develop
 
-to install the package in developmental mode (this is the recommended approach, especially if you are
-planning to implement new features).
+to install the package in developmental mode 
+(this is the recommended approach, especially if you are planning to implement new features).
 
-To run the suite of unit tests, make sure you have py.test (nose) installed and then just type::
+The documentation of the developmental version is hosted on `github pages <http://abinit.github.io/abipy>`_.
+
+The Github version include test files for complete unit testing.
+To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
+or ``nose`` installed and then just type::
 
     $ py.test
 
@@ -120,35 +159,6 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
-Requirements
-============
-
-All required dependencies should be automatically taken care of if you are using ``conda``
-
-Otherwise, these packages should be available on `PyPI <http://pypi.python.org>`_.
-
-Optional dependencies
----------------------
-
-Optional libraries that are required if you need certain features:
-
-  * ``matplotlib``
-
-  * ``ipython``
-
-    Required to interact with the AbiPy/Pymatgen objects in the ipython shell.
-
-  * ``jupyter`` and ``nbformat``
-
-    Required to generate jupyter notebooks to analyze data.
-    Install these two packages with `conda install jupyter nbformat`
-
-  * ``wxPython`` and ``wxmplot`` for the GUI
-
-    Use ``conda install wxpython``
-    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
-    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
-
 Using AbiPy
 ===========
 
@@ -158,55 +168,29 @@ Basic usage
 There are a variety of ways to use AbiPy, and most of them are illustrated in the ``abipy/examples`` directory.
 Below is a brief description of the different directories found there:
 
-  * ``plot``
+  * `plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_
 
     scripts showing how to produce plots with ``matplotlib``
 
-  * ``notebooks``
+  * `notebooks <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
 
     jupyter notebooks
     (use ``jupyter notebook FILE`` to open the notebook in your browser,
     use ``conda install jupyter`` to install the package)
 
-
 The directory ``abipy/data/runs`` contains python scripts that can be used to automate typical ab-initio calculations.
+
+Command line tools
+------------------
 
 The following scripts can be invoked directly from the terminal:
 
-  * `abiopen.py`
+  * ``abiopen.py``
+  * ``abistruct.py``
+  * ``abicomp.py``
+  * ``abicheck.py``
 
-    Script to open outputs file produced by Abinit (usually in netcdf format but
-    other files are supported as well). By default the script starts an interactive ipython
-    session so that one can interact with the file and call its methods.
-    Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
-
-  * `abistruct.py`
-
-    Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
-
-  * `abicomp.py`
-
-    Script to analyze/compare results stored in multiple netcdf files.
-    By default the script displays the results/plots in the shell.
-    Use `--ipython` to start an ipython terminal or `-nb` to generate a jupyter notebook.
-
-  * `abicheck.py`
-
-    This script checks that the environment on the local machine is properly configured.
-
-
-Examples of the basic capabilities can be found in the
-`example page <http://pythonhosted.org/abipy/examples/index.html>`_ of the  official documentation.
-
-If the examples stops with the error message::
-
-    "ValueError: unknown locale: UTF-8"
-
-add the following line to your ``.bashrc`` file inside your ``$HOME`` (``.profile`` if MacOSx)::
-
-    export LC_ALL=C
-
-reload the environment with ``source ~/.bashrc`` and rerun.
+For further information, please consult the `official documentation <http://pythonhosted.org/abipy/scripts.html>`_.
 
 Advanced Usage
 --------------

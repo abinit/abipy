@@ -10,7 +10,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_,
+AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our :doc:`gallery </examples/index>`.
@@ -28,3 +28,7 @@ Note that the majority of the post-processing tools available in AbiPy require o
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
 provided by the `abiconfig package <https://github.com/abinit/abiconfig>`_.
+
+
+AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
+Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
