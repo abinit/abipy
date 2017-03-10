@@ -22,7 +22,7 @@ ArrayWithUnit = units.ArrayWithUnit
 ####################
 ### Abipy import ###
 ####################
-from abipy.flowapi import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager
+from abipy.flowapi import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager, AbinitBuild
 #from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
 #    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
@@ -272,6 +272,8 @@ def abicheck(verbose=0):
 
     # Get info on the Abinit build.
     from abipy.core.testing import cmp_version
+    from abipy.flowapi import PyFlowScheduler
+
     if manager is not None:
         cprint("AbiPy Manager:\n%s\n" % str(manager), color="green")
         build = AbinitBuild(manager=manager)
@@ -283,7 +285,6 @@ def abicheck(verbose=0):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
 
     # Get info on the scheduler.
-    from abipy.flowapi import PyFlowScheduler
     try:
         scheduler = PyFlowScheduler.from_user_config()
         cprint("Abipy Scheduler:\n%s\n" % str(scheduler), color="yellow")

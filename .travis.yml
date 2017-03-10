@@ -30,6 +30,9 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
+  # https://github.com/BVLC/caffe/issues/3884
+  # https://docs.continuum.io/mkl-optimizations/
+  - conda install nomkl
   - conda install gcc scipy
   - conda install pandas netcdf4
   - pip install pytest scripttest nose nose-exclude
