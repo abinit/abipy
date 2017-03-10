@@ -202,7 +202,8 @@ class ElectronBandsPlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             plotter.combiplot(title="Silicon band structure", show=False)
-            plotter.combiboxplot(title="Silicon band structure", show=False)
+            if self.has_seaborn():
+                plotter.combiboxplot(title="Silicon band structure", show=False)
             plotter.gridplot(title="Silicon band structure", show=False)
             plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
             plotter.animate(show=False)

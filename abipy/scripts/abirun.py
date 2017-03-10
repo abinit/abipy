@@ -87,7 +87,7 @@ def flowdir_wname_tname(dirname):
     """
     if dirname is None: dirname = os.getcwd()
     dirname = os.path.abspath(dirname)
-    if os.path.exists(os.path.join(dirname, abilab.Flow.PICKLE_FNAME)):
+    if os.path.exists(os.path.join(dirname, flowapi.Flow.PICKLE_FNAME)):
         return dirname, None, None
 
     # Handle works or tasks.
@@ -96,7 +96,7 @@ def flowdir_wname_tname(dirname):
     for i in range(2):
         head, tail = os.path.split(head)
         if i == 0: tail_1 = tail
-        if os.path.exists(os.path.join(head, abilab.Flow.PICKLE_FNAME)):
+        if os.path.exists(os.path.join(head, flowapi.Flow.PICKLE_FNAME)):
             if i == 0:
                 # We have a work: /root/flow_dir/w[num]
                 wname = tail
@@ -529,7 +529,7 @@ Specify the files to open. Possible choices:
         qtype = options.qtype
 
         if qtype == "script":
-            manager = abilab.TaskManager.from_user_config()
+            manager = flowapi.TaskManager.from_user_config()
             script = manager.qadapter.get_script_str(
                 job_name="job_name",
                 launch_dir="workdir",
@@ -543,7 +543,7 @@ Specify the files to open. Possible choices:
             print(script)
 
         else:
-            print(abilab.TaskManager.autodoc())
+            print(flowapi.TaskManager.autodoc())
             print("qtype supported: %s" % flowapi.all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
 
@@ -555,12 +555,11 @@ Specify the files to open. Possible choices:
 
     if options.command == "doc_scheduler":
         print("Options that can be specified in scheduler.yml:")
-        print(abilab.PyFlowScheduler.autodoc())
+        print(flowapi.PyFlowScheduler.autodoc())
         return 0
 
     if options.command == "abibuild":
-        #abilab.abicheck():
-        abinit_build = abilab.AbinitBuild()
+        abinit_build = flowapi.AbinitBuild()
         print()
         print(abinit_build)
         print()
@@ -597,7 +596,7 @@ Specify the files to open. Possible choices:
         options.flowdir, wname, tname = flowdir_wname_tname(options.flowdir)
 
     # Read the flow from the pickle database.
-    flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+    flow = flowapi.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.show_info()
 
     # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
@@ -642,7 +641,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "new_manager":
         # Read the new manager from file.
-        new_manager = abilab.TaskManager.from_file(options.manager_file)
+        new_manager = flowapi.TaskManager.from_file(options.manager_file)
 
         # Default status for new_manager is QCritical
         if options.task_status is None:

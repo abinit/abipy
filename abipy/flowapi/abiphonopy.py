@@ -7,10 +7,15 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import numpy as np
 
-from phonopy import Phonopy, file_IO
-from phonopy.structure.atoms import Atoms as PhonopyAtoms
-from phonopy.interface.vasp import read_vasp_from_strings
-from phonopy.interface.abinit import parse_set_of_forces
+try:
+    from phonopy import Phonopy, file_IO
+    from phonopy.interface.vasp import read_vasp_from_strings
+    from phonopy.interface.abinit import parse_set_of_forces
+except ImportError:
+    import warnings
+    warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip")
+
+
 from pymatgen.io.abinit.works import Work
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput

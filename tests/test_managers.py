@@ -4,9 +4,9 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import abipy.data as abidata
+import abipy.flowapi as flowapi
 
 from abipy.core.testing import AbipyTest
-from abipy import abilab
 
 
 class ManagerTest(AbipyTest):
@@ -17,7 +17,7 @@ class ManagerTest(AbipyTest):
         yaml_paths = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".yml") and "_manager" in f]
         assert yaml_paths
         for p in yaml_paths:
-            manager = abilab.TaskManager.from_file(p)
+            manager = flowapi.TaskManager.from_file(p)
             print(manager)
             shell = manager.to_shell_manager(mpi_procs=2)
         #assert 0
@@ -28,7 +28,7 @@ class ManagerTest(AbipyTest):
         yaml_paths = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".yml") and "_scheduler" in f]
         assert yaml_paths
         for p in yaml_paths:
-            sched = abilab.PyFlowScheduler.from_file(p)
+            sched = flowapi.PyFlowScheduler.from_file(p)
             print(sched)
 
         #assert 0
