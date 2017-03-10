@@ -5,7 +5,7 @@ Abipy Documentation
 .. image:: https://pypip.in/v/abipy/badge.png
         :target: https://pypi.python.org/pypi/abipy
 
-.. image:: https://img.shields.io/travis/gmatteo/abipy/master.svg
+.. image:: https://img.shields.io/travis/abinit/abipy/master.svg
         :target: https://travis-ci.org/gmatteo/abipy
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg

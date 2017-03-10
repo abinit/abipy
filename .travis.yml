@@ -36,10 +36,11 @@ install:
   - conda install gcc scipy
   - conda install pandas netcdf4
   - pip install pytest scripttest nose nose-exclude
-  #- conda install matplotlib seaborn
-  #- conda install ipython jupyter nbformat
+  - conda install matplotlib seaborn
+  - conda install ipython jupyter nbformat
+  # Install abinit from gmatteo's conda channel.
   - conda install abinit
-  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && python setup.py install && cd ..
+  # FIXME: I'm still using my fork
   - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
   - python setup.py install
   - mkdir -p ${HOME}/.abinit/abipy 

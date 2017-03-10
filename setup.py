@@ -108,6 +108,7 @@ def find_package_data():
         'abipy.data.refs' : [
             "al_g0w0_spfunc/*",
             "alas_phonons/*",
+            "mgb2_fatbands/*",
             "si_bse/*",
             "si_ebands/*",
             "si_g0w0/*",
@@ -181,9 +182,8 @@ install_requires = [
     "scipy>=0.14",
     "pymatgen>=4.7.1",
     "netCDF4",
-    #"wxmplot",
-    #"matplotlib",
-    #"seaborn",
+    "matplotlib>=1.5",
+    "seaborn",
 ]
 
 if with_ipython:
@@ -199,6 +199,13 @@ if with_ipython:
 #    install_requires += [
 #        "cython",
 #    ]
+
+with_wxpython = False
+if with_wxpython:
+    install_requires += [
+        "wxmplot",
+        "wxpython",
+    ]
 
 #print("install_requires\n", install_requires)
 
