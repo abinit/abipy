@@ -34,7 +34,8 @@ install:
   # https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
   - conda install gcc scipy
-  - conda install pandas netcdf4
+  - conda install pandas
+  - conda install netcdf4=1.2.7
   - pip install pytest scripttest nose nose-exclude
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
