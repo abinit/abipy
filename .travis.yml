@@ -3,7 +3,7 @@ language: python
 
 os:
   - linux
-  - osx
+  #- osx
 
 python: # We don't actually use the Travis Python, but this keeps it organized.
   - "2.7"
@@ -14,13 +14,7 @@ python: # We don't actually use the Travis Python, but this keeps it organized.
 sudo: required
 
 install:
-  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-      brew update;
-      brew install python;
-      brew install wget;
-    else
-       sudo apt-get update
-    fi 
+  - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -40,13 +34,12 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  # https://github.com/BVLC/caffe/issues/3884
-  # https://docs.continuum.io/mkl-optimizations/
+  # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
   - conda install gcc scipy
   - conda install pandas
   - conda install netcdf4 
-  # https://github.com/ContinuumIO/anaconda-issues/issues/1360
+  # See hSttps://github.com/ContinuumIO/anaconda-issues/issues/1360
   - conda install hdf4=4.2.12
   - pip install pytest scripttest nose nose-exclude
   - pip install pep8 python-coveralls
