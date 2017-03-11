@@ -1,6 +1,3 @@
-`run_batch`:
-This example shows how to build multiple flows and use the BatchLauncher to execute them.
-
 `run_deltafactor`:
 Compute the deltafactor for a given pseudopotential.
 
@@ -34,9 +31,6 @@ LDA+U band structure of NiO for several values of U-J.
 
 `run_mgb2_edoses`:
 Band structure and the electron DOS of MgB2 with different k-point samplings.
-
-`run_oneshot_phonon`:
-Phonon band structure of AlAs.
 
 `run_optic`:
 Optical spectra with Optic.

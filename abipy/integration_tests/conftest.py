@@ -30,6 +30,7 @@ _manager_confs = []
 
 for autoparal in [1]: #, 1]:
     newd = copy.deepcopy(base_conf)
+    if "policy" not in newd: neww["policy"] = {}
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
 
@@ -87,7 +88,7 @@ def pytest_report_header(config):
     lines = ["\n*** Integration tests for abipy + abinit + pymatgen ***\n"]
     app = lines.append
 
-    app("Assuming the enviroment is properly configured:")
+    app("Assuming the environment is properly configured:")
     app("In particular, we assume that the abinit executable is in $PATH and can be executed.")
     app("Change manager.yml according to your platform.")
     app("Number of manager configurations: %d" % len(_manager_confs))

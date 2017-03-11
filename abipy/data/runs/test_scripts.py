@@ -14,6 +14,16 @@ from subprocess import call, Popen
 from abipy.abilab import __version__
 from abipy.flowapi import Flow
 
+from abipy.core.testing import *
+
+
+class TestScripts(AbipyTest):
+    def test_all_scripts(self):
+        """Testing all scripts in abipy/data/runs/"""
+        retcode = call("./test_scripts.py")
+        assert retcode == 0
+
+
 
 def main():
     def str_examples():
