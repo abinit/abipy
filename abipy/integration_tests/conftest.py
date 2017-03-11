@@ -16,9 +16,13 @@ from monty.collections import AttrDict
 # and then we convert the dictionary to string with yaml.dump. This string will be passed
 # to Manager.from_string in fwp. base_conf looks like:
 
+USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
+#USER_CONFIG_DIR = os.path.dirname(__file__)
+
 
 # Read the base configuration from file
-with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
+#with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
+with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
@@ -47,7 +51,7 @@ def fwp(tmpdir, request):
     # Create the TaskManager.
     fwp.manager = flowapi.TaskManager.from_string(request.param)
 
-    fwp.scheduler = flowapi.PyFlowScheduler.from_file(os.path.join(os.path.dirname(__file__), "scheduler.yml"))
+    fwp.scheduler = flowapi.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
 
     return fwp
 

@@ -847,8 +847,6 @@ class LatticePointGroup(OpSequence):
         # Remove blanks from C string.
         import spglib
         herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
-        #from pymatgen.symmetry.analyzer import get_point_group
-        #herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
         self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
 
