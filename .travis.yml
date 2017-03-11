@@ -61,7 +61,7 @@ before_script:
 
 # command to run tests
 #script: abicheck.py; pytest -v abipy
-script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO; py.test -v integration_tests
+script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO; pytest -v abipy/integration_tests
 
 branches:
   only:
