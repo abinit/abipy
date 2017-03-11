@@ -55,13 +55,15 @@ install:
   - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
   - ./dev_scripts/pyclean.py .
 
-# This is needed, otherwise, nosetests will import try to import wx.
+# This is needed, otherwise, nosetests tries to import wx.
 before_script:
     - rm abipy/gui/__init__.py 
 
 # command to run tests
 #script: abicheck.py; pytest -v abipy
-script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO; pytest -v abipy/integration_tests
+script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO
+# This is to run the integration tests (slow)
+#; pytest -v abipy/integration_tests
 
 branches:
   only:
