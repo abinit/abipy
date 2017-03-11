@@ -58,15 +58,11 @@ that can be installed with::
     pip install abipy
 
 Note that you may need to install pymatgen and other critical dependencies manually.
-For this reason, we strongly suggest to install the required python packages through one
-of the following python distributions:
-
-Note that you may need to install pymatgen and other critical dependencies manually.
 In this case, please consult the detailed installation instructions provided by the
 `pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
-and then follow the instructions in `ourhowto <http://pythonhosted.org/abipy/installation.html>`_.
+and then follow the instructions in `our howto <http://pythonhosted.org/abipy/installation.html>`_.
 
-Note, however, that the installation process is greatly simplified if you install the required 
+The installation process is greatly simplified if you install the required 
 python packages through one of the following python distributions:
 
   * `Anaconda <https://continuum.io/downloads>`_
@@ -94,19 +90,13 @@ Optional libraries that are required if you need certain features:
 ``ipython``
 
     Required to interact with the AbiPy/Pymatgen objects in the ipython shell
-    (strongly recommended, already provided by conda).
+    (strongly recommended, already provided by ``conda``).
 
 ``jupyter`` and ``nbformat``
 
     Required to generate jupyter notebooks.
     Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
     Recommended but you will also need a web browser to open the notebook.
-
-``seaborn``
-
-    Python visualization library based on matplotlib. 
-    It provides a high-level interface for drawing attractive statistical graphics.
-    Used in AbiPy for particular plots.
 
 ``wxPython`` and ``wxmplot`` for the GUI
 
@@ -135,7 +125,7 @@ or alternately::
 to install the package in developmental mode 
 (this is the recommended approach, especially if you are planning to implement new features).
 
-The documentation of the developmental version is hosted on `github pages <http://abinit.github.io/abipy>`_.
+The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
 To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
@@ -151,6 +141,16 @@ in the AbiPy root directory.
 Unit tests require two additional packages that can be installed with::
 
    $ pip install nose-exclude scripttest
+
+Note that several unit tests check the integration between AbiPy and Abinit. 
+In order to run the tests, you need a working set of Abinit executables and  
+a ``manager.yml`` configuration file.
+A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
+
+    $ conda install abinit -c gmatteo
+
+For further information on the syntax of the configuration file, please consult the 
+`workflows <http://pythonhosted.org/abipy/workflows.html>`_ section.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
