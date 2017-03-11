@@ -1,8 +1,11 @@
 # https://conda.io/docs/travis.html
 language: python
 
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
+os:
+  - linux
+  - osx
+
+python: # We don't actually use the Travis Python, but this keeps it organized.
   - "2.7"
   - "3.4"
   - "3.5"
@@ -36,7 +39,7 @@ install:
   - conda install nomkl
   - conda install gcc scipy
   - conda install pandas
-  - conda install netcdf4 #=1.2.7
+  - conda install netcdf4 
   # https://github.com/ContinuumIO/anaconda-issues/issues/1360
   - conda install hdf4=4.2.12
   - pip install pytest scripttest nose nose-exclude
@@ -68,9 +71,9 @@ branches:
     - develop
 
 after_success:
-- if [[ $ENV == python=2.7* ]]; then
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
           coveralls;
-   fi
+  fi
 
 notifications:
   email:
