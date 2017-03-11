@@ -26,7 +26,7 @@ benefit from the different tools and python objects available in the pymatgen ec
 
 Official documentation of the stable version available at `abipy docpage`_.
 
-AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`,
+AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our

@@ -10,7 +10,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`,
+AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our :doc:`gallery </examples/index>`.
