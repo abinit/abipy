@@ -30,7 +30,7 @@ _manager_confs = []
 
 for autoparal in [1]: #, 1]:
     newd = copy.deepcopy(base_conf)
-    if "policy" not in newd: neww["policy"] = {}
+    if "policy" not in newd: newd["policy"] = {}
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
 
