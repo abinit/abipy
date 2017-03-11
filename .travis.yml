@@ -1,5 +1,6 @@
 # https://conda.io/docs/travis.html
 language: python
+
 python:
   # We don't actually use the Travis Python, but this keeps it organized.
   - "2.7"
@@ -8,6 +9,7 @@ python:
   - "3.6"
 
 sudo: required
+
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the version is the same.
@@ -20,12 +22,11 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  #- conda update -q conda
   # Add my channel
   - conda config --add channels gmatteo
   # Useful for debugging any issues with conda
   - conda info -a
-
   # Replace dep1 dep2 ... with your dependencies
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
@@ -35,8 +36,9 @@ install:
   - conda install nomkl
   - conda install gcc scipy
   - conda install pandas
-  - conda install netcdf4=1.2.7
+  - conda install netcdf4 #=1.2.7
   - pip install pytest scripttest nose nose-exclude
+  - pip install pep8 python-coveralls
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
   # Install abinit from gmatteo's conda channel.
@@ -55,13 +57,19 @@ before_script:
 
 # command to run tests
 #script: abicheck.py; pytest -v abipy
-script: abicheck.py; nosetests -v abipy
+#script: abicheck.py; nosetests -v abipy
+script: abicheck.py; nosetests --v abipy --with-coverage --cover-package=abipy --logging-level=INFO
+
 branches:
   only:
     - master
     - develop
-#after_success:
-#  coveralls
+
+after_success:
+- if [[ $ENV == python=2.7* ]]; then
+          coveralls;
+   fi
+
 notifications:
   email:
     recipients:

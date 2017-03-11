@@ -8,6 +8,9 @@ Abipy Documentation
 .. image:: https://img.shields.io/travis/abinit/abipy/master.svg
         :target: https://travis-ci.org/gmatteo/abipy
 
+.. image:: https://coveralls.io/repos/github/gmatteo/abipy/badge.svg?branch=master
+    :target: https://coveralls.io/github/gmatteo/abipy?branch=master
+
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
 
