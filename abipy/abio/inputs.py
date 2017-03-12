@@ -2321,7 +2321,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
             ifcout=ifcout,
             natifc=len(structure),
             atifc=list(range(1, len(structure)+1)),
-            ifcana=1
+            ifcana=1,
+            prt_ifc=1
         )
 
         return new
