@@ -867,7 +867,7 @@ class PhononBands(object):
         """
         if branch is None:
             branch_range = range(self.num_branches)
-        elif isinstance(branch, (list, tuple, np.array)):
+        elif isinstance(branch, (list, tuple, np.ndarray)):
             branch_range = branch
         else:
             branch_range = [branch]
