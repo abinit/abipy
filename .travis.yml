@@ -47,6 +47,8 @@ install:
   - conda install ipython jupyter nbformat
   # Install abinit from gmatteo's conda channel.
   - conda install abinit
+  # phonopy is not a requirement but we test scripts in data/runs that use it
+  - conda install -c conda-forge phonopy
   # FIXME: I'm still using my fork
   - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
   - python setup.py install
@@ -61,7 +63,7 @@ before_script:
 
 # command to run tests
 #script: abicheck.py; pytest -v abipy
-script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO
+script: abicheck.py; nosetests abipy -v --with-coverage --cover-package=abipy --logging-level=INFO
 # This is to run the integration tests (slow)
 #; pytest -v abipy/integration_tests
 

@@ -18,4 +18,5 @@ class TestScripts(AbipyTest):
     def test_all_scripts(self):
         """Testing all scripts in abipy/data/runs/"""
         retcode = call(os.path.join(root, "_runemall.py"))
+        if retcode != 0: print(retcode, "scripts in ~abipy/data/runs exited with non-zero return code")
         assert retcode == 0
