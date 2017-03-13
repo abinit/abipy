@@ -7,6 +7,8 @@ import numpy as np
 import itertools
 import pickle
 import os
+import six
+import json
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings
@@ -19,7 +21,8 @@ from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt
-from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro
+from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro, Ha_cmm1
+from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 
 __all__ = [
@@ -655,6 +658,123 @@ class PhononBands(object):
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
+    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
+                                  highsym_qpts_mode="split"):
+        """
+        Writes a json file that can be parsed from phononwebsite
+        https://github.com/henriquemiranda/phononwebsite
+
+        Args:
+            filename: name of the json file that will be created
+            name: name associated with the data.
+            repetitions: number of repetitions of the cell. List of three integers. Defaults to [3,3,3].
+            highsym_qpts: list of tuples. The first element of each tuple should be a list with the coordinates
+                of a high symmetry point, the second element of the tuple should be its label.
+            match_bands: if True tries to follow the band along the path based on the scalar
+                product of the eigenvectors
+            highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.
+                Accepts the following values:
+                'split' will split the path based on points where the path changes direction in the brillouin zone.
+                    Similar to the what is done in phononwebsite. Only Gamma will be labeled.
+                'std' uses the standard generation procedure for points and labels used in PhononBands.
+                None does not set any point.
+        """
+
+        def split_non_collinear(qpts):
+            """
+            function that splits the list of qpoints at repetitions (only the first point will be considered as
+             high symm) and where the direction changes. Also sets \Gamma for [0,0,0].
+             Similar to what is done in phononwebsite.
+            """
+            h = []
+            if np.array_equal(qpts[0], [0, 0, 0]):
+                h.append((0, "\\Gamma"))
+            for i in range(1,len(qpts)-1):
+                if np.array_equal(qpts[i], [0,0,0]):
+                    h.append((i, "\\Gamma"))
+                elif np.array_equal(qpts[i], qpts[i+1]):
+                    h.append((i, ""))
+                else:
+                    v1 = [a_i - b_i for a_i, b_i in zip(qpts[i+1], qpts[i])]
+                    v2 = [a_i - b_i for a_i, b_i in zip(qpts[i-1], qpts[i])]
+                    if not np.isclose(np.linalg.det([v1,v2,[1,1,1]]), 0):
+                        h.append((i, ""))
+            if np.array_equal(qpts[-1], [0, 0, 0]):
+                h.append((len(qpts)-1, "\\Gamma"))
+
+            return h
+
+        data = dict()
+        data["name"] = name or self.structure.composition.reduced_formula
+        data["natoms"] = self.num_atoms
+        data["lattice"] = self.structure.lattice.matrix.tolist()
+        data["atom_types"] = [e.name for e in self.structure.species]
+        data["atom_numbers"] = self.structure.atomic_numbers
+        data["chemical_symbols"] =self.structure.symbol_set
+        data["atomic_numbers"] = list(set(self.structure.atomic_numbers))
+        data["formula"] = self.structure.formula.replace(" ", "")
+        data["repetitions"] = repetitions or (3,3,3)
+        data["atom_pos_car"] = self.structure.cart_coords.tolist()
+        data["atom_pos_red"] = self.structure.frac_coords.tolist()
+
+        qpoints = []
+        for q_sublist in self.split_qpoints:
+            qpoints.extend(q_sublist.tolist())
+
+        if highsym_qpts is None:
+            if highsym_qpts_mode is None:
+                data["highsym_qpts"] = []
+            elif highsym_qpts_mode == 'split':
+                data["highsym_qpts"] = split_non_collinear(qpoints)
+            elif highsym_qpts_mode == 'std':
+                data["highsym_qpts"] = list(six.zip(self._make_ticks_and_labels(None)))
+        else:
+            data["highsym_qpts"] = highsym_qpts
+
+        distances = [0]
+        for i in range(1,len(qpoints)):
+            q_coord_1 = self.structure.reciprocal_lattice.get_cartesian_coords(qpoints[i])
+            q_coord_2 = self.structure.reciprocal_lattice.get_cartesian_coords(qpoints[i-1])
+            distances.append(distances[-1] + np.linalg.norm(q_coord_1-q_coord_2))
+
+        eigenvalues = []
+        for i, phfreqs_sublist in enumerate(self.split_phfreqs):
+            phfreqs_sublist = phfreqs_sublist*eV_to_Ha*Ha_cmm1
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                phfreqs_sublist = phfreqs_sublist[np.arange(len(phfreqs_sublist))[:, None], ind]
+            eigenvalues.extend(phfreqs_sublist.tolist())
+
+        vectors = []
+
+        for i, (qpts, phdispl_sublist) in enumerate(zip(self.split_qpoints, self.split_phdispl_cart)):
+            # the eigenvectors are needed (the mass factor is removed)
+            vect = get_dyn_mat_eigenvec(phdispl_sublist, self.structure, amu=self.amu)
+            # since phononwebsite will multiply again by exp(2*pi*q.r) this factor should be removed,
+            # because in abinit convention it is included in the eigenvectors.
+            for iqpt in range(len(qpts)):
+                q = self.qpoints[iqpt].frac_coords
+                for ai in range(self.num_atoms):
+                    vect[iqpt, :, 3*ai:3*(ai + 1)] = vect[iqpt, :, 3*ai:3*(ai + 1)]* \
+                                                     np.exp(-2*np.pi*1j*np.dot(self.structure[ai].frac_coords, q))
+
+            if match_bands:
+                vect = vect[np.arange(vect.shape[0])[:, None, None],
+                            self.split_matched_indices[i][...,None],
+                            np.arange(vect.shape[2])[None, None,:]]
+            v = vect.reshape((len(vect), self.num_branches,self.num_atoms, 3))
+            v = np.stack([v.real, v.imag], axis=-1)
+
+            vectors.extend(v.tolist())
+
+        data["qpoints"] = qpoints
+        data["distances"] = distances
+        data["eigenvalues"] = eigenvalues
+        data["vectors"] = vectors
+
+        with open(filename, 'wt') as json_file:
+            json.dump(data, json_file, indent=2)
+
     def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
@@ -676,19 +796,20 @@ class PhononBands(object):
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     @add_fig_kwargs
-    def plot(self, ax=None, qlabels=None, branch_range=None, marker=None, width=None, **kwargs):
+    def plot(self, ax=None, qlabels=None, branch_range=None, marker=None, width=None, match_bands=False, **kwargs):
         """
         Plot the phonon band structure.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used
                 to scale the marker size.
             width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used
                 to scale the stripe size.
+            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
 
         Returns:
             `matplotlib` figure.
@@ -704,12 +825,14 @@ class PhononBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, qlabels=qlabels)
 
-        if not kwargs:
-            kwargs = {"color": "black", "linewidth": 2.0}
+        if "color" not in kwargs:
+            kwargs["color"] = "black"
+
+        if "linewidth" not in kwargs:
+            kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
-        for nu in branch_range:
-            self.plot_ax(ax, nu, **kwargs)
+        self.plot_ax(ax, branch_range, match_bands=match_bands, **kwargs)
 
         # Add markers to the plot.
         if marker is not None:
@@ -734,15 +857,20 @@ class PhononBands(object):
 
         return fig
 
-    def plot_ax(self, ax, branch, units='eV', **kwargs):
+    def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
         """
-        Plots the frequencies for the given branch index as a function of the q index on axis ax.
+        Plots the frequencies for the given branches indices as a function of the q index on axis ax.
         If branch is None, all phonon branches are plotted.
 
         Return:
             The list of 'matplotlib' lines added.
         """
-        branch_range = range(self.num_branches) if branch is None else [branch]
+        if branch is None:
+            branch_range = range(self.num_branches)
+        elif isinstance(branch, (list, tuple, np.ndarray)):
+            branch_range = branch
+        else:
+            branch_range = [branch]
 
         first_xx = 0
         lines = []
@@ -756,7 +884,10 @@ class PhononBands(object):
         else:
             raise ValueError('Value for units {} unknown'.format(units))
 
-        for pf in self.split_phfreqs:
+        for i, pf in enumerate(self.split_phfreqs):
+            if match_bands:
+                ind = self.split_matched_indices[i]
+                pf = pf[np.arange(len(pf))[:, None], ind]
             pf = pf * factor
             xx = list(range(first_xx, first_xx + len(pf)))
             for branch in branch_range:
@@ -764,6 +895,68 @@ class PhononBands(object):
             first_xx = xx[-1]
 
         return lines
+
+    @add_fig_kwargs
+    def plot_colored_matched(self, ax=None, qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
+                             **kwargs):
+        """
+        Plot the phonon band structure with different color for each line .
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
+            colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
+                sequential order to avoid difficulties in distinguishing the lines.
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
+                It useful to better distinguish close bands when the number of branch is large.
+
+        Returns:
+            `matplotlib` figure.
+        """
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax, qlabels=qlabels)
+
+        first_xx = 0
+        lines = []
+        units="eV"
+        if units in ['eV', 'ev', 'electronvolt']:
+            factor = 1
+        elif units in ['Ha', 'ha', 'Hartree']:
+            factor = eV_to_Ha
+        elif units in ['cm-1', 'cm^-1']:
+            factor = 8065.5440044136285
+        else:
+            raise ValueError('Value for units {} unknown'.format(units))
+
+        if max_colors is None:
+            max_colors = len(branch_range)
+
+        colormap = plt.get_cmap(colormap)
+
+        for i, pf in enumerate(self.split_phfreqs):
+            ind = self.split_matched_indices[i]
+            pf = pf[np.arange(len(pf))[:, None], ind]
+            pf = pf*factor
+            xx = range(first_xx, first_xx+len(pf))
+            colors = itertools.cycle(colormap(np.linspace(0, 1, max_colors)))
+            for branch_i in branch_range:
+                kwargs = dict(kwargs)
+                kwargs['color'] = next(colors)
+                lines.extend(ax.plot(xx, pf[:, branch_i], **kwargs))
+            first_xx = xx[-1]
+
+        return fig
 
     @property
     def split_qpoints(self):
@@ -780,6 +973,29 @@ class PhononBands(object):
         except AttributeError:
             self._set_split_intervals()
             return self._split_phfreqs
+
+    @property
+    def split_phdispl_cart(self):
+        # prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
+        # not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not useed
+        # most of the times.
+        try:
+            return self._split_phdispl_cart
+        except AttributeError:
+            self.split_phfreqs
+            split_phdispl_cart = [np.array(self.phdispl_cart[self._split_indices[i]:self._split_indices[i + 1] + 1])
+                                  for i in range(len(self._split_indices) - 1)]
+            if self.non_anal_ph is not None:
+                for i, q in enumerate(self.split_qpoints):
+                    if np.array_equal(q[0], (0, 0, 0)):
+                        if self.non_anal_ph.has_direction(q[1]):
+                            split_phdispl_cart[i][0, :] = self._get_non_anal_phdispl(q[1])
+                    if np.array_equal(q[-1], (0, 0, 0)):
+                        if self.non_anal_ph.has_direction(q[-2]):
+                            split_phdispl_cart[i][-1, :] = self._get_non_anal_phdispl(q[-2])
+
+            self._split_phdispl_cart = split_phdispl_cart
+            return self._split_phdispl_cart
 
     def _set_split_intervals(self):
         # Calculations available for LO-TO splitting
@@ -804,12 +1020,86 @@ class PhononBands(object):
                 if np.array_equal(q[-1], (0, 0, 0)):
                     split_phfreqs[i][-1, :] = self._get_non_anal_freqs(q[-2])
         else:
-            split_qpoints = [self.qpoints]
+            split_qpoints = [self.qpoints.frac_coords]
             split_phfreqs = [self.phfreqs]
+            end_points_indices = [0, self.num_qpoints-1]
 
         self._split_qpoints = split_qpoints
         self._split_phfreqs = split_phfreqs
+        self._split_indices = end_points_indices
         return split_phfreqs, split_qpoints
+
+    @property
+    def split_matched_indices(self):
+        """
+        A list of numpy arrays containing the indices in which each band should be sorted in order to match the
+        scalar product of the eigenvectors. The shape is the same as that of split_phfreqs.
+        Lazy property.
+        """
+        try:
+            return self._split_matched_indices
+        except AttributeError:
+
+            split_matched_indices = []
+            last_eigenvectors = None
+
+            # simpler method based just on the matching with the previous point
+            #TODO remove after verifying the other method currently in use
+            # for i, displ in enumerate(self.split_phdispl_cart):
+            #     eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, self.amu)
+            #     ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
+            #     # if it's not the first block, match with the last of the previous block. Should give a match in case
+            #     # of LO-TO splitting
+            #     if i == 0:
+            #         ind_block[0] = range(self.num_branches)
+            #     else:
+            #         match = match_eigenvectors(last_eigenvectors, eigenvectors[0])
+            #         ind_block[0] = [match[m] for m in split_matched_indices[-1][-1]]
+            #     for j in range(1, len(displ)):
+            #         match = match_eigenvectors(eigenvectors[j-1], eigenvectors[j])
+            #         ind_block[j] = [match[m] for m in ind_block[j-1]]
+            #
+            #     split_matched_indices.append(ind_block)
+            #     last_eigenvectors = eigenvectors[-1]
+
+            # The match is applied between subsequent qpoints, except that right after a high symmetry point.
+            # In that case the first point after the high symmetry point will be matched with the one immediately
+            # before. This should avoid exchange of lines due to degeneracies.
+            # The code will assume that there is a high symmetry point if the points are not collinear (change in the
+            # direction in the path).
+            def collinear(a, b, c):
+                v1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]]
+                v2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]
+                d = [v1, v2, [1, 1, 1]]
+                return np.isclose(np.linalg.det(d), 0, atol=1e-5)
+
+            for i, displ in enumerate(self.split_phdispl_cart):
+                eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, self.amu)
+                ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
+                # if it's not the first block, match the first two points with the last of the previous block.
+                # Should give a match in case of LO-TO splitting
+                if i == 0:
+                    ind_block[0] = range(self.num_branches)
+                    match = match_eigenvectors(eigenvectors[0], eigenvectors[1])
+                    ind_block[1] = [match[m] for m in ind_block[0]]
+                else:
+                    match = match_eigenvectors(last_eigenvectors, eigenvectors[0])
+                    ind_block[0] = [match[m] for m in split_matched_indices[-1][-2]]
+                    match = match_eigenvectors(last_eigenvectors, eigenvectors[1])
+                    ind_block[1] = [match[m] for m in split_matched_indices[-1][-2]]
+                for j in range(2, len(displ)):
+                    k = j-1
+                    if not collinear(self.split_qpoints[i][j-2], self.split_qpoints[i][j-1], self.split_qpoints[i][j]):
+                        k = j-2
+                    match = match_eigenvectors(eigenvectors[k], eigenvectors[j])
+                    ind_block[j] = [match[m] for m in ind_block[k]]
+
+                split_matched_indices.append(ind_block)
+                last_eigenvectors = eigenvectors[-2]
+
+            self._split_matched_indices = split_matched_indices
+
+            return self._split_matched_indices
 
     def _get_non_anal_freqs(self, direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates
@@ -820,6 +1110,18 @@ class PhononBands(object):
             d = d / np.linalg.norm(d)
             if np.allclose(direction, d):
                 return self.non_anal_phfreqs[i]
+
+        raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
+
+    def _get_non_anal_phdispl(self, direction):
+        # directions for the qph2l in anaddb are given in cartesian coordinates
+        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
+        direction = direction / np.linalg.norm(direction)
+
+        for i, d in enumerate(self.non_anal_directions):
+            d = d / np.linalg.norm(d)
+            if np.allclose(direction, d):
+                return self.non_anal_phdispl_cart[i]
 
         raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
 
@@ -848,6 +1150,7 @@ class PhononBands(object):
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
+        #TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
             d = OrderedDict()
 
@@ -873,7 +1176,7 @@ class PhononBands(object):
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_stripe_width_mev: The maximum width of the stripe in meV.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         Returns:
@@ -952,7 +1255,7 @@ class PhononBands(object):
 
         Args:
             dos: An instance of :class:`PhononDos`.
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
@@ -995,6 +1298,56 @@ class PhononBands(object):
 
         fig = plt.gcf()
         return fig
+
+    def to_pymatgen(self, qlabels= None):
+        """
+        Creates a pymatgen PhononBandStructureSymmLine object.
+
+        Args:
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+                If None labels will be determined automatically.
+        """
+
+        # pymatgen labels dict is inverted
+        if qlabels is None:
+            qlabels = self._auto_qlabels
+            # the indices in qlabels are without the split
+            labels_dict = {v: self.qpoints[k].frac_coords for k, v in qlabels.items()}
+        else:
+            labels_dict = {v: k for k, v in qlabels.items()}
+
+        labelled_q_list = list(labels_dict.values())
+
+        ph_freqs = []
+        qpts = []
+        displ = []
+        for split_q, split_phf, split_phdispl in zip(self.split_qpoints, self.split_phfreqs, self.split_phdispl_cart):
+            # for q, phf in zip(split_q, split_phf)[1:-1]:
+            for i, (q, phf, d) in enumerate(zip(split_q, split_phf, split_phdispl)):
+                ph_freqs.append(phf)
+                qpts.append(q)
+                d = d.reshape(self.num_branches, self.num_atoms, 3)
+                displ.append(d)
+                # if the qpoint has a label it nees to be repeated. If it is one of the extrama either it should
+                # not be repeated (if they are the real first or last point) or they will be already reapeated due
+                # to the split.
+                if any(np.allclose(q, labelled_q) for labelled_q in labelled_q_list):
+                    if 0 < i <len(split_q) - 1:
+                        ph_freqs.append(phf)
+                        qpts.append(q)
+                        displ.append(d)
+
+        ph_freqs = np.transpose(ph_freqs)
+        qpts = np.array(qpts)
+        displ = np.transpose(displ, (1, 0, 2, 3))
+
+        pmg_bs = PhononBandStructureSymmLine(qpoints=qpts, frequencies=ph_freqs,
+                                             lattice=self.structure.reciprocal_lattice,
+                                             has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
+                                             labels_dict=labels_dict, structure=self.structure)
+
+        return pmg_bs
 
 
 class PHBST_Reader(ETSF_Reader):
@@ -1794,7 +2147,7 @@ class PhononBandsPlotter(object):
         Plot the band structure and the DOS.
 
         Args:
-            qlabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         ==============  ==============================================================
@@ -2043,12 +2396,35 @@ class NonAnalyticalPh(Has_Structure):
 
     @lazy_property
     def dyn_mat_eigenvect(self):
-        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, self.amu)
+        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, amu=self.amu)
 
     @property
     def structure(self):
         """:class:`Structure` object"""
         return self._structure
+
+    def has_direction(self, direction, cartesian=False):
+        """
+        Checks if the input direction is among those available.
+
+        Args:
+            direction: a 3 element list indicating the direction. Can be a generic vector
+            cartesian: if True the direction are already in cartesian coordinates, if False it
+                will be converted to match the internal description of the directions.
+        """
+
+        if not cartesian:
+            direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
+        else:
+            direction = np.array(direction)
+        direction = direction / np.linalg.norm(direction)
+
+        for d in self.directions:
+            d = d / np.linalg.norm(d)
+            if np.allclose(d, direction):
+                return True
+
+        return False
 
 
 class InteratomicForceConstants(Has_Structure):
@@ -2340,7 +2716,8 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
     abinit and pymatgen.
     Args:
         phdispl: a numpy array containing the eigendisplacements in cartesian coordinates. The last index should have
-            size 3*(num atoms), but the rest of the shape is arbitrary.
+            size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension
+            should match the q points.
         structure: :class:`Structure` object.
         amu: dictionary that associates the atomic species present in the structure to the values of the atomic
             mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
@@ -2357,3 +2734,27 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
         eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)]*np.sqrt(amu[a.specie.number]*amu_emass)/Bohr_Ang
 
     return eigvec
+
+
+def match_eigenvectors(v1, v2):
+    """
+    Given two list of vectors, returns the pair matching based on the complex scalar product.
+    Returns the indices of the second list that match the vectors of the first list in ascending order.
+    """
+
+    prod = np.absolute(np.dot(v1, v2.transpose().conjugate()))
+
+    indices = np.zeros(len(v1), dtype=np.int)
+    missing_v1 = [True]*len(v1)
+    missing_v2 = [True]*len(v1)
+    for m in reversed(np.argsort(prod, axis=None)):
+        i, j = np.unravel_index(m, prod.shape)
+        if missing_v1[i] and missing_v2[j]:
+            indices[i] = j
+            missing_v1[i] = missing_v2[j] = False
+            if not any(missing_v1):
+                if any(missing_v2):
+                    raise RuntimeError('Something went wrong in matching vectors: {} {}'.format(v1, v2))
+                break
+
+    return indices
