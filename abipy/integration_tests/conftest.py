@@ -16,9 +16,13 @@ from monty.collections import AttrDict
 # and then we convert the dictionary to string with yaml.dump. This string will be passed
 # to Manager.from_string in fwp. base_conf looks like:
 
+USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
+#USER_CONFIG_DIR = os.path.dirname(__file__)
+
 
 # Read the base configuration from file
-with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
+#with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
+with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
     base_conf = yaml.load(fh)
 
 # Build list of configurations.
@@ -26,6 +30,7 @@ _manager_confs = []
 
 for autoparal in [1]: #, 1]:
     newd = copy.deepcopy(base_conf)
+    if "policy" not in newd: newd["policy"] = {}
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
 
@@ -47,7 +52,7 @@ def fwp(tmpdir, request):
     # Create the TaskManager.
     fwp.manager = flowapi.TaskManager.from_string(request.param)
 
-    fwp.scheduler = flowapi.PyFlowScheduler.from_file(os.path.join(os.path.dirname(__file__), "scheduler.yml"))
+    fwp.scheduler = flowapi.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
 
     return fwp
 
@@ -83,7 +88,7 @@ def pytest_report_header(config):
     lines = ["\n*** Integration tests for abipy + abinit + pymatgen ***\n"]
     app = lines.append
 
-    app("Assuming the enviroment is properly configured:")
+    app("Assuming the environment is properly configured:")
     app("In particular, we assume that the abinit executable is in $PATH and can be executed.")
     app("Change manager.yml according to your platform.")
     app("Number of manager configurations: %d" % len(_manager_confs))

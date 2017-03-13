@@ -520,9 +520,9 @@ def torange(obj):
     Convert obj into a range. Accepts integer, slice object  or any object
     with an __iter__ method. Note that an integer is converted into range(int, int+1)
 
-    >>> torange(1)
+    >>> list(torange(1))
     [1]
-    >>> torange(slice(0,4,2))
+    >>> list(torange(slice(0,4,2)))
     [0, 2]
     >>> list(torange([1,4,2]))
     [1, 4, 2]

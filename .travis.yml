@@ -1,13 +1,18 @@
 # https://conda.io/docs/travis.html
 language: python
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
+
+os:
+  - linux
+  #- osx
+
+python: # We don't actually use the Travis Python, but this keeps it organized.
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
 
 sudo: required
+
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the version is the same.
@@ -25,17 +30,19 @@ install:
   - conda config --add channels gmatteo
   # Useful for debugging any issues with conda
   - conda info -a
-
   # Replace dep1 dep2 ... with your dependencies
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  # https://github.com/BVLC/caffe/issues/3884
-  # https://docs.continuum.io/mkl-optimizations/
+  # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
   - conda install gcc scipy
-  - conda install pandas netcdf4
+  - conda install pandas
+  - conda install netcdf4 
+  # See hSttps://github.com/ContinuumIO/anaconda-issues/issues/1360
+  - conda install hdf4=4.2.12
   - pip install pytest scripttest nose nose-exclude
+  - pip install pep8 python-coveralls
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
   # Install abinit from gmatteo's conda channel.
@@ -54,13 +61,18 @@ before_script:
 
 # command to run tests
 #script: abicheck.py; pytest -v abipy
-script: abicheck.py; nosetests -v abipy
+script: abicheck.py; nosetests abipy --with-coverage --cover-package=abipy --logging-level=INFO; pytest -v abipy/integration_tests
+
 branches:
   only:
     - master
     - develop
-#after_success:
-#  coveralls
+
+after_success:
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+          coveralls;
+  fi
+
 notifications:
   email:
     recipients:
