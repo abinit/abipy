@@ -1088,7 +1088,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         This functions should be called with an input the represents a gs run.
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
-                Defaults to {"tolwfr": 1.0e-22}.
+                Defaults to {"tolvrs": 1.0e-10}.
 
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
@@ -1097,7 +1097,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             List of AbinitInput objects for DFPT runs.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-22}
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))

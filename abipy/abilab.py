@@ -14,7 +14,7 @@ from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.works import *
 from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow,
-    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
+    g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
 # Need new version of pymatgen.
 try:
     from pymatgen.io.abinit.flows import PhononFlow
