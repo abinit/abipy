@@ -34,6 +34,9 @@ class PhononBandsTest(AbipyTest):
         # Test ascii file
         phbands.create_ascii_vib(iqpts=0, filename=self.get_tmpname(text=True), pre_factor=1)
 
+        # Test phononwebsite file
+        phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name='test')
+
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
@@ -45,10 +48,14 @@ class PhononBandsTest(AbipyTest):
         if self.has_matplotlib():
             phbands.plot(show=False)
             phbands.plot_fatbands(show=False)
+            phbands.plot_colored_matched(show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
             phdos = phbands.get_phdos()
+
+        # convert to pymatgen object
+        phbands.to_pymatgen()
 
 
 class PlotterTest(AbipyTest):
