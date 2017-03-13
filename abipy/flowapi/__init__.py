@@ -5,7 +5,6 @@ from pymatgen.io.abinit.abiobjects import *
 from pymatgen.io.abinit.events import EventsParser, autodoc_event_handlers
 #from pymatgen.io.abinit.qadapters import *
 from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
-
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.launcher import PyFlowScheduler
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable

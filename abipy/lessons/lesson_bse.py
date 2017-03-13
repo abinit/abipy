@@ -4,12 +4,13 @@ from __future__ import division, print_function
 
 import os
 import numpy as np
-import abipy.abilab as abilab 
+import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 
-def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3, 
-                             mdf_epsinf=12.0, soenergy="0.8 eV"):
+def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
+                             mdf_epsinf=12.0, mbpt_sciss="0.8 eV"):
     """
     Build and returns three `AbinitInput` objects to perform a
     GS-SCF + GS-NSCF + BSE calculation with the model dielectric function.
@@ -18,9 +19,9 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
         ngkpt: Three integers giving the number of divisions for the k-mesh.
         ecut: Cutoff energy for the wavefunctions.
         ecuteps: Cutoff energy for the screened interation W_{GG'}.
-        mdf_epsinf: Static limit of the macroscopic dielectric functions. 
+        mdf_epsinf: Static limit of the macroscopic dielectric functions.
             Used to build the model dielectric function.
-        soenergy: Scissors operator energy (used to open the initial KS gap).
+        mbpt_sciss: Scissors operator energy (used to open the initial KS gap).
     """
     multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("Si"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=3)
@@ -28,7 +29,7 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
 
     # Variables common to the three datasets.
     multi.set_vars(
-        ecut=ecut, 
+        ecut=ecut,
         nband=8,
         istwfk="*1",
         diemac=12.0,
@@ -43,7 +44,7 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
         iscf=-2,
         nband=15,
         tolwfr=1e-8,
-        chksymbreak=0,                # Skip the check on the k-mesh.
+        chksymbreak=0,  # Skip the check on the k-mesh.
     )
 
     # This shift breaks the symmetry of the k-mesh.
@@ -54,7 +55,7 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
         optdriver=99,                 # BS calculation
         chksymbreak=0,                # To skip the check on the k-mesh.
         bs_calctype=1,                # L0 is contstructed with KS orbitals and energies.
-        soenergy=soenergy,            # Scissors operator used to correct the KS band structure.
+        mbpt_sciss=mbpt_sciss,        # Scissors operator used to correct the KS band structure.
         bs_exchange_term=1,           # Exchange term included.
         bs_coulomb_term=21,           # Coulomb term with model dielectric function.
         mdf_epsinf=mdf_epsinf,        # Parameter for the model dielectric function.

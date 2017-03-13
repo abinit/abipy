@@ -9,8 +9,8 @@ import numpy as np
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from pymatgen.analysis.eos import EOS
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowapi import Flow
 from abipy.core.mixins import NotebookWriter
 
@@ -371,7 +371,12 @@ class GsrRobot(Robot, NotebookWriter):
             row_names.append(label)
             d = OrderedDict()
             for aname in attrs:
-                d[aname] = getattr(gsr, aname, None)
+                if aname == "nkpt":
+                    value = len(gsr.ebands.kpoints)
+                else:
+                    value = getattr(gsr, aname, None)
+                    if value is None: value = getattr(gsr.ebands, aname, None)
+                d[aname] = value
 
             # Add info on structure.
             if kwargs.get("with_geo", True):

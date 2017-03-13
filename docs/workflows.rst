@@ -146,7 +146,7 @@ If you don't use a parallel version of Abinit, just set ``mpi_runner: null``
 
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
-available on personal computer.
+available on your personal computer.
 Save the file in the current working directory and run the ``abicheck.py`` script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.
 

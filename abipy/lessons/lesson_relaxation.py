@@ -195,6 +195,7 @@ criterion on the forces won't work in this case!
 import os
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from pymatgen.analysis.eos import EOS
@@ -234,7 +235,7 @@ def make_relax_flow(structure_file=None):
     for i, ngkpt in enumerate(ngkpt_list):
         multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return abilab.Flow.from_inputs("flow_gan_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
+    return flowapi.Flow.from_inputs("flow_gan_relax", inputs=multi.split_datasets(), task_class=flowapi.RelaxTask)
 
 
 def make_eos_flow(structure_file=None):
@@ -266,7 +267,7 @@ def make_eos_flow(structure_file=None):
 
         multi[idt].set_structure(new_structure)
 
-    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets())
+    eos_flow = flowapi.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets())
     eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 

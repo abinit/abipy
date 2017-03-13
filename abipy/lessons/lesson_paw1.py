@@ -3,6 +3,7 @@ from __future__ import division, print_function
 
 import numpy as np
 import abipy.abilab as abilab 
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 
@@ -43,7 +44,7 @@ def flow_ecut_conv():
     inputs = [gs_input(ecut=ecut, pawecutdg=50) 
               for ecut in np.linspace(start=8, stop=24, num=9)]
 
-    flow = abilab.Flow.from_inputs("flow_ecut_conv", inputs)
+    flow = flowapi.Flow.from_inputs("flow_ecut_conv", inputs)
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
@@ -56,7 +57,7 @@ def flow_pawecutdg_conv_flow():
     inputs = [gs_input(ecut=12, pawecutdg=pawecutdg)
               for pawecutdg in np.linspace(start=12, stop=39, num=10)]
 
-    flow = abilab.Flow.from_inputs("flow_pawecutdg_conv", inputs)
+    flow = flowapi.Flow.from_inputs("flow_pawecutdg_conv", inputs)
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
@@ -72,7 +73,7 @@ def flow_ecut_pawecutdg():
     inputs = [gs_input(ecut, pawecutdg) 
               for pawecutdg, ecut in itertools.product(pawecutdg_list, ecut_list)]
 
-    flow = abilab.Flow.from_inputs("flow_pawecutdg_ecut", inputs)
+    flow = flowapi.Flow.from_inputs("flow_pawecutdg_ecut", inputs)
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
@@ -84,7 +85,7 @@ def flow_ecut_pawecutdg():
 def flow_eos():
     inputs = [gs_input(ecut=12, pawecutdg=24, acell_ang=acell_ang)
               for acell_ang in np.linspace(start=3.52, stop=3.55, num=7)]
-    flow = abilab.Flow.from_inputs("flow_eos", inputs)
+    flow = flowapi.Flow.from_inputs("flow_eos", inputs)
     #flow.build()
 
     flow.make_scheduler().start()

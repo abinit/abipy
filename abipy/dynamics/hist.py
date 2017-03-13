@@ -8,7 +8,7 @@ from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings,
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.iotools import ETSF_Reader

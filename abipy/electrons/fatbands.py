@@ -11,7 +11,7 @@ from monty.termcolor import cprint
 from monty.functools import lazy_property
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian

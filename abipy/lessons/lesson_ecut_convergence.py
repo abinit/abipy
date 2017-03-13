@@ -144,6 +144,7 @@ Edit the input files to run the same convergence study for a different k-point m
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowapi as flowapi
 from abipy.lessons.core import BaseLesson
 
 
@@ -178,7 +179,7 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     for i, ecut in enumerate(ecut_list):
         multi[i].set_vars(ecut=ecut)
 
-    return abilab.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
+    return flowapi.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
 
 
 class Lesson(BaseLesson):

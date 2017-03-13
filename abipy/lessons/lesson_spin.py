@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab 
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 
@@ -78,7 +79,7 @@ def afm_input():
 
 def gs_flow():
     inputs = [gs_input(nsppol) for nsppol in [1, 2]]
-    flow = abilab.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
+    flow = flowapi.Flow.from_inputs(workdir="flow_spin", inputs=inputs)
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:
@@ -110,7 +111,7 @@ def gs_flow():
 
 
 def afm_flow():
-    flow = abilab.Flow.from_inputs(workdir="flow_afm", inputs=afm_input())
+    flow = flowapi.Flow.from_inputs(workdir="flow_afm", inputs=afm_input())
 
     flow.make_scheduler().start()
 

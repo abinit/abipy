@@ -13,9 +13,9 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from monty.bisect import find_le, find_ge
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
