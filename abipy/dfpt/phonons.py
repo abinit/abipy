@@ -8,13 +8,13 @@ import itertools
 import pickle
 import os
 import six
+import json
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha, Energy
-from monty.serialization import dumpfn
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
@@ -772,7 +772,8 @@ class PhononBands(object):
         data["eigenvalues"] = eigenvalues
         data["vectors"] = vectors
 
-        dumpfn(data, filename, indent=2)
+        with open(filename, 'wt') as json_file:
+            json.dump(data, json_file, indent=2)
 
     def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
@@ -1298,7 +1299,7 @@ class PhononBands(object):
         fig = plt.gcf()
         return fig
 
-    def get_pmg_phbs(self, qlabels= None):
+    def to_pymatgen(self, qlabels= None):
         """
         Creates a pymatgen PhononBandStructureSymmLine object.
 
@@ -1316,7 +1317,7 @@ class PhononBands(object):
         else:
             labels_dict = {v: k for k, v in qlabels.items()}
 
-        labelled_q_list = labels_dict.values()
+        labelled_q_list = list(labels_dict.values())
 
         ph_freqs = []
         qpts = []
