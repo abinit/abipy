@@ -35,6 +35,7 @@ install:
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
   # Install abinit from gmatteo's conda channel.
+  - conda config --add channels conda-forge
   #- conda install -c gmatteo abinit=8.0.8
   - conda install -c gmatteo abinit=8.2.2
   # phonopy is not a requirement but we test scripts in data/runs that use it
