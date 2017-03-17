@@ -23,9 +23,6 @@ install:
   # Install conda https://conda.io/docs/travis.html
   - source conda_installer.sh
 
-  # Add my channel
-  - conda config --add channels gmatteo
-
   # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
   - conda install gcc scipy
@@ -38,7 +35,8 @@ install:
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
   # Install abinit from gmatteo's conda channel.
-  - conda install abinit
+  #- conda install -c gmatteo abinit=8.0.8
+  - conda install -c gmatteo abinit=8.2.2
   # phonopy is not a requirement but we test scripts in data/runs that use it
   - conda install -c conda-forge phonopy
   # FIXME: I'm still using my fork

@@ -2,8 +2,6 @@
 set -ev  # exit on first error, print each command
 
 # Install conda with travis: https://conda.io/docs/travis.html
-
-# We do this conditionally because it saves us some downloading if the version is the same.
 if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
     if [[ "${PYTHON_VERSION}" == "2.7" ]]; then
         curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh;
