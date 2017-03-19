@@ -65,8 +65,8 @@ branches:
     - master
     - develop
 
-after_success:
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then coveralls; fi
+#after_success:
+#- if [[ "$PYTHON_VERSION" == "2.7" ]]; then coveralls; fi
 
 notifications:
   email:

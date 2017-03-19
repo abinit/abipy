@@ -32,8 +32,8 @@ def build_flow(options):
     #gsinp.set_vars(ngkpt=[4, 4, 4])
 
     flow = flowapi.Flow(workdir=workdir)
-    # Use a 2x2x2 supercell to compute phonons with phonopy
 
+    # Use a 2x2x2 supercell to compute phonons with phonopy
     work = PhonopyWork.from_gs_input(gsinp, scdims=[2,2,2])
     flow.register_work(work)
 

@@ -195,7 +195,8 @@ class Lesson(BaseLesson):
             return gsr.ebands.plot()
 
 if __name__ == "__main__":
-    l = Lesson()
-    flow = l.make_flow()
-    flow.build_and_pickle_dump()
-    l.setup()
+    lesson = Lesson()
+    flow = lesson.make_flow()
+    flow.make_scheduler().start()
+    #flow.build_and_pickle_dump()
+    #lesson.setup()

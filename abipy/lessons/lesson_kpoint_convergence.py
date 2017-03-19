@@ -300,7 +300,7 @@ class Lesson(BaseLesson):
 
 
 if __name__ == "__main__":
-    l = Lesson()
-    flow = l.make_ngkpt_flow()
+    lesson = Lesson()
+    flow = lesson.make_ngkpt_flow()
     flow.build_and_pickle_dump()
-    l.setup()
+    lesson.setup()

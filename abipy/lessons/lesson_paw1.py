@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 
 import numpy as np
-import abipy.abilab as abilab 
+import abipy.abilab as abilab
 import abipy.flowapi as flowapi
 import abipy.data as abidata
 
@@ -27,7 +27,7 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
 
     # Optimization of the lattice parameters
     inp.set_vars(
-        ecut=ecut, 
+        ecut=ecut,
         pawecutdg=pawecutdg,
         ecutsm=0.5,
         nband=6,
@@ -41,7 +41,7 @@ def gs_input(ecut, pawecutdg, acell_ang=3.567):
 
 
 def flow_ecut_conv():
-    inputs = [gs_input(ecut=ecut, pawecutdg=50) 
+    inputs = [gs_input(ecut=ecut, pawecutdg=50)
               for ecut in np.linspace(start=8, stop=24, num=9)]
 
     flow = flowapi.Flow.from_inputs("flow_ecut_conv", inputs)
@@ -70,7 +70,7 @@ def flow_ecut_pawecutdg():
     import itertools
     ecut_list = np.linspace(start=8, stop=24, num=9)
     pawecutdg_list = [24, 30]
-    inputs = [gs_input(ecut, pawecutdg) 
+    inputs = [gs_input(ecut, pawecutdg)
               for pawecutdg, ecut in itertools.product(pawecutdg_list, ecut_list)]
 
     flow = flowapi.Flow.from_inputs("flow_pawecutdg_ecut", inputs)

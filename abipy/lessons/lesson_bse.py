@@ -75,7 +75,3 @@ def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
 
     scf_input, nscf_input, bse_input = multi.split_datasets()
     return scf_input, nscf_input, bse_input
-
-
-#if __name__ == "__main__":
-#    eh_convergence_study()

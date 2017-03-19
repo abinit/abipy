@@ -2,7 +2,6 @@
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data
 
 from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
