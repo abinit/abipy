@@ -15,7 +15,7 @@ from monty.string import is_string
 from monty.functools import lazy_property
 
 from abipy.iotools.cube import cube_read_structure_mesh_data
-from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
+from abipy.flowapi.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [

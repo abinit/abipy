@@ -4,8 +4,8 @@ It also provides tools to analye and to visualize the parallel efficiency.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-from pymatgen.io.abinit.abitimer import AbinitTimerParser as _Parser
 from abipy.core.mixins import NotebookWriter
+from abipy.flowapy import AbinitTimerParser as _Parser
 
 
 class AbinitTimerParser(_Parser, NotebookWriter):

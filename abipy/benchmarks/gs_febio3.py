@@ -8,6 +8,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from itertools import product
+from abipy.flowapi import ParalHints
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 unit_cell = dict(
@@ -102,7 +103,6 @@ def build_flow(options):
 
     else:
         print("Initializing autoparal from command line options")
-        from pymatgen.io.abinit.tasks import ParalHints
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
         print(pconfs)
 
@@ -130,7 +130,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

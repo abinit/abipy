@@ -13,17 +13,17 @@ import wx
 
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
-from pymatgen.core.periodic_table import Element
 
 from collections import OrderedDict
 from monty.dev import get_ncpus
 from monty.collections import AttrDict
-from pymatgen.io.abinit import Pseudo
+from pymatgen.core.periodic_table import Element
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
 from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
 from abipy.gui import awx
 from abipy.gui.awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
+from abipy.flowapi import Pseudo
 
 try:
     from pseudo_dojo.core.dojoreport import DojoReport

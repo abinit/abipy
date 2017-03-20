@@ -20,15 +20,15 @@ from monty.string import is_string, list_strings
 from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
-from abipy.flowapi import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
-from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
-from pymatgen.io.abinit import abiobjects as aobj
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
+from abipy.flowapi import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
+from abipy.flowapi.abiinspect import yaml_read_irred_perts
+from abipy.flowapi import abiobjects as aobj
 
 import logging
 logger = logging.getLogger(__file__)

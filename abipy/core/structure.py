@@ -18,13 +18,13 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
-from pymatgen.io.abinit.abiobjects import structure_from_abivars, structure_to_abivars
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.tools.plotting import add_fig_kwargs #, get_ax_fig_plt
 from abipy.flowapi import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
+from abipy.flowapi.abiobjects import structure_from_abivars, structure_to_abivars
 
 __all__ = [
     "Structure",
@@ -99,12 +99,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 return hist.structures[-1]
 
         elif filepath.endswith(".nc"):
-            from pymatgen.io.abinit.netcdf import as_etsfreader
-            file, closeit = as_etsfreader(filepath)
+            from abipy.iotools import as_etsfreader
+            ncfile, closeit = as_etsfreader(filepath)
 
-            new = file.read_structure(cls=cls)
-            new.set_abi_spacegroup(AbinitSpaceGroup.from_file(file))
-            if closeit: file.close()
+            new = ncfile.read_structure(cls=cls)
+            new.set_abi_spacegroup(AbinitSpaceGroup.from_file(ncfile))
+            if closeit: ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
             from abipy.abio.abivars import AbinitInputFile
