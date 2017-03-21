@@ -116,7 +116,7 @@ to install the ``wxpython`` graphical toolkit required for the GUIs.
 
 Note that one can use ``conda`` to create different environments with different
 versions of the python interpreter or different libraries.
-Further information are available on the `official website <http://conda.pydata.org/docs/test-drive.html>`_.
+Further information are available on the `conda official website <http://conda.pydata.org/docs/test-drive.html>`_.
 
 
 .. _developmental_version:
@@ -205,7 +205,7 @@ Now change your ``~/.bashrc`` file and add the following three lines::
 
 so that other scripts and tools will know where to find the new binaries/libraries/include files they need.
 
-Get the python tarball from the `official site <https://www.python.org>`_ and unpack it.
+Get the python tarball from the `python official site <https://www.python.org>`_ and unpack it.
 Configure the package with the ``--prefix`` option and compile the code
 (use the ``-j`` option to speedup the compilation with threads)::
 
@@ -287,7 +287,7 @@ If the installer does not find ``BLAS/LAPACK`` in your system, consult the
 How to install HDF5/Netcdf4 and the python bindings
 ---------------------------------------------------
 
-Obtain the latest ``HDF5`` software from the `official web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
+Obtain the latest ``HDF5`` software from the `official hd5 web-site <http://www.hdfgroup.org/HDF5/release/obtain5.html>`_.
 Configure the package with ``--enable-hl --enable-shared`` and the ``--prefix`` option as usual.
 Build and install with::
 

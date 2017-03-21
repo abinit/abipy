@@ -103,7 +103,7 @@ The ``qadapter`` is therefore responsible for all interactions with a specific
 queue management system (shell, Slurm, PBS, etc), including handling all details 
 of queue script format as well as queue submission and management.
 
-.. NOTE:
+.. NOTE::
 
     Multiple ``qadapters`` are useful if you are running on a cluster with different queues 
     but we post-pone the discussion of this rather technical point.
@@ -115,25 +115,25 @@ The configuration file I use on my laptop to run jobs via the shell is:
 
     qadapters: # List of `qadapters` objects  (just one in this simplified example)
 
-	-  priority: 1
-           queue:
-	    qtype: shell        # "Submit" jobs via the shell.
-	    qname: localhost    # "Submit" to the localhost queue (it's a fake queue in this case)
+    -  priority: 1
+        queue:
+            qtype: shell        # "Submit" jobs via the shell.
+            qname: localhost    # "Submit" to the localhost queue (it's a fake queue in this case)
 
-	  job:
-	    pre_run: "export PATH=$HOME/git_repos/abinit/build_gcc/src/98_main:$PATH"
-	    mpi_runner: "mpirun"
+        job:
+            pre_run: "export PATH=$HOME/git_repos/abinit/build_gcc/src/98_main:$PATH"
+            mpi_runner: "mpirun"
 
-	  limits: 
-	    timelimit: 1:00:00   #  Time-limit for each task.
-	    max_cores: 2         #  Max number of cores that can be used by a single task.
+        limits:
+            timelimit: 1:00:00   #  Time-limit for each task.
+            max_cores: 2         #  Max number of cores that can be used by a single task.
 
-	  # Hardware specification
+      # Hardware specification
 	  hardware:  
-	     num_nodes: 1
-	     sockets_per_node: 1
-	     cores_per_socket: 2
-	     mem_per_node: 4 Gb
+        num_nodes: 1
+        sockets_per_node: 1
+        cores_per_socket: 2
+        mem_per_node: 4 Gb
 
 
 The ``job`` section is the most critical one, in particular the ``pre_run`` option
@@ -190,23 +190,23 @@ At this point, you should have a directory ``flow_si_ebands`` with the following
     ├── outdata
     ├── tmpdata
     └── w0
-	├── indata
-	├── outdata
-	├── t0
-	│   ├── indata
-	│   ├── job.sh
-	│   ├── outdata
-	│   ├── run.abi
-	│   ├── run.files
-	│   └── tmpdata
-	├── t1
-	│   ├── indata
-	│   ├── job.sh
-	│   ├── outdata
-	│   ├── run.abi
-	│   ├── run.files
-	│   └── tmpdata
-	└── tmpdata
+    ├── indata
+    ├── outdata
+    ├── t0
+    │   ├── indata
+    │   ├── job.sh
+    │   ├── outdata
+    │   ├── run.abi
+    │   ├── run.files
+    │   └── tmpdata
+    ├── t1
+    │   ├── indata
+    │   ├── job.sh
+    │   ├── outdata
+    │   ├── run.abi
+    │   ├── run.files
+    │   └── tmpdata
+    └── tmpdata
 
     15 directories, 7 files
 
@@ -625,11 +625,11 @@ The get the complete list of options supported by the Slurm ``qadapter`` use:
 
 .. IMPORTANT::
 
-If you need to cancel all tasks that have been submitted to the resource manager, use::
+    If you need to cancel all tasks that have been submitted to the resource manager, use::
 
-    $ abirun.py FLOWDIR cancel
+        $ abirun.py FLOWDIR cancel
 
-Note that the script will ask for confirmation before killing all the jobs belonging to the flow.
+    Note that the script will ask for confirmation before killing all the jobs belonging to the flow.
 
 Once you have a ``manager.yml`` properly configured for your cluster, you can start
 to use the scheduler to automate job submission.
@@ -659,7 +659,7 @@ and reconnect the day after to collect our data.
 
 .. _inspecting_the_flow:
 
---------------------
+-------------------
 Inspecting the Flow
 -------------------
 
@@ -740,45 +740,45 @@ by the event handlers.
     event name = !DilatmxError
     event documentation:
 
-	This Error occurs in variable cell calculations when the increase in the
-	unit cell volume is too large.
+    This Error occurs in variable cell calculations when the increase in the
+    unit cell volume is too large.
 
     handler documentation:
 
-	Handle DilatmxError. Abinit produces a netcdf file with the last structure before aborting
-	The handler changes the structure in the input with the last configuration and modify the value of dilatmx.
+    Handle DilatmxError. Abinit produces a netcdf file with the last structure before aborting
+    The handler changes the structure in the input with the last configuration and modify the value of dilatmx.
 
     event name = !TolSymError
     event documentation:
 
-	Class of errors raised by Abinit when it cannot detect the symmetries of the system.
-	The handler assumes the structure makes sense and the error is just due to numerical inaccuracies.
-	We increase the value of tolsym in the input file (default 1-8) so that Abinit can find the space group
-	and re-symmetrize the input structure.
+    Class of errors raised by Abinit when it cannot detect the symmetries of the system.
+    The handler assumes the structure makes sense and the error is just due to numerical inaccuracies.
+    We increase the value of tolsym in the input file (default 1-8) so that Abinit can find the space group
+    and re-symmetrize the input structure.
 
     handler documentation:
 
-	Increase the value of tolsym in the input file.
+    Increase the value of tolsym in the input file.
 
     event name = !MemanaError
     event documentation:
 
-	Class of errors raised by the memory analyzer.
-	(the section that estimates the memory requirements from the input parameters).
+    Class of errors raised by the memory analyzer.
+    (the section that estimates the memory requirements from the input parameters).
 
     handler documentation:
 
-	Set mem_test to 0 to bypass the memory check.
+    Set mem_test to 0 to bypass the memory check.
 
     event name = !MemoryError
     event documentation:
 
-	This error occurs when a checked allocation fails in Abinit
-	The only way to go is to increase memory
+    This error occurs when a checked allocation fails in Abinit
+    The only way to go is to increase memory
 
     handler documentation:
 
-	Handle MemoryError. Increase the resources requirements
+    Handle MemoryError. Increase the resources requirements
 
 .. NOTE:: 
 

@@ -10,7 +10,7 @@ core Package
    :show-inheritance:
 
 :mod:`abinit_units` Module
------------------------
+--------------------------
 
 .. automodule:: abipy.core.abinit_units
    :members:

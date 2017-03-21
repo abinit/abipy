@@ -11,7 +11,7 @@ dfpt Package
    :show-inheritance:
 
 :mod:`anaddbnc` Module
------------------
+----------------------
 
 .. automodule:: abipy.dfpt.anaddbnc
    :members:

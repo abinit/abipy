@@ -1167,11 +1167,11 @@ class ElectronBands(object):
         The bands are aligned wrt to their fermi level.
 
         Args:
-            other: :class:`BandStructure` object.
+            other: :class:`ElectronBands` object.
             axis:  Axis along which the statistical parameters are computed.
                    The default is to compute the parameters of the flattened array.
             numpy_op: Numpy function to apply to the difference of the eigenvalues. The
-                      default computes |self.eigens - other.eigens|.
+                      default computes `|self.eigens - other.eigens|`.
 
         Returns:
             `namedtuple` with the statistical parameters in eV

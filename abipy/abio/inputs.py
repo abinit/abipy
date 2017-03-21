@@ -667,8 +667,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
-                Accepts iterable that be reshaped to (nkptgw, 2)
-                or a tuple of two integers if the extrema are the same for each k-point.
+              Accepts iterable that be reshaped to (nkptgw, 2)
+              or a tuple of two integers if the extrema are the same for each k-point.
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
@@ -998,14 +998,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         It should be called with an input the represents a GS run.
 
         Args:
-            qpt: q-point in reduced coordinatesl
+            qpt: q-point in reduced coordinates.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
 
         Return:
-            List of AbinitInput objects for DFPT runs.
+            List of `AbinitInput` objects for DFPT runs.
 
-        .. warning::
+        .. WARNING::
 
             The routine assumes the q-point is such that k + q belongs to the initial GS mesh.
             so that the DFPT run can be started from the WFK file directly without having
@@ -1094,17 +1094,16 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def make_dde_inputs(self, tolerance=None, use_symmetries=True):
         """
         Return inputs for the calculation of the electric field perturbations.
-
         This functions should be called with an input the represents a gs run.
+
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
-
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
 
         Return:
-            List of AbinitInput objects for DFPT runs.
+            List of `AbinitInput` objects for DFPT runs.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-22}
@@ -2402,27 +2401,30 @@ class OpticError(Exception):
 
 class OpticInput(AbstractInput, MSONable):
     """
-    &FILES
-     ddkfile_1 = 'abo_1WF7',
-     ddkfile_2 = 'abo_1WF8',
-     ddkfile_3 = 'abo_1WF9',
-     wfkfile = 'abo_WFK'
-    /
-    &PARAMETERS
-     broadening = 0.002,
-     domega = 0.0003,
-     maxomega = 0.3,
-     scissor = 0.000,
-     tolerance = 0.002
-    /
-    &COMPUTATIONS
-     num_lin_comp = 1,
-     lin_comp = 11,
-     num_nonlin_comp = 2,
-     nonlin_comp = 123,222,
-     num_linel_comp = 0,
-     num_nonlin2_comp = 0,
-    /
+    Input file for optic.
+
+    Example:
+        &FILES
+         ddkfile_1 = 'abo_1WF7',
+         ddkfile_2 = 'abo_1WF8',
+         ddkfile_3 = 'abo_1WF9',
+         wfkfile = 'abo_WFK'
+        /
+        &PARAMETERS
+         broadening = 0.002,
+         domega = 0.0003,
+         maxomega = 0.3,
+         scissor = 0.000,
+         tolerance = 0.002
+        /
+        &COMPUTATIONS
+         num_lin_comp = 1,
+         lin_comp = 11,
+         num_nonlin_comp = 2,
+         nonlin_comp = 123,222,
+         num_linel_comp = 0,
+         num_nonlin2_comp = 0,
+        /
     """
     Error = OpticError
 
@@ -2516,6 +2518,7 @@ class OpticInput(AbstractInput, MSONable):
             kwargs.update(**section)
         return cls(**kwargs)
 
+    # TODO
     #@pmg_serialize
     def as_dict(self):
         """
@@ -2607,6 +2610,7 @@ class Cut3DInput(MSONable, object):
     def _convert(cls, infile_path, output_filepath, out_option):
         """
         Generic function used to generate the input for convertions using cut3d
+
         Args:
             infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
                 None to be defined at a later time.
@@ -2626,11 +2630,11 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to a 3D formatted format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
+            density_filepath: absolute or relative path to the input density produced by abinit.
+                Can be None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
         """
         return cls._convert(density_filepath, output_filepath, 5)
 
@@ -2640,11 +2644,11 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to a 3D indexed format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
         """
         return cls._convert(density_filepath, output_filepath, 6)
 
@@ -2654,11 +2658,11 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to a Molekel format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
         """
         return cls._convert(density_filepath, output_filepath, 7)
 
@@ -2668,11 +2672,11 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to a Tecplot format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
         """
         return cls._convert(density_filepath, output_filepath, 8)
 
@@ -2682,12 +2686,13 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to an xsf format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
-        shift: a list of three integers defining the shift along the x, y, z axis. None if no shift is required.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            shift: a list of three integers defining the shift along the x, y, z axis.
+                None if no shift is required.
         """
         options = ['9']  # Option to convert a _DEN file to an .xsf file
         options.append(output_filepath)  # Name of the output .xsf file
@@ -2705,11 +2710,11 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the conversion to a cube format.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-            safer to use just the file name, as using an absolute or relative path may fail depending on
-            the compiler.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
         """
         return cls._convert(density_filepath, output_filepath, 14)
 
@@ -2719,10 +2724,10 @@ class Cut3DInput(MSONable, object):
         Generates a cut3d input for the calculation of the Hirshfeld charges from the density.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
-            in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
+                in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
         """
         options = ['11']  # Option to convert _DEN file to a .cube file
         for p in all_el_dens_paths:
@@ -2742,10 +2747,10 @@ class Cut3DInput(MSONable, object):
         provided to AbinitInput.
 
         Args:
-        density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
-            defined at a later time.
-        structure: the structure used for the ground state calculation. Used to determine the elements
-        fhi_all_el_path: path to the folder containing the fhi all-electron density files
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            structure: the structure used for the ground state calculation. Used to determine the elements
+            fhi_all_el_path: path to the folder containing the fhi all-electron density files
         """
         all_el_dens_paths = []
         # This relies on AbinitInput using Structure.types_of_specie to define znucl

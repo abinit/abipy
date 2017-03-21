@@ -19,7 +19,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`charges` Module
------------------
+---------------------
 
 .. automodule:: abipy.electrons.charges
    :members:
@@ -35,7 +35,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`fatbands` Module
----------------------
+----------------------
 
 .. automodule:: abipy.electrons.fatbands
    :members:

@@ -69,9 +69,6 @@ extensions += [
           'matplotlib.sphinxext.plot_directive',
           'IPython.sphinxext.ipython_directive',
           'IPython.sphinxext.ipython_console_highlighting',
-          # MG deprecated but we continue using it
-          #'ipython_directive',
-          #'ipython_console_highlighting',
           # This does not work with py3k
           #'numpydoc',
           'gen_rst',

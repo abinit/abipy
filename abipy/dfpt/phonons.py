@@ -661,8 +661,7 @@ class PhononBands(object):
     def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
                                   highsym_qpts_mode="split"):
         """
-        Writes a json file that can be parsed from phononwebsite
-        https://github.com/henriquemiranda/phononwebsite
+        Writes a json file that can be parsed from phononwebsite https://github.com/henriquemiranda/phononwebsite
 
         Args:
             filename: name of the json file that will be created
@@ -674,10 +673,10 @@ class PhononBands(object):
                 product of the eigenvectors
             highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.
                 Accepts the following values:
-                'split' will split the path based on points where the path changes direction in the brillouin zone.
-                    Similar to the what is done in phononwebsite. Only Gamma will be labeled.
-                'std' uses the standard generation procedure for points and labels used in PhononBands.
-                None does not set any point.
+                    'split' will split the path based on points where the path changes direction in the Brillouin zone.
+                        Similar to the what is done in phononwebsite. Only Gamma will be labeled.
+                    'std' uses the standard generation procedure for points and labels used in PhononBands.
+                    None does not set any point.
         """
 
         def split_non_collinear(qpts):
@@ -803,7 +802,7 @@ class PhononBands(object):
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
+                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used
                 to scale the marker size.

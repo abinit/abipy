@@ -327,7 +327,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         Build a :class:`Structure` object from a dictionary with ABINIT variables.
 
-        example:
+        Example:
 
             al_structure = Structure.from_abivars(
                 acell=3*[7.5],
@@ -1443,7 +1443,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
 def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
-    Build two pandas dataframes with the most important geometrical paramaters associated to
+    Build two pandas dataframes with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
 
     Args:

@@ -263,7 +263,7 @@ class Function1D(object):
             acc: Accuracy. 4 is fine in many cases.
 
         Returns:
-            new :class:`Function1d` instance with the derivative.
+            new :class:`Function1D` instance with the derivative.
         """
         if self.h is None:
             raise ValueError("Finite differences with inhomogeneous meshes are not supported")
@@ -275,7 +275,7 @@ class Function1D(object):
         Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
         Returns:
-            :class:`Function1d` with :math:`\int y(x) dx`
+            :class:`Function1D` with :math:`\int y(x) dx`
         """
         if stop is None: stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
@@ -298,7 +298,7 @@ class Function1D(object):
         return self.spline.roots()
 
     def spline_on_mesh(self, mesh):
-        """Spline the function on the given mesh, returns :class:`Function1d` object."""
+        """Spline the function on the given mesh, returns :class:`Function1D` object."""
         return self.__class__(mesh, self.spline(mesh))
 
     def spline_derivatives(self, x):

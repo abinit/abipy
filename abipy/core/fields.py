@@ -349,8 +349,8 @@ class Density(ScalarField):
     def ae_core_density_on_mesh(cls, valence_density, structure, rhoc_files, maxr=2.0, nelec=None,
                                 method='mesh3d_dist_gridpoints', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
         """
-        Initialize the all electron core density of the structure from the pseudopotentials *rhoc files
-        Note that these *rhoc files contain one column with the radii in Bohrs and one column with the density
+        Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files
+        Note that these *rhoc* files contain one column with the radii in Bohrs and one column with the density
         in #/Bohr^3 multiplied by a factor 4pi.
         """
         rhoc_atom_splines = [None]*len(structure)

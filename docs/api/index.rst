@@ -17,7 +17,6 @@ API documentation
    iotools_api.rst
    abio_api.rst
    electrons_api.rst
-   gw_api.rst
    dynamics_api.rst
    dfpt_api.rst
    waves_api.rst

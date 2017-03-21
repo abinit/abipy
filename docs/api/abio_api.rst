@@ -44,7 +44,7 @@ abio Package
    :show-inheritance:
 
 :mod:`input_tags` Module
---------------------
+------------------------
 
 .. automodule:: abipy.abio.input_tags
    :members:
@@ -60,7 +60,7 @@ abio Package
    :show-inheritance:
 
 :mod:`outputs` Module
---------------------
+---------------------
 
 .. automodule:: abipy.abio.outputs
    :members:
@@ -77,7 +77,7 @@ abio Package
    :show-inheritance:
 
 :mod:`timer` Module
---------------------
+-------------------
 
 .. automodule:: abipy.abio.timer
    :members:
