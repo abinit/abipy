@@ -1,137 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>abipy.electrons.ebands &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>abipy.electrons.ebands &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../../../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>abipy.electrons.ebands</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <h1>Source code for abipy.electrons.ebands</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
@@ -168,7 +77,7 @@
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -220,8 +129,8 @@
         <span class="k">return</span> <span class="n">Electron</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fields</span><span class="p">})</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">()):</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">()):</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
             <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
@@ -253,21 +162,21 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tips</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dictionary with the description of the fields.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">TIPS</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">TIPS</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">TIPS</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">TIPS</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Class method that returns a dictionary with the description of the fields.</span>
 <span class="sd">        The string are extracted from the class doc string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_TIPS</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_TIPS</span>
 
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="c1"># Parse the doc string.</span>
-            <span class="n">cls</span><span class="o">.</span><span class="n">_TIPS</span> <span class="o">=</span> <span class="n">_TIPS</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">lines</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">__doc__</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_TIPS</span> <span class="o">=</span> <span class="n">_TIPS</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.. Attributes&quot;</span><span class="p">):</span>
@@ -278,7 +187,7 @@
                 <span class="sd">&quot;&quot;&quot;Returns the number of the leading whitespaces in a string&quot;&quot;&quot;</span>
                 <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">lstrip</span><span class="p">())</span>
 
-            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
 
                     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span><span class="p">):</span>
@@ -291,7 +200,7 @@
 
                         <span class="n">_TIPS</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
 
-            <span class="n">diffset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">_TIPS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">diffset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">_TIPS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">diffset</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The following fields are not documented: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">diffset</span><span class="p">))</span>
 
@@ -359,11 +268,11 @@
     <span class="p">]</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes Smearing obey the general json interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_MANDATORY_KEYS</span><span class="p">})</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_MANDATORY_KEYS</span><span class="p">})</span>
 
     <span class="nd">@pmg_serialize</span>
     <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -376,10 +285,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a json string representation of the MSONable object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Smearing</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Smearing</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">mkey</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MANDATORY_KEYS</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mandatory key </span><span class="si">%s</span><span class="s2"> must be provided&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">mkey</span><span class="p">))</span>
@@ -418,7 +327,7 @@
 
     <span class="c1"># FIXME</span>
     <span class="c1"># Increase a bit the value of fermie used in bisection routines to solve the problem mentioned below</span>
-    <span class="n">pad_fermie</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span>
+    <span class="n">pad_fermie</span> <span class="o">=</span> <span class="mf">1e-6</span>
     <span class="c1"># One should check whether fermie is recomputed at the end of the SCF cyle</span>
     <span class="c1"># I have problems in finding homos/lumos in semiconductors (e.g. Si)</span>
     <span class="c1"># because fermie is slightly smaller than the CBM:</span>
@@ -431,7 +340,7 @@
     <span class="c1"># because the CBM obtained with the NSCF band structure run will be likely above the Ef computed previously.</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ElectronBands.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize an instance of :class:`ElectronBands` from a netCDF file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -441,11 +350,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ElectronBands can only be initialized from nc files&quot;</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">new</span><span class="o">.</span><span class="n">__class__</span> <span class="o">==</span> <span class="n">cls</span>
+        <span class="k">assert</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="bp">cls</span>
         <span class="k">return</span> <span class="n">new</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ElectronBands.from_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.from_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">kd</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">kd</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;@module&quot;</span><span class="p">)</span>
@@ -457,7 +366,7 @@
         <span class="c1"># Needed to support old dictionaries</span>
         <span class="k">if</span> <span class="s2">&quot;nspden&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nspden&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="s2">&quot;nspinor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nspinor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span> <span class="n">kpoints</span><span class="p">,</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]),</span> <span class="n">kpoints</span><span class="p">,</span>
                    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;eigens&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;fermie&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;occfacts&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nelect&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nspinor&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nspden&quot;</span><span class="p">],</span>
                    <span class="n">nband_sk</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;nband_sk&quot;</span><span class="p">],</span> <span class="n">smearing</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;smearing&quot;</span><span class="p">],</span>
                    <span class="c1">#markers=None, widths=None</span>
@@ -480,7 +389,7 @@
         <span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ElectronBands.as_ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.as_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">as_ebands</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.as_ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.as_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">as_ebands</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of :class:`ElectronBands` from a generic obj.</span>
 <span class="sd">        Supports:</span>
@@ -489,13 +398,13 @@
 <span class="sd">            - files (string) that can be open with abiopen and that provide an `ebands` attribute.</span>
 <span class="sd">            - objects providing an `ebands` attribute</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span>
         <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="c1"># path?</span>
             <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pickle&quot;</span><span class="p">):</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">))</span>
+                    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">))</span>
 
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
@@ -510,7 +419,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a json string representation of the MSONable object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">kpoints</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts</span><span class="p">,</span> <span class="n">nelect</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span>
                  <span class="n">nband_sk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">widths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1303,11 +1212,11 @@
 <span class="sd">        The bands are aligned wrt to their fermi level.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            other: :class:`BandStructure` object.</span>
+<span class="sd">            other: :class:`ElectronBands` object.</span>
 <span class="sd">            axis:  Axis along which the statistical parameters are computed.</span>
 <span class="sd">                   The default is to compute the parameters of the flattened array.</span>
 <span class="sd">            numpy_op: Numpy function to apply to the difference of the eigenvalues. The</span>
-<span class="sd">                      default computes |self.eigens - other.eigens|.</span>
+<span class="sd">                      default computes `|self.eigens - other.eigens|`.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `namedtuple` with the statistical parameters in eV</span>
@@ -1331,8 +1240,8 @@
         <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">interactive</span><span class="p">(</span>
                 <span class="n">plot_dos</span><span class="p">,</span>
                 <span class="n">method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">],</span>
-                <span class="n">step</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step of linear mesh [eV]&quot;</span><span class="p">),</span>
-                <span class="n">width</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gaussian broadening [eV]&quot;</span><span class="p">),</span>
+                <span class="n">step</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step of linear mesh [eV]&quot;</span><span class="p">),</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gaussian broadening [eV]&quot;</span><span class="p">),</span>
                 <span class="n">__manual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span></div>
 
@@ -1501,7 +1410,7 @@
                 <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tot_jdos</span><span class="p">))</span>
                 <span class="n">num_plots</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">jdos_vc</span><span class="p">),</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">jdos</span> <span class="ow">in</span> <span class="n">jdos_vc</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="s2">r&quot;$v=</span><span class="si">%s</span><span class="s2"> \rightarrow c=</span><span class="si">%s</span><span class="s2">, \sigma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$v=</span><span class="si">%s</span><span class="s2"> \rightarrow c=</span><span class="si">%s</span><span class="s2">, \sigma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
                     <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">num_plots</span><span class="p">)</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">jdos</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">jdos</span><span class="o">.</span><span class="n">values</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cumulative</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
@@ -1512,7 +1421,7 @@
                 <span class="n">num_plots</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">jdos_vc</span><span class="p">),</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">),</span> <span class="n">jdos</span> <span class="ow">in</span> <span class="n">jdos_vc</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="n">num_plots</span><span class="p">)</span>
-                    <span class="n">jdos</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">r&quot;$v=</span><span class="si">%s</span><span class="s2"> \rightarrow c=</span><span class="si">%s</span><span class="s2">, \sigma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+                    <span class="n">jdos</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$v=</span><span class="si">%s</span><span class="s2"> \rightarrow c=</span><span class="si">%s</span><span class="s2">, \sigma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="n">tot_jdos</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Total JDOS, $\sigma=</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
@@ -1561,7 +1470,7 @@
         <span class="c1">#fermie = self.fermie</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;KS fermie&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="s2">&quot;--&gt; QP fermie&quot;</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="s2">&quot;Delta(QP-KS)=&quot;</span><span class="p">,</span> <span class="n">fermie</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">,</span> <span class="n">qp_energies</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">occfacts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span>
             <span class="n">nband_sk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">smearing</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">)</span></div>
 
@@ -2105,7 +2014,7 @@
         <span class="c1"># Build new ebands object.</span>
         <span class="n">kpts_kpath</span> <span class="o">=</span> <span class="n">Kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">knames</span><span class="p">)</span>
         <span class="n">occfacts_kpath</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">eigens_kpath</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">ebands_kpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kpath</span><span class="p">,</span> <span class="n">eigens_kpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts_kpath</span><span class="p">,</span>
+        <span class="n">ebands_kpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kpath</span><span class="p">,</span> <span class="n">eigens_kpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts_kpath</span><span class="p">,</span>
                                       <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">)</span>
 
         <span class="n">ebands_kmesh</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2120,7 +2029,7 @@
             <span class="n">kpts_kmesh</span> <span class="o">=</span> <span class="n">IrredZone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">kdos</span><span class="o">.</span><span class="n">ibz</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">kdos</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
                                    <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">ksampling</span><span class="p">)</span>
             <span class="n">occfacts_kmesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">eigens_kmesh</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">ebands_kmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kmesh</span><span class="p">,</span> <span class="n">eigens_kmesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts_kmesh</span><span class="p">,</span>
+            <span class="n">ebands_kmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kmesh</span><span class="p">,</span> <span class="n">eigens_kmesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts_kmesh</span><span class="p">,</span>
                                           <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">ebands_kpath</span><span class="o">=</span><span class="n">ebands_kpath</span><span class="p">,</span> <span class="n">ebands_kmesh</span><span class="o">=</span><span class="n">ebands_kmesh</span><span class="p">,</span> <span class="n">interpolator</span><span class="o">=</span><span class="n">skw</span><span class="p">)</span></div></div>
@@ -2796,7 +2705,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ElectronDos.as_edos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.as_edos">[docs]</a>    <span class="k">def</span> <span class="nf">as_edos</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronDos.as_edos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.as_edos">[docs]</a>    <span class="k">def</span> <span class="nf">as_edos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of :class:`ElectronDos` from a generic obj.</span>
 <span class="sd">        Supports:</span>
@@ -2810,13 +2719,13 @@
 <span class="sd">            Used when obj is not already an instance of `cls`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">edos_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">edos_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span>
         <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="c1"># path?</span>
             <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pickle&quot;</span><span class="p">):</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">as_edos</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">),</span> <span class="n">edos_kwargs</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_edos</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">),</span> <span class="n">edos_kwargs</span><span class="p">)</span>
 
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
@@ -3217,64 +3126,51 @@
     <span class="c1">#    return animator.animate(**kwargs)</span>
 </pre></div>
 
-           </div>
           </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

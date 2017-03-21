@@ -1,137 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>abipy.abio.factories &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>abipy.abio.factories &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../../../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>abipy.abio.factories</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <h1>Source code for abipy.abio.factories</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
@@ -146,8 +55,7 @@
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">jsanitize</span><span class="p">,</span> <span class="n">MontyDecoder</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">import</span> <span class="n">KSampling</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="k">import</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.input_tags</span> <span class="k">import</span> <span class="o">*</span>
@@ -155,7 +63,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -234,16 +142,16 @@
     <span class="n">OneSymmetric</span> <span class="o">=</span> <span class="s1">&#39;O&#39;</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_object</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an instance of ShiftMode based on the type of object passed. convertes strings to ShiftMode depending</span>
 <span class="sd">        on the inital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.</span>
 <span class="sd">        Case insensitive.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span>
         <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The object provided is not handled&#39;</span><span class="p">)</span>
 
@@ -703,15 +611,15 @@
 
     <span class="c1"># all these too many options are for development only the current idea for the final version is</span>
     <span class="c1">#if gamma:</span>
-    <span class="c1">#    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))</span>
-    <span class="c1">#    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))</span>
+    <span class="c1">#    scf_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))</span>
+    <span class="c1">#    nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))</span>
     <span class="c1">#    if kppa &lt;= 13:</span>
-    <span class="c1">#        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))</span>
+    <span class="c1">#        nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))</span>
     <span class="c1">#    else:</span>
-    <span class="c1">#        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))</span>
+    <span class="c1">#        nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))</span>
     <span class="c1">#else:</span>
-    <span class="c1">#    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)</span>
-    <span class="c1">#    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)</span>
+    <span class="c1">#    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)</span>
+    <span class="c1">#    nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)</span>
 
     <span class="k">if</span> <span class="n">gamma</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kppa</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -731,8 +639,8 @@
             <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># this is the original behaviour before the devellopment of the gwwrapper</span>
-        <span class="n">scf_ksampling</span> <span class="o">=</span> <span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">scf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 
     <span class="n">scf_electrons</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">Electrons</span><span class="p">(</span><span class="n">spin_mode</span><span class="o">=</span><span class="n">spin_mode</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="n">smearing</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">scf_algorithm</span><span class="p">,</span>
@@ -1030,6 +938,19 @@
         <span class="n">with_ddk</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">with_dde</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="k">if</span> <span class="n">ph_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ph_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">ddk_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ddk_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">dde_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dde_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">wfq_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wfq_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+
+
     <span class="n">multi</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">qpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ph_ngqpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1063,7 +984,7 @@
             <span class="k">if</span> <span class="n">wfq_tol</span><span class="p">:</span>
                 <span class="n">multi_nscf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="o">**</span><span class="n">wfq_tol</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">multi_nscf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">22</span><span class="p">)</span>
+                <span class="n">multi_nscf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-22</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">nscf_inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nscf_qpt</span><span class="p">,</span> <span class="n">multi_nscf</span><span class="p">):</span>
                 <span class="n">nscf_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">qpt</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
 
@@ -1466,7 +1387,7 @@
         <span class="n">extra_abivars</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;extra_abivars&#39;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_required</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">previous_input</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;An input is required for factory function </span><span class="si">{0}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factory_function</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;An input is required for factory function </span><span class="si">{0}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factory_function</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
             <span class="n">abiinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory_function</span><span class="p">(</span><span class="n">previous_input</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">abiinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory_function</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1483,9 +1404,9 @@
         <span class="k">return</span> <span class="n">jsanitize</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="n">dec</span> <span class="o">=</span> <span class="n">MontyDecoder</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">dec</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]),</span> <span class="o">**</span><span class="n">dec</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">dec</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]),</span> <span class="o">**</span><span class="n">dec</span><span class="o">.</span><span class="n">process_decoded</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;kwargs&#39;</span><span class="p">]))</span>
 
 
 <span class="k">class</span> <span class="nc">BandsFromGsFactory</span><span class="p">(</span><span class="n">InputFactory</span><span class="p">):</span>
@@ -1527,64 +1448,51 @@
     <span class="n">factory_function</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">piezo_elastic_inputs_from_gsinput</span><span class="p">)</span>
 </pre></div>
 
-           </div>
           </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

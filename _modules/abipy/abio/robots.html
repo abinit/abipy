@@ -1,137 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>abipy.abio.robots &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>abipy.abio.robots &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../../../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>abipy.abio.robots</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <h1>Source code for abipy.abio.robots</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
@@ -145,9 +54,9 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.eos</span> <span class="k">import</span> <span class="n">EOS</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.flows</span> <span class="k">import</span> <span class="n">Flow</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">Flow</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 
 
@@ -172,13 +81,13 @@
 <span class="sd">        with abirobot(&quot;dirpath&quot;, &quot;SIGRES&quot;) as robot:</span>
 <span class="sd">            # do something with robot and close the SIGRES files when done.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
-            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">)</span>
+    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">)</span>
 
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find Robot subclass associated to extension </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ext</span> <span class="o">+</span>
                      <span class="s2">&quot;The list of supported extensions is:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                     <span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div>
+                     <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div>
 
 
 <div class="viewcode-block" id="Robot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot">[docs]</a><span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -213,21 +122,21 @@
     <span class="c1">#def get_dataframe(self, **kwargs):</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.class_for_ext"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_for_ext">[docs]</a>    <span class="k">def</span> <span class="nf">class_for_ext</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.class_for_ext"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_for_ext">[docs]</a>    <span class="k">def</span> <span class="nf">class_for_ext</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the Robot subclass associated to the given extension.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">subcls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">subcls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">subcls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
                 <span class="k">return</span> <span class="n">subcls</span>
 
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find Robot subclass associated to extension </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ext</span> <span class="o">+</span>
                          <span class="s2">&quot;The list of supported extensions is:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                         <span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="k">for</span> <span class="n">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div>
+                         <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div>
 
     <span class="c1"># Deprecated. Use class_for_ext</span>
     <span class="n">for_ext</span> <span class="o">=</span> <span class="n">class_for_ext</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir">[docs]</a>    <span class="k">def</span> <span class="nf">from_dir</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir">[docs]</a>    <span class="k">def</span> <span class="nf">from_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This classmethod builds a robot by scanning all files located within directory `top`.</span>
 <span class="sd">        Note that if walk is True, directories inside `top` are included as well.</span>
@@ -244,26 +153,26 @@
         <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">walk</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
-                <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
+                <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
                 <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
                     <span class="n">ncfile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">ncfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">top</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
+            <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">top</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
             <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
                 <span class="n">ncfile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">ncfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_files">[docs]</a>    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_files">[docs]</a>    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a Robot from a list of files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Refactor this. cls should be automatically detecteed from the extension in filenames[0]</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
-        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
+        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)]</span>
         <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -271,10 +180,10 @@
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">ncfile</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">ncfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_flow"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_flow">[docs]</a>    <span class="k">def</span> <span class="nf">from_flow</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdirs</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_flow"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_flow">[docs]</a>    <span class="k">def</span> <span class="nf">from_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdirs</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a robot from a Flow.</span>
 
@@ -291,7 +200,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            `Robot` subclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">robot</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">all_opts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">outdirs</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
@@ -370,7 +279,7 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
@@ -387,13 +296,13 @@
         <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">relpath</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">relpath</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">else</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  [</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-    <span class="n">__str__</span> <span class="o">=</span> <span class="n">__repr__</span>
+    <span class="fm">__str__</span> <span class="o">=</span> <span class="fm">__repr__</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ncfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -412,7 +321,7 @@
                     <span class="k">pass</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.</span>
 <span class="sd">        nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
@@ -427,18 +336,18 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_dirpath</span><span class="p">:</span>
             <span class="c1"># We have a Flow. smeth is the name of the Task method used to open the file.</span>
             <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">smeth</span> <span class="o">=</span> <span class="s2">&quot;open_&quot;</span> <span class="o">+</span> <span class="n">cls</span><span class="o">.</span><span class="n">EXT</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">smeth</span> <span class="o">=</span> <span class="s2">&quot;open_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">iflat_tasks</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">):</span> <span class="c1">#, status=obj.S_OK):</span>
                 <span class="n">open_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">smeth</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">open_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
                 <span class="n">ncfile</span> <span class="o">=</span> <span class="n">open_method</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">ncfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">task</span><span class="o">.</span><span class="n">pos_str</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># directory --&gt; search for files with the appropriate extension and open it with abiopen.</span>
             <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nids cannot be used when obj is a directory.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">from_dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_exec_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -507,7 +416,12 @@
             <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gsr</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">aname</span> <span class="o">==</span> <span class="s2">&quot;nkpt&quot;</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gsr</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
             <span class="c1"># Add info on structure.</span>
             <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;with_geo&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -798,64 +712,51 @@
     <span class="c1">#    return plotter</span>
 </pre></div>
 
-           </div>
           </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

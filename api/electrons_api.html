@@ -1,167 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>electrons Package &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="API documentation" href="index.html"/>
-        <link rel="next" title="gw package" href="gw_api.html"/>
-        <link rel="prev" title="abio Package" href="abio_api.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>electrons Package &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dynamics Package" href="dynamics_api.html" />
+    <link rel="prev" title="abio Package" href="abio_api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="abio_api.html">abio Package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">electrons Package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">electrons</span></code> Package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.bse"><code class="docutils literal"><span class="pre">bse</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#charges-module"><code class="docutils literal"><span class="pre">charges</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.ebands"><code class="docutils literal"><span class="pre">ebands</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fatbands-module"><code class="docutils literal"><span class="pre">fatbands</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.gsr"><code class="docutils literal"><span class="pre">gsr</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.gw"><code class="docutils literal"><span class="pre">gw</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.denpot"><code class="docutils literal"><span class="pre">denpot</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.psps"><code class="docutils literal"><span class="pre">psps</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.scissors"><code class="docutils literal"><span class="pre">scissors</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.electrons.scr"><code class="docutils literal"><span class="pre">scr</span></code> Module</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="gw_api.html">gw package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dfpt_api.html">dfpt Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="waves_api.html">waves Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="index.html">API documentation</a> &raquo;</li>
-      
-    <li>electrons Package</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/api/electrons_api.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <div class="section" id="electrons-package">
 <h1>electrons Package<a class="headerlink" href="#electrons-package" title="Permalink to this headline">¶</a></h1>
@@ -730,9 +611,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 </div>
-<div class="section" id="charges-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">charges</span></code> Module<a class="headerlink" href="#charges-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.electrons.charges"></span><p>HirshfeldCharges&#8221;.</p>
+<div class="section" id="module-abipy.electrons.charges">
+<span id="charges-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">charges</span></code> Module<a class="headerlink" href="#module-abipy.electrons.charges" title="Permalink to this headline">¶</a></h2>
+<p>HirshfeldCharges&#8221;.</p>
 <dl class="class">
 <dt id="abipy.electrons.charges.HirshfeldCharges">
 <em class="property">class </em><code class="descclassname">abipy.electrons.charges.</code><code class="descname">HirshfeldCharges</code><span class="sig-paren">(</span><em>charges</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges" title="Permalink to this definition">¶</a></dt>
@@ -969,7 +850,7 @@ in the energy intervale [e0-deltae, e0+deltae]</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>range to be analyzed in the form [emin, emax]</strong> (<em>erange=Energy</em>) &#8211; </li>
+<li><strong>range to be analyzed in the form</strong><strong> [</strong><strong>emin</strong><strong>, </strong><strong>emax</strong><strong>]</strong><strong></strong> (<em>erange=Energy</em>) &#8211; </li>
 <li><strong>deltae</strong> &#8211; Defines the energy interval in eV around the KS eigenvalue.</li>
 <li><strong>kfact</strong> &#8211; Can be used to change the criterion used to detect dispersionless states.</li>
 </ul>
@@ -1513,23 +1394,19 @@ klabels: dictionary whose keys are tuple with the reduced coordinates of the k-p
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
 <dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
 <dt>e0: Option used to define the zero of energy in the band structure plot. Possible values:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt><cite>fermie</cite>: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.</dt>
-<dd><p class="first last">Note that, by default, the Fermi energy is taken from the band structure object
+<dd>Note that, by default, the Fermi energy is taken from the band structure object
 i.e. the Fermi energy computed at the end of the SCF file that produced the density.
 This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
 can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-the one used to compute the density. See <cite>edos_fermie</cite>.</p>
-</dd>
+the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 </dl>
 </li>
-<li><p class="first"><cite>edos_fermie</cite>: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.</p>
-</li>
-<li><p class="first">Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</p>
-</li>
-<li><p class="first">None: Don&#8217;t shift energies, equivalent to e0=0</p>
-</li>
+<li><cite>edos_fermie</cite>: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.</li>
+<li>Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</li>
+<li>None: Don&#8217;t shift energies, equivalent to e0=0</li>
 </ul>
 </dd>
 </dl>
@@ -1686,11 +1563,11 @@ The bands are aligned wrt to their fermi level.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>other</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">BandStructure</span></code> object.</li>
+<li><strong>other</strong> &#8211; <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> object.</li>
 <li><strong>axis</strong> &#8211; Axis along which the statistical parameters are computed.
 The default is to compute the parameters of the flattened array.</li>
 <li><strong>numpy_op</strong> &#8211; Numpy function to apply to the difference of the eigenvalues. The
-default computes <a href="#id4"><span class="problematic" id="id5">|self.eigens - other.eigens|</span></a>.</li>
+default computes <cite>|self.eigens - other.eigens|</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -2303,27 +2180,23 @@ Use <cite>gridplot</cite> to plot band structures on different figures.</p>
 <dt>Args:</dt>
 <dd><dl class="first last docutils">
 <dt>e0: Option used to define the zero of energy in the band structure plot. Possible values:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt><cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)</dt>
-<dd><p class="first last">Note that, by default, the Fermi energy is taken from the band structure object
+<dd>Note that, by default, the Fermi energy is taken from the band structure object
 i.e. the Fermi energy computed at the end of the SCF file that produced the density.
 This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
 can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-the one used to compute the density. See <cite>edos_fermie</cite>.</p>
-</dd>
+the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt><cite>edos_fermie</cite>: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.</dt>
-<dd><p class="first last">Available only if plotter contains dos objects.</p>
-</dd>
+<dd>Available only if plotter contains dos objects.</dd>
 </dl>
 </li>
-<li><p class="first">Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</p>
-</li>
-<li><p class="first">None: Don&#8217;t shift energies, equivalent to e0=0</p>
-</li>
+<li>Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</li>
+<li>None: Don&#8217;t shift energies, equivalent to e0=0</li>
 </ul>
 </dd>
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
@@ -2369,7 +2242,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.ebands_list">
 <code class="descname">ebands_list</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.ebands_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;List of <cite>:class:ElectronBands</cite>.</p>
+<dd><p>&#8220;List of ` &#8211; class &#8211; ElectronBands`.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2400,27 +2273,23 @@ or one of the abipy object with an <cite>ebands</cite> attribute or a <a class="
 Accept filepaths or <a class="reference internal" href="#abipy.electrons.ebands.ElectronDos" title="abipy.electrons.ebands.ElectronDos"><code class="xref py py-class docutils literal"><span class="pre">ElectronDos</span></code></a> objects. If edos_objects is not None,
 each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.</dd>
 <dt>e0: Option used to define the zero of energy in the band structure plot. Possible values:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt><cite>fermie</cite>: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.</dt>
-<dd><p class="first last">Note that, by default, the Fermi energy is taken from the band structure object
+<dd>Note that, by default, the Fermi energy is taken from the band structure object
 i.e. the Fermi energy computed at the end of the SCF file that produced the density.
 This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
 can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-the one used to compute the density. See <cite>edos_fermie</cite>.</p>
-</dd>
+the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt><cite>edos_fermie</cite>: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.</dt>
-<dd><p class="first last">Available only if edos_objects is not None</p>
-</dd>
+<dd>Available only if edos_objects is not None</dd>
 </dl>
 </li>
-<li><p class="first">Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</p>
-</li>
-<li><p class="first">None: Don&#8217;t shift energies, equivalent to e0=0</p>
-</li>
+<li>Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</li>
+<li>None: Don&#8217;t shift energies, equivalent to e0=0</li>
 </ul>
 </dd>
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
@@ -2593,27 +2462,23 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt>Args:</dt>
 <dd><dl class="first last docutils">
 <dt>e0: Option used to define the zero of energy in the band structure plot. Possible values:</dt>
-<dd><ul class="first last">
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt><cite>fermie</cite>: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.</dt>
-<dd><p class="first last">Note that, by default, the Fermi energy is taken from the band structure object
+<dd>Note that, by default, the Fermi energy is taken from the band structure object
 i.e. the Fermi energy computed at the end of the SCF file that produced the density.
 This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
 can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-the one used to compute the density. See <cite>edos_fermie</cite>.</p>
-</dd>
+the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt><cite>edos_fermie</cite>: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.</dt>
-<dd><p class="first last">Available only if edos_objects is not None</p>
-</dd>
+<dd>Available only if edos_objects is not None</dd>
 </dl>
 </li>
-<li><p class="first">Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</p>
-</li>
-<li><p class="first">None: Don&#8217;t shift energies, equivalent to e0=0</p>
-</li>
+<li>Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</li>
+<li>None: Don&#8217;t shift energies, equivalent to e0=0</li>
 </ul>
 </dd>
 <dt>xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
@@ -2671,9 +2536,9 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="fatbands-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">fatbands</span></code> Module<a class="headerlink" href="#fatbands-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.electrons.fatbands"></span><p>Classes for the analysis of electronic fatbands and projected DOSes.</p>
+<div class="section" id="module-abipy.electrons.fatbands">
+<span id="fatbands-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">fatbands</span></code> Module<a class="headerlink" href="#module-abipy.electrons.fatbands" title="Permalink to this headline">¶</a></h2>
+<p>Classes for the analysis of electronic fatbands and projected DOSes.</p>
 <dl class="class">
 <dt id="abipy.electrons.fatbands.FatBandsFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.fatbands.</code><code class="descname">FatBandsFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/fatbands.html#FatBandsFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile" title="Permalink to this definition">¶</a></dt>
@@ -5559,73 +5424,81 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </div>
 
 
-           </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="gw_api.html" class="btn btn-neutral float-right" title="gw package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="abio_api.html" class="btn btn-neutral" title="abio Package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">electrons Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">electrons</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.bse"><code class="docutils literal"><span class="pre">bse</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.charges"><code class="docutils literal"><span class="pre">charges</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.ebands"><code class="docutils literal"><span class="pre">ebands</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.fatbands"><code class="docutils literal"><span class="pre">fatbands</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.gsr"><code class="docutils literal"><span class="pre">gsr</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.gw"><code class="docutils literal"><span class="pre">gw</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.denpot"><code class="docutils literal"><span class="pre">denpot</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.psps"><code class="docutils literal"><span class="pre">psps</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.scissors"><code class="docutils literal"><span class="pre">scissors</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.scr"><code class="docutils literal"><span class="pre">scr</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="abio_api.html" title="previous chapter">abio Package</a></li>
+      <li>Next: <a href="dynamics_api.html" title="next chapter">dynamics Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/electrons_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api/electrons_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

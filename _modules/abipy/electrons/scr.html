@@ -1,137 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>abipy.electrons.scr &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>abipy.electrons.scr &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../../../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>abipy.electrons.scr</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <h1>Source code for abipy.electrons.scr</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
@@ -155,7 +64,7 @@
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="WGGFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.WGGFunction">[docs]</a><span class="k">class</span> <span class="nc">WGGFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -465,12 +374,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ScrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="ScrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ScrFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScrFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="c1"># Keep a reference to the reader.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">r</span> <span class="o">=</span> <span class="n">ScrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -582,7 +491,7 @@
 <span class="sd">    It provides helper functions to access the most important quantities.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ScrReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ScrReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="c1"># Read and store important quantities.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
@@ -617,7 +526,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">iq</span><span class="p">],</span> <span class="n">iq</span></div>
 
-<div class="viewcode-block" id="ScrReader.read_wggfunc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_wggfunc">[docs]</a>    <span class="k">def</span> <span class="nf">read_wggfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+<div class="viewcode-block" id="ScrReader.read_wggfunc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_wggfunc">[docs]</a>    <span class="k">def</span> <span class="nf">read_wggfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read data at the given q-point and return an instance</span>
 <span class="sd">        of `cls` where `cls` is a subclass of `WGGFunction`</span>
@@ -630,10 +539,10 @@
         <span class="c1"># TODO: Gpshere.find is very slow if we don&#39;t take advantage of shells</span>
         <span class="n">gsphere</span> <span class="o">=</span> <span class="n">GSphere</span><span class="p">(</span><span class="n">ecuteps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">all_gvecs</span><span class="p">[</span><span class="n">iq</span><span class="p">])</span>
 
-        <span class="n">full_wggmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">etsf_name</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+        <span class="n">full_wggmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">etsf_name</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
         <span class="n">wggmat</span> <span class="o">=</span> <span class="n">full_wggmat</span><span class="p">[</span><span class="n">iq</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wpts</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span></div></div>
 
 
 <span class="kn">import</span> <span class="nn">six</span>
@@ -670,12 +579,12 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">omegatw</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsphere</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="GodbyNeeds.from_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.from_em1">[docs]</a>    <span class="k">def</span> <span class="nf">from_em1</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">em1</span><span class="p">,</span> <span class="n">wplasma</span><span class="p">):</span>
+<div class="viewcode-block" id="GodbyNeeds.from_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.from_em1">[docs]</a>    <span class="k">def</span> <span class="nf">from_em1</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">em1</span><span class="p">,</span> <span class="n">wplasma</span><span class="p">):</span>
         <span class="c1"># Find omega=0 and the second imaginary frequency to fit the ppm parameters.</span>
         <span class="n">iw0</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">iw1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">wpts</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="n">iw0</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">wplasma</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="n">iw1</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-6</span><span class="p">:</span> <span class="n">iw0</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">wplasma</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-6</span><span class="p">:</span> <span class="n">iw1</span> <span class="o">=</span> <span class="n">i</span>
 
         <span class="k">if</span> <span class="n">iw0</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find omega=0 in em1&quot;</span><span class="p">)</span>
@@ -705,7 +614,7 @@
 
         <span class="n">bigomegatwsq</span> <span class="o">=</span> <span class="o">-</span><span class="n">aa</span> <span class="o">*</span> <span class="n">omegatw</span><span class="o">**</span><span class="mi">2</span>
 
-        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">gsphere</span><span class="p">,</span> <span class="n">omegatw</span><span class="p">,</span> <span class="n">bigomegatwsq</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">em1</span><span class="o">.</span><span class="n">gsphere</span><span class="p">,</span> <span class="n">omegatw</span><span class="p">,</span> <span class="n">bigomegatwsq</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GodbyNeeds.eval_em1"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.eval_em1">[docs]</a>    <span class="k">def</span> <span class="nf">eval_em1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="n">zcut</span><span class="p">):</span>
         <span class="n">omegas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">omegas</span><span class="p">)</span>
@@ -731,64 +640,51 @@
         <span class="k">return</span> <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
-           </div>
           </div>
-          <footer>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

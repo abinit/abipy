@@ -1,161 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>dfpt Package &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="API documentation" href="index.html"/>
-        <link rel="next" title="waves Package" href="waves_api.html"/>
-        <link rel="prev" title="dynamics Package" href="dynamics_api.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>dfpt Package &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="waves Package" href="waves_api.html" />
+    <link rel="prev" title="dynamics Package" href="dynamics_api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="abio_api.html">abio Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="electrons_api.html">electrons Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gw_api.html">gw package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">dfpt Package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#anaddbnc-module"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.dfpt.eph"><code class="docutils literal"><span class="pre">eph</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="waves_api.html">waves Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="index.html">API documentation</a> &raquo;</li>
-      
-    <li>dfpt Package</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/api/dfpt_api.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <div class="section" id="dfpt-package">
 <h1>dfpt Package<a class="headerlink" href="#dfpt-package" title="Permalink to this headline">¶</a></h1>
@@ -163,9 +50,9 @@
 <span id="dpft-package"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">dpft</span></code> Package<a class="headerlink" href="#module-abipy.dfpt" title="Permalink to this headline">¶</a></h2>
 <p>This subpackage provides objects and functions for the analysis of DFPT calculatios.</p>
 </div>
-<div class="section" id="anaddbnc-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">anaddbnc</span></code> Module<a class="headerlink" href="#anaddbnc-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.dfpt.anaddbnc"></span><p>AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.</p>
+<div class="section" id="module-abipy.dfpt.anaddbnc">
+<span id="anaddbnc-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">anaddbnc</span></code> Module<a class="headerlink" href="#module-abipy.dfpt.anaddbnc" title="Permalink to this headline">¶</a></h2>
+<p>AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.</p>
 <dl class="class">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.anaddbnc.</code><code class="descname">AnaddbNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" title="Permalink to this definition">¶</a></dt>
@@ -315,7 +202,7 @@ the error messages of the run.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>nqsmalls</strong> &#8211; List of integers defining the q-mesh for the DOS. Each integer gives</li>
 <li><strong>number of divisions to be used to sample the smallest reciprocal lattice vector.</strong> (<em>the</em>) &#8211; </li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>dos_method</strong> &#8211; Technique for DOS computation in  Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
@@ -367,7 +254,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>ifcout</strong> &#8211; Number of neighbouring atoms for which the ifc&#8217;s will be output. If None all the atoms in the big box.</li>
-<li><strong>chneut, dipdip</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
@@ -395,7 +282,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <li><strong>nqsmall</strong> &#8211; Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
 used to sample the smallest lattice vector.</li>
 <li><strong>ndivsm</strong> &#8211; Number of division used for the smallest segment of the q-path</li>
-<li><strong>chneut, dipdip</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>dos_method</strong> &#8211; Technique for DOS computation in  Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
@@ -427,7 +314,7 @@ depending on the input structure.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>qpoint</strong> &#8211; Reduced coordinates of the qpoint where phonon modes are computed.</li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
@@ -685,6 +572,40 @@ an ascii file with multiple qpoints.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBands.create_phononwebsite_json">
+<code class="descname">create_phononwebsite_json</code><span class="sig-paren">(</span><em>filename</em>, <em>name=None</em>, <em>repetitions=None</em>, <em>highsym_qpts=None</em>, <em>match_bands=True</em>, <em>highsym_qpts_mode=u'split'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.create_phononwebsite_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.create_phononwebsite_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a json file that can be parsed from phononwebsite <a class="reference external" href="https://github.com/henriquemiranda/phononwebsite">https://github.com/henriquemiranda/phononwebsite</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> &#8211; name of the json file that will be created</li>
+<li><strong>name</strong> &#8211; name associated with the data.</li>
+<li><strong>repetitions</strong> &#8211; number of repetitions of the cell. List of three integers. Defaults to [3,3,3].</li>
+<li><strong>highsym_qpts</strong> &#8211; list of tuples. The first element of each tuple should be a list with the coordinates
+of a high symmetry point, the second element of the tuple should be its label.</li>
+<li><strong>match_bands</strong> &#8211; if True tries to follow the band along the path based on the scalar
+product of the eigenvectors</li>
+<li><strong>highsym_qpts_mode</strong> &#8211; <p>if highsym_qpts is None high symmetry q-points can be automatically determined.
+Accepts the following values:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>&#8216;split&#8217; will split the path based on points where the path changes direction in the Brillouin zone.</dt>
+<dd>Similar to the what is done in phononwebsite. Only Gamma will be labeled.</dd>
+</dl>
+<p>&#8216;std&#8217; uses the standard generation procedure for points and labels used in PhononBands.
+None does not set any point.</p>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.create_xyz_vib">
 <code class="descname">create_xyz_vib</code><span class="sig-paren">(</span><em>iqpt</em>, <em>filename</em>, <em>pre_factor=200</em>, <em>do_real=True</em>, <em>scale_matrix=None</em>, <em>max_supercell=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.create_xyz_vib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.create_xyz_vib" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create vibration XYZ file for visualization of phonons.</p>
@@ -858,17 +779,18 @@ The last dimension stores the cartesian components.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.</p>
+qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote>
-<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}</div></blockquote>
+<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</div></blockquote>
 <p>branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
 marker: String defining the marker to plot. Syntax <cite>markername:fact</cite> where fact is a float used</p>
 <blockquote>
 <div>to scale the marker size.</div></blockquote>
-<dl class="last docutils">
+<dl class="docutils">
 <dt>width: String defining the width to plot. Syntax <cite>widthname:fact</cite> where fact is a float used</dt>
 <dd>to scale the stripe size.</dd>
 </dl>
+<p class="last">match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.</p>
 </dd>
 <dt>Returns:</dt>
 <dd><cite>matplotlib</cite> figure.</dd>
@@ -908,14 +830,71 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.plot_ax">
-<code class="descname">plot_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>branch</em>, <em>units=u'eV'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_ax" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the frequencies for the given branch index as a function of the q index on axis ax.
+<code class="descname">plot_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>branch</em>, <em>units=u'eV'</em>, <em>match_bands=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_ax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the frequencies for the given branches indices as a function of the q index on axis ax.
 If branch is None, all phonon branches are plotted.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The list of &#8216;matplotlib&#8217; lines added.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBands.plot_colored_matched">
+<code class="descname">plot_colored_matched</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_colored_matched"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_colored_matched" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot the phonon band structure with different color for each line .</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
+qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
+<blockquote>
+<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}</div></blockquote>
+<p>branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
+colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</p>
+<blockquote>
+<div>sequential order to avoid difficulties in distinguishing the lines.
+<a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></div></blockquote>
+<dl class="last docutils">
+<dt>max_colors: maximum number of colors to be used. If max_colors &lt; num_braches the colors will be reapeated.</dt>
+<dd>It useful to better distinguish close bands when the number of branch is large.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd><cite>matplotlib</cite> figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -933,7 +912,7 @@ If branch is None, all phonon branches are plotted.</p>
 <dd><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></dd>
 </dl>
 <p>max_stripe_width_mev: The maximum width of the stripe in meV.
-qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.</p>
+qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote class="last">
 <div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</div></blockquote>
 </dd>
@@ -993,7 +972,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">dos: An instance of <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a>.
-qlabels: dictionary whose keys are tuple with the reduced coordinates of the q-points.</p>
+qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote>
 <div>The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&#8221;$Gamma$&#8221;, (0.5,0,0):&#8221;L&#8221;}.</div></blockquote>
 <dl class="last docutils">
@@ -1108,6 +1087,19 @@ s[i] is the size of the marker.</li>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="abipy.dfpt.phonons.PhononBands.split_matched_indices">
+<code class="descname">split_matched_indices</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.split_matched_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of numpy arrays containing the indices in which each band should be sorted in order to match the
+scalar product of the eigenvectors. The shape is the same as that of split_phfreqs.
+Lazy property.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.phonons.PhononBands.split_phdispl_cart">
+<code class="descname">split_phdispl_cart</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.split_phdispl_cart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBands.split_phfreqs">
 <code class="descname">split_phfreqs</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.split_phfreqs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1116,6 +1108,22 @@ s[i] is the size of the marker.</li>
 <dt id="abipy.dfpt.phonons.PhononBands.split_qpoints">
 <code class="descname">split_qpoints</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.split_qpoints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBands.to_pymatgen">
+<code class="descname">to_pymatgen</code><span class="sig-paren">(</span><em>qlabels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_pymatgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_pymatgen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pymatgen PhononBandStructureSymmLine object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qlabels</strong> &#8211; dictionary whose keys are tuples with the reduced coordinates of the q-points.
+The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&#8221;$Gamma$&#8221;, (0.5,0,0):&#8221;L&#8221;}.
+If None labels will be determined automatically.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.to_string">
@@ -1200,7 +1208,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.phbands_list">
 <code class="descname">phbands_list</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.phbands_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;List of <cite>:class:PhononBands</cite>.</p>
+<dd><p>&#8220;List of ` &#8211; class &#8211; PhononBands`.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1223,7 +1231,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><dl class="first last docutils">
-<dt>qlabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.</dt>
+<dt>qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.</dt>
 <dd>The values are the labels e.g. klabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</dd>
 </dl>
 </dd>
@@ -1411,19 +1419,15 @@ and another numpy array, <cite>values</cite>, with the DOS on the mesh..</p>
 <dd><p>Return an instance of <code class="xref py py-class docutils literal"><span class="pre">PhononDOS</span></code> from a generic obj.
 Supports:</p>
 <blockquote>
-<div><ul>
-<li><p class="first">instances of cls</p>
-</li>
+<div><ul class="simple">
+<li>instances of cls</li>
 <li><dl class="first docutils">
 <dt>files (string) that can be open with abiopen and that provide one of the following attributes:</dt>
-<dd><p class="first last">[<cite>phdos</cite>, <cite>phbands</cite>]</p>
-</dd>
+<dd>[<cite>phdos</cite>, <cite>phbands</cite>]</dd>
 </dl>
 </li>
-<li><p class="first">instances of <cite>PhononBands</cite></p>
-</li>
-<li><p class="first">objects providing a <a href="#id1"><span class="problematic" id="id2">`</span></a>phbands`attribute.</p>
-</li>
+<li>instances of <cite>PhononBands</cite></li>
+<li>objects providing a <a href="#id1"><span class="problematic" id="id2">`</span></a>phbands`attribute.</li>
 </ul>
 </div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1432,7 +1436,7 @@ Supports:</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>phdos_kwargs</strong> &#8211; optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.</li>
-<li><strong>when obj is not already an instance of cls or when we have to compute the DOS from obj.</strong> (<em>Used</em>) &#8211; </li>
+<li><strong>when obj is not already an instance of cls</strong><strong> or </strong><strong>when we have to compute the DOS from obj.</strong> (<em>Used</em>) &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -1580,7 +1584,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 &#8220;d&#8221; for DOS, &#8220;i&#8221; for IDOS. chars can be concatenated
 hence what=&#8221;id&#8221; plots both IDOS and DOS. (default &#8220;d&#8221;).</li>
 <li><strong>exchange_xy</strong> &#8211; True to exchange exis</li>
-<li><strong>kwargs</strong> (<em>args,</em>) &#8211; Options passes to matplotlib.</li>
+<li><strong>kwargs</strong> (<em>args</em><em>,</em><em></em>) &#8211; Options passes to matplotlib.</li>
 </ul>
 </td>
 </tr>
@@ -1799,73 +1803,75 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
-           </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="waves_api.html" class="btn btn-neutral float-right" title="waves Package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="dynamics_api.html" class="btn btn-neutral" title="dynamics Package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dfpt Package</a><ul>
+<li><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.eph"><code class="docutils literal"><span class="pre">eph</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="dynamics_api.html" title="previous chapter">dynamics Package</a></li>
+      <li>Next: <a href="waves_api.html" title="next chapter">waves Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/dfpt_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api/dfpt_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

@@ -1,166 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>abio Package &mdash; abipy 0.1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="abipy 0.1.0 documentation" href="../index.html"/>
-        <link rel="up" title="API documentation" href="index.html"/>
-        <link rel="next" title="electrons Package" href="electrons_api.html"/>
-        <link rel="prev" title="iotools Package" href="iotools_api.html"/> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>abio Package &#8212; abipy 0.1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
-          
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="electrons Package" href="electrons_api.html" />
+    <link rel="prev" title="iotools Package" href="iotools_api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-          
-            <a href="../index.html" class="icon icon-home"> abipy
-          
+  </head>
+  <body role="document">
+  
 
-          
-          </a>
-
-          
-            
-            
-              <div class="version">
-                0.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-                <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What&#8217;s new in abipy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/plot/index.html">plot Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows.html">Workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="core_api.html">core Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html">tools Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools_api.html#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iotools_api.html">iotools Package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">abio Package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">abio</span></code> Package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.abivars"><code class="docutils literal"><span class="pre">abivars</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.abivars_db"><code class="docutils literal"><span class="pre">abivars_db</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.decorators"><code class="docutils literal"><span class="pre">decorators</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.factories"><code class="docutils literal"><span class="pre">factories</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#input-tags-module"><code class="docutils literal"><span class="pre">input_tags</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.inputs"><code class="docutils literal"><span class="pre">inputs</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#outputs-module"><code class="docutils literal"><span class="pre">outputs</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.robots"><code class="docutils literal"><span class="pre">robots</span></code> Module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-abipy.abio.timer"><code class="docutils literal"><span class="pre">timer</span></code> Module</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="electrons_api.html">electrons Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gw_api.html">gw package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dynamics_api.html">dynamics Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dfpt_api.html">dfpt Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="waves_api.html">waves Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_api.html">data Package</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers&#8217; Guide</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">abipy</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          
-
- 
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-          <li><a href="index.html">API documentation</a> &raquo;</li>
-      
-    <li>abio Package</li>
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/api/abio_api.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
   <div class="section" id="abio-package">
 <h1>abio Package<a class="headerlink" href="#abio-package" title="Permalink to this headline">¶</a></h1>
@@ -892,9 +774,9 @@ pseudos, the structure and the smearing option.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="input-tags-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">input_tags</span></code> Module<a class="headerlink" href="#input-tags-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.abio.input_tags"></span><p>This module contains a list of default tags for the AbinitInput object</p>
+<div class="section" id="module-abipy.abio.input_tags">
+<span id="input-tags-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">input_tags</span></code> Module<a class="headerlink" href="#module-abipy.abio.input_tags" title="Permalink to this headline">¶</a></h2>
+<p>This module contains a list of default tags for the AbinitInput object</p>
 </div>
 <div class="section" id="module-abipy.abio.inputs">
 <span id="inputs-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">inputs</span></code> Module<a class="headerlink" href="#module-abipy.abio.inputs" title="Permalink to this headline">¶</a></h2>
@@ -1217,19 +1099,22 @@ Default is True.</li>
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.make_dde_inputs">
 <code class="descname">make_dde_inputs</code><span class="sig-paren">(</span><em>tolerance=None</em>, <em>use_symmetries=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_dde_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_dde_inputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return inputs for the calculation of the electric field perturbations.</p>
-<p>This functions should be called with an input the represents a gs run.
-:param tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</p>
-<blockquote>
-<div>Defaults to {&#8220;tolwfr&#8221;: 1.0e-22}.</div></blockquote>
+<dd><p>Return inputs for the calculation of the electric field perturbations.
+This functions should be called with an input the represents a gs run.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>use_symmetries</strong> &#8211; boolean that computes the irreducible components of the perturbation.
-Default to True. Should be set to False for nonlinear coefficients calculation.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tolerance</strong> &#8211; dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
+<li><strong>use_symmetries</strong> &#8211; boolean that computes the irreducible components of the perturbation.
+Default to True. Should be set to False for nonlinear coefficients calculation.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of AbinitInput objects for DFPT runs.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of <cite>AbinitInput</cite> objects for DFPT runs.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1271,13 +1156,13 @@ It should be called with an input the represents a GS run.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpt</strong> &#8211; q-point in reduced coordinatesl</li>
+<li><strong>qpt</strong> &#8211; q-point in reduced coordinates.</li>
 <li><strong>tolerance</strong> &#8211; dict {varname: value} with the tolerance to be used in the DFPT run.
 Defaults to {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of AbinitInput objects for DFPT runs.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of <cite>AbinitInput</cite> objects for DFPT runs.</p>
 </td>
 </tr>
 </tbody>
@@ -1767,7 +1652,7 @@ Return dict with the variables added to the input.</p>
 <li><strong>ngqpt</strong> &#8211; Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
 <li><strong>ifcout</strong> &#8211; Number of neighbouring atoms for which the ifc&#8217;s will be output. If None all the atoms in the big box.</li>
 <li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>chneut, dipdip</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
 <li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
@@ -1791,8 +1676,8 @@ Return dict with the variables added to the input.</p>
 <li><strong>nqsmall</strong> &#8211; Used to generate the (dense) mesh for the DOS.
 It defines the number of q-points used to sample the smallest lattice vector.</li>
 <li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>Boundaries of the path. If None, the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
 <li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
@@ -1831,7 +1716,7 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
 <li><strong>qpoint</strong> &#8211; Reduced coordinates of the q-point where phonon frequencies and modes are wanted</li>
-<li><strong>chneut, dipdp, ifcflag</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong><strong>, </strong><strong>ifcflag</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>lo_to_splitting</strong> &#8211; if True calculation of the LO-TO splitting will be included if qpoint==Gamma</li>
 <li><strong>directions</strong> &#8211; list of 3D directions along which the LO-TO splitting will be calculated. If None the three
 cartesian direction will be used</li>
@@ -1860,8 +1745,8 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <li><strong>ndivsm</strong> &#8211; Used to generate a normalized path for the phonon bands.
 If gives the number of divisions for the smallest segment of the path.</li>
 <li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>Boundaries of the path. If None, the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>dos_method</strong> &#8211; Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <li><strong>lo_to_splitting</strong> &#8211; if True calculation of the LO-TO splitting will be included</li>
@@ -1937,7 +1822,7 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <li><strong>ntemper</strong> &#8211; </li>
 <li><strong>temperinc</strong> &#8211; </li>
 <li><strong>tempermin</strong> &#8211; </li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>ngrids</strong> &#8211; </li>
 <li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
 <li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
@@ -2016,91 +1901,128 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_3d_formatted">
 <em class="property">classmethod </em><code class="descname">den_to_3d_formatted</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_3d_formatted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_3d_formatted" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to a 3D formatted format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit.
+Can be None to be defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_3d_indexed">
 <em class="property">classmethod </em><code class="descname">den_to_3d_indexed</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_3d_indexed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_3d_indexed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to a 3D indexed format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_cube">
 <em class="property">classmethod </em><code class="descname">den_to_cube</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_cube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_cube" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to a cube format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_molekel">
 <em class="property">classmethod </em><code class="descname">den_to_molekel</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_molekel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_molekel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to a Molekel format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_tecplot">
 <em class="property">classmethod </em><code class="descname">den_to_tecplot</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_tecplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_tecplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to a Tecplot format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.Cut3DInput.den_to_xsf">
 <em class="property">classmethod </em><code class="descname">den_to_xsf</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>output_filepath</em>, <em>shift=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.den_to_xsf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.den_to_xsf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the conversion to an xsf format.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be</dt>
-<dd>safer to use just the file name, as using an absolute or relative path may fail depending on
-the compiler.</dd>
-</dl>
-<p>shift: a list of three integers defining the shift along the x, y, z axis. None if no shift is required.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+safer to use just the file name, as using an absolute or relative path may fail depending on
+the compiler.</li>
+<li><strong>shift</strong> &#8211; a list of three integers defining the shift along the x, y, z axis.
+None if no shift is required.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
@@ -2113,14 +2035,20 @@ the compiler.</dd>
 <dt id="abipy.abio.inputs.Cut3DInput.hirshfeld">
 <em class="property">classmethod </em><code class="descname">hirshfeld</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>all_el_dens_paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.hirshfeld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.hirshfeld" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the calculation of the Hirshfeld charges from the density.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<dl class="docutils">
-<dt>all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined</dt>
-<dd>in the abinit input. See <a class="reference external" href="http://www.abinit.org/downloads/all_core_electron">http://www.abinit.org/downloads/all_core_electron</a> for files.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>all_el_dens_paths</strong> &#8211; a list of paths to the all-electron density files corresponding to the elements defined
+in the abinit input. See <a class="reference external" href="http://www.abinit.org/downloads/all_core_electron">http://www.abinit.org/downloads/all_core_electron</a> for files.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="classmethod">
@@ -2131,12 +2059,20 @@ selects the all-electron density files from a folder containing the fhi all-elec
 <a class="reference external" href="http://www.abinit.org/downloads/all_core_electron">http://www.abinit.org/downloads/all_core_electron</a></p>
 <p>This will work only if the input has been generated with AbinitInput and the Structure object is the same
 provided to AbinitInput.</p>
-<p>Args:
-density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</p>
-<blockquote>
-<div>defined at a later time.</div></blockquote>
-<p>structure: the structure used for the ground state calculation. Used to determine the elements
-fhi_all_el_path: path to the folder containing the fhi all-electron density files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+defined at a later time.</li>
+<li><strong>structure</strong> &#8211; the structure used for the ground state calculation. Used to determine the elements</li>
+<li><strong>fhi_all_el_path</strong> &#8211; path to the folder containing the fhi all-electron density files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2339,6 +2275,8 @@ is constructed from the dataset index e.g. run0.abi</p>
 <dt id="abipy.abio.inputs.OpticInput">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">OpticInput</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></p>
+<p>Input file for optic.</p>
+<p class="rubric">Example</p>
 <dl class="docutils">
 <dt>&amp;FILES</dt>
 <dd>ddkfile_1 = &#8216;abo_1WF7&#8217;,
@@ -2418,9 +2356,9 @@ num_nonlin2_comp = 0,</div></blockquote>
 </dd></dl>
 
 </div>
-<div class="section" id="outputs-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">outputs</span></code> Module<a class="headerlink" href="#outputs-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.abio.outputs"></span><p>Objects used to extract and plot results from output files in text format.</p>
+<div class="section" id="module-abipy.abio.outputs">
+<span id="outputs-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">outputs</span></code> Module<a class="headerlink" href="#module-abipy.abio.outputs" title="Permalink to this headline">¶</a></h2>
+<p>Objects used to extract and plot results from output files in text format.</p>
 <dl class="class">
 <dt id="abipy.abio.outputs.AbinitLogFile">
 <em class="property">class </em><code class="descclassname">abipy.abio.outputs.</code><code class="descname">AbinitLogFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitLogFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitLogFile" title="Permalink to this definition">¶</a></dt>
@@ -2564,7 +2502,7 @@ as computed from the different DDB files.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>qpoint</strong> &#8211; Reduced coordinates of the qpoint where phonon modes are computed</li>
-<li><strong>chneut, dipdp</strong> (<em>asr,</em>) &#8211; Anaddb input variable. See official documentation.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 </ul>
 </td>
 </tr>
@@ -2890,7 +2828,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.0)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.1)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>
@@ -2904,73 +2842,80 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
-           </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="electrons_api.html" class="btn btn-neutral float-right" title="electrons Package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="iotools_api.html" class="btn btn-neutral" title="iotools Package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2017, The ABINIT group.
-      Last updated on Mar 09, 2017.
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">abio Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">abio</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.abivars"><code class="docutils literal"><span class="pre">abivars</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.abivars_db"><code class="docutils literal"><span class="pre">abivars_db</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.decorators"><code class="docutils literal"><span class="pre">decorators</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.factories"><code class="docutils literal"><span class="pre">factories</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.input_tags"><code class="docutils literal"><span class="pre">input_tags</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.inputs"><code class="docutils literal"><span class="pre">inputs</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.outputs"><code class="docutils literal"><span class="pre">outputs</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.robots"><code class="docutils literal"><span class="pre">robots</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.timer"><code class="docutils literal"><span class="pre">timer</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="iotools_api.html" title="previous chapter">iotools Package</a></li>
+      <li>Next: <a href="electrons_api.html" title="next chapter">electrons Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/abio_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api/abio_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-    </section>
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'0.1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>
