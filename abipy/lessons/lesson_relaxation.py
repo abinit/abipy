@@ -294,7 +294,7 @@ class Lesson(BaseLesson):
     def analyze_eos_flow(flow, **kwargs):
         work = flow[0]
         etotals = work.read_etotals(unit="eV")
-        eos_fit = EOS.Birch_Murnaghan().fit(flow.volumes, etotals)
+        eos_fit = EOS(eos_name="birch_murnaghan").fit(flow.volumes, etotals)
         return eos_fit.plot(**kwargs)
 
     @staticmethod
@@ -310,7 +310,7 @@ class Lesson(BaseLesson):
 
         with abilab.GsrRobot.open(flow) as robot:
             data = robot.get_dataframe(funcs=get_dist)
-            return robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "volume", "u"])
+            return robot.pairplot(data, x_vars="nkpt", y_vars=["a", "c", "volume", "u"])
 
 
 if __name__ == "__main__":
