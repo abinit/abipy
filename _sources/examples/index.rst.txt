@@ -1,0 +1,16 @@
+.. _examples-index:
+
+##############
+Abipy Examples
+##############
+
+.. htmlonly::
+
+    :Release: |version|
+    :Date: |today|
+
+.. toctree::
+    :maxdepth: 2
+
+    plot/index.rst
+

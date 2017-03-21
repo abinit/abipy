@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>TaskPolicy &#8212; abipy 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="taskpolicy">
+<span id="task-policy"></span><h1>TaskPolicy<a class="headerlink" href="#taskpolicy" title="Permalink to this headline">¶</a></h1>
+<p>At this point, you may wonder why we need to specify all these parameters in the configuration file.
+The reason is that, before submitting a job to a resource manager, AbiPy will use the autoparal
+feature of ABINIT to get all the possible parallel configurations with <code class="docutils literal"><span class="pre">ncpus</span> <span class="pre">&lt;=</span> <span class="pre">max_cores</span></code>.
+On the basis of these results, AbiPy selects the &#8220;optimal&#8221; one, and changes the ABINIT input file
+and the submission script accordingly .
+(this is a very useful feature, especially for calculations done with <code class="docutils literal"><span class="pre">paral_kgb=1</span></code> that require
+the specification of <code class="docutils literal"><span class="pre">npkpt</span></code>, <code class="docutils literal"><span class="pre">npfft</span></code>, <code class="docutils literal"><span class="pre">npband</span></code>, etc).
+If more than one <cite>QueueAdapter</cite> is specified, AbiPy will first compute all the possible
+configuration and then select the &#8220;optimal&#8221; <cite>QueueAdapter</cite> according to some kind of policy</p>
+<p>In some cases, you may want to enforce some constraint on the &#8220;optimal&#8221; configuration.
+For example, you may want to select only those configurations whose parallel efficiency is greater than 0.7
+and whose number of MPI nodes is divisible by 4.
+One can easily enforce this constraint via the <code class="docutils literal"><span class="pre">condition</span></code> dictionary whose syntax is similar to
+the one used in <code class="docutils literal"><span class="pre">mongodb</span></code></p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">policy</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">autoparal</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="l l-Scalar l-Scalar-Plain">max_ncpus</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="l l-Scalar l-Scalar-Plain">condition</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$and</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span> <span class="p p-Indicator">{</span><span class="s">&quot;efficiency&quot;</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$gt</span><span class="p p-Indicator">:</span> <span class="nv">0.7</span><span class="p p-Indicator">}},</span> <span class="p p-Indicator">{</span><span class="s">&quot;tot_ncpus&quot;</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$divisible</span><span class="p p-Indicator">:</span> <span class="nv">4</span><span class="p p-Indicator">}}</span> <span class="p p-Indicator">]}</span>
+</pre></div>
+</div>
+<p>The parallel efficiency is defined as $epsilon = dfrac{T_1}{T_N * N}$ where $N$ is the number
+of MPI processes and $T_j$ is the wall time needed to complete the calculation with $j$ MPI processes.
+For a perfect scaling implementation $epsilon$ is equal to one.
+The parallel speedup with N processors is given by $S = T_N / T_1$.
+Note that <code class="docutils literal"><span class="pre">autoparal</span> <span class="pre">=</span> <span class="pre">1</span></code> will automatically change your <code class="docutils literal"><span class="pre">job.sh</span></code> script as well as the input file
+so that we can run the job in parallel with the optimal configuration required by the user.
+For example, you can use <code class="docutils literal"><span class="pre">paral_kgb</span> <span class="pre">=</span> <span class="pre">1</span></code> in GS calculations and AbiPy will automatically set the values
+of <code class="docutils literal"><span class="pre">npband</span></code>, <code class="docutils literal"><span class="pre">npfft</span></code>, <code class="docutils literal"><span class="pre">npkpt</span></code> ... for you!
+Note that if no configuration fulfills the given condition, AbiPy will use the optimal configuration
+that leads to the highest parallel speedup (not necessarily the most efficient one).</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">policy</span></code></dt>
+<dd>This section governs the automatic parallelization of the run: in this case AbiPy will use
+the <code class="docutils literal"><span class="pre">autoparal</span></code> capabilities of Abinit to determine an optimal configuration with
+<strong>maximum</strong> <code class="docutils literal"><span class="pre">max_ncpus</span></code> MPI nodes. Setting <code class="docutils literal"><span class="pre">autoparal</span></code> to 0 disables the automatic parallelization.
+Other values of autoparal are not supported*</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/_policy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The ABINIT group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/_policy.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
