@@ -62,7 +62,7 @@ extensions = [
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-import matplotlib #.sphinxext
+import matplotlib
 extensions += [
           #'sphinxcontrib.napoleon',   # For Google Python Style Guide
           'matplotlib.sphinxext.mathmpl',
@@ -73,7 +73,7 @@ extensions += [
           # This does not work with py3k
           #'numpydoc',
           'gen_rst',
-          'sphinxcontrib.autorun',
+          #'sphinxcontrib.autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
