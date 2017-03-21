@@ -1,16 +1,16 @@
 qadapters: 
-    - &batch 
+    -
       priority: 1 
       queue:
         qname: travis
         qtype: shell
       job:
-        mpi_runner: null
+        mpi_runner: mpirun
         pre_run: 
             - source activate test-environment
       limits:
          min_cores: 1
-         max_cores: 1
+         max_cores: 2
          timelimit: 0:10:0
       hardware:
          num_nodes: 1
