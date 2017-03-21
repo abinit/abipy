@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -43,7 +44,7 @@ def build_flow(options):
     nkpt = len(inp.abiget_ibz().points)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    work = abilab.Work()
+    work = flowapi.Work()
 
     omp_list = options.omp_list
     if omp_list is None: omp_list = [1, 2, 4, 6]

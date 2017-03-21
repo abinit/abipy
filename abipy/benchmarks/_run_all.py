@@ -11,7 +11,7 @@ import shutil
 import tempfile
 
 from subprocess import call, Popen
-from abipy.abilab import Flow, __version__
+from abipy.abilab import __version__
 
 
 def main():
@@ -59,12 +59,12 @@ def main():
         options.exclude = options.exclude.split()
         print("Will exclude:\n", options.exclude)
 
-    dir = os.path.join(os.path.dirname(__file__))
+    root = os.path.join(os.path.dirname(__file__))
     scripts = []
-    for fname in os.listdir(dir):
+    for fname in os.listdir(root):
         if fname in options.exclude: continue
         if fname.endswith(".py") and not fname.startswith("_"):
-            path = os.path.join(dir, fname)
+            path = os.path.join(root, fname)
             if path != __file__:
                 scripts.append(path)
 

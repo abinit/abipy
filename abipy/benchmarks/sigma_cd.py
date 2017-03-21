@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata  
 
 from itertools import product
@@ -92,11 +93,11 @@ def sigma_benchmark(options):
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    bands = abilab.BandStructureWork(gs_inp, nscf_inp)
+    bands = flowapi.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
-    scr_work = abilab.Work()
+    scr_work = flowapi.Work()
     scr_work.register_scr_task(scr_inp, deps={bands.nscf_task: "WFK"})
     flow.register_work(scr_work)
     flow.exclude_from_benchmark(scr_work)
@@ -104,7 +105,7 @@ def sigma_benchmark(options):
     mpi_list = options.mpi_list
 
     for nband in [100, 200, 300]:
-        sigma_work = abilab.Work()
+        sigma_work = flowapi.Work()
 
         if options.mpi_list is None:
             # Cannot call autoparal here because we need a WFK file.

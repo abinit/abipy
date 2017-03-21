@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from itertools import product
@@ -59,7 +60,7 @@ global_vars = dict(
     ngkpt=[8,8,8],
     shiftk=[0.0,0.0,0.0],
     nsym=1,
-    #accesswff=3
+    #iomode=3
 )
 
 def make_inputs(options):
@@ -106,7 +107,7 @@ def build_flow(options):
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
         print(pconfs)
 
-    work = abilab.Work()
+    work = flowapi.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         #if not options.accept_mpi_omp(mpi_procs,omp_threads): continue

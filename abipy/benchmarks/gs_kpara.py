@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from itertools import product
@@ -50,7 +51,7 @@ def build_flow(options):
         print("Using mpi_list from cmd line:", mpi_list)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    work = abilab.Work()
+    work = flowapi.Work()
 
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

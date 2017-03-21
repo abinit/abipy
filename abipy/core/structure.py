@@ -214,8 +214,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
-        structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-        return cls(structure)
+        new = molecule.get_boxed_structure(l[0], l[1], l[2])
+        new.__class__ = cls
+        return new
 
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
@@ -740,7 +741,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # xcrysden
             print("Writing data to:", filename)
             s = self.to(fmt="xsf", filename=filename)
-            #print(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -1431,7 +1431,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("print(structure.abi_string)"),
             nbv.new_code_cell("structure"),
             nbv.new_code_cell("print(structure.spglib_summary())"),
-            #nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
+            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("fig = structure.show_bz()"),
             nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),

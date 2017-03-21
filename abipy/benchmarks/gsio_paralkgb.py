@@ -6,6 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -54,15 +55,15 @@ def build_flow(options):
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
-    for accesswff in [1, 3]: # [MPI-IO, Netcdf]
-        work = abilab.Work()
+    for iomode in [1, 3]: # [MPI-IO, Netcdf]
+        work = flowapi.Work()
         for conf in pconfs:
             mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
             if not options.accept_conf(conf, omp_threads): continue
 
             # Two GS-SCF tasks. The first one produces the WKF, the second one reads it.
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            inp = template.new_with_vars(conf.vars, accesswff=accesswff)
+            inp = template.new_with_vars(conf.vars, iomode=iomode)
             task0 = work.register_scf_task(inp, manager=manager)
             work.register_scf_task(inp, manager=manager, deps={task0: "WFK"})
 

@@ -11,6 +11,7 @@ import operator
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowapi as flowapi
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -129,7 +130,7 @@ def build_flow(options):
 
     #%% nprocs_to_test = 200
 
-    #work = abilab.Work()
+    #work = flowapi.Work()
     #for d, omp_threads in product(pconfs, options.omp_list):
     #    mpi_procs = reduce(operator.mul, d.values(), 1)
     #    if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

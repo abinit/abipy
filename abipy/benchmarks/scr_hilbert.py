@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
+import abipy.flowapi as flowapi
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -98,13 +99,13 @@ def scr_benchmark(options):
     gs_inp, nscf_inp, scr_inp = make_inputs(paw=options.paw)
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    bands = abilab.BandStructureWork(gs_inp, nscf_inp)
+    bands = flowapi.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
     #for nband in [200, 400, 600]:
     for nband in [600]:
-        scr_work = abilab.Work()
+        scr_work = flowapi.Work()
         inp = scr_inp.new_with_vars(nband=nband)
         mpi_list = options.mpi_list
         if mpi_list is None:
