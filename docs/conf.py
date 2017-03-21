@@ -74,6 +74,7 @@ extensions += [
           #'numpydoc',
           'gen_rst',
           #'sphinxcontrib.autorun',
+          'autorun',
           #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
           ]
 
