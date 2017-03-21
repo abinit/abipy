@@ -55,6 +55,7 @@ extensions = [
 'sphinx.ext.ifconfig',
 'sphinx.ext.viewcode',
 'sphinx.ext.graphviz',
+'sphinx.ext.napoleon',
 'sphinx.ext.inheritance_diagram',
 'sphinxcontrib.programoutput',
 ]
@@ -63,7 +64,7 @@ extensions = [
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib #.sphinxext
 extensions += [
-          'sphinxcontrib.napoleon',   # For Google Python Style Guide
+          #'sphinxcontrib.napoleon',   # For Google Python Style Guide
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
@@ -145,42 +146,25 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'default'
-html_theme = "sphinxdoc"
+#html_theme = "sphinxdoc"
+html_theme = "alabaster"
 #html_theme = "agogo"
 #html_theme = "scrolls"
 
 # Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
-
-import sphinx_rtd_theme
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-
-#import alabaster
-#html_theme_path = [alabaster.get_path()]
-#extensions = ['alabaster']
-#html_theme = 'alabaster'
-#html_sidebars = {
-#    '**': [
-#        'about.html', 'navigation.html', 'searchbox.html', 'donate.html',
-#    ]
-#}
-#    'logo': 'logo.png',
-#    'github_user': 'bitprophet',
-#    'github_repo': 'alabaster',
-#
-#html_theme_options = {
-#    'logo': 'logo.png',
-#    'github_user': 'bitprophet',
-#    'github_repo': 'alabaster',
-#}
-
+# further.  For a list of options available for each theme, see the documentation.
+html_theme_options = {
+    'logo': 'abipy_logo.png',
+    #'description': "A light, configurable Sphinx theme",
+    "logo_name": True,
+    'github_user': 'abinit',
+    'github_repo': 'abipy',
+    "github_banner": True,
+    "github_button": True,
+    "travis_button": True,
+    "codecov_button": True,
+    #'fixed_sidebar': True,
+}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -191,7 +175,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = "_static/abipy_logo.png"
+html_logo = "_static/abipy_logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -326,8 +310,8 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('http://docs.python.org/2', None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/objects.inv", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/objects.inv", None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
     'matplotlib': ('http://matplotlib.org/', None),
     "pymatgen": ("http://pymatgen.org/", None),

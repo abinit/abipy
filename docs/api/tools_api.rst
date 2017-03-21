@@ -3,7 +3,7 @@ tools Package
 
 
 :mod:`tools` Module
-=========================
+===================
 
 .. automodule:: abipy.tools
    :members:
