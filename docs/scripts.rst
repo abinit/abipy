@@ -8,30 +8,30 @@ Command line tools
 ``abiopen.py``
 ^^^^^^^^^^^^^^
 
-AbiPy provides python objects associated to several Abinit output files 
-and these objects implement methods to analyze and plot the results. 
+AbiPy provides python objects associated to several Abinit output files.
+These objects implement methods to analyze and plot the results.
 The examples in our :doc:`gallery </examples/index>` use this API to plot data with ``matplotlib``.
 
-The ``abiopen.py`` script provides a handy interface to the AbiPy objects since 
-users can open Abinit files directly in the ``ipython``` shell and interact with the object 
-(called ``abifile`` in the ``ipython`` terminal).
+The ``abiopen.py`` script provides a handy interface to the AbiPy objects.
+It can be used to open Abinit files directly in the ``ipython``` shell or in a ``jupyter`` notebook and interact with
+the associated the object (called ``abifile`` in the ``ipython`` terminal).
 The syntax of the script is::
 
     $ abiopen.py FILE [options]
 
 where ``FILE`` is one of the files supported by AbiPy (usually in ``netcdf`` format but other 
-files are supported as well). 
+files are supported as well) opening the object in ``ipython``.
 Alternatively, it is possible to generate automatically a ``jupyter`` notebook with the ``-nb`` option e.g.::
 
     $ abiopen.py out_FATBANDS.nc -nb
 
-will produce a notebook to visualize the electronic fatbands produced with ``prtdos 3`` inside a web browser.
+which will produce a notebook to visualize the electronic fatbands produced with ``prtdos 3`` inside a web browser.
 
 Use the ``-p`` option if you just want to get information on the file without opening it, e.g.::
 
     $ abiopen.py out_GSR.nc -p
 
-``abiopen.py`` employs the file extension to decide what to do with the file and the type
+``abiopen.py`` uses the file extension to decide what to do with the file and the type
 of python object that should be instantiated.
 The list of supported file extensions is obtained with:
 
@@ -156,3 +156,4 @@ At the time of writing (|today|), AbiPy supports the following resource managers
 To obtain the list of options supported by a particular resource manager e.g. slurm::
 
     $ abirun.py . doc_manager slurm
+
