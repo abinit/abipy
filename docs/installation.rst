@@ -219,8 +219,9 @@ Configure the package with the ``--prefix`` option and compile the code
     $ ./configure --prefix=$HOME/local
     $ make -j4
 
-If you whish to use any graphical tools it is needed that one of the supported graphical backend supported by python
-is installed and functional at the time of compilation of python.
+If you plan to use any graphical tools you need to make sure that one of the supported graphical backend supported by python
+is installed and functional at the time of compilation of python, see below.
+
 At the end, you should get the list of modules that could not be built because
 your system does not provide the required libraries.
 The installation should be OK for AbiPy if you get::
