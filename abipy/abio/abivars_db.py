@@ -8,7 +8,7 @@ import yaml
 import html2text
 
 from collections import OrderedDict, defaultdict
-from six.moves import StringIO, cPickle as pickle
+from six.moves import cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 
@@ -136,9 +136,7 @@ class Variable(yaml.YAMLObject):
             return str(obj).replace("[[", "").replace("]]", "")
 
         d = {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
-        stream = StringIO()
-        json.dump(d, stream, indent=4, sort_keys=True)
-        return stream.getvalue()
+        return json.dumps(d, indent=4, sort_keys=True)
 
     @lazy_property
     def isarray(self):

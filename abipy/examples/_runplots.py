@@ -85,11 +85,11 @@ def main():
     change_backend(new_backend=options.backend)
 
     # Find scripts.
-    dir = os.path.join(os.path.dirname(__file__), "plot")
+    root = os.path.join(os.path.dirname(__file__), "plot")
     scripts = []
-    for fname in os.listdir(dir):
+    for fname in os.listdir(root):
         if fname.endswith(".py") and fname.startswith("plot_"):
-            scripts.append(os.path.join(dir, fname))
+            scripts.append(os.path.join(root, fname))
 
     # Run scripts according to mode.
     if options.mode in ["s", "sequential"]:

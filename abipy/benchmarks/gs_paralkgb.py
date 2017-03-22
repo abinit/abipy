@@ -12,6 +12,7 @@ import abipy.flowapi as flowapi
 import abipy.data as abidata
 
 from itertools import product
+from functools import reduce
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 

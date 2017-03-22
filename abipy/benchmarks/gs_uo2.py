@@ -13,6 +13,7 @@ import abipy.abilab as abilab
 import abipy.flowapi as flowapi
 import abipy.data as abidata
 
+from functools import reduce
 from itertools import product
 from pymatgen.core.units import bohr_to_ang
 from abipy.benchmarks import bench_main, BenchmarkFlow
