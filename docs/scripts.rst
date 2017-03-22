@@ -14,13 +14,14 @@ The examples in our :doc:`gallery </examples/index>` use this API to plot data w
 
 The ``abiopen.py`` script provides a handy interface to the AbiPy objects.
 It can be used to open Abinit files directly in the ``ipython``` shell or in a ``jupyter`` notebook and interact with
-the associated the object (called ``abifile`` in the ``ipython`` terminal).
+the associated object (called ``abifile`` in the ``ipython`` terminal).
 The syntax of the script is::
 
     $ abiopen.py FILE [options]
 
 where ``FILE`` is one of the files supported by AbiPy (usually in ``netcdf`` format but other 
-files are supported as well) opening the object in ``ipython``.
+files are supported as well).
+By default ``abiopen`` starts the ``ipython`` terminal.
 Alternatively, it is possible to generate automatically a ``jupyter`` notebook with the ``-nb`` option e.g.::
 
     $ abiopen.py out_FATBANDS.nc -nb

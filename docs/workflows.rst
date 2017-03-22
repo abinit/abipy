@@ -33,10 +33,11 @@ How to configure the TaskManager
 --------------------------------
 
 The ``TaskManager`` takes care of task submission. This includes the creation of the submission script,
-initialization of the environment as well as for the optimization of the parallel algorithms
+the initialization of the environment as well as the optimization of the parallel algorithms
 (number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit ``autoparal`` feature). 
 
-AbiPy obtains the information needed to create the correct ``TaskManager`` for a specific cluster from the ``manager.yml`` configuration file.
+AbiPy obtains the information needed to create the correct ``TaskManager`` for a specific cluster (personal computer)
+from the ``manager.yml`` configuration file.
 The file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_,
 a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
@@ -46,10 +47,10 @@ By default, AbiPy looks for a ``manager.yml`` file in the current working direct
 the directory in which you execute your script in first and then inside ``$HOME/.abinit/abipy``.
 If no file is found, the code aborts immediately.
 
-An important piece of information for the ``TaskManager`` is which queues in what queueing system are available on the cluster
-and what are their specifications. In AbiPy queueing systems or resource managers are supported via ``quadapters``.
-At the time of writing (|today|), AbiPy provides ``qadapters``
-for the following resource managers:
+An important piece of information for the ``TaskManager`` is the type of queueing system available on the cluster,
+the list of queues and their specifications. 
+In AbiPy queueing systems or resource managers are supported via ``quadapters``.
+At the time of writing (|today|), AbiPy provides ``qadapters`` for the following resource managers:
 
     * ``bluegene``
     * ``moab``
@@ -142,7 +143,8 @@ In this case Abinit is not installed by default (the executable is not already i
 The directory where the Abinit executables are located hence have to be prepended to the original ``$PATH`` variable.
 Change ``pre_run`` according to your Abinit installation and make sure that ``mpirun`` is also in ``$PATH``.
 If you don't use a parallel version of Abinit, just set ``mpi_runner: null`` 
-(``null`` is the YAML version of the Python ``None``). Note this approache also allows you to safely use multiple versions.
+(``null`` is the YAML version of the Python ``None``). 
+Note this approach also allows you to safely use multiple versions.
 
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
@@ -528,8 +530,8 @@ that mush be specified in the submission script in order to have your job accept
 and executed by the management system (username, name of the queue, memory ...)
 
 Let's assume that our computing center uses ``Slurm`` and our jobs must be submitted to the ``default_queue`` partition.
-In the best case the system administrator of our cluster (or you create one yourself) already provides an ``Abinit module`` that can be loaded
-directly with ``module load`` before invoking the code.
+In the best case, the system administrator of our cluster (or you create one yourself) already provides 
+an ``Abinit module`` that can be loaded directly with ``module load`` before invoking the code.
 To make things a little bit more difficult, however, we assume the we had to compile our own version of Abinit
 inside the build directory ``${HOME}/git_repos/abinit/build_impi`` using the following two modules
 already installed by the system administrator::
@@ -606,7 +608,7 @@ The ``modules`` entry specifies the list of modules to load, ``shell_env`` allow
 
 .. IMPORTANT::
 
-    various resource managers will first execute your bashrc before starting to load the new modules.
+    Various resource managers will first execute your ``.bashrc`` before starting to load the new modules.
 
 We also increase the size of the stack with ``ulimit`` before running the code and we run Abinit 
 with the ``mpirun`` provided by the modules.

@@ -55,7 +55,7 @@ Optional libraries that are required if you need certain features:
 
     Required to generate jupyter notebooks.
     Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
-    To use notebooks you will also need a web browser to open the notebook.
+    To use ``jupyter`` you will also need a web browser to open the notebook.
     (recommended)
 
 ``wxPython`` and ``wxmplot`` for the GUI
@@ -77,7 +77,7 @@ You may want to use the ``wget`` utility to download the anaconda script directl
 
 Run the bash script in the terminal and follow the instructions.
 By default, the installer creates the ``anaconda`` directory in your home.
-Anaconda will add one line to your bashrc to enable acces to the anaconda executables.
+Anaconda will add one line to your ``.bashrc`` to enable access to the anaconda executables.
 Once the installation is completed, execute::
 
     $ source ~/anaconda/bin/activate root
@@ -119,7 +119,7 @@ to install the ``wxpython`` graphical toolkit required for the GUIs.
 Note that one can use ``conda`` to create different environments with different
 versions of the python interpreter or different libraries.
 Further information are available on the `conda official website <http://conda.pydata.org/docs/test-drive.html>`_.
-Using different environments is very useful to keep different version and branches separate.
+Using different environments is very useful to keep different versions and branches separate.
 
 .. _developmental_version:
 
@@ -145,7 +145,7 @@ or alternately::
 to install the package in developmental mode 
 (Develop mode is the recommended approach if you are planning to implement new features.
  In this case you may also opt to first fork AbiPy on Git and then clone your own fork.
- This will a low you to push any changes to you own fork and also get them merged in the main branch.).
+ This will allow you to push any changes to you own fork and also get them merged in the main branch).
 
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
@@ -181,8 +181,8 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
-If you choose to share your developments please also take some time to also develop some unit tests of at least the
-basic functionalities of you code
+If you choose to share your developments please take some time to develop some unit tests of at least the
+basic functionalities of your code
 
 .. _howto_compile_python_and_bootstrap_pip:
 
@@ -219,7 +219,7 @@ Configure the package with the ``--prefix`` option and compile the code
     $ ./configure --prefix=$HOME/local
     $ make -j4
 
-If you plan to use any graphical tools you need to make sure that one of the supported graphical backend supported by python
+If you plan to use graphical tools you need to make sure that the ``Tkinter`` graphical backends 
 is installed and functional at the time of compilation of python, see below.
 
 At the end, you should get the list of modules that could not be built because
