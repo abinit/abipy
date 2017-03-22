@@ -5,18 +5,18 @@ Workflows
 =========
 
 Besides post-processing tools and a programmatic interface to generate input files,
-AbiPy also provides a pythonic API to execute small Abinit tasks or submit calculations on supercomputing centers.
+AbiPy also provides a pythonic API to execute small Abinit tasks directly or submit calculations on supercomputing clusters.
 This section discusses how to create the configuration files required to interface AbiPy with Abinit.
 
 We assume that Abinit is already available on your machine and that you know how to configure
-your environment so that the operating system can load and execute the code.
+your environment so that the operating system can load and execute Abinit.
 In other words, we assume that you know how to set the ``$PATH`` and ``$LD_LIBRARY_PATH`` (``$DYLD_LIBRARY_PATH`` on Mac) 
 environment variables, load modules with ``module load``, run MPI applications with ``mpirun``, etc.
 
 .. IMPORTANT:: 
 
     Please make sure that you can execute Abinit interactively with simple input files and 
-    that the code works as expected before proceeding with the rest of the tutorial.
+    that it works as expected before proceeding with the rest of the tutorial.
     It's also a very good idea to run the Abinit test suite with the `runtest.py script <https://asciinema.org/a/40324>`_ 
     before running production calculations.
 
@@ -32,23 +32,23 @@ environment variables, load modules with ``module load``, run MPI applications w
 How to configure the TaskManager
 --------------------------------
 
-The ``TaskManager`` is responsible for task submission 
-(creation of the submission script, initialization of the environment) as well as for the 
-optimization of the parallel algorithms 
+The ``TaskManager`` takes care of task submission. This includes the creation of the submission script,
+initialization of the environment as well as for the optimization of the parallel algorithms
 (number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit ``autoparal`` feature). 
 
-AbiPy knows how to run or submit the code with the correct environment and the appropriate syntax
-thanks to the options specified in the ``manager.yml`` configuration file.
+AbiPy obtains the information needed to create the correct ``TaskManager`` for a specific cluster from the ``manager.yml`` configuration file.
 The file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_,
 a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
 See also this `reference card <http://www.yaml.org/refcard.html>`_)
 
 By default, AbiPy looks for a ``manager.yml`` file in the current working directory i.e.
-the directory in which you execute your script and then inside ``$HOME/.abinit/abipy``.
+the directory in which you execute your script in first and then inside ``$HOME/.abinit/abipy``.
 If no file is found, the code aborts immediately.
 
-At the time of writing (|today|), AbiPy provides adapters (``qadapters`` in AbiPy jargon)
+An important piece of information for the ``TaskManager`` is which queues in what queueing system are available on the cluster
+and what are their specifications. In AbiPy queueing systems or resource managers are supported via ``quadapters``.
+At the time of writing (|today|), AbiPy provides ``qadapters``
 for the following resource managers:
 
     * ``bluegene``
@@ -59,7 +59,7 @@ for the following resource managers:
     * ``slurm``
     * ``torque``
 
-Configuration files for typical cases are available inside ``~abipy/data/managers``.
+Manager configuration files for typical cases are available inside ``~abipy/data/managers``.
 
 We first discuss how to configure AbiPy on a personal computer and then we look at the more
 complicated case in which the calculation must be submitted to a queue.
@@ -109,7 +109,7 @@ of queue script format as well as queue submission and management.
     but we post-pone the discussion of this rather technical point.
     For the time being, we use a ``manager.yml`` with a single adapter. 
 
-The configuration file I use on my laptop to run jobs via the shell is:
+A typical configuration file used on a laptop to run jobs via the shell is:
 
 .. code-block:: yaml
 
@@ -138,11 +138,11 @@ The configuration file I use on my laptop to run jobs via the shell is:
 
 The ``job`` section is the most critical one, in particular the ``pre_run`` option
 that will be executed by the shell script before invoking Abinit. 
-On my laptop, I don't install Abinit (developers never install the code they develop)
-so I have to prepend the directory where the Abinit executables are located to my original ``$PATH`` variable.
+In this case Abinit is not installed by default (the executable is not already in the path).
+The directory where the Abinit executables are located hence have to be prepended to the original ``$PATH`` variable.
 Change ``pre_run`` according to your Abinit installation and make sure that ``mpirun`` is also in ``$PATH``.
 If you don't use a parallel version of Abinit, just set ``mpi_runner: null`` 
-(``null`` is the YAML version of the Python ``None``).
+(``null`` is the YAML version of the Python ``None``). Note this approache also allows you to safely use multiple versions.
 
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
@@ -156,12 +156,12 @@ This message tells us that everything is in place and we can finally run our fir
 
 .. note:
 
-    My laptop has 1 socket with 2 CPUs and 4 Gb of memory in total, hence I don't want to run 
+    This laptop has 1 socket with 2 CPUs and 4 Gb of memory in total, hence I don't want to run
     Abinit tasks with more than 2 CPUs. This is the reason why ``max_cores`` is set to 2.
     The ``timelimit`` option is not used when you are using ``qname: shell``, but it becomes 
-    important when you are submit jobs on a cluster because this value is used to generate the submission script
+    important when you submit jobs on a cluster because this value is used to generate the submission script
     and Abinit will use this value to exit from iterative algorithms e.g. the SCF cycle before the timeline 
-    and produce files from which we can then restart.
+    and produce files from which it can then restart.
 
 The directory ``~abipy/data/runs`` contains python scripts to generate workflows for typical ab-initio calculations.
 Here we focus on the configuration of the manager and the execution of the flow so we don't discuss how to 
@@ -226,7 +226,7 @@ You might have noticed that each task directory (``w0/t0``, ``w0/t1``) presents 
 
    ``__AbinitFlow__.pickle`` is the pickle file used to save the status of the `Flow`. Don't touch it! 
 
-The ``job.sh`` script has been generated using the information provided by ``manager.yml``. 
+The ``job.sh`` script has been generated by the ``TaskManager`` using the information provided by ``manager.yml``.
 In this case it is a simple shell script that executes the code directly as we are using ``qtype: shell``. 
 The script will get more complicated when we start to submit jobs on a cluster with a resource manager.
 
@@ -237,9 +237,8 @@ We usually interact with the AbiPy flow via the ``abirun.py`` script whose synta
 where ``FLOWDIR`` is the directory containing the flow and ``command`` defines the action to perform 
 (use ``abirun.py --help`` to get the list of possible commands).
 
-``abirun.py`` reconstruct the python Flow from the pickle file ``__AbinitFlow__.pickle`` located in ``FLOWDIR``
+``abirun.py`` reconstructs the python Flow from the pickle file ``__AbinitFlow__.pickle`` located in ``FLOWDIR``
 and invokes the methods of the object depending on the options passed via the command line.
-Let's start to play with our flow.
 
 Use::
 
@@ -529,9 +528,9 @@ that mush be specified in the submission script in order to have your job accept
 and executed by the management system (username, name of the queue, memory ...)
 
 Let's assume that our computing center uses ``Slurm`` and our jobs must be submitted to the ``default_queue`` partition.
-Hopefully, the system administrator of our cluster already provides an ``Abinit module`` that can be loaded
+In the best case the system administrator of our cluster (or you create one yourself) already provides an ``Abinit module`` that can be loaded
 directly with ``module load`` before invoking the code.
-To make thinks a little bit more difficult, however, we assume the we had to compile our own version of Abinit 
+To make things a little bit more difficult, however, we assume the we had to compile our own version of Abinit
 inside the build directory ``${HOME}/git_repos/abinit/build_impi`` using the following two modules
 already installed by the system administrator::
 
@@ -584,7 +583,7 @@ A ``manager.yml`` with a single ``qadapter`` looks like:
 Let's discuss the different options in more detail. Let's start from the ``queue`` section:
 
 ``qtype`` 
-    String specifying the resource manager. This option tells AbiPy how to generate the submission
+    String specifying the resource manager. This option tells AbiPy which ``qadapter`` to use to generate the submission
     script, submit them, kill jobs in the queue and how to interpret the other options passed by the user. 
 
 ``qname``
@@ -592,7 +591,7 @@ Let's discuss the different options in more detail. Let's start from the ``queue
 
 ``qparams`` 
     Dictionary with the parameters passed to the resource manager. 
-    We use the *normalized* version of the options i.e dashes in the official name of the parameter 
+    We use the *normalized* version of the options i.e. dashes in the official name of the parameter
     are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``.
     For the list of supported options use the ``doc_manager`` command.
     Use ``qverbatim`` to pass additional options that are not included in the template.
@@ -603,7 +602,12 @@ at run-time.
 The ``job`` section is the most critical one because it defines how to configure the environment
 before executing the application and how to run the code.
 The ``modules`` entry specifies the list of modules to load, ``shell_env`` allows us to modify the 
-``$PATH`` environment variables so that the OS can find our Abinit executable. 
+``$PATH`` environment variables so that the OS can find our Abinit executable.
+
+.. IMPORTANT::
+
+    various resource managers will first execute your bashrc before starting to load the new modules.
+
 We also increase the size of the stack with ``ulimit`` before running the code and we run Abinit 
 with the ``mpirun`` provided by the modules.
 
@@ -617,7 +621,7 @@ If the job is killed due to insufficient memory, AbiPy will resubmit the task wi
 and it will stop when it reaches the maximum amount given by ``mem_per_node``.
 
 Note that there are more advances options supported by ``limits`` and other options
-will be added as time goes by
+will be added as time goes by.
 
 The get the complete list of options supported by the Slurm ``qadapter`` use:
 

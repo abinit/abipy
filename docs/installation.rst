@@ -55,7 +55,8 @@ Optional libraries that are required if you need certain features:
 
     Required to generate jupyter notebooks.
     Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
-    Recommended but you will also need a web browser to open the notebook.
+    To use notebooks you will also need a web browser to open the notebook.
+    (recommended)
 
 ``wxPython`` and ``wxmplot`` for the GUI
 
@@ -76,6 +77,7 @@ You may want to use the ``wget`` utility to download the anaconda script directl
 
 Run the bash script in the terminal and follow the instructions.
 By default, the installer creates the ``anaconda`` directory in your home.
+Anaconda will add one line to your bashrc to enable acces to the anaconda executables.
 Once the installation is completed, execute::
 
     $ source ~/anaconda/bin/activate root
@@ -99,7 +101,7 @@ Now you can install the stable version of ``abipy`` with::
 
     $ pip install abipy
 
-If you want to use the developmental version, clone (or fork) the repositories on github
+If you want to use the developmental version, clone (or fork and clone) the repositories on github
 (see also the :ref:`developmental_version` section).
 
 Once you have completed the installation of AbiPy and pymatgen, open the ``ipython`` shell and type::
@@ -117,7 +119,7 @@ to install the ``wxpython`` graphical toolkit required for the GUIs.
 Note that one can use ``conda`` to create different environments with different
 versions of the python interpreter or different libraries.
 Further information are available on the `conda official website <http://conda.pydata.org/docs/test-drive.html>`_.
-
+Using different environments is very useful to keep different version and branches separate.
 
 .. _developmental_version:
 
@@ -141,13 +143,19 @@ or alternately::
     $ python setup.py develop
 
 to install the package in developmental mode 
-(this is the recommended approach, especially if you are planning to implement new features).
+(Develop mode is the recommended approach if you are planning to implement new features.
+ In this case you may also opt to first fork AbiPy on Git and then clone your own fork.
+ This will a low you to push any changes to you own fork and also get them merged in the main branch.).
 
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
 To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
-or ``nose`` installed and then just type::
+or ``nose`` installed. Unit tests require two additional packages that can be installed with::
+
+   $ pip install nose-exclude scripttest
+
+once this is in place just type::
 
     $ py.test
 
@@ -156,11 +164,8 @@ or::
     $ nosetests
 
 in the AbiPy root directory.
-Unit tests require two additional packages that can be installed with::
 
-   $ pip install nose-exclude scripttest
-
-Note that several unit tests check the integration between AbiPy and Abinit. 
+Note that several unit tests check the integration between AbiPy and Abinit.
 In order to run the tests, you need a working set of Abinit executables and  
 a ``manager.yml`` configuration file.
 For further information on the syntax of the configuration file, please consult the :ref:`workflows` section.
@@ -176,6 +181,8 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
+If you choose to share your developments please also take some time to also develop some unit tests of at least the
+basic functionalities of you code
 
 .. _howto_compile_python_and_bootstrap_pip:
 
@@ -212,7 +219,10 @@ Configure the package with the ``--prefix`` option and compile the code
     $ ./configure --prefix=$HOME/local
     $ make -j4
 
-At the end, you should get the list of modules that could not be built because 
+If you plan to use any graphical tools you need to make sure that one of the supported graphical backend supported by python
+is installed and functional at the time of compilation of python, see below.
+
+At the end, you should get the list of modules that could not be built because
 your system does not provide the required libraries.
 The installation should be OK for AbiPy if you get::
 
