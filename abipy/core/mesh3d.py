@@ -225,13 +225,17 @@ class Mesh3D(object):
         return fr * self.size
 
     def fourier_interp(self, data, new_mesh, inspace="r"):
-        """sphere in parallelepiped
+        """
         Fourier interpolation of data.
 
-        :param data: Input array defined on this mesh
-        :param new_mesh: Mesh where data is interpolated
-        :param inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
-        :return: Numpy array in real space on the new_mesh
+        Args:
+
+            data: Input array defined on this mesh
+            new_mesh: Mesh where data is interpolated
+            inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
+
+        Return:
+            Numpy array in real space on the new_mesh
         """
         raise NotImplementedError("gtransfer is missing")
         assert inspace in ("r", "g")

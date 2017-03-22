@@ -1,4 +1,4 @@
-"""Tests for mesh3d"""
+"""Tests for mesh3d module"""
 from __future__ import print_function, division
 
 import numpy as np

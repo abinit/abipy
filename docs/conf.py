@@ -144,19 +144,19 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
+# The theme to use for HTML and HTML Help pages.  See the documentation for a list of builtin themes.
 #html_theme = 'default'
 #html_theme = "sphinxdoc"
-html_theme = "alabaster"
 #html_theme = "agogo"
 #html_theme = "scrolls"
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the documentation.
+# http://alabaster.readthedocs.io/en/latest/customization.html
 html_theme_options = {
     'logo': 'abipy_logo.png',
-    #'description': "A light, configurable Sphinx theme",
+    #'description': "",
     "logo_name": True,
     'github_user': 'abinit',
     'github_repo': 'abipy',
@@ -164,7 +164,8 @@ html_theme_options = {
     "github_button": True,
     "travis_button": True,
     "codecov_button": True,
-    #'fixed_sidebar': True,
+    "sidebar_width": "160px", # "220px" default
+    'fixed_sidebar': True,
 }
 
 # The name for this set of Sphinx documents.  If None, it defaults to

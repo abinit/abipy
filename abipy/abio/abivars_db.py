@@ -40,14 +40,14 @@ ABI_OPS = ['sqrt', 'end', '*', '/']
 # NEW VERSION BASED ON Yannick's database.
 
 list_specials = [
-    ('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
-    ('CUDA','True if CUDA is enabled (compilation)'),
-    ('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
-    ('FFTW3','True if FFTW3 is enabled (compilation)'),
-    ('MPI_IO','True if MPI_IO is enabled (compilation)'),
-    ('NPROC','Number of processors used for Abinit'),
-    ('PARALLEL','True if the code is compiled with MPI'),
-    ('SEQUENTIAL','True if the code is compiled without MPI'),
+    ('AUTO_FROM_PSP', 'Means that the value is read from the PSP file'),
+    ('CUDA', 'True if CUDA is enabled (compilation)'),
+    ('ETSF_IO', 'True if ETSF_IO is enabled (compilation)'),
+    ('FFTW3', 'True if FFTW3 is enabled (compilation)'),
+    ('MPI_IO', 'True if MPI_IO is enabled (compilation)'),
+    ('NPROC', 'Number of processors used for Abinit'),
+    ('PARALLEL', 'True if the code is compiled with MPI'),
+    ('SEQUENTIAL', 'True if the code is compiled without MPI'),
 ]
 
 
@@ -163,14 +163,14 @@ class ValueWithUnit(yaml.YAMLObject):
         self.units = units
 
     def __str__(self):
-        return str(self.value) + " "+str(self.units)
+        return str(self.value) + " " + str(self.units)
 
     def __repr__(self):
         return str(self)
 
 
 def valuewithunit_representer(dumper, data):
-    return dumper.represent_mapping('!valuewithunit',data.__dict__)
+    return dumper.represent_mapping('!valuewithunit', data.__dict__)
 
 
 class Range(yaml.YAMLObject):
@@ -193,11 +193,11 @@ class Range(yaml.YAMLObject):
 
     def __repr__(self):
         if self.start is not None and self.stop is not None:
-            return "["+str(self.start)+" .. "+str(self.stop)+"]"
+            return "[" + str(self.start) + " .. " + str(self.stop) + "]"
         if self.start is not None:
-            return "["+str(self.start)+"; ->"
+            return "[" + str(self.start) + "; ->"
         if self.stop is not None:
-            return "<-;"+str(self.stop)+"]"
+            return "<-;" + str(self.stop) + "]"
         else:
             return None
 
@@ -209,7 +209,7 @@ class ValueWithConditions(yaml.YAMLObject):
         s = ''
         for key in self.__dict__.keys():
            if key != 'defaultval':
-             s += str(self.__dict__[key])+' if '+str(key)+',\n'
+             s += str(self.__dict__[key]) + ' if ' + str(key) + ',\n'
         s += str(self.defaultval) + ' otherwise.\n'
         return s
 
@@ -253,7 +253,7 @@ def get_abinit_variables():
                 __VARS_DATABASE = pickle.load(fh)
 
         else:
-            # Make dir and file if not present.
+            # Make directory and file if not present.
             if not os.path.exists(os.path.dirname(pickle_file)):
                 os.makedirs(os.path.dirname(pickle_file))
 
@@ -386,10 +386,13 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         str(var.defaultval).encode("utf-8"),str(var.text).encode("utf-8"))
     text = html2text.html2text(html)
     if info: text += str(var.info).encode("utf-8")
-    text = text.encode("utf-8").replace("[[", "\033[1m").replace("]]", "\033[0m")
+    # FIXME: There are unicode chars in abinit doc (Greek symbols)
     try:
-        stream.write(text)
-    except:
-        #print(type(text))
-        stream.write(text.encode('ascii', 'ignore'))
+        text = text.encode("utf-8").replace("[[", "\033[1m").replace("]]", "\033[0m")
+    except UnicodeDecodeError:
+        text = text.encode('ascii', 'ignore')
+
+    #print(type(text))
+    stream.write(text)
+    stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")
