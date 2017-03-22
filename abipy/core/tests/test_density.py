@@ -1,7 +1,6 @@
 """Tests for core.density module"""
 from __future__ import print_function, division
 
-
 import tempfile
 import abipy.data as abidata
 

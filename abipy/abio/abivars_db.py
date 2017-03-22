@@ -380,8 +380,9 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     except KeyError:
         return stream.write("Variable %s not in the database\n" % varname)
 
-    html = "<h2>Default value:</h2>" + var.defaultval.encode("utf-8") + "<br/><h2>Description</h2>" + var.text.encode("utf-8")
+    html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
+        str(var.defaultval).encode("utf-8"),str(var.text).encode("utf-8"))
     text = html2text.html2text(html)
-    if info: text += var.info.encod("utf-8")
+    if info: text += str(var.info).encode("utf-8")
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
     stream.write("\n")

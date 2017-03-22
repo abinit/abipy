@@ -48,8 +48,8 @@ class WyckoffPositions(Sequence):
         self.letter, self.site_symmetry = None, None
 
         # Build numpy matrix of sympy expressions from the matrix of strings.
-        from sympy import Symbol 
-        from sympy.parsing.sympy_parser import parse_expr 
+        from sympy import Symbol
+        from sympy.parsing.sympy_parser import parse_expr
         exprs = []
         for vec in np.reshape(matrix_str, (-1, 3)):
             exprs.extend([parse_expr(e) for e in vec])
@@ -113,7 +113,7 @@ class WyckoffPositions(Sequence):
 
     def error_of_params(self, params, frac_coords):
         """
-        Return a numpy array with the difference between the 
+        Return a numpy array with the difference between the
         wyckoff positions computed from the sympy expressions and the input frac_coords
         """
         frac_coords = np.reshape(frac_coords, (-1, 3))
@@ -154,7 +154,7 @@ class Wyckoff(object):
         """
         """
         if not isinstance(site2params, OrderedDict):
-            raise ValueError("Please use a OrderedDict for site2params so that\n" + 
+            raise ValueError("Please use a OrderedDict for site2params so that\n" +
                              "the algorithm used to build the structure is deterministic.")
 
         # Build species and coords arrays.
@@ -190,57 +190,3 @@ class Wyckoff(object):
         for elsym, wpos in self.site2wpos.items():
             frac_errors = wpos.error_of_params(params[elsym], fcoords[elsym])
             print(frac_errors)
-
-
-def test_sio2():
-    # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=152
-    site2wpos = {}
-
-    #3	b	.2.	
-    #site2wpos["Si"] = "(x,0,5/6)  (0,x,1/6)   (-x,-x,1/2)"
-
-    #3	a	.2.	
-    site2wpos["Si"] = "[x,0,1/3], (0,x,2/3), (-x,-x,0)"
-
-    #6	c	1	
-    site2wpos["O"] = """
-        (x,y,z), (-y,x-y,z+1/3), (-x+y,-x,z+2/3), (y,x,-z),
-        (x-y,-y,-z+2/3), (-x,-x+y,-z+1/3)"""
-
-    wyck = Wyckoff(site2wpos)
-    print(wyck)
-
-    site2params = OrderedDict([
-        ("Si", dict(x=0.4763)),
-        ("O", dict(x=0.1588, y=0.7439, z=0.4612)),
-        #("O", dict(x=0.1588, y=0.7439, z=0.4612, yyy=3)),
-    ])
-
-    from abipy.core.structure import Lattice
-    lattice = Lattice.hexagonal(a=4.971, c=5.473)
-
-    for to_unit_cell in [False]:
-    #for to_unit_cell in [False, True]:
-        structure = wyck.gen_structure(lattice, site2params, to_unit_cell=to_unit_cell)
-        print("to_unit_cell %s\n" % to_unit_cell, structure)
-
-        #from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-        #spga = SpacegroupAnalyzer(structure)
-        #structure = spga.get_refined_structure()
-        #print("Refined:", structure)
-
-        wyck_params = wyck.find_params(structure)
-
-        #structure.perturb(distance=0.01)
-        #wyck_params = wyck.find_params(structure)
-
-        print("Error of params")
-        wyck.error_of_params(wyck_params, structure)
-
-        for site, params in site2params.items():
-            print(wyck_params[site])
-            assert wyck_params[site] == params
-
-
-if __name__ == "__main__":
-    test_sio2()
