@@ -1,3 +1,4 @@
+# THIS MODULE IS DEPRECATED. Do not use it!!
 import os
 import pwd
 import imp
@@ -34,7 +35,7 @@ class AbipyEnvironment(FrozenDict):
    Values can be accessed either with the standard syntax for dictionaries:
 
    >>> d = AbipyEnvironment({"foo" : "bar"})
-   >>> d["foo"] 
+   >>> d["foo"]
    'bar'
 
    or with the attribute syntax:
@@ -51,7 +52,7 @@ class AbipyEnvironment(FrozenDict):
         return self[name]
      except KeyError:
         return dict.__getattribute__(self, name)
-                                                                   
+
    def __setattr__(self, name, value):
      if name in self:
         raise Exception("Cannot overwrite existent key: %s" % name)
@@ -61,7 +62,7 @@ class AbipyEnvironment(FrozenDict):
    def get_uservar(self, varname, kwargs):
       "Return the value of the variable varname. Note that kwargs has the precedence over self"
       assert varname in self
-      try: 
+      try:
         return kwargs[varname]
       except KeyError:
         return self[varname]
@@ -85,7 +86,7 @@ class EnvVar(object):
 
     def __init__(self, name, type, default, allowed_values, help):
         self.name            = name
-        self.type            = type 
+        self.type            = type
         self.default         = default
         self.allowed_values  = allowed_values
         self.help            = help
@@ -95,15 +96,15 @@ class EnvVar(object):
         "Return the string used to write the abipyrc template file"
         docstr = "# " + self.help.replace("\n","\n#")[:-1]
 
-        if self.allowed_values: 
+        if self.allowed_values:
             docstr += "# Allowed values: %s\n" % str(self.allowed_values)
-        
+
         if self.type == "string":
             assignment = "%s = '%s' \n#\n" % (self.name, self.default)
         else:
             assignment = "%s = %s \n#\n" % (self.name, self.default)
-                                                                                            
-        if self.default is None:    
+
+        if self.default is None:
             assignment = "#" + assignment
 
         return "#\n".join([docstr , assignment])
@@ -115,7 +116,7 @@ class AbipyrcParser(object):
     """
 
     _type_converter = {
-       "string"   : str, 
+       "string"   : str,
        "int"      : int,
        "float"    : float,
        "complex"  : complex,
@@ -206,7 +207,7 @@ class AbipyrcParser(object):
 
             try:
                 value = convert(module.__dict__[k])
-                if self.optval_is_allowed(k, value): 
+                if self.optval_is_allowed(k, value):
                     env[k] = value
                 else:
                     wrong_value.append(k)
@@ -218,7 +219,7 @@ class AbipyrcParser(object):
 
         if wrong_value:
             warn("Variables with wrong value found in configuration file:\n %s " % "\n".join([w for w in wrong_value]) )
-        
+
         if wrong_conversion:
             msg = "Wrong conversion for\n " + "\n".join([str(tup) for tup in wrong_conversion])
             warn(msg)
@@ -233,7 +234,7 @@ class AbipyrcParser(object):
 
         from StringIO import StringIO
         class MyStringIO(StringIO):
-            def writen(self, string, nn=1): 
+            def writen(self, string, nn=1):
                 self.write(string+"\n")
                 if nn>1: self.write((nn-1)*"#\n")
 
@@ -260,7 +261,7 @@ class AbipyrcParser(object):
         if hasattr(fileobj, "writelines"):
             fileobj.writelines([l for l in stio])
         else:
-            with open(fileobj, "w") as fh: 
+            with open(fileobj, "w") as fh:
                 fh.writelines([l for l in stio])
 
 ##########################################################################################
@@ -288,17 +289,17 @@ parser.add_option("shell", default="csh", allowed_values=["bash", "csh"], help="
 
 parser.add_option("mpirun", default="", help="MPI runner. E.g. 'mpiexec -n 64'"),
 
-parser.add_option("modules", help= "List of modules that will be loaded via the command module load <mod>.\n" + 
+parser.add_option("modules", help= "List of modules that will be loaded via the command module load <mod>.\n" +
                                    " e.g ['intel-compilers/12.0.4.191', 'FFTW/3.3' ]" )
 
-parser.add_option("lines_before", help = "List of lines executed before abinit is called.\n" + 
+parser.add_option("lines_before", help = "List of lines executed before abinit is called.\n" +
                                          " e.g ['cd ${PBS_O_WORKDIR}', 'limit stacksize unlimited']" )
 
 parser.add_option("lines_after", help = "List of lines executed after abinit is called, e.g. ['echo Job_done!']")
 
 parser.add_option("other_lines", help="List of command lines your job submission system you would like to add.\n")
 
-parser.add_option("visualizer", default="xcrysden", allowed_values=["xcrysden",], 
+parser.add_option("visualizer", default="xcrysden", allowed_values=["xcrysden",],
                    help="Visualization program for crystalline structures, densities ...")
 
 ##########################################################################################
@@ -321,7 +322,7 @@ def write_abipy_cfg_data():
     "Write the configuration files used by abipy"
 
     # Create directories (recursively)
-    if not exists(abipy_cfg_dir): 
+    if not exists(abipy_cfg_dir):
         os.makedirs(abipy_cfg_dir)
 
     if not exists(abipyrc_path):

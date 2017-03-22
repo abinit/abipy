@@ -3,7 +3,8 @@ set -ev  # exit on first error, print each command
 
 abicheck.py
 
-nosetests abipy -v --with-coverage --cover-package=abipy --logging-level=INFO
+nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO
+#nosetests abipy -v --with-coverage --cover-package=abipy --logging-level=INFO
 
 # This is to run the integration tests (slow)
 #; pytest -v abipy/integration_tests

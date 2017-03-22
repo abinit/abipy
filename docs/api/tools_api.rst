@@ -10,13 +10,6 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`animator` Module
-----------------------
-
-.. automodule:: abipy.tools.animator
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 :mod:`derivatives` Module
 -------------------------

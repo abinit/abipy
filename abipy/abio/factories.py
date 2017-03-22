@@ -3,21 +3,20 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-from enum import Enum
 import pymatgen.io.abinit.abiobjects as aobj
 
+from enum import Enum
 from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
+from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.flowapi import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *
 
 import logging
-from pymatgen.serializers.json_coders import pmg_serialize
-
 logger = logging.getLogger(__file__)
 
 
@@ -29,7 +28,10 @@ __all__ = [
     "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
     "ion_ioncell_relax_input",
+    "ion_ioncell_relax_and_ebands_input",
     "scf_phonons_inputs",
+    "piezo_elastic_inputs_from_gsinput",
+    "scf_piezo_elastic_inputs",
 ]
 
 
@@ -99,8 +101,8 @@ class ShiftMode(Enum):
     @classmethod
     def from_object(cls, obj):
         """
-        Returns an instance of ShiftMode based on the type of object passed. convertes strings to ShiftMode depending
-        on the inital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.
+        Returns an instance of ShiftMode based on the type of object passed. Converts strings to ShiftMode depending
+        on the iniital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.
         Case insensitive.
         """
         if isinstance(obj, cls):
@@ -368,7 +370,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
-    The first dataset optmizes the atomic positions at fixed unit cell.
+    The first dataset optimizes the atomic positions at fixed unit cell.
     The second datasets optimizes both ions and unit cell parameters.
     The other datasets perform a band structure calculation.
 
@@ -387,6 +389,9 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+
+    Returns:
+        :class:`MultiDataset` object
     """
     structure = Structure.as_structure(structure)
 
@@ -481,7 +486,6 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi[3].set_vars(nscf_electrons.to_abivars())
     multi[3].set_vars(self_energy.to_abivars())
     multi[3].set_vars(_stopping_criterion("sigma", accuracy)) # Dummy
-    #sigma_strategy = aobj.SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
 
     # TODO: Cannot use istwfk != 1.
     multi.set_vars(istwfk="*1")
@@ -597,15 +601,13 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
-
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
                                     charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
-
-    print(len(scf_diffs))
+    #print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -642,10 +644,10 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # create screening and sigma inputs
 
-#    if scr_nband is None:
-#        scr_nband = nscf_nband_nscf
-#   if sigma_nband is None:
-#        sigma_nband = nscf_nband_nscf
+    #if scr_nband is None:
+    #   scr_nband = nscf_nband_nscf
+    #if sigma_nband is None:
+    #     sigma_nband = nscf_nband_nscf
 
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
@@ -653,8 +655,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     scr_inputs = []
     sigma_inputs = []
 
-    print(ecuteps)
-    print(nscf_nband)
+    print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
@@ -849,7 +850,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
                          ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None):
     """
-    Returns a list of inputs in the form of a MultiDataset to performe phonon calculations, based on
+    Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
     a ground state AbinitInput.
     It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
     The inputs have the following tags, according to their function: "ddk", "dde", "nscf", "ph_q_pert".
@@ -881,9 +882,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
             Useful when calculating multiple grids for the same system to avoid duplicate calculations.
             If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().
     """
-
     gs_inp = gs_inp.deepcopy()
-
     gs_inp.pop_irdvars()
 
     if with_dde:
@@ -904,7 +903,6 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
     if wfq_tol is None:
         wfq_tol = {"tolwfr": 1.0e-22}
-
 
     multi = []
 
@@ -976,14 +974,14 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
 def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
     """
-    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
         gs_inp: Ground State input to build piezo elastic inputs from.
-        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        ddk_tol: Tolerance for the DDK calculation (i.e. {"tolwfr": 1.0e-20}).
         rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
-        ddk_split: Whether to split the ddk calculations.
+        ddk_split: Whether to split the DDK calculations.
         rf_split: whether to split the RF calculations.
     """
     # Ddk input(s)
@@ -1206,11 +1204,15 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
 def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     """
-    :param gsinput:
-    :param nband:
-    :param ndivsm:
-    :param accuracy:
-    :return: AbinitInput
+    Return an :class:`AbinitInput` object to compute a band structure from a GS SCF input.
+
+    Args:
+        gsinput:
+        nband:
+        ndivsm:
+        accuracy:
+
+    Return: :class:`AbinitInput`
     """
     # create a copy to avoid messing with the previous input
     bands_input = gsinput.deepcopy()
@@ -1232,15 +1234,15 @@ def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=Fals
 
     # create a copy to avoid messing with the previous input
     dos_input = gsinput.deepcopy()
-
     dos_input.pop_irdvars()
 
-    dos_ksampling = aobj.KSampling.automatic_density(structure, dos_kppa, chksymbreak=0)
+    dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
     dos_input.set_vars(dos_ksampling.to_abivars())
-    dos_input.set_vars(iscf=-2, ionmov=0, )
+    dos_input.set_vars(iscf=-2, ionmov=0)
     dos_input.set_vars(_stopping_criterion("nscf", accuracy))
 
     if pdos:
+        # FIXME
         pass
 
     return dos_input
@@ -1261,7 +1263,6 @@ def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
 
     hybrid_input = gsinput.deepcopy()
-
     hybrid_input.pop_irdvars()
 
     functional = functional.lower()

@@ -36,8 +36,8 @@ from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
 from abipy.abio.factories import *
-from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter,
-    ElectronDos, ElectronDosPlotter, frame_from_ebands)
+from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
+    frame_from_ebands)
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
@@ -47,7 +47,7 @@ from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
 from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot)
+from abipy.dfpt.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot
 from abipy.dfpt.ddb import DdbFile
 #from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
@@ -115,7 +115,9 @@ def abiopen_ext2class_table():
 
 
 def abifile_subclass_from_filename(filename):
-    """Returns the appropriate class associated to the given filename."""
+    """
+    Returns the appropriate class associated to the given filename.
+    """
     for ext, cls in ext2file.items():
         if filename.endswith(ext): return cls
 
