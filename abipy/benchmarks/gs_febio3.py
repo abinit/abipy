@@ -98,14 +98,14 @@ def build_flow(options):
     if mpi_list is None:
         # Get the list of possible parallel configurations from abinit autoparal.
         max_ncpus, min_eff = options.max_ncpus, options.min_eff
-        print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+        print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
 
         pconfs = gs_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
 
     else:
         print("Initializing autoparal from command line options")
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
-        print(pconfs)
+        if options.verbose: print(pconfs)
 
     work = flowapi.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):

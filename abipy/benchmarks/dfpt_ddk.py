@@ -93,7 +93,7 @@ def build_flow(options):
     print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
     pconfs = ddk_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
+    if options.verbose: print(pconfs)
 
     work = flowapi.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):

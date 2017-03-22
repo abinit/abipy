@@ -325,7 +325,6 @@ class NcDumper(object):
         """
         self.nc_args = nc_args
         self.nc_kwargs = nc_kwargs
-
         self.ncdump = which("ncdump")
 
     def dump(self, filepath):

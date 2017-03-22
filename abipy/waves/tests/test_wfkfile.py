@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import abipy.data as abidata
@@ -58,7 +58,7 @@ class TestWFKFile(AbipyTest):
 
             wave.export_ur2(".xsf", structure)
 
-            if i == 0:
+            if i == 0 and self.has_nbformat():
                 wfk.write_notebook(nbpath=self.get_tmpname(text=True))
 
             wfk.close()

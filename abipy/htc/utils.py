@@ -2,12 +2,11 @@
 from __future__ import print_function, division #, unicode_literals
 
 import os.path
-import collections 
+import collections
 
 from copy import deepcopy
 from itertools import chain
 from monty.string import list_strings
-from abipy.tools import StringColorizer
 
 ##########################################################################################
 
@@ -24,7 +23,7 @@ class _ewc_tuple(collections.namedtuple("ewc_tuple", "errors, warnings, comments
 
         colors = (red, blue, str)
 
-        for (i, n) in enumerate(nums): 
+        for (i, n) in enumerate(nums):
             color = colors[i]
             nums[i] = color(n) if n else str(n)
 
@@ -35,10 +34,10 @@ class _ewc_tuple(collections.namedtuple("ewc_tuple", "errors, warnings, comments
 def parse_ewc(filename, nafter=5):
     """
     Extract errors, warnings and comments from file filename.
-                                                                                           
-    :arg nafter: Save nafter lines of trailing context after matching lines.  
+
+    :arg nafter: Save nafter lines of trailing context after matching lines.
     :return: namedtuple instance. The lists of strings with the corresponding messages are
-             available in tuple.errors, tuple.warnings, tuple.comments. 
+             available in tuple.errors, tuple.warnings, tuple.comments.
     """
     # TODO
     # we have to standardize the abinit WARNING, COMMENT and ERROR  so that we can parse them easily
@@ -61,7 +60,7 @@ def parse_ewc(filename, nafter=5):
         else:
             return None
 
-    with open(filename, "r") as fh:      
+    with open(filename, "r") as fh:
         lines = fh.readlines()
         nlines = len(lines)
         for (lineno, line) in enumerate(lines):
@@ -175,3 +174,26 @@ def listify(obj):
         obj = [obj]
     return deepcopy(obj)
 
+
+class StringColorizer(object):
+    COLORS = {"default": "",
+               "blue": "\x1b[01;34m",
+               "cyan": "\x1b[01;36m",
+               "green": "\x1b[01;32m",
+               "red": "\x1b[01;31m",
+               # lighting colors.
+               #"lred":    "\x1b[01;05;37;41m"
+    }
+
+    def __init__(self, stream):
+        self.has_colours = stream_has_colours(stream)
+
+    def __call__(self, string, colour):
+        if self.has_colours:
+            code = self.COLORS.get(colour, "")
+            if code:
+                return code + string + "\x1b[00m"
+            else:
+                return string
+        else:
+            return string

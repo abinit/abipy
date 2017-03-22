@@ -342,11 +342,11 @@ class VariableDatabase(OrderedDict):
         sections can be a string or a list of strings.
         """
         sections = set(list_strings(sections))
-        vars = []
+        varlist = []
         for v in self.values():
             if v.section in sections:
-                vars.append(v)
-        return vars
+                varlist.append(v)
+        return varlist
 
     def vars_with_char(self, chars):
         """
@@ -354,12 +354,12 @@ class VariableDatabase(OrderedDict):
         chars can be a string or a list of strings.
         """
         chars = set(list_strings(chars))
-        vars = []
+        varlist = []
         for v in self.values():
             #if v.characteristic: print(v.characteristic)
             if v.characteristic in chars:
-                vars.append(v)
-        return vars
+                varlist.append(v)
+        return varlist
 
     def json_dumps_varnames(self):
         """JSON string with the list of variable names extracted from the database."""
@@ -380,7 +380,8 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     except KeyError:
         return stream.write("Variable %s not in the database\n" % varname)
 
-    text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
-    if info: text += var.info
+    html = "<h2>Default value:</h2>" + var.defaultval.encode("utf-8") + "<br/><h2>Description</h2>" + var.text.encode("utf-8")
+    text = html2text.html2text(html)
+    if info: text += var.info.encod("utf-8")
     stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
     stream.write("\n")

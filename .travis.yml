@@ -61,7 +61,7 @@ branches:
     - develop
 
 after_success:
-- if [[ "$PYTHON_VERSION" == "2.7" ]]; then coveralls; fi
+- if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
 
 notifications:
   email:

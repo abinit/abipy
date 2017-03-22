@@ -46,7 +46,7 @@ def build_flow(options):
         nkpt = len(inp.abiget_ibz().points)
         nks = nkpt * inp["nsppol"]
         mpi_list = [p for p in range(1, nks+1) if nks % p == 0]
-        print("Using mpi_list:", mpi_list)
+        #print("Using mpi_list:", mpi_list)
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 

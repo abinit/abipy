@@ -86,7 +86,7 @@ def bse_benchmark(options):
         nkpt = len(gs_inp.abiget_ibz().points)
         ntrans = (2*2*nkpt)**2
         mpi_list = [p for p in range(1, 1 + ntrans) if ntrans % p == 0]
-    print("Using mpi_list:", mpi_list)
+    if options.verbose: print("Using mpi_list:", mpi_list)
 
     bse_work = flowapi.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):

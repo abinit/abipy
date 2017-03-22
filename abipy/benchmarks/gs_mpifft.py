@@ -53,7 +53,7 @@ def build_flow(options):
     ecut_list = [400,]
 
     if options.mpi_list is None: mpi_list = [2, 4, 6, 8]
-    print("Using mpi_list:", mpi_list)
+    if options.verbose: print("Using mpi_list:", mpi_list)
 
     template = make_input()
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)

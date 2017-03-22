@@ -100,7 +100,7 @@ def main():
             print("[%d] %s" % (i, err))
             print(92 * "=")
 
-    print("retcode %d" % retcode)
+    #print("retcode %d" % retcode)
     return retcode
 
 

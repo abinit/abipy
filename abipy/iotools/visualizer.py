@@ -8,6 +8,7 @@ import abc
 import six
 
 from monty.os.path import which
+from monty.termcolor import cprint
 
 __all__ = [
     "Visualizer",
@@ -105,14 +106,13 @@ class Visualizer(object):
         from subprocess import call
 
         if not self.is_macosx_app:
-            #print("Executing: ", self.bin, self.cmdarg, self.filepath)
+            cprint("Executing: %s %s %s" % (self.bin, self.cmdarg, self.filepath), "yellow")
             return call([self.bin, self.cmdarg, self.filepath])
 
         else:
-            # NOTE: Mac-OSx applications can be launched with
-            #open -a Vesta --args si.cif
+            # Mac-OSx applications can be launched with `open -a Vesta --args si.cif`
             cmd = "open -a %s --args %s %s" % (self.name, self.cmdarg, self.filepath)
-            #print("Executing Mac open: %s" % cmd)
+            cprint("Executing MacOSx open command: %s" % cmd, "yellow")
             return call(cmd, shell=True)
 
     @property
@@ -159,7 +159,6 @@ class Visualizer(object):
         """
         # Get the file extension.
         root, ext = os.path.splitext(filepath)
-
         if not ext:
             raise ValueError("Cannot detect file extension in %s " % filepath)
 
@@ -232,12 +231,3 @@ class Vesta(Visualizer):
 #
 #    EXTS = [
 #    ]
-
-if __name__ == "__main__":
-    print("available visualizers:")
-    for visu in Visualizer.get_available(): print(visu)
-    import sys
-    filename = sys.argv[1]
-    v = Xcrysden(filename)
-    v = Vesta(filename)
-    v()

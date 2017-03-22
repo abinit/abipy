@@ -1,5 +1,6 @@
 from __future__ import division, print_function, unicode_literals
 
+import os
 import numpy as np
 import abipy.data as abidata
 import abipy.core
@@ -30,7 +31,7 @@ class GSRReaderTestCase(AbipyTest):
         }
 
         with GsrReader(path) as r:
-            self.assertEqual(r.ngroups, 1)
+            assert r.ngroups == 1
             print(r.read_varnames())
 
             # Test dimensions.
@@ -68,7 +69,11 @@ class GSRFileTestCase(AbipyTest):
         almost_equal = self.assertAlmostEqual
 
         with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
+            assert gsr.basename == "si_scf_GSR.nc"
+            assert gsr.relpath == os.path.relpath(abidata.ref_file("si_scf_GSR.nc"))
+            assert gsr.filetype
             assert gsr.filestat()
+            assert len(gsr.ncdump())
             print(repr(gsr))
             print(gsr)
             print(gsr.ebands)
@@ -93,6 +98,8 @@ class GSRFileTestCase(AbipyTest):
 
             almost_equal(gsr.max_force, 0)
             print(gsr.force_stats())
+            assert gsr.residm > 0
+            assert str(gsr.xc) == "LDA_XC_TETER93"
 
             #self.assert_almost_equal(gsr.cart_stress_tensor.flat,
             # Cartesian components of stress tensor (hartree/bohr^3)

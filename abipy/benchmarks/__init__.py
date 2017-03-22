@@ -18,7 +18,7 @@ def as_orderedset(token, options):
     if token.startswith("range"):
         # start(1,4,2)
         token = token[5:]
-        print("token", token)
+        #print("token", token)
         t = ast.literal_eval(token)
         assert len(t) == 3
         l = list(range(t[0], t[1], t[2]))
@@ -254,10 +254,10 @@ class BenchmarkFlow(Flow):
         for task in self.iflat_tasks():
             if task.node_id in self.exclude_nodeids: continue
             cnt += 1
-            print("%s: mpi_procs %d, omp_threads %d" %
-              (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
-        print("Total number of benchmarks: %d" % cnt)
+            #print("%s: mpi_procs %d, omp_threads %d" %
+            #  (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
 
+        print("Total number of benchmarks: %d" % cnt)
         return super(BenchmarkFlow, self).build_and_pickle_dump(**kwargs)
 
     #def make_tarball(self):
