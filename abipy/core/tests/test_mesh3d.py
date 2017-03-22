@@ -6,32 +6,49 @@ import numpy as np
 from abipy.core.mesh3d import *
 from abipy.core.testing import *
 
+
 class TestMesh3D(AbipyTest):
-    "Test Mesh3d"
+    """Test Mesh3d"""
 
     def test_base(self):
-        """basic tools"""
+        """Testing mesh3d methods"""
         rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
         rprimd.shape = (3,3)
 
         mesh_443 = Mesh3D((4,4,3), rprimd)
-        mesh_444 = Mesh3D((4,4,4), rprimd)
-        
+        assert len(mesh_443) == 4 * 4 * 3
+        assert mesh_443.nx == 4 and mesh_443.ny == 4 and mesh_443.nz == 3
         self.serialize_with_pickle(mesh_443)
 
+        mesh_444 = Mesh3D((4,4,4), rprimd)
+
         # Test __eq__
+        self.assertEqual(mesh_443, mesh_443)
         self.assertNotEqual(mesh_443, mesh_444)
 
         print(mesh_444)
-
         mesh_444.gvecs
         mesh_444.rpoints
 
+        empty = mesh_444.empty()
+        assert empty.shape == mesh_444.shape and empty.dtype == np.float
+        cempty = mesh_444.cempty()
+        assert cempty.shape == mesh_444.shape and cempty.dtype == np.complex
+        rand_vas = mesh_443.random()
+        assert rand_vas.shape == mesh_443.shape and rand_vas.dtype == np.float
+        crand_vas = mesh_443.crandom()
+        assert crand_vas.shape == mesh_443.shape and crand_vas.dtype == np.complex
+
+        zeros = mesh_444.zeros()
+        assert zeros.shape == mesh_444.shape and np.all(zeros == 0) and zeros.dtype == np.float
+
+        czeros = mesh_444.czeros()
+        assert czeros.shape == mesh_444.shape and np.all(czeros == 0) and czeros.dtype == np.complex
+
     def test_fft(self):
-        """FFT transforms"""
+        """Test FFT transforms with mesh3d"""
         rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
         rprimd.shape = (3,3)
-
         mesh = Mesh3D( (12,3,5), rprimd)
 
         extra_dims = [(), 1, (2,), (3,1)]
@@ -46,18 +63,15 @@ class TestMesh3D(AbipyTest):
                 self.assert_almost_equal(fg, same_fg)
 
                 int_r = mesh.integrate(fr)
-                int_g = fg[...,0,0,0]
+                int_g = fg[..., 0, 0, 0]
                 self.assert_almost_equal(int_r, int_g)
 
     #def test_trilinear_interp(self):
     #    return
     #    rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
     #    rprimd.shape = (3,3)
-
     #    mesh = Mesh3D( (12,3,5), rprimd)
-
     #    mesh_points = mesh.get_rpoints()
-
     #    # Linear function.
     #    def lfunc(rr, c = (1,1,1,1)): # xyz, xy, xz, yz
     #        x = rr[:,0]
@@ -66,7 +80,6 @@ class TestMesh3D(AbipyTest):
     #        return c[0] * (x*y*z) + c[1] * (x*y) + c[2] * (x*z) + c[3] * (y*z)
 
     #    fr = lfunc(mesh_points)
-
     #    xx = mesh_points
     #    same_fr = mesh.trilinear_interp(fr, xx)
     #    self.assert_almost_equal(fr, same_fr)
@@ -75,8 +88,3 @@ class TestMesh3D(AbipyTest):
     #    xx = mesh_points + shift
     #    same_fr = mesh.trilinear_interp(fr, xx)
     #    self.assert_almost_equal(fr, same_fr)
-
-
-if __name__ == "__main__": 
-    import unittest
-    unittest.main()

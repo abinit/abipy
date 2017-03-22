@@ -36,8 +36,9 @@ _SCRIPTS = None
 
 
 def pyscript(basename):
-    """Return the absolute name of one of the scripts in the `examples` directory from its basename."""
-
+    """
+    Return the absolute name of one of the scripts in the `examples` directory from its basename.
+    """
     global _SCRIPTS
     if _SCRIPTS is None:
         # Build mapping basename --> path.
@@ -142,7 +143,7 @@ def ncfiles_with_ext(ext):
 
 
 def mp_structures():
-    """ Returns a dictionary containg the structures stored in mpdata/mp_structures. """
+    """ Returns a dictionary containing the structures stored in mpdata/mp_structures. """
     import json
     from monty.json import MontyDecoder
 
@@ -151,14 +152,10 @@ def mp_structures():
 
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
-
 DEN_NCFILES = ncfiles_with_ext("DEN")
-
 GSR_NCFILES = ncfiles_with_ext("GSR")
-
 SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
-
-ALL_NCFILES = _DATA_NCFILES.values()
+ALL_NCFILES = list(_DATA_NCFILES.values())
 
 
 class FilesGenerator(object):

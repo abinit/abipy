@@ -111,7 +111,6 @@ class Mesh3D(object):
         return np.linalg.inv(self.vectors)
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
-
         shape = self.shape
 
         if isinstance(extra_dims, int): extra_dims = (extra_dims,)
@@ -165,7 +164,7 @@ class Mesh3D(object):
 
     def crandom(self, extra_dims=()):
         """Returns random complex array for this domain with val in [0.0, 1.0)."""
-        return random(self, dtype=np.complex, extra_dims=extra_dims)
+        return self.random(dtype=np.complex, extra_dims=extra_dims)
 
     def reshape(self, arr):
         """

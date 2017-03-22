@@ -372,7 +372,9 @@ def docvar(varname):
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):
-    """Print the abinit documentation on the ABINIT input variable `varname`"""
+    """
+    Print the abinit documentation on the ABINIT input variable `varname`
+    """
     database = get_abinit_variables()
     if isinstance(varname, Variable): varname = varname.varname
     try:
@@ -384,5 +386,10 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         str(var.defaultval).encode("utf-8"),str(var.text).encode("utf-8"))
     text = html2text.html2text(html)
     if info: text += str(var.info).encode("utf-8")
-    stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
+    text = text.encode("utf-8").replace("[[", "\033[1m").replace("]]", "\033[0m")
+    try:
+        stream.write(text)
+    except:
+        #print(type(text))
+        stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")
