@@ -124,7 +124,7 @@ For the full list of commands supported use:
 
 This script checks that the options specified in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
-Please consult the documentation on :ref:`workflows` for a more detailed description of these YAML files.
+Please consult the documentation on the :ref:`taskmanager` for a more detailed description of these YAML files.
 
 .. command-output:: abicheck.py --no-colors
 
@@ -135,7 +135,7 @@ Please consult the documentation on :ref:`workflows` for a more detailed descrip
 ^^^^^^^^^^^^^
 
 This script allows the user to submit the calculations contained in the AbiPy Flow 
-(for further detail, consult the :ref:`workflows` documentation).
+(for further detail, consult the :ref:`taskmanager` documentation).
 It provides a command line interface as well as a graphical interface based on ``wxpython``.
 
 .. command-output:: abirun.py --help
@@ -154,7 +154,7 @@ At the time of writing (|today|), AbiPy supports the following resource managers
     * ``slurm``
     * ``torque``
 
-To obtain the list of options supported by a particular resource manager e.g. slurm::
+To obtain the list of options supported by a particular resource manager e.g. ``slurm``::
 
     $ abirun.py . doc_manager slurm
 

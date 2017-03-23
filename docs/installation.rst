@@ -168,7 +168,7 @@ in the AbiPy root directory.
 Note that several unit tests check the integration between AbiPy and Abinit.
 In order to run the tests, you need a working set of Abinit executables and  
 a ``manager.yml`` configuration file.
-For further information on the syntax of the configuration file, please consult the :ref:`workflows` section.
+For further information on the syntax of the configuration file, please consult the :ref:`taskmanager` section.
 
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
 

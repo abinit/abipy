@@ -164,7 +164,7 @@ html_theme_options = {
     "github_button": True,
     "travis_button": True,
     "codecov_button": True,
-    "sidebar_width": "160px", # "220px" default
+    "sidebar_width": "180px", # "220px" default
     'fixed_sidebar': True,
 }
 

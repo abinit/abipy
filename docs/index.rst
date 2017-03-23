@@ -23,7 +23,6 @@ Getting Started
    features
    installation
    whats_new
-   scripts
 
 Post-processing
 ===============
@@ -31,15 +30,16 @@ Post-processing
 .. toctree::
    :maxdepth: 1
 
+   scripts
    examples/plot/index.rst
 
-Workflows
-=========
+Calculations
+============
 
 .. toctree::
    :maxdepth: 1
 
-   workflows
+   taskmanager
 
 API
 ===
@@ -50,16 +50,16 @@ API
    api/index.rst
    devel/index.rst
 
-License
-=======
-
-AbiPy is released under the GPL License. The terms of the license are as follows:
-
-.. literalinclude:: ../LICENSE
-
 Indices and tables
 ==================
 
   * :ref:`genindex`
   * :ref:`modindex`
   * :ref:`search`
+
+License
+=======
+
+AbiPy is released under the GPL License. The terms of the license are as follows:
+
+.. include:: ../LICENSE

@@ -188,11 +188,13 @@ class FactoryTest(AbipyTest):
         self.validate_multi(multi)
 
     def test_elastic_inputs_from_gsinput(self):
+        """Testing elastic_inputs_from_gsinput."""
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.validate_multi(multi)
 
     def test_scf_piezo_elastic_inputs(self):
+        """Testing scf_piezo_elastic_inputs."""
         kppa = 800
         multi = scf_piezo_elastic_inputs(self.si_structure, self.si_pseudo, kppa, ecut=3, pawecutdg=None, scf_nband=None,
                                  accuracy="normal", spin_mode="polarized",
@@ -210,7 +212,7 @@ class FactoryTest(AbipyTest):
         inp.abivalidate()
 
     def test_ebands_dos_from_gsinput(self):
-        """Test ebands_from_gsinput and dos_from_gsinput"""
+        """Testing ebands_from_gsinput and dos_from_gsinput"""
         from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
@@ -221,12 +223,14 @@ class FactoryTest(AbipyTest):
         edos_inp.abivalidate()
 
     def test_ioncell_relax_from_gsinput(self):
+        """Testing ioncell_relax_from_gsinput"""
         from abipy.abio.factories import ioncell_relax_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=2, spin_mode="polarized")
         icrelax_input = ioncell_relax_from_gsinput(gs_inp)
         icrelax_input.abivalidate()
 
     def test_hybrid_oneshot_input(self):
+        """Testing hybrid_oneshot_input."""
         from abipy.abio.factories import hybrid_oneshot_input
         ecut = 2
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=ecut, spin_mode="polarized")
@@ -235,6 +239,7 @@ class FactoryTest(AbipyTest):
         hyb_inp.abivalidate()
 
     def test_scf_for_phonons(self):
+        """Testing scf_for_phonons."""
         from abipy.abio.factories import scf_for_phonons
         scf_inp = scf_for_phonons(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
         scf_inp.abivalidate()
