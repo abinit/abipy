@@ -7,6 +7,44 @@ from abipy.flowapi import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWo
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
+import json
+
+
+def input_equal(ref_file, input2, tol=0.0001):
+    """
+    function to compare two inputs as dict
+    tol relative tolerance for floats
+    """
+    with open(ref_file) as fp:
+        input_ref = AbinitInput.from_dict(json.load(fp))
+
+    errors = []
+    if len(input_ref.vars) != len(input2.vars):
+        diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
+        diff_in_actual = [var for var in input2.vars if var not in input_ref.vars]
+        error_description = 'not even the same length .. %s is not %s\n' \
+                            '     %s were found in ref but not in actual\n' \
+                            '     %s were found in actual but not in ref\n' % \
+                            (len(input_ref.vars), len(input2.vars), diff_in_ref, diff_in_actual)
+        errors.append(error_description)
+    for var in input_ref.vars:
+        error = False
+        if isinstance(input_ref.vars[var], int):
+            if input_ref.vars[var] != input2[var]:
+                error = True
+        elif isinstance(input_ref.vars[var], float):
+            if abs(input_ref.vars[var]) - abs(input2[var]) / (abs(input_ref.vars[var]) + tol) > tol:
+                error = True
+        if error:
+            error_description = 'var %s differs: %s (reference) != %s (actual)' % \
+                                (var, input_ref.vars[var], input2[var])
+            errors.append(error_description)
+
+    if len(errors) > 0:
+        msg = 'Two inputs were found to be not equal:\n'
+        for err in errors:
+            msg += '   ' + err + '\n'
+        raise AssertionError(msg)
 
 
 class FactoryTest(AbipyTest):
@@ -106,11 +144,30 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
+
         # These tests are not portable.
         #self.assertEqual(inputs[0][0].variable_checksum(), "1f51104b0dac945bd669d7f363692baf2ced4695")
         #self.assertEqual(inputs[1][0].variable_checksum(), "2397edaa6748216e14877140ec70f1d3774b5646")
         #self.assertEqual(inputs[2][0].variable_checksum(), "b12bb64fb2e7aca84d13d6c0467f79715cf7ed0e")
         #self.assertEqual(inputs[3][0].variable_checksum(), "7b2e23a0b622595de7b3a5d5bcb0f464a4152103")
+
+        self.maxDiff = None
+
+        if False:
+            with open('convergence_inputs_single_factory_00.json', mode='w') as fp:
+                json.dump(inputs[0][0].as_dict(), fp, indent=2)
+            with open('convergence_inputs_single_factory_10.json', mode='w') as fp:
+                json.dump(inputs[1][0].as_dict(), fp, indent=2)
+            with open('convergence_inputs_single_factory_20.json', mode='w') as fp:
+                json.dump(inputs[2][0].as_dict(), fp, indent=2)
+            with open('convergence_inputs_single_factory_30.json', mode='w') as fp:
+                json.dump(inputs[3][0].as_dict(), fp, indent=2)
+
+        for t in ['00', '10', '20', '30']:
+            ref_file = 'convergence_inputs_single_factory_' + t + '.json'
+            input_equal(ref_file, inputs[int(t[0])][int(t[1])])
+
+        self.assertTrue(False)
 
         for inp in [item for sublist in inputs for item in sublist]:
             val = inp.abivalidate()
