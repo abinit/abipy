@@ -10,7 +10,7 @@ import sys
 import operator
 import numpy as np
 import abipy.abilab as abilab
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from functools import reduce

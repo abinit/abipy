@@ -680,10 +680,10 @@ class PhononBands(object):
         """
 
         def split_non_collinear(qpts):
-            """
+            r"""
             function that splits the list of qpoints at repetitions (only the first point will be considered as
-             high symm) and where the direction changes. Also sets \Gamma for [0,0,0].
-             Similar to what is done in phononwebsite.
+            high symm) and where the direction changes. Also sets $\Gamma$ for [0,0,0].
+            Similar to what is done in phononwebsite.
             """
             h = []
             if np.array_equal(qpts[0], [0, 0, 0]):
@@ -796,7 +796,7 @@ class PhononBands(object):
 
     @add_fig_kwargs
     def plot(self, ax=None, qlabels=None, branch_range=None, marker=None, width=None, match_bands=False, **kwargs):
-        """
+        r"""
         Plot the phonon band structure.
 
         Args:
@@ -898,7 +898,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_colored_matched(self, ax=None, qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
                              **kwargs):
-        """
+        r"""
         Plot the phonon band structure with different color for each line .
 
         Args:
@@ -1168,7 +1168,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
                       #select_specie, select_red_dir
-        """
+        r"""
         Plot phonon fatbands
 
         Args:
@@ -1249,7 +1249,7 @@ class PhononBands(object):
 
     @add_fig_kwargs
     def plot_with_phdos(self, dos, qlabels=None, axlist=None, **kwargs):
-        """
+        r"""
         Plot the phonon band structure with the phonon DOS.
 
         Args:
@@ -1299,7 +1299,7 @@ class PhononBands(object):
         return fig
 
     def to_pymatgen(self, qlabels= None):
-        """
+        r"""
         Creates a pymatgen PhononBandStructureSymmLine object.
 
         Args:
@@ -1307,7 +1307,6 @@ class PhononBands(object):
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
                 If None labels will be determined automatically.
         """
-
         # pymatgen labels dict is inverted
         if qlabels is None:
             qlabels = self._auto_qlabels
@@ -2142,7 +2141,7 @@ class PhononBandsPlotter(object):
 
     @add_fig_kwargs
     def plot(self, qlabels=None, units='eV', **kwargs):
-        """
+        r"""
         Plot the band structure and the DOS.
 
         Args:

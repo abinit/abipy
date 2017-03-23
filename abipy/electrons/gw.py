@@ -456,7 +456,7 @@ class Sigmaw(object):
 
         if w == "s":
             f = self.xc
-            label = kwargs.get("label", "$\Sigma(\omega)$")
+            label = kwargs.get("label", r"$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
             ax.legend(loc="best")
@@ -464,7 +464,7 @@ class Sigmaw(object):
 
         elif w == "a":
             f = self.spfunc
-            label = kwargs.get("label", "$A(\omega)$")
+            label = kwargs.get("label", r"$A(\omega)$")
             extend(f.plot_ax(ax, label=label))
             # Plot I(w)
             #ax2 = ax.twinx()
@@ -1073,7 +1073,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 errlines.append(str(exc))
                 continue
             label = "skb = %s, %s, %s" % (spin, kpoint, band)
-            sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
+            sigw.plot_ax(ax, label=r"$A(\omega)$:" + label, **kwargs)
 
         if errlines:
             cprint("\n".join(errlines), "red")
@@ -1339,7 +1339,9 @@ if r.ks_ebands_kpath is not None:
 
 
 class SigresReader(ETSF_Reader):
-    """This object provides method to read data from the SIGRES file produced ABINIT.
+    r"""
+    This object provides method to read data from the SIGRES file produced ABINIT.
+
     # See 70gw/m_sigma_results.F90
 
     # Name of the diagonal matrix elements stored in the file.

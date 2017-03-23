@@ -41,7 +41,7 @@ def mklabel(fsym, der, arg):
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
     else:
-        fsym = fsym + "^{" + (der * "\prime") + "}"
+        fsym = fsym + "^{" + (der * r"\prime") + "}"
         return "$%s(%s)$" % (fsym, arg)
 
 

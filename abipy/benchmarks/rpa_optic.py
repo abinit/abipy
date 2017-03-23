@@ -6,7 +6,7 @@ import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow

@@ -100,7 +100,7 @@ def _get_det(mat):
         + mat[0,2]* (mat[1,0]*mat[2,1] - mat[1,1]*mat[2,0])
 
     if abs(det) != 1:
-        raise ValueError("determinant must be \pm 1 while it is %s" % det)
+        raise ValueError("determinant must be +-1 while it is %s" % det)
 
     return det
 

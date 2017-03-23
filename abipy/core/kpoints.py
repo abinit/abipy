@@ -524,7 +524,7 @@ class Kpoint(SlotPickleMixin):
     @classmethod
     def gamma(cls, lattice, weight=None):
         """Constructor for the Gamma point."""
-        return cls(np.zeros(3), lattice, weight=weight, name="$\Gamma$")
+        return cls(np.zeros(3), lattice, weight=weight, name=r"$\Gamma$")
 
     def copy(self):
         """Deep copy."""

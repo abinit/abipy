@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 import abipy.data as abidata  
 
 from itertools import product

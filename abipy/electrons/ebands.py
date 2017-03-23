@@ -1379,7 +1379,7 @@ class ElectronBands(object):
                     jdos.plot_ax(ax, color=color, lw=lw, label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
                     i += 1
 
-            tot_jdos.plot_ax(ax, color="k", lw=lw, label="Total JDOS, $\sigma=%s$" % s)
+            tot_jdos.plot_ax(ax, color="k", lw=lw, label=r"Total JDOS, $\sigma=%s$" % s)
 
         ax.legend(loc="best")
         return fig
@@ -1432,7 +1432,7 @@ class ElectronBands(object):
     @add_fig_kwargs
     def plot(self, ax=None, klabels=None, band_range=None, e0="fermie",
              ylims=None, marker=None, width=None, **kwargs):
-        """
+        r"""
         Plot the band structure.
 
         Args:
@@ -1630,7 +1630,7 @@ class ElectronBands(object):
 
     @add_fig_kwargs
     def plot_with_edos(self, dos, klabels=None, axlist=None, e0="fermie", ylims=None, **kwargs):
-        """
+        r"""
         Plot the band structure and the DOS.
 
         Args:

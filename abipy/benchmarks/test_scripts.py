@@ -7,7 +7,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os 
 
 from subprocess import call, Popen
-
 from abipy.core.testing import *
 
 

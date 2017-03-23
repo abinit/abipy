@@ -15,12 +15,12 @@ __all__ = [
 
 
 class Mesh3D(object):
-    """
+    r"""
     Descriptor-class for uniform 3D meshes.
 
     A Mesh3D object holds information on how functions, such
     as wave functions and electron densities, are discretized in a
-    certain domain in space.  The main information here is how many
+    certain domain in space. The main information here is how many
     grid points are used in each direction of the unit cell.
 
     There are methods for tasks such as allocating arrays, performing

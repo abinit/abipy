@@ -7,7 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
 

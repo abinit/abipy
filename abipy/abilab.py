@@ -152,7 +152,7 @@ def dir2abifiles(top, recurse=True):
         for f in os.listdir(top):
             path = os.path.join(top, f)
             if not isabifile(path): continue
-            dl[dirpath].append(path)
+            dl[top].append(path)
 
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
 
@@ -304,6 +304,7 @@ def abicheck(verbose=0):
 
     return "\n".join(err_lines)
 
+
 def abipy_logo1():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return """\
@@ -321,6 +322,7 @@ def abipy_logo1():
         `..   .:.                                   .`                 `.           .:.  `..
                 ...                                                               ...
 """
+
 
 def abipy_logo2():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
