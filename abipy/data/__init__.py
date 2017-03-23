@@ -2,7 +2,7 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-import abipy.abidata as abidata
+    import abipy.abidata as abidata
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -143,11 +143,11 @@ def ncfiles_with_ext(ext):
 
 
 def mp_structures():
-    """ Returns a dictionary containing the structures stored in mpdata/mp_structures. """
+    """Returns a dictionary containing the structures stored in mpdata/mp_structures. """
     import json
     from monty.json import MontyDecoder
 
-    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
+    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
         return json.load(f, cls=MontyDecoder)
 
 

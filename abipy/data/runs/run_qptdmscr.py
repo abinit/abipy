@@ -8,7 +8,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import os
 import abipy.abilab as abilab
-import abipy.data as data  
+import abipy.data as data
 
 from abipy import flowtk
 
@@ -25,7 +25,7 @@ def all_inputs(paral_kgb=1):
         paral_kgb=paral_kgb,
     )
 
-    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), 
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
                                 pseudos=data.pseudos("14si.pspnc"), ndtset=4)
     multi.set_vars(global_vars)
 
@@ -41,12 +41,12 @@ def all_inputs(paral_kgb=1):
     )
 
     # This grid contains the Gamma point, which is the point at which
-    # we will compute the (direct) band gap. 
+    # we will compute the (direct) band gap.
     gw_kmesh = dict(
         ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.0,  
-                0.0, 0.5, 0.5,  
-                0.5, 0.0, 0.5,  
+        shiftk=[0.0, 0.0, 0.0,
+                0.0, 0.5, 0.5,
+                0.5, 0.0, 0.5,
                 0.5, 0.5, 0.0]
     )
 
@@ -66,9 +66,9 @@ def all_inputs(paral_kgb=1):
     scr.set_kmesh(**gw_kmesh)
 
     scr.set_vars(
-        optdriver=3,   
+        optdriver=3,
         nband=6,
-        ecutwfn=ecutwfn,   
+        ecutwfn=ecutwfn,
         symchi=1,
         inclvkb=0,
         ecuteps=2.0)
@@ -101,7 +101,7 @@ def all_inputs(paral_kgb=1):
     return multi.split_datasets()
 
 
-def qptdm_flow(options):
+def build_flow(options):
     """
     Construct the flow for G0W0 calculations.
     The calculation of the SCR file is split into nqptdm independent calculations.
@@ -109,7 +109,7 @@ def qptdm_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
-    if not options.workdir: 
+    if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Build the input files for GS, NSCF, SCR and SIGMA runs.
@@ -122,7 +122,7 @@ def qptdm_flow(options):
 
 @abilab.flow_main
 def main(options):
-    flow = qptdm_flow(options)
+    flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
 

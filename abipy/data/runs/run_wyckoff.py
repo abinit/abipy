@@ -31,6 +31,7 @@ def special_positions(lattice, u):
 
     return abilab.Structure(lattice, species, coords, validate_proximity=True, coords_are_cartesian=False)
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir

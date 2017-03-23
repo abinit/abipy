@@ -15,10 +15,8 @@ except ImportError:
     import warnings
     warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip")
 
-
 from pymatgen.io.abinit.works import Work
 from abipy.core.structure import Structure
-from abipy.abio.inputs import AbinitInput
 
 
 def atoms_from_structure(structure):

@@ -10,7 +10,7 @@ nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO
 #; pytest -v abipy/integration_tests
 
 # Generate documentation
-if [[ "${PYTHON_VERSION}" == "2.7" ]]; then
+if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
     ./docs/install_reqs.sh;
     cd ./docs && make && cd ..;
 fi

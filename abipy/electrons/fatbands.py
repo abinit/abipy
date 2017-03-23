@@ -60,7 +60,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     # Mappings used for non-collinear spins.
     spinors2tex = {"up-up": r"$\\uparrow,\\uparrow$", "up-down": r"$\\uparrow,\\downarrow$",
                    "down-up": r"$\\downarrow,\\uparrow$", "down-down": r"$\\downarrow,\\downarrow$",
-                   "sigma_x": r"$\sigma_{x}$", "sigma_y": "r$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
+                   "sigma_x": r"$\sigma_{x}$", "sigma_y": r"$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
                   }
     spinors2color = {"up-up": "black", "up-down": "brown",
                      "down-up": "violet", "down-down": "yellow",

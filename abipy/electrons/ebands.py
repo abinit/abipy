@@ -91,14 +91,14 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
 
         return tuple(fields)
 
-    def asdict(self):
+    def as_dict(self):
         """Convert self into a dict."""
         return super(Electron, self)._asdict()
 
     def to_strdict(self, fmt=None):
         """Ordered dictionary mapping fields --> strings."""
-        d = self.asdict()
-        for (k, v) in d.items():
+        d = self.as_dict()
+        for k, v in d.items():
             if np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
@@ -297,7 +297,7 @@ class ElectronBands(object):
     @classmethod
     def from_file(cls, filepath):
         """
-        Initialize an instance of :class:`ElectronBands` from a netCDF file.
+        Initialize an instance of :class:`ElectronBands` from the netCDF file `filepath`.
         """
         if filepath.endswith(".nc"):
             with ElectronsReader(filepath) as r:
@@ -346,7 +346,7 @@ class ElectronBands(object):
     @classmethod
     def as_ebands(cls, obj):
         """
-        Return an instance of :class:`ElectronBands` from a generic obj.
+        Return an instance of :class:`ElectronBands` from a generic `obj`.
         Supports:
 
             - instances of cls
@@ -764,7 +764,7 @@ class ElectronBands(object):
 
         if band is not None:
             assert isinstance(band, int)
-            my_bands = list(band)
+            my_bands = [band]
 
         emin = np.inf
         for spin in spin_range:
@@ -787,7 +787,7 @@ class ElectronBands(object):
 
         if band is not None:
             assert isinstance(band, int)
-            my_bands = list(band)
+            my_bands = [band]
 
         emax = -np.inf
         for spin in spin_range:
@@ -951,7 +951,7 @@ class ElectronBands(object):
                                          labels_dict, coords_are_cartesian=False, structure=self.structure, projections=None)
         else:
             return BandStructure(self.kpoints.frac_coords, eigenvals, self.reciprocal_lattice, self.fermie,
-                                labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
+                                 labels_dict=None, coords_are_cartesian=False, structure=self.structure, projections=None)
 
     def _electron_state(self, spin, kpoint, band):
         """
@@ -1188,6 +1188,7 @@ class ElectronBands(object):
         Return an ipython widget with controllers to compute the electron DOS.
         """
         import ipywidgets as ipw
+
         def plot_dos(method, step, width):
             edos = self.get_edos(method=method, step=step, width=width)
             edos.plot()
@@ -2880,7 +2881,7 @@ class ElectronDos(object):
             matplotlib figure.
         """
         if self.nsppol == 1: # DOH!
-            dos_diff = Func1d.from_constant(self.spin_dos[0].mesh, 0.0)
+            dos_diff = Function1D.from_constant(self.spin_dos[0].mesh, 0.0)
         else:
             dos_diff = self.spin_dos[0] - self.spin_dos[1]
         idos_diff= dos_diff.integral()

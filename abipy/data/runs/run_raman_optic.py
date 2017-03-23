@@ -37,7 +37,7 @@ global_vars = dict(
     #accesswff=3
 )
 
-def raman_flow(options):
+def build_flow(options):
     # Get the unperturbed structure.
     pseudos=data.pseudos("14si.pspnc")
 
@@ -151,7 +151,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
 def main(options):
     # Define the flow, build files and dirs 
     # and save the object in cpickle format.
-    flow = raman_flow(options)
+    flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
 

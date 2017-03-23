@@ -14,7 +14,6 @@ class TestWyckoff(AbipyTest):
 
     def test_sio2(self):
         """Testing Wyckoff positions with SiO2 (requires sympy)"""
-        raise unittest.SkipTest("Wyckoff is broken")
         try:
             import sympy
         except ImportError:

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -41,7 +40,7 @@ class WyckoffPositions(Sequence):
         """
 
             Args:
-                exprs:
+                matrix_str:
                 letter:
                 site_symmetry:
         """
@@ -165,9 +164,11 @@ class Wyckoff(object):
             for vec_expr in wpos:
                 species.append(elsym)
                 # Evaluate sympy expression with params.
-                coords.append([expr.subs(params) for expr in vec_expr])
+                coords.append([float(expr.subs(params)) for expr in vec_expr])
 
-        #print(list(zip(species, coords)))
+        #for sp, c in zip(species, coords):
+        #    print(sp, c, type(c), type(c[0]))
+
         from abipy.core.structure import Structure
         cls = struct_cls if struct_cls is not None else Structure
         return cls(lattice, species, coords, validate_proximity=True,

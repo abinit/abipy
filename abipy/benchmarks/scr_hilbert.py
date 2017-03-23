@@ -92,7 +92,7 @@ def make_inputs(paw=False):
     return gs, nscf, scr
 
 
-def scr_benchmark(options):
+def build_flow(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
@@ -130,7 +130,7 @@ def main(options):
         # print doc string and exit.
         print(__doc__)
         return 
-    flow = scr_benchmark(options)
+    flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
 

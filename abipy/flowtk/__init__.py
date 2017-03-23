@@ -34,29 +34,7 @@ def flow_main(main):
 
     @wraps(main)
     def wrapper(*args, **kwargs):
-        import argparse
-        parser = argparse.ArgumentParser()
-
-        parser.add_argument('--loglevel', default="ERROR", type=str,
-                            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-
-        parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
-
-        parser.add_argument("-m", '--manager', default=None,
-                            help="YAML file with the parameters of the task manager. "
-                                 "Default None i.e. the manager is read from standard locations: "
-                                 "working directory first then ~/.abinit/abipy/manager.yml.")
-
-        parser.add_argument("-s", '--scheduler', action="store_true", default=False,
-                            help="Run the flow with the scheduler")
-
-        parser.add_argument("-b", '--batch', action="store_true", default=False,
-                            help="Run the flow in batch mode")
-
-        parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
-
-        parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
-
+        parser = build_flow_main_parser()
         options = parser.parse_args()
 
         # loglevel is bound to the string value obtained from the command line argument.
@@ -96,3 +74,29 @@ def flow_main(main):
             return execute()
 
     return wrapper
+
+def build_flow_main_parser():
+    """Build the parser used in the abipy/data/runs scripts."""
+    import argparse
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+    parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
+
+    parser.add_argument("-m", '--manager', default=None,
+                        help="YAML file with the parameters of the task manager. "
+                             "Default None i.e. the manager is read from standard locations: "
+                             "working directory first then ~/.abinit/abipy/manager.yml.")
+
+    parser.add_argument("-s", '--scheduler', action="store_true", default=False,
+                        help="Run the flow with the scheduler")
+
+    parser.add_argument("-b", '--batch', action="store_true", default=False,
+                        help="Run the flow in batch mode")
+
+    parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
+
+    parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+    return parser
