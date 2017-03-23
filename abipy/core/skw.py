@@ -802,8 +802,8 @@ class SkwInterpolator(ElectronInterpolator):
         #call np.linalg.zhesv("U", nkpt-1, nband*nsppol, hmat, nkpt-1, ipiv, lmbs, nkpt-1, work, lwork, ierr)
         try:
             lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
-                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, debug=False, check_finite=False)
-                    #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, debug=False, check_finite=True)
+                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, check_finite=False)
+                    #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, check_finite=True)
         except scipy.linalg.LinAlgError as exc:
             print("Cannot solve system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)")
             print("This usually happens when there are symmetrical k-points passed to the interpolator.")

@@ -233,10 +233,14 @@ def software_stack():
     """
     Import all the hard dependencies. Returns ordered dict: package --> string with version info.
     """
-    # Mandatory
+    import platform
+    system, node, release, version, machine, processor = platform.uname()
+    # These packages are required
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
     d = collections.OrderedDict([
+        ("system", system),
+        ("python_version", platform.python_version()),
         ("numpy", numpy.version.version),
         ("scipy", scipy.version.version),
         ("netCDF4", netCDF4.__version__),

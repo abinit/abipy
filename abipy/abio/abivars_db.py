@@ -136,7 +136,7 @@ class Variable(yaml.YAMLObject):
             return str(obj).replace("[[", "").replace("]]", "")
 
         d = {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
-        return json.dumps(d, indent=4, sort_keys=True).encode("utf-8")
+        return json.dumps(d, indent=4, sort_keys=True)
 
     @lazy_property
     def isarray(self):
@@ -381,14 +381,12 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         return stream.write("Variable %s not in database" % varname)
 
     html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
-        str(var.defaultval).encode("utf-8"),str(var.text).encode("utf-8"))
-    text = html2text.html2text(html).encode("utf-8")
-    if info: text += var.info
+        str(var.defaultval).decode("utf-8"), str(var.text).decode("utf-8"))
+    text = html2text.html2text(html) #.encode("utf-8")
+    if info: text += str(var.info).decode("utf-8")
     # FIXME: There are unicode chars in abinit doc (Greek symbols)
-    try:
-        text = text.encode("utf-8").replace("[[", "\033[1m").replace("]]", "\033[0m")
-    except UnicodeDecodeError:
-        text = text.encode('ascii', 'ignore')
+    text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
+    #    text = text.encode('ascii', 'replace')
 
     #print(type(text))
     stream.write(text)
