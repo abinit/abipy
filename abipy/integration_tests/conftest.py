@@ -6,7 +6,7 @@ import pytest
 import yaml
 import copy
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from monty.collections import AttrDict
 
@@ -50,9 +50,9 @@ def fwp(tmpdir, request):
     fwp.workdir = str(tmpdir)
 
     # Create the TaskManager.
-    fwp.manager = flowapi.TaskManager.from_string(request.param)
+    fwp.manager = flowtk.TaskManager.from_string(request.param)
 
-    fwp.scheduler = flowapi.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
+    fwp.scheduler = flowtk.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
 
     return fwp
 

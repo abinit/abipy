@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from abipy.core.testing import has_abinit, has_matplotlib
 
@@ -103,7 +103,7 @@ def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = flowapi.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
+    flow = flowtk.g0w0_flow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
     # Will remove output files at run-time.
     flow.set_garbage_collector()
     flow.build_and_pickle_dump(abivalidate=True)
@@ -163,7 +163,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     """Integration test for G0W0WithQptdmFlow."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
 
-    flow = flowapi.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
+    flow = flowtk.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
 
     # Enable garbage collector at the flow level.
     # Note that here we have tp use this policy because tasks are created dynamically
@@ -219,7 +219,7 @@ def itest_htc_g0w0(fwp, tvars):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -247,7 +247,7 @@ def itest_htc_g0w0(fwp, tvars):
     multi.set_vars(paral_kgb=tvars.paral_kgb)
 
     scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
-    work = flowapi.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
+    work = flowtk.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
 
     flow.register_work(work)
     flow.allocate()
@@ -290,7 +290,7 @@ def itest_htc_g0w0(fwp, tvars):
 #        istwfk="*1",
 #    )
 #
-#    flow = flowapi.Flow(workdir=fwp.workdir, manager=fwp.manager)
+#    flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)
 #
 #    # BSE calculation with model dielectric function.
 #    from pymatgen.io.abinit.calculations import bse_with_mdf

@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -56,7 +56,7 @@ def build_flow(options):
 
     omp_threads = 1
     for istwfk in [1, 2]:
-        work = flowapi.Work()
+        work = flowtk.Work()
         for conf in pconfs:
             mpi_procs = conf.mpi_ncpus
             if not options.accept_conf(conf, omp_threads): continue

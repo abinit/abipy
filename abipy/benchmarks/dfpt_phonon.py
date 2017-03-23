@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata
 
 from itertools import product
@@ -85,7 +85,7 @@ def build_flow(options):
     gs_inp, ph_inp = make_inputs()
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    gs_work = flowapi.Work()
+    gs_work = flowtk.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
@@ -97,7 +97,7 @@ def build_flow(options):
     pconfs = ph_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
     if options.verbose: print(pconfs)
 
-    work = flowapi.Work()
+    work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         if not options.accept_conf(conf, omp_threads): continue

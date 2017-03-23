@@ -11,7 +11,7 @@ from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.flowapi import Flow
+from abipy.flowtk import Flow
 from abipy.core.mixins import NotebookWriter
 
 

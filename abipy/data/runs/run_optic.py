@@ -6,7 +6,7 @@ import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def build_flow(options, paral_kgb=0):
@@ -72,12 +72,12 @@ def build_flow(options, paral_kgb=0):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
 
     # Initialize the flow.
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
-    bands_work = flowapi.BandStructureWork(scf_inp, nscf_inp)
+    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    ddk_work = flowapi.Work()
+    ddk_work = flowtk.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
@@ -99,7 +99,7 @@ def build_flow(options, paral_kgb=0):
     # TODO
     # Check is the order of the 1WF files is relevant. Can we use DDK files ordered 
     # in an arbitrary way or do we have to pass (x,y,z)?
-    optic_task = flowapi.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work)
+    optic_task = flowtk.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work)
     flow.register_task(optic_task)
 
     return flow
@@ -107,10 +107,10 @@ def build_flow(options, paral_kgb=0):
 
 def optic_flow_from_files():
     # Optic does not support MPI with ncpus > 1.
-    manager = flowapi.TaskManager.from_user_config()
+    manager = flowtk.TaskManager.from_user_config()
     manager.set_mpi_procs(1)
 
-    flow = flowapi.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
+    flow = flowtk.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
     
     ddk_nodes = [
         "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",
@@ -119,7 +119,7 @@ def optic_flow_from_files():
     ]
     nscf_node = "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK"
 
-    optic_task = flowapi.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
+    optic_task = flowtk.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task)
     return flow
 

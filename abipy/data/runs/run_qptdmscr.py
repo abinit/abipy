@@ -10,7 +10,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as data  
 
-from abipy import flowapi
+from abipy import flowtk
 
 
 def all_inputs(paral_kgb=1):
@@ -116,7 +116,7 @@ def qptdm_flow(options):
     gs, nscf, scr_input, sigma_input = all_inputs()
 
     # Construct the flow.
-    return flowapi.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input, 
+    return flowtk.G0W0WithQptdmFlow(workdir, gs, nscf, scr_input, sigma_input,
                                     manager=options.manager)
 
 

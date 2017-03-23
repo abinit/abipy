@@ -8,7 +8,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 
-from abipy.flowapi import Pseudo, PseudoTable
+from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [

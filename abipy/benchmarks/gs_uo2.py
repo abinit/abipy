@@ -10,7 +10,7 @@ import sys
 import operator
 import numpy as np
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata
 
 from functools import reduce
@@ -204,7 +204,7 @@ def build_flow(options):
     ]
 
     for wfoptalg in [None, 1]:
-        work = flowapi.Work()
+        work = flowtk.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

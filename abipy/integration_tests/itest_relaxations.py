@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from abipy.core.testing import has_abinit, has_matplotlib
 
@@ -48,10 +48,10 @@ def ion_relaxation(tvars, ntime=50):
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     ion_input = ion_relaxation(tvars, ntime=2)
-    work = flow.register_task(ion_input, task_class=flowapi.RelaxTask)
+    work = flow.register_task(ion_input, task_class=flowtk.RelaxTask)
 
     flow.allocate()
     flow.build_and_pickle_dump(abivalidate=True)
@@ -154,14 +154,14 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
 def itest_relaxation_with_restart_from_den(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     # Use small value for ntime to trigger restart, then disable the output of the WFK file.
     ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.1, ntime=3)
     ion_input.set_vars(prtwf=0)
     ioncell_input.set_vars(prtwf=0)
 
-    relax_work = flowapi.RelaxWork(ion_input, ioncell_input)
+    relax_work = flowtk.RelaxWork(ion_input, ioncell_input)
     flow.register_work(relax_work)
 
     assert flow.make_scheduler().start() == 0
@@ -189,12 +189,12 @@ def itest_dilatmx_error_handler(fwp, tvars):
      Test cell relaxation with automatic restart in the presence of dilatmx error.
      """
      # Build the flow
-     flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
  
      # Decrease the volume to trigger DilatmxError
      ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.01, scalevol=0.8)
 
-     work = flowapi.Work()
+     work = flowtk.Work()
      work.register_relax_task(ioncell_input)
  
      flow.register_work(work)

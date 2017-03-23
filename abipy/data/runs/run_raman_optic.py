@@ -11,7 +11,7 @@ import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as data  
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 optic_input = abilab.OpticInput(
@@ -68,7 +68,7 @@ def raman_flow(options):
     #shell_manager =  manager.deepcopy()
     #ddk_manager = manager.deepcopy()
 
-    flow = flowapi.Flow(workdir, manager=manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=manager, remove=options.remove)
 
     # Generate the different shifts to average
     ndiv = 1
@@ -132,7 +132,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
     ddk_inputs = [ddk1, ddk2, ddk3]
 
-    work = flowapi.Work()
+    work = flowtk.Work()
     scf_t = work.register_scf_task(scf_inp)
     nscf_t = work.register_nscf_task(nscf_inp, deps={scf_t: "DEN"})
 
@@ -141,7 +141,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
         ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_nodes.append(ddk_t)
 
-    optic_t = flowapi.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes)
+    optic_t = flowtk.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes)
     work.register(optic_t)
 
     return work

@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata  
 
 from itertools import product
@@ -66,10 +66,10 @@ def make_flow_ephinp(options):
         ], (-1,3))
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    work0 = flow.register_task(gs_inp, task_class=flowapi.ScfTask)
+    work0 = flow.register_task(gs_inp, task_class=flowtk.ScfTask)
     flow.exclude_from_benchmark(work0)
 
-    ph_work = flowapi.PhononWork.from_scf_task(work0[0], qpoints)
+    ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)
     flow.exclude_from_benchmark(ph_work)
 
@@ -112,7 +112,7 @@ def build_flow(options):
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 
-    eph_work = flowapi.Work()
+    eph_work = flowtk.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)

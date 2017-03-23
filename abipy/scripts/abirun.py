@@ -11,7 +11,7 @@ import argparse
 import shlex
 import time
 import platform
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.abilab as abilab
 
 from pprint import pprint
@@ -22,7 +22,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
-from abipy.flowapi import Status
+from abipy.flowtk import Status
 
 
 def straceback():
@@ -87,7 +87,7 @@ def flowdir_wname_tname(dirname):
     """
     if dirname is None: dirname = os.getcwd()
     dirname = os.path.abspath(dirname)
-    if os.path.exists(os.path.join(dirname, flowapi.Flow.PICKLE_FNAME)):
+    if os.path.exists(os.path.join(dirname, flowtk.Flow.PICKLE_FNAME)):
         return dirname, None, None
 
     # Handle works or tasks.
@@ -96,7 +96,7 @@ def flowdir_wname_tname(dirname):
     for i in range(2):
         head, tail = os.path.split(head)
         if i == 0: tail_1 = tail
-        if os.path.exists(os.path.join(head, flowapi.Flow.PICKLE_FNAME)):
+        if os.path.exists(os.path.join(head, flowtk.Flow.PICKLE_FNAME)):
             if i == 0:
                 # We have a work: /root/flow_dir/w[num]
                 wname = tail
@@ -529,7 +529,7 @@ Specify the files to open. Possible choices:
         qtype = options.qtype
 
         if qtype == "script":
-            manager = flowapi.TaskManager.from_user_config()
+            manager = flowtk.TaskManager.from_user_config()
             script = manager.qadapter.get_script_str(
                 job_name="job_name",
                 launch_dir="workdir",
@@ -543,23 +543,23 @@ Specify the files to open. Possible choices:
             print(script)
 
         else:
-            print(flowapi.TaskManager.autodoc())
-            print("qtype supported: %s" % flowapi.all_qtypes())
+            print(flowtk.TaskManager.autodoc())
+            print("qtype supported: %s" % flowtk.all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
 
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)
-                flowapi.show_qparams(qtype)
+                flowtk.show_qparams(qtype)
 
         return 0
 
     if options.command == "doc_scheduler":
         print("Options that can be specified in scheduler.yml:")
-        print(flowapi.PyFlowScheduler.autodoc())
+        print(flowtk.PyFlowScheduler.autodoc())
         return 0
 
     if options.command == "abibuild":
-        abinit_build = flowapi.AbinitBuild()
+        abinit_build = flowtk.AbinitBuild()
         print()
         print(abinit_build)
         print()
@@ -596,7 +596,7 @@ Specify the files to open. Possible choices:
         options.flowdir, wname, tname = flowdir_wname_tname(options.flowdir)
 
     # Read the flow from the pickle database.
-    flow = flowapi.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.show_info()
 
     # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
@@ -641,7 +641,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "new_manager":
         # Read the new manager from file.
-        new_manager = flowapi.TaskManager.from_file(options.manager_file)
+        new_manager = flowtk.TaskManager.from_file(options.manager_file)
 
         # Default status for new_manager is QCritical
         if options.task_status is None:
@@ -671,7 +671,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "handlers":
         if options.doc:
-            flowapi.autodoc_event_handlers()
+            flowtk.autodoc_event_handlers()
         else:
             flow.show_event_handlers(verbose=options.verbose)
 

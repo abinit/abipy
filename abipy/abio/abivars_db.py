@@ -136,7 +136,7 @@ class Variable(yaml.YAMLObject):
             return str(obj).replace("[[", "").replace("]]", "")
 
         d = {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
-        return json.dumps(d, indent=4, sort_keys=True)
+        return json.dumps(d, indent=4, sort_keys=True).encode("utf-8")
 
     @lazy_property
     def isarray(self):
@@ -383,7 +383,7 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
         str(var.defaultval).encode("utf-8"),str(var.text).encode("utf-8"))
     text = html2text.html2text(html)
-    if info: text += str(var.info).encode("utf-8")
+    if info: text += var.info
     # FIXME: There are unicode chars in abinit doc (Greek symbols)
     try:
         text = text.encode("utf-8").replace("[[", "\033[1m").replace("]]", "\033[0m")

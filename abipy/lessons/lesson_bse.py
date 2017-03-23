@@ -5,7 +5,7 @@ from __future__ import division, print_function
 import os
 import numpy as np
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 

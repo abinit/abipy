@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from scripttest import TestFileEnvironment
 from monty.inspect import all_subclasses
@@ -179,7 +179,7 @@ class TestAbirun(ScriptTest):
         # Build a flow.
         flowdir = env.base_path
         scf_input, nscf_input = make_scf_nscf_inputs()
-        flow = flowapi.bandstructure_flow(flowdir, scf_input, nscf_input, manager=None)
+        flow = flowtk.bandstructure_flow(flowdir, scf_input, nscf_input, manager=None)
         flow.build_and_pickle_dump()
 
         # Test abirun commands requiring a flow (no submission)

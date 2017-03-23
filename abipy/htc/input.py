@@ -23,7 +23,7 @@ from monty.os.path import which
 from monty.json import MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
-from abipy.flowapi import PseudoTable, Pseudo, TaskManager, AbinitTask, NetcdfReader
+from abipy.flowtk import PseudoTable, Pseudo, TaskManager, AbinitTask, NetcdfReader
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure

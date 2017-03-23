@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -60,7 +60,7 @@ def build_flow(options):
 
     omp_threads = 1
     for fftalg in fftalg_list: 
-        work = flowapi.Work()
+        work = flowtk.Work()
         for npfft in mpi_list:
             if not options.accept_mpi_omp(npfft, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)

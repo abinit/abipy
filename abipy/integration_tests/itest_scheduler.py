@@ -6,9 +6,9 @@ import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
-from abipy.flowapi import mocks
+from abipy.flowtk import mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -54,12 +54,12 @@ def itest_flow_with_deadlocks(fwp):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
-    work0 = flowapi.BandStructureWork(scf_input, nscf_input, dos_inputs=nscf_input)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+    work0 = flowtk.BandStructureWork(scf_input, nscf_input, dos_inputs=nscf_input)
     flow.register_work(work0)
     scf_task, nscf_task, dos_task = work0[0], work0[1], work0[2]
 
-    work1 = flowapi.Work()
+    work1 = flowtk.Work()
     work1.register_nscf_task(nscf_input, deps={scf_task: "DEN", dos_task: "WFK"})
     # This task will deadlock when nscf_task reaches S_ERROR.
     work1.register_nscf_task(nscf_input, deps={scf_task: "DEN", nscf_task: "WFK"})
@@ -95,8 +95,8 @@ def itest_flow_without_runnable_tasks(fwp):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
-    work0 = flowapi.BandStructureWork(scf_input, nscf_input)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+    work0 = flowtk.BandStructureWork(scf_input, nscf_input)
     flow.register_work(work0)
     scf_task, nscf_task = work0.scf_task, work0.nscf_task
 

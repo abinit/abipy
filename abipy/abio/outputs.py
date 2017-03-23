@@ -6,7 +6,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 
 from monty.string import is_string
-from abipy.flowapi import EventsParser, NetcdfReader, AbinitTimerParser, GroundStateScfCycle, D2DEScfCycle
+from abipy.flowtk import EventsParser, NetcdfReader, AbinitTimerParser, GroundStateScfCycle, D2DEScfCycle
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 
 

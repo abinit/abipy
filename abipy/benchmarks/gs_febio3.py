@@ -5,11 +5,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 import abipy.data as abidata
 
 from itertools import product
-from abipy.flowapi import ParalHints
+from abipy.flowtk import ParalHints
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 unit_cell = dict(
@@ -107,7 +107,7 @@ def build_flow(options):
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
         if options.verbose: print(pconfs)
 
-    work = flowapi.Work()
+    work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         #if not options.accept_mpi_omp(mpi_procs,omp_threads): continue

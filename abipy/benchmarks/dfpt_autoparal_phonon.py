@@ -7,7 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
@@ -86,7 +86,7 @@ def build_flow(options):
     gs_inp, ph_inp = make_inputs()
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    gs_work = flowapi.Work()
+    gs_work = flowtk.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
@@ -99,7 +99,7 @@ def build_flow(options):
     if options.verbose: print(pconfs)
 
     omp_threads = 1
-    work = flowapi.Work()
+    work = flowtk.Work()
     for conf in pconfs:
         mpi_procs = conf.mpi_ncpus
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from abipy.core.testing import has_abinit
 
@@ -98,13 +98,13 @@ def itest_optic_flow(fwp, tvars):
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
-    bands_work = flowapi.BandStructureWork(scf_inp, nscf_inp)
+    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
     # work with DDK tasks.
-    ddk_work = flowapi.Work()
+    ddk_work = flowtk.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
@@ -124,8 +124,8 @@ def itest_optic_flow(fwp, tvars):
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
 
     # Build optic task and register it
-    optic_task1 = flowapi.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work,
-                                     manager=shell_manager)
+    optic_task1 = flowtk.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work,
+                                   manager=shell_manager)
 
     flow.register_task(optic_task1)
     flow.allocate()
@@ -146,7 +146,7 @@ def itest_optic_flow(fwp, tvars):
     assert nscf_node
 
     # This does not work yet
-    optic_task2 = flowapi.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
+    optic_task2 = flowtk.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
     flow.register_task(optic_task2)
     flow.allocate()
     flow.build_and_pickle_dump(abivalidate=True)

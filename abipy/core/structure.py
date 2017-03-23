@@ -20,11 +20,11 @@ from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.tools.plotting import add_fig_kwargs #, get_ax_fig_plt
-from abipy.flowapi import PseudoTable
+from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
-from abipy.flowapi.abiobjects import structure_from_abivars, structure_to_abivars
+from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 __all__ = [
     "Structure",

@@ -9,7 +9,7 @@ import os
 import numpy as np
 import abipy.data as data  
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def make_scf_nscf_inputs(structure, paral_kgb=1):
@@ -65,13 +65,13 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.
         scf_input, nscf_input = make_scf_nscf_inputs(structure)
                                                                    
-        work = flowapi.BandStructureWork(scf_input, nscf_input)
+        work = flowtk.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow

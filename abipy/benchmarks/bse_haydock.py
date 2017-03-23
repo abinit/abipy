@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -75,7 +75,7 @@ def bse_benchmark(options):
     gs_inp, bse_inp = make_inputs(paw=options.paw)
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    gs_work = flowapi.Work()
+    gs_work = flowtk.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
@@ -88,7 +88,7 @@ def bse_benchmark(options):
         mpi_list = [p for p in range(1, 1 + ntrans) if ntrans % p == 0]
     if options.verbose: print("Using mpi_list:", mpi_list)
 
-    bse_work = flowapi.Work()
+    bse_work = flowtk.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)

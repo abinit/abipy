@@ -4,7 +4,7 @@ import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowapi
 
 
 def itest_tolsymerror_handler(fwp):
@@ -49,8 +49,8 @@ def itest_tolsymerror_handler(fwp):
          nshiftk=1,
     )
 
-    flow = flowapi.Flow(workdir=fwp.workdir, manager=fwp.manager)
-    flow.register_task(inp, task_class=flowapi.RelaxTask)
+    flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)
+    flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
     assert flow.make_scheduler().start() == 0
@@ -106,8 +106,8 @@ def itest_dilatmxerror_handler(fwp):
         )
 
     # Create the flow
-    flow = flowapi.Flow(fwp.workdir, manager=fwp.manager)
-    flow.register_task(inp, task_class=flowapi.RelaxTask)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+    flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
     assert flow.make_scheduler().start() == 0

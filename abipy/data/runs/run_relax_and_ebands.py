@@ -10,7 +10,7 @@ import sys
 import os
 import abipy.data as abidata  
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def make_ion_ioncell_inputs(paral_kgb=1):
@@ -113,7 +113,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Create the flow
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     paral_kgb = 1
     #paral_kgb = 0  # This one is OK
@@ -121,12 +121,12 @@ def build_flow(options):
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs(paral_kgb=paral_kgb)
 
-    relax_work = flowapi.RelaxWork(ion_inp, ioncell_inp)
+    relax_work = flowtk.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(relax_work)
 
     scf_inp, nscf_inp = make_scf_nscf_inputs(paral_kgb=paral_kgb)
 
-    bands_work = flowapi.BandStructureWork(scf_inp, nscf_inp)
+    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)
 
     # The scf task in bands work restarts from the DEN file of the last task in relax_work
     if paral_kgb == 0:

@@ -23,7 +23,7 @@ from abipy.gui.oncvtooltips import oncv_tip
 from abipy.gui import mixins as mix
 from abipy.gui import awx
 from abipy.gui.awx.elements_gui import WxPeriodicTable, PeriodicPanel, ElementButton
-from abipy.flowapi import Pseudo
+from abipy.flowtk import Pseudo
 
 try:
     from pseudo_dojo.core.dojoreport import DojoReport

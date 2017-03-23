@@ -5,7 +5,7 @@ It also provides tools to analye and to visualize the parallel efficiency.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abipy.core.mixins import NotebookWriter
-from abipy.flowapi import AbinitTimerParser as _Parser
+from abipy.flowtk import AbinitTimerParser as _Parser
 
 
 class AbinitTimerParser(_Parser, NotebookWriter):

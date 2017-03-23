@@ -26,9 +26,9 @@ from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
-from abipy.flowapi import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
-from abipy.flowapi.abiinspect import yaml_read_irred_perts
-from abipy.flowapi import abiobjects as aobj
+from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
+from abipy.flowtk.abiinspect import yaml_read_irred_perts
+from abipy.flowtk import abiobjects as aobj
 
 import logging
 logger = logging.getLogger(__file__)

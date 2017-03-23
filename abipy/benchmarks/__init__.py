@@ -6,7 +6,7 @@ import types
 
 
 from monty.termcolor import cprint
-from abipy.flowapi import Flow
+from abipy.flowtk import Flow
 
 
 def as_orderedset(token, options):

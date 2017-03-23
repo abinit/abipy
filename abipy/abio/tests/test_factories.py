@@ -3,7 +3,7 @@ from __future__ import unicode_literals, division, print_function
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from abipy.flowapi import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
+from abipy.flowtk import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *

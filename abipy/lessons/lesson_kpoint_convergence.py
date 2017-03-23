@@ -233,7 +233,7 @@ Alternative to execution of the manual execution the calculations can also be ex
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
@@ -266,7 +266,7 @@ def make_ngkpt_flow(ngkpt_list=((2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)), str
     for i, ngkpt in enumerate(ngkpt_list):
         multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return flowapi.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
+    return flowtk.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
 
 
 class Lesson(BaseLesson):
