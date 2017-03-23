@@ -1251,7 +1251,7 @@ class ElectronBands(object):
         return edos
 
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
-        """
+        r"""
         Compute the join density of states at q == 0.
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
 

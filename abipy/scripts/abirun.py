@@ -11,7 +11,7 @@ import argparse
 import shlex
 import time
 import platform
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 import abipy.abilab as abilab
 
 from pprint import pprint

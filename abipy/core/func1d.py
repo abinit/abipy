@@ -271,7 +271,7 @@ class Function1D(object):
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
     def integral(self, start=0, stop=None):
-        """
+        r"""
         Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
         Returns:

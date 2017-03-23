@@ -14,7 +14,7 @@ from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 
 def yaml_manager_dialog(parent):

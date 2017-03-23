@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import abipy.data as abidata
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 from scripttest import TestFileEnvironment
 from monty.inspect import all_subclasses

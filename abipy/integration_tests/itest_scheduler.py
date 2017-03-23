@@ -6,7 +6,7 @@ import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 from abipy.flowtk import mocks
 

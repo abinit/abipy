@@ -287,7 +287,7 @@ class ElectronInterpolator(object):
         return wmesh, dos, idos
 
     def get_jdos_q0(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
-        """
+        r"""
         Compute the join density of states at q==0
 
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`

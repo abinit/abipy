@@ -6,7 +6,7 @@ import numpy as np
 import numpy.testing.utils as nptu
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowtk as flowapi
+import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_abinit, has_matplotlib
 
