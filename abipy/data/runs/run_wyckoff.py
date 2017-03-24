@@ -10,7 +10,7 @@ import sys
 import abipy.data as abidata
 
 from abipy import abilab
-from abipy import flowapi
+from abipy import flowtk
 
 
 def special_positions(lattice, u):
@@ -31,6 +31,7 @@ def special_positions(lattice, u):
 
     return abilab.Structure(lattice, species, coords, validate_proximity=True, coords_are_cartesian=False)
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
@@ -47,7 +48,7 @@ def build_flow(options):
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
@@ -88,7 +89,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 
     gs_inp, nscf_inp = multi.split_datasets()
 
-    return flowapi.BandStructureWork(gs_inp, nscf_inp)
+    return flowtk.BandStructureWork(gs_inp, nscf_inp)
 
 
 @abilab.flow_main

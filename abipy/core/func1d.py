@@ -271,7 +271,7 @@ class Function1D(object):
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
     def integral(self, start=0, stop=None):
-        """
+        r"""
         Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
         Returns:
@@ -319,12 +319,12 @@ class Function1D(object):
 
     @lazy_property
     def l1_norm(self):
-        """Compute :math:`\int |f(x)| dx`."""
+        r"""Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
     @lazy_property
     def l2_norm(self):
-        """Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
+        r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
         return np.sqrt( (abs(self)**2).integral()[-1][1] )
 
     def fft(self):
@@ -342,7 +342,7 @@ class Function1D(object):
         return self.__class__(freqs, fft_vals)
 
     def ifft(self, x0=None):
-        """Compute the FFT transform :math:`\int e+i`"""
+        r"""Compute the FFT transform :math:`\int e+i`"""
         # Rearrange values in the standard order then perform IFFT.
         from scipy import fftpack
         n, d = len(self), self.h

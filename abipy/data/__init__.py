@@ -2,13 +2,13 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-import abipy.abidata as abidata
+    import abipy.abidata as abidata
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 
-from abipy.flowapi import Pseudo, PseudoTable
+from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
@@ -36,8 +36,9 @@ _SCRIPTS = None
 
 
 def pyscript(basename):
-    """Return the absolute name of one of the scripts in the `examples` directory from its basename."""
-
+    """
+    Return the absolute name of one of the scripts in the `examples` directory from its basename.
+    """
     global _SCRIPTS
     if _SCRIPTS is None:
         # Build mapping basename --> path.
@@ -142,23 +143,19 @@ def ncfiles_with_ext(ext):
 
 
 def mp_structures():
-    """ Returns a dictionary containg the structures stored in mpdata/mp_structures. """
+    """Returns a dictionary containing the structures stored in mpdata/mp_structures. """
     import json
     from monty.json import MontyDecoder
 
-    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
+    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
         return json.load(f, cls=MontyDecoder)
 
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
-
 DEN_NCFILES = ncfiles_with_ext("DEN")
-
 GSR_NCFILES = ncfiles_with_ext("GSR")
-
 SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
-
-ALL_NCFILES = _DATA_NCFILES.values()
+ALL_NCFILES = list(_DATA_NCFILES.values())
 
 
 class FilesGenerator(object):

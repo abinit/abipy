@@ -15,7 +15,7 @@ from monty.string import is_string
 from monty.functools import lazy_property
 
 from abipy.iotools.cube import cube_read_structure_mesh_data
-from abipy.flowapi.netcdf import NetcdfReader, NO_DEFAULT
+from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [
@@ -325,7 +325,6 @@ class NcDumper(object):
         """
         self.nc_args = nc_args
         self.nc_kwargs = nc_kwargs
-
         self.ncdump = which("ncdump")
 
     def dump(self, filepath):

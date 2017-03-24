@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowtk as flowtk
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -83,7 +84,7 @@ def build_flow(options):
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    ebands_work = abilab.BandStructureWork(gs_inp, nscf_inp)
+    ebands_work = flowtk.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(ebands_work)
     flow.exclude_from_benchmark(ebands_work)
 
@@ -92,9 +93,9 @@ def build_flow(options):
     print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
     pconfs = ddk_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
+    if options.verbose: print(pconfs)
 
-    work = abilab.Work()
+    work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         if not options.accept_conf(conf, omp_threads): continue

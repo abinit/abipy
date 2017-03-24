@@ -23,7 +23,7 @@ AbiPy supports both Python 2.7 as well as Python >= 3.4.
 Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
 We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
-Note also that the majority of the post-processing tools available in AbiPy require the Abinit output files in
+Note also that the majority of the post-processing tools available in AbiPy require Abinit output files in
 ``netcdf`` format so we strongly suggest to compile Abinit with netcdf support
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples

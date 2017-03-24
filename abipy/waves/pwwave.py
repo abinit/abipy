@@ -219,7 +219,7 @@ class PWWaveFunction(WaveFunction):
         self._ug = np.array(ug)
 
     def norm2(self, space="g"):
-        """Return :math:`||\psi||^2` computed in G- or r-space."""
+        r"""Return :math:`||\psi||^2` computed in G- or r-space."""
         space = space.lower()
 
         if space == "g":

@@ -155,7 +155,7 @@ The course of this lesson
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 from abipy.lessons.core import BaseLesson
 
@@ -276,11 +276,11 @@ def make_g0w0_scissors_flow(workdir="flow_lesson_g0w0", ngkpt=(2,2,2)):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, bands_nscf, dos_nscf, gw_nscf, scr, sig = make_inputs(ngkpt=ngkpt)
 
-    flow = flowapi.Flow(workdir=workdir)
-    work0 = flowapi.BandStructureWork(scf, bands_nscf, dos_inputs=dos_nscf)
+    flow = flowtk.Flow(workdir=workdir)
+    work0 = flowtk.BandStructureWork(scf, bands_nscf, dos_inputs=dos_nscf)
     flow.register_work(work0)
 
-    work1 = flowapi.Work()
+    work1 = flowtk.Work()
     gw_nscf_task = work1.register_nscf_task(gw_nscf, deps={work0[0]: "DEN"})
     scr_task = work1.register_scr_task(scr, deps={gw_nscf_task: "WFK"})
     sigma_task = work1.register_sigma_task(sig, deps={gw_nscf_task: "WFK", scr_task: "SCR"})

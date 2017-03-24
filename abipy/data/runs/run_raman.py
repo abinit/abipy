@@ -10,7 +10,7 @@ import os
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as data  
-from abipy import flowapi
+from abipy import flowtk
 
 
 def build_flow(options):
@@ -19,7 +19,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     pseudos = data.pseudos("14si.pspnc")
 
@@ -107,7 +107,7 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
     )
 
     # Build the work representing a BSE run with model dielectric function.
-    return flowapi.BseMdfWork(scf_inp, nscf_inp, bse_inp)
+    return flowtk.BseMdfWork(scf_inp, nscf_inp, bse_inp)
 
 
 @abilab.flow_main

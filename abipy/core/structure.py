@@ -20,11 +20,11 @@ from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.tools.plotting import add_fig_kwargs #, get_ax_fig_plt
-from abipy.flowapi import PseudoTable
+from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
-from abipy.flowapi.abiobjects import structure_from_abivars, structure_to_abivars
+from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 __all__ = [
     "Structure",
@@ -214,8 +214,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
-        structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-        return cls(structure)
+        new = molecule.get_boxed_structure(l[0], l[1], l[2])
+        new.__class__ = cls
+        return new
 
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
@@ -397,7 +398,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
-        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=no_idealize,
+        standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
                                                symprec=symprec, angle_tolerance=angle_tolerance)
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
@@ -740,7 +741,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # xcrysden
             print("Writing data to:", filename)
             s = self.to(fmt="xsf", filename=filename)
-            #print(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -1431,7 +1431,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("print(structure.abi_string)"),
             nbv.new_code_cell("structure"),
             nbv.new_code_cell("print(structure.spglib_summary())"),
-            #nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
+            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("fig = structure.show_bz()"),
             nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),

@@ -14,7 +14,7 @@ from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def yaml_manager_dialog(parent):
@@ -33,7 +33,7 @@ def yaml_manager_dialog(parent):
     dialog.Destroy()
 
     try:
-        return flowapi.TaskManager.from_file(filepath)
+        return flowtk.TaskManager.from_file(filepath)
     except:
         awx.showErrorMessage(parent)
         return None
@@ -269,7 +269,7 @@ Also, these key bindings can be used
         """Submit up to max_nlauch tasks."""
         if self.disabled_launcher: return
         max_nlaunch = int(self.max_nlaunch.GetValue())
-        nlaunch = flowapi.PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
+        nlaunch = flowtk.PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
 
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
@@ -325,7 +325,7 @@ Also, these key bindings can be used
         self.statusbar.PushStatusText("Reading %s" % filepath)
 
         try:
-            flow = flowapi.AbinitFlow.pickle_load(filepath)
+            flow = flowtk.AbinitFlow.pickle_load(filepath)
             self.AddFileToHistory(filepath)
             return flow
         except:
@@ -691,7 +691,7 @@ def task_reset(parent, task):
 
 def task_set_status(parent, task):
     """Reset the status of the task."""
-    choices = [str(s) for s in flowapi.Node.ALL_STATUS]
+    choices = [str(s) for s in flowtk.Node.ALL_STATUS]
     dialog = wx.SingleChoiceDialog(parent, message="Select new status", caption="", choices=choices)
     if dialog.ShowModal() == wx.ID_CANCEL: return None
     status = choices[dialog.GetSelection()]

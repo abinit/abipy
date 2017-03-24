@@ -11,8 +11,7 @@ import shutil
 import tempfile
 
 from subprocess import call, Popen
-from abipy.abilab import __version__
-from abipy.flowapi import Flow
+from abipy import __version__
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 

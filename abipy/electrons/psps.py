@@ -7,7 +7,7 @@ import numpy as np
 from monty.string import list_strings
 from monty.bisect import find_gt
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.flowapi import Pseudo
+from abipy.flowtk import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile
 
@@ -41,7 +41,7 @@ def mklabel(fsym, der, arg):
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
     else:
-        fsym = fsym + "^{" + (der * "\prime") + "}"
+        fsym = fsym + "^{" + (der * r"\prime") + "}"
         return "$%s(%s)$" % (fsym, arg)
 
 

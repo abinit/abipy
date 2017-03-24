@@ -302,7 +302,7 @@ class EnergyTerms(AttrDict):
         #("e_xc_vdw", "vdW-DF correction to the XC energy"),
     ])
 
-    ALL_KEYS = _NAME2DOC.keys()
+    ALL_KEYS = list(_NAME2DOC.keys())
 
     def __str__(self):
         return self.to_string(with_doc=False)

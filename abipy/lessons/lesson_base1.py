@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab 
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 import numpy as np
 
@@ -55,7 +55,7 @@ def build_flow():
     Generate a flow to compute the total energy and forces as a function of the interatomic distance
     """
     inputs = [gs_input(x) for x in np.linspace(0.5, 1.025, 21)]
-    return flowapi.Flow.from_inputs("flow_h", inputs)
+    return flowtk.Flow.from_inputs("flow_h", inputs)
 
     #table = abilab.PrettyTable(["length [Ang]", "energy [eV]"])
     #for task in flow.iflat_tasks():

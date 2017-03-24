@@ -28,6 +28,7 @@ class Scissors(object):
     documented in the main constructor.
 
     .. note::
+
         eV units are assumed.
 
     The standard way to create this object is via the methods provided by the factory class :class:`ScissorBuilder`.

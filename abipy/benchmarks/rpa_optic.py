@@ -6,6 +6,7 @@ import sys
 import os
 import abipy.data as data  
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -72,11 +73,11 @@ def make_base_flow(options):
     # Initialize the flow.
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.manager)
 
-    bands_work = abilab.BandStructureWork(scf_inp, nscf_inp)
+    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
     flow.exclude_from_benchmark(bands_work)
 
-    ddk_work = abilab.Work()
+    ddk_work = flowtk.Work()
     for inp in [ddk1, ddk2, ddk3]:
         ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
 
@@ -108,11 +109,11 @@ def build_flow(options):
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 
-    work = abilab.Work()
+    work = flowtk.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-        optic_task = abilab.OpticTask(optic_input, manager=manager, nscf_node=flow[0].nscf_task, ddk_nodes=flow[1])
+        optic_task = flowtk.OpticTask(optic_input, manager=manager, nscf_node=flow[0].nscf_task, ddk_nodes=flow[1])
         work.register_task(optic_task)
 
     flow.register_work(work)

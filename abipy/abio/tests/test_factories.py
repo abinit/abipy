@@ -3,11 +3,20 @@ from __future__ import unicode_literals, division, print_function
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from abipy.flowapi import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
+from abipy.flowtk import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 import json
+
+
+class ShiftModeTest(AbipyTest):
+    def test_shiftmode(self):
+        """Testing shifmode"""
+        from abipy.abio.factories import ShiftMode
+        gamma = ShiftMode.GammaCentered
+        assert ShiftMode.from_object("G") == gamma
+        assert ShiftMode.from_object(gamma) == gamma
 
 
 class FactoryTest(AbipyTest):
@@ -34,20 +43,14 @@ class FactoryTest(AbipyTest):
     def test_gs_input(self):
         """Testing gs_input factory."""
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
-
-        flow = Flow.temporary_flow()
-        flow.register_scf_task(inp)
-        assert flow.build_and_pickle_dump(abivalidate=True) == 0
+        inp.abivalidate()
 
     def test_ebands_input(self):
         """Testing ebands_input factory."""
         multi = ebands_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
 
         scf_inp, nscf_inp = multi.split_datasets()
-
-        flow = Flow.temporary_flow()
-        flow.register_work(BandStructureWork(scf_inp, nscf_inp))
-        assert flow.build_and_pickle_dump(abivalidate=True) == 0
+        self.validate_multi(multi)
 
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
@@ -61,18 +64,15 @@ class FactoryTest(AbipyTest):
         flow.register_work(RelaxWork(ion_inp, ioncell_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
 
-    #def test_ion_ioncell_relax_and_ebands_input(self):
-    #    """Testing ion_ioncell_relax_ands_ebands_input factory."""
-    #    multi = ion_ioncell_relax_and_ebands_input(structure, pseudos,
-    #                                   kppa=None, nband=None,
-    #                                   ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-    #                                   smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    def test_ion_ioncell_relax_and_ebands_input(self):
+        """Testing ion_ioncell_relax_ands_ebands_input factory."""
+        multi = ion_ioncell_relax_and_ebands_input(self.si_structure, self.si_pseudo, ecut=4)
+                                       #kppa=None, nband=None,
+                                       #pawecutdg=None, accuracy="normal", spin_mode="polarized",
+                                       #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
-    #    ion_inp, ioncell_inp = multi.split_datasets()
-
-    #    flow = Flow.temporary_flow()
-    #    flow.register_work(RelaxWork(ion_inp, ioncell_inp))
-    #    assert flow.build_and_pickle_dump(abivalidate=True) == 0
+        self.validate_multi(multi)
+        #ion_inp, ioncell_inp = multi.split_datasets()
 
     def test_g0w0_with_ppmodel_inputs(self):
         """Testing g0w0_with_ppmodel_input factory."""
@@ -179,47 +179,76 @@ class FactoryTest(AbipyTest):
                                     #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
         scf_input, nscf_input, bse_input = multi.split_datasets()
-
-        flow = Flow.temporary_flow()
-        flow.register_work(BseMdfWork(scf_input, nscf_input, bse_input))
-        assert flow.build_and_pickle_dump(abivalidate=True) == 0
+        self.validate_multi(multi)
 
     def test_scf_phonons_inputs(self):
         """Testing scf_phonons_inputs."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 10, 10, 10, 4
         ecut = 4
-        inps = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa,
+        multi = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa,
                                   ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-        self.validate_multi(inps)
+        self.validate_multi(multi)
 
-    #def test_phonons_from_gsinput(self):
-    #    """Testing phonons_from_gsinput"""
-    #    phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True,
-    #                        with_bec=False, ph_tol=None, ddk_tol=None, dde_tol=None)
+    def test_phonons_from_gsinput(self):
+        """Testing phonons_from_gsinput"""
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        multi = phonons_from_gsinput(gs_inp, ph_ngqpt=[4, 4, 4], with_ddk=True, with_dde=True,
+                                     with_bec=False, ph_tol=None, ddk_tol=None, dde_tol=None)
+        self.validate_multi(multi)
 
-    #def test_elastic_inputs_from_gsinput(self)
-        #piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+    def test_elastic_inputs_from_gsinput(self):
+        """Testing elastic_inputs_from_gsinput."""
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
+        self.validate_multi(multi)
 
-    #def test_scf_piezo_elastic_inputs(self):
-    #    scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None, scf_nband=None,
-    #                             accuracy="normal", spin_mode="polarized",
-    #                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-    #                             ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+    def test_scf_piezo_elastic_inputs(self):
+        """Testing scf_piezo_elastic_inputs."""
+        kppa = 800
+        multi = scf_piezo_elastic_inputs(self.si_structure, self.si_pseudo, kppa, ecut=3, pawecutdg=None, scf_nband=None,
+                                 accuracy="normal", spin_mode="polarized",
+                                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                                 ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
+        self.validate_multi(multi)
 
-    #def test_scf_input(self):
-    #    scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
-    #              spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-    #              shift_mode="Monkhorst-Pack"):
+    def test_scf_input(self):
+        """Testing scf_input"""
+        from abipy.abio.factories import scf_input
+        kppa = 800
+        inp = scf_input(self.si_structure, self.si_pseudo, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
+                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                  shift_mode="Monkhorst-Pack")
+        inp.abivalidate()
 
+    def test_ebands_dos_from_gsinput(self):
+        """Testing ebands_from_gsinput and dos_from_gsinput"""
+        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
+        ebands_inp.abivalidate()
 
-    #def test_ebands_from_gsinput(self):
-    #    ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
+        dos_kppa = 3000
+        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal", pdos=False)
+        edos_inp.abivalidate()
 
-    #def test_ioncell_relax_from_gsinput(self):
-    #    ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
+    def test_ioncell_relax_from_gsinput(self):
+        """Testing ioncell_relax_from_gsinput"""
+        from abipy.abio.factories import ioncell_relax_from_gsinput
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=2, spin_mode="polarized")
+        icrelax_input = ioncell_relax_from_gsinput(gs_inp)
+        icrelax_input.abivalidate()
 
-    #def test_hybrid_oneshot_input(self):
-    #    def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
+    def test_hybrid_oneshot_input(self):
+        """Testing hybrid_oneshot_input."""
+        from abipy.abio.factories import hybrid_oneshot_input
+        ecut = 2
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=ecut, spin_mode="polarized")
+        hyb_inp = hybrid_oneshot_input(gs_inp, functional="hse06", ecutsigx=None, gw_qprange=1)
+        assert "ecutsigx" in hyb_inp and hyb_inp["ecutsigx"] == ecut * 2
+        hyb_inp.abivalidate()
 
-    #def test_scf_for_phonons(self):
-    #    scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
+    def test_scf_for_phonons(self):
+        """Testing scf_for_phonons."""
+        from abipy.abio.factories import scf_for_phonons
+        scf_inp = scf_for_phonons(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
+        scf_inp.abivalidate()

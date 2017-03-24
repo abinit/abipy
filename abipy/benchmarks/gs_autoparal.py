@@ -7,6 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -48,14 +49,14 @@ def build_flow(options):
     # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
 
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
     if options.verbose: print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
-    work = abilab.Work()
+    work = flowtk.Work()
     for conf in pconfs:
         mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
         if not options.accept_conf(conf, omp_threads): continue

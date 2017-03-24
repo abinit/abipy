@@ -4,6 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from itertools import product
@@ -45,12 +46,12 @@ def build_flow(options):
         nkpt = len(inp.abiget_ibz().points)
         nks = nkpt * inp["nsppol"]
         mpi_list = [p for p in range(1, nks+1) if nks % p == 0]
-        print("Using mpi_list:", mpi_list)
+        #print("Using mpi_list:", mpi_list)
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    work = abilab.Work()
+    work = flowtk.Work()
 
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue

@@ -7,8 +7,6 @@ import abipy.data as abidata
 from abipy.core.testing import *
 from abipy.electrons.denpot import DensityNcFile
 
-#from abipy.core.testing import has_matplotlib
-
 
 class DensityNcFileTest(AbipyTest):
 

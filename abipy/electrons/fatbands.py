@@ -55,12 +55,12 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     marker_spin = {0: "^", 1: "v"}
 
     # Mapping spin --> title used in subplots that depend on (collinear) spin.
-    spin2tex = {0: "$\sigma=\\uparrow$", 1: "$\sigma=\\downarrow$"}
+    spin2tex = {0: r"$\sigma=\\uparrow$", 1: r"$\sigma=\\downarrow$"}
 
     # Mappings used for non-collinear spins.
-    spinors2tex = {"up-up": "$\\uparrow,\\uparrow$", "up-down": "$\\uparrow,\\downarrow$",
-                   "down-up": "$\\downarrow,\\uparrow$", "down-down": "$\\downarrow,\\downarrow$",
-                   "sigma_x": "$\sigma_{x}$", "sigma_y": "$\sigma_{y}$", "sigma_z": "$\sigma_{z}$",
+    spinors2tex = {"up-up": r"$\\uparrow,\\uparrow$", "up-down": r"$\\uparrow,\\downarrow$",
+                   "down-up": r"$\\downarrow,\\uparrow$", "down-down": r"$\\downarrow,\\downarrow$",
+                   "sigma_x": r"$\sigma_{x}$", "sigma_y": r"$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
                   }
     spinors2color = {"up-up": "black", "up-down": "brown",
                      "down-up": "violet", "down-down": "yellow",

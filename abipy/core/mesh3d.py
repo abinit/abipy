@@ -15,12 +15,12 @@ __all__ = [
 
 
 class Mesh3D(object):
-    """
+    r"""
     Descriptor-class for uniform 3D meshes.
 
     A Mesh3D object holds information on how functions, such
     as wave functions and electron densities, are discretized in a
-    certain domain in space.  The main information here is how many
+    certain domain in space. The main information here is how many
     grid points are used in each direction of the unit cell.
 
     There are methods for tasks such as allocating arrays, performing
@@ -111,7 +111,6 @@ class Mesh3D(object):
         return np.linalg.inv(self.vectors)
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
-
         shape = self.shape
 
         if isinstance(extra_dims, int): extra_dims = (extra_dims,)
@@ -165,7 +164,7 @@ class Mesh3D(object):
 
     def crandom(self, extra_dims=()):
         """Returns random complex array for this domain with val in [0.0, 1.0)."""
-        return random(self, dtype=np.complex, extra_dims=extra_dims)
+        return self.random(dtype=np.complex, extra_dims=extra_dims)
 
     def reshape(self, arr):
         """
@@ -226,13 +225,17 @@ class Mesh3D(object):
         return fr * self.size
 
     def fourier_interp(self, data, new_mesh, inspace="r"):
-        """sphere in parallelepiped
+        """
         Fourier interpolation of data.
 
-        :param data: Input array defined on this mesh
-        :param new_mesh: Mesh where data is interpolated
-        :param inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
-        :return: Numpy array in real space on the new_mesh
+        Args:
+
+            data: Input array defined on this mesh
+            new_mesh: Mesh where data is interpolated
+            inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
+
+        Return:
+            Numpy array in real space on the new_mesh
         """
         raise NotImplementedError("gtransfer is missing")
         assert inspace in ("r", "g")

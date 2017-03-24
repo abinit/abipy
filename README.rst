@@ -7,8 +7,8 @@
 .. image:: https://img.shields.io/travis/abinit/abipy/master.svg
         :target: https://travis-ci.org/abinit/abipy
 
-.. image:: https://coveralls.io/repos/github/gmatteo/abipy/badge.svg?branch=master
-    :target: https://coveralls.io/github/gmatteo/abipy?branch=master
+.. image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=master
+    :target: https://coveralls.io/github/abinit/abipy?branch=master
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
@@ -24,7 +24,7 @@ ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem
 
-Official documentation of the stable version available at `abipy docpage`_.
+Official documentation of the stable version available at the `abipy docpage`_.
 
 AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
 `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_

@@ -6,7 +6,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
@@ -66,7 +66,7 @@ def itest_unconverged_scf(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc", nstep=1)
 
     # Build the flow and create the database.
-    flow = flowapi.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
+    flow = flowtk.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
     flow.allocate()
 
     # Use smart-io
@@ -163,7 +163,7 @@ def itest_bandstructure_flow(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc")
 
     # Build the flow and create the database.
-    flow = flowapi.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
+    flow = flowtk.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
     flow.build_and_pickle_dump(abivalidate=True)
 
     t0 = flow[0][0]
@@ -278,7 +278,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="Si.GGA_PBE-JTH-paw.xml")
 
     # Build the flow and create the database.
-    flow = flowapi.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
+    flow = flowtk.bandstructure_flow(fwp.workdir, scf_input, nscf_input, manager=fwp.manager)
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()
@@ -344,7 +344,7 @@ def itest_htc_bandstructure(fwp, tvars):
     multi = abilab.ebands_input(structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5,
                                 ecut=2, dos_kppa=40, spin_mode="unpolarized")
 
-    work = flowapi.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
+    work = flowtk.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
     multi.set_vars(paral_kgb=tvars.paral_kgb)
 
     flow.register_work(work)

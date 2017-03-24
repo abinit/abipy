@@ -10,9 +10,12 @@ import sys
 import operator
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
+from functools import reduce
 from itertools import product
+from pymatgen.core.units import bohr_to_ang
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
@@ -125,7 +128,7 @@ def make_input():
 
     # Crystal structure with acell 3*11. angstrom natom 96 ntypat 2
     structure = abilab.Structure.from_abivars(
-        acell=3 * [11. / abilab.bohr_to_ang],
+        acell=3 * [11. / bohr_to_ang],
         rprim=np.eye(3), 
         typat=32*[1] + 64*[2],
         znucl=[92, 8],
@@ -201,12 +204,12 @@ def build_flow(options):
     ]
 
     for wfoptalg in [None, 1]:
-        work = abilab.Work()
+        work = flowtk.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+            if options.verbose: print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
             inp = template.new_with_vars(d, np_slk=64)
             work.register_scf_task(inp, manager=manager)
 

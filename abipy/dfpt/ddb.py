@@ -12,8 +12,8 @@ from six.moves import map, zip, StringIO
 from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
-from monty.dev import get_ncpus
-from abipy.flowapi import NetcdfReader, AnaddbTask
+from monty.dev import get_ncpus, deprecated
+from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
@@ -672,7 +672,9 @@ ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose
 
 
 class Becs(Has_Structure):
-    """This object stores the Born effective charges and provides simple tools for data analysis."""
+    """
+    This object stores the Born effective charges and provides simple tools for data analysis.
+    """
 
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
@@ -687,12 +689,16 @@ class Becs(Has_Structure):
         self._structure = structure
         self.chneut = chneut
 
-        self.becs = np.empty((len(structure), 3, 3))
+        self.values = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
-            if order == "f": mat = mat.T
-            self.becs[i] = mat
-            #self.becs[i] = Tensor.from_cartesian_tensor(mat, structure.lattice, space="r")
+            if order.lower() == "f": mat = mat.T
+            self.values[i] = mat
+
+    @property
+    @deprecated(message="becs  has been renamed values. Will be removed in abipy 0.4.")
+    def becs(self):
+        return self.values
 
     @property
     def structure(self):
@@ -706,10 +712,10 @@ class Becs(Has_Structure):
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
 
-        for site, bec in zip(self.structure, self.becs):
+        for site, bec in zip(self.structure, self.values):
             # TODO: why PeriodicSite.__str__ does not give the frac_coords?
             #print(type(site))
-            app("bec at site: %s" % (site))
+            app("BEC at site: %s" % (site))
             app(str(bec))
             app("")
 
@@ -722,7 +728,7 @@ class Becs(Has_Structure):
 
     def check_sumrule(self, stream=sys.stdout):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        becs_atomsum = self.becs.sum(axis=0)
+        becs_atomsum = self.values.sum(axis=0)
         stream.write(str(becs_atomsum))
 
 
@@ -753,14 +759,14 @@ class ElasticComplianceTensor(Has_Structure):
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
         with NetcdfReader(ec_nc_file) as nc_reader:
             if tensor_type == 'relaxed_ion':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
             elif tensor_type == 'clamped_ion':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
             elif tensor_type == 'relaxed_ion_stress_corrected':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
             else:
                 raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
         #TODO: add the structure object!

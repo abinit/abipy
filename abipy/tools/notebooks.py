@@ -21,7 +21,9 @@ def print_source_in_module(function, module):
 
 
 def print_source(function):
-    """For use inside an IPython notebook: given a function, print the source code."""
+    """
+    For use inside an IPython notebook: given a function, print the source code.
+    """
     from inspect import getsource
     from pygments import highlight
     from pygments.lexers import PythonLexer

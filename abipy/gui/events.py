@@ -7,7 +7,7 @@ import abipy.gui.awx as awx
 
 from collections import OrderedDict
 from monty.string import list_strings, is_string
-from abipy.flowapi import EventsParser
+from abipy.flowtk import EventsParser
 
 
 class AbinitEventsPanel(awx.Panel):

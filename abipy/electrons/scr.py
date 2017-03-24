@@ -17,15 +17,14 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt
 
-
 import logging
 logger = logging.getLogger(__name__)
 
 
 class WGGFunction(object):
-    """
+    r"""
     Base class for two-point functions expressed in
-    reciprocal space i.e. a matrix A_{G,G'}(q, \omega)
+    reciprocal space i.e. a matrix $A_{G,G'}(q, \omega)$
 
     .. attributes:
 
@@ -142,10 +141,10 @@ class WGGFunction(object):
 
     def latex_label(self, cplx_mode):
         """Return a latex string to be passed to matplotlib."""
-        if cplx_mode == "re": return "$\Re(" + self.latex_name + ")$"
-        if cplx_mode == "im": return "$\Im(" + self.latex_name + ")$"
-        if cplx_mode == "abs": return "$\\abs(" + self.latex_name + ")$"
-        if cplx_mode == "angle": return "$Phase(" + self.latex_name + ")$"
+        if cplx_mode == "re": return r"$\Re(" + self.latex_name + ")$"
+        if cplx_mode == "im": return r"$\Im(" + self.latex_name + ")$"
+        if cplx_mode == "abs": return r"$\\abs(" + self.latex_name + ")$"
+        if cplx_mode == "angle": return r"$Phase(" + self.latex_name + ")$"
         raise ValueError("Wrong value for cplx_mode: %s" % cplx_mode)
 
     @add_fig_kwargs
@@ -198,7 +197,7 @@ class WGGFunction(object):
             lines.append(l)
 
         ax.grid(True)
-        ax.set_xlabel("$\omega$ [eV]")
+        ax.set_xlabel(r"$\omega$ [eV]")
         ax.set_title("%s, qpoint: %s" % (self.etsf_name, self.qpoint))
         #ax.legend(loc="best")
         ax.legend(loc="upper right")
@@ -237,7 +236,7 @@ class WGGFunction(object):
         # Build plotter.
         plotter = ArrayPlotter()
         for iw in wpos:
-            label = cplx_mode + " $\omega = %s" % self.wpts[iw]
+            label = cplx_mode + r" $\omega = %s" % self.wpts[iw]
             data = data_from_cplx_mode(cplx_mode, self.wggmat[iw,:,:])
             plotter.add_array(label, data)
 
@@ -251,12 +250,12 @@ class Polarizability(WGGFunction):
 
 class DielectricFunction(WGGFunction):
     etsf_name = "dielectric_function"
-    latex_name = "\epsilon"
+    latex_name = r"\epsilon"
 
 
 class InverseDielectricFunction(WGGFunction):
     etsf_name = "inverse_dielectric_function"
-    latex_name = "\epsilon^{-1}"
+    latex_name = r"\epsilon^{-1}"
 
     def _add_ppmodel(self, ppm):
         """
@@ -516,7 +515,7 @@ class PPModel(six.with_metaclass(abc.ABCMeta, object)):
 class GodbyNeeds(PPModel):
 
     def __init__(self, gsphere, omegatw, bigomegatwsq):
-        """
+        r"""
         bigomegatwsq(:)
         Plasmon pole parameters $\tilde\Omega^2_{G Gp}(q)$.
 
@@ -589,7 +588,7 @@ class GodbyNeeds(PPModel):
     @add_fig_kwargs
     def plot_ggparams(self, **kwargs):
         plotter = ArrayPlotter(*[
-            ("$\\tilde\omega_{G G'}$", self.omegatw),
-            ("$\\tilde\Omega^2_{G, G'}$", self.bigomegatwsq)])
+            (r"$\\tilde\omega_{G G'}$", self.omegatw),
+            (r"$\\tilde\Omega^2_{G, G'}$", self.bigomegatwsq)])
 
         return plotter.plot(**kwargs)

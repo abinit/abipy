@@ -5,9 +5,11 @@ import numpy as np
 import sys
 import abipy.data as abidata
 
+from pymatgen.core.lattice import Lattice
+from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
 from abipy.core.testing import *
-from pymatgen.core.lattice import Lattice
+
 
 
 class TestStructure(AbipyTest):
@@ -31,31 +33,69 @@ class TestStructure(AbipyTest):
             geodict = structure.get_dict4frame()
             assert geodict["abispg_num"] is not None
 
-            #if self.which("xcrysden") is not None:
-            #    # Export data in Xcrysden format.
-            #    structure.export(self.get_tmpname(text=True, suffix=".xsf"))
+            # Export data in Xcrysden format.
+            #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
+            #visu = structure.visualize("vesta")
 
             if self.has_ase():
                 assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
 
     def test_utils(self):
         """Test utilities for the generation of Abinit inputs."""
-        structure = abidata.structure_from_ucell("MgB2")
-        structure.abi_sanitize()
-        structure.get_conventional_standard_structure()
-        print(structure.abi_string)
-        print(structure.spglib_summary(verbose=10))
+        # Test as_structure and from/to abivars
+        si = Structure.as_structure(abidata.cif_file("si.cif"))
+        assert si.formula == "Si2"
+        assert si.abi_spacegroup is None and not si.has_abi_spacegroup
+
+        if self.has_matplotlib():
+            si.show_bz(show=False)
+
+        assert si is Structure.as_structure(si)
+        assert si == Structure.as_structure(si.to_abivars())
+        assert si == Structure.from_abivars(si.to_abivars())
+        assert len(si.abi_string)
+        assert si.reciprocal_lattice == si.lattice.reciprocal_lattice
+        #si.si_kptbounds()
+        #si.calc_ksampling(nksmall=10)
+        #si.calc_ngkpt(nksmall=10)
+        #si.calc_shiftk()
+
+        si = Structure.from_material_id("mp-149", api_key="8pkvwRLQSCVbW2Fe")
+        assert si.formula == "Si2"
+
+        mgb2 = abidata.structure_from_ucell("MgB2")
+        if self.has_ase():
+            mgb2.abi_primitive()
+        # FIXME: This is buggy
+        #print(mgb2.get_sorted_mgb2())
+        #assert [site.species_string for site in mgb2.get_sorted_structure()] == ["B", "B", "Mg"]
+        mgb2.abi_sanitize()
+        mgb2.get_conventional_standard_structure()
+        assert len(mgb2.abi_string)
+        assert len(mgb2.spglib_summary(verbose=10))
         #print(structure.__repr_html__())
 
-        self.serialize_with_pickle(structure)
+        self.serialize_with_pickle(mgb2)
 
         pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
-        assert structure.num_valence_electrons(pseudos) == 8
-        self.assert_equal(structure.calc_shiftk() , [[0.0, 0.0, 0.5]])
+        assert mgb2.num_valence_electrons(pseudos) == 8
+        assert mgb2.valence_electrons_per_atom(pseudos) == [2, 3, 3]
+        self.assert_equal(mgb2.calc_shiftk() , [[0.0, 0.0, 0.5]])
+
+        #bmol = Structure.boxed_molecule(pseudos, cart_coords=[[0, 0, 0], [5, 5, 5]])
+        #self.assert_almost_equal(bmol.volume, (10 * bohr_to_ang) ** 3)
+        #batom = Structure.boxed_atom(abidata.pseudo("12mg.pspnc"), cart_coords=[1, 2, 3], acell=(10, 20, 30))
+        #assert isinstance(batom, Structure)
+        #assert len(batom.cart_coords) == 1 and np.all(batom.cart_coords[0] == [1, 2, 3])
+
+        #bcc = Structure.bcc(a=10, species, primitive)
+        #fcc = Structure.bcc(a=10, species, primitive)
+        #rock = Structure.rocksalt(a=10, species)
+        #perov = Structure.ABO3(a=10, species)
 
         # Test notebook generation.
         if self.has_nbformat():
-            structure.write_notebook(nbpath=self.get_tmpname(text=True))
+            mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_frames_from_structures(self):
         """Testing frames from structures."""

@@ -11,7 +11,7 @@ from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.flowapi import Flow
+from abipy.flowtk import Flow
 from abipy.core.mixins import NotebookWriter
 
 
@@ -93,7 +93,7 @@ class Robot(object):
     @classmethod
     def from_dir(cls, top, walk=True):
         """
-        This classmethod builds a robot by scanning all files located within directory `top`.
+        This class method builds a robot by scanning all files located within directory `top`.
         Note that if walk is True, directories inside `top` are included as well.
         This method should be invoked with a concrete robot class, for example:
 
@@ -306,7 +306,7 @@ class Robot(object):
 
     def _exec_funcs(self, funcs, arg):
         """
-        Execute list of callables funcs. Each func receives arg as argument.
+        Execute list of callable functions. Each function receives arg as argument.
         """
         if not isinstance(funcs, (list, tuple)): funcs = [funcs]
         d = {}
@@ -474,22 +474,22 @@ class SigresRobot(Robot):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, sigr in self:
+        for label, sigres in self:
             row_names.append(label)
             d = OrderedDict()
             for aname in attrs:
-                d[aname] = getattr(sig, aname, None)
-            d.update({"qpgap": sigr.get_qpgap(spin, kpoint)})
+                d[aname] = getattr(sigres, aname, None)
+            d.update({"qpgap": sigres.get_qpgap(spin, kpoint)})
 
             # Add convergence parameters
-            d.update(sigr.params)
+            d.update(sigres.params)
 
             # Add info on structure.
             if kwargs.get("with_geo", False):
-                d.update(sigr.structure.get_dict4frame(with_spglib=True))
+                d.update(sigres.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), sigr))
+            d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
             rows.append(d)
 
         import pandas as pd
@@ -504,6 +504,7 @@ class SigresRobot(Robot):
         import seaborn.apionly as sns
 
         data = self.get_qpgaps_dataframe()
+        print(list(data.keys()))
         grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
         grid.map(plt.plot, marker="o")
         grid.add_legend()
@@ -569,16 +570,17 @@ class MdfRobot(Robot):
 
 
 class DdbRobot(Robot):
-    """This robot analyzes the results contained in multiple DDB files."""
+    """
+    This robot analyzes the results contained in multiple DDB files.
+    """
     EXT = "DDB"
 
-    @property
-    def qpoints_union(self):
+    def get_qpoints_union(self):
         """
         Return numpy array with the q-points in reduced coordinates found in the DDB files.
         """
         qpoints = []
-        for (label, ddb) in enumerate(self):
+        for label, ddb in enumerate(self):
             qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
 
         return np.array(qpoints)
@@ -587,7 +589,7 @@ class DdbRobot(Robot):
     #def qpoints_intersection(self):
     #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
     #    qpoints = []
-    #    for (label, ddb) in enumerate(self):
+    #    for label, ddb in enumerate(self):
     #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
     #    return np.array(qpoints)
 
@@ -611,15 +613,13 @@ class DdbRobot(Robot):
         rows, row_names = [], []
         for i, (label, ddb) in enumerate(self):
             row_names.append(label)
-            d = OrderedDict(
-            #    exc_mdf=mdf.exc_mdf,
-            )
+            d = OrderedDict()
             #d = {aname: getattr(ddb, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies.
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
-            freqs = phbands.phfreqs[0, :] # (nq, nmodes)
+            freqs = phbands.phfreqs[0, :]  # (nq, nmodes)
 
             d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
 

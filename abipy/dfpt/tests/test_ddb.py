@@ -29,6 +29,7 @@ class DdbTest(AbipyTest):
             assert h.occ == 4 * [2]
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             print(h.znucl)
+            assert "ecut" in ddb.params
 
             assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
             assert np.all(h.symrel[2].T.ravel() == [-1, 0, 0, -1, 0, 1, -1, 1, 0])
@@ -39,6 +40,8 @@ class DdbTest(AbipyTest):
 
             # Test interface with Anaddb.
             print(ddb.qpoints[0])
+            assert ddb.qindex(ddb.qpoints[0]) == 0
+
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
 
@@ -91,6 +94,12 @@ class DdbTest(AbipyTest):
 
         if self.has_matplotlib():
             phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % phbands.structure.formula, show=False)
+
+        # Get emacro and becs
+        emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
+        assert np.all(becs.values == 0)
+        assert np.all(becs.becs == 0)
+        print(becs)
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()

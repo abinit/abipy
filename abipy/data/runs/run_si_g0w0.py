@@ -6,7 +6,7 @@ import os
 import sys
 import abipy.data as data  
 import abipy.abilab as abilab
-from abipy import flowapi
+from abipy import flowtk
 
 
 def make_inputs(ngkpt, paral_kgb=1):
@@ -113,7 +113,7 @@ def build_flow(options):
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
 
-    return flowapi.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
+    return flowtk.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
 
 
 @abilab.flow_main

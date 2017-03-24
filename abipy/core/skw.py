@@ -287,7 +287,7 @@ class ElectronInterpolator(object):
         return wmesh, dos, idos
 
     def get_jdos_q0(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
-        """
+        r"""
         Compute the join density of states at q==0
 
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
@@ -799,11 +799,10 @@ class SkwInterpolator(ElectronInterpolator):
                 de_kbs[:, ib, spin] = eigens[spin, 0:nkpt-1, ib] - eigens[spin, nkpt-1, ib]
 
         # Solve all bands and spins at once
-        #call np.linalg.zhesv("U", nkpt-1, nband*nsppol, hmat, nkpt-1, ipiv, lmbs, nkpt-1, work, lwork, ierr)
         try:
             lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
-                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, debug=False, check_finite=False)
-                    #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, debug=False, check_finite=True)
+                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, check_finite=False)
+                    #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, check_finite=True)
         except scipy.linalg.LinAlgError as exc:
             print("Cannot solve system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)")
             print("This usually happens when there are symmetrical k-points passed to the interpolator.")

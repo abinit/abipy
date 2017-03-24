@@ -8,7 +8,7 @@ import yaml
 import html2text
 
 from collections import OrderedDict, defaultdict
-from six.moves import StringIO, cPickle as pickle
+from six.moves import cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
 
@@ -40,14 +40,14 @@ ABI_OPS = ['sqrt', 'end', '*', '/']
 # NEW VERSION BASED ON Yannick's database.
 
 list_specials = [
-    ('AUTO_FROM_PSP','Means that the value is read from the PSP file'),
-    ('CUDA','True if CUDA is enabled (compilation)'),
-    ('ETSF_IO','True if ETSF_IO is enabled (compilation)'),
-    ('FFTW3','True if FFTW3 is enabled (compilation)'),
-    ('MPI_IO','True if MPI_IO is enabled (compilation)'),
-    ('NPROC','Number of processors used for Abinit'),
-    ('PARALLEL','True if the code is compiled with MPI'),
-    ('SEQUENTIAL','True if the code is compiled without MPI'),
+    ('AUTO_FROM_PSP', 'Means that the value is read from the PSP file'),
+    ('CUDA', 'True if CUDA is enabled (compilation)'),
+    ('ETSF_IO', 'True if ETSF_IO is enabled (compilation)'),
+    ('FFTW3', 'True if FFTW3 is enabled (compilation)'),
+    ('MPI_IO', 'True if MPI_IO is enabled (compilation)'),
+    ('NPROC', 'Number of processors used for Abinit'),
+    ('PARALLEL', 'True if the code is compiled with MPI'),
+    ('SEQUENTIAL', 'True if the code is compiled without MPI'),
 ]
 
 
@@ -95,7 +95,10 @@ class Variable(yaml.YAMLObject):
         self.commentdefault = commentdefault
         self.commentdims = commentdims
 
-        self.text = unicode(text)
+        try:
+            self.text = unicode(text)  # py2
+        except:
+            self.text = str(text, "utf-8")
 
         # Fix mnemonics with newlines!
         if self.definition is not None:
@@ -136,9 +139,7 @@ class Variable(yaml.YAMLObject):
             return str(obj).replace("[[", "").replace("]]", "")
 
         d = {k: astr(getattr(self, k)) for k in attrs} #if getattr(self, k) is not None}
-        stream = StringIO()
-        json.dump(d, stream, indent=4, sort_keys=True)
-        return stream.getvalue()
+        return json.dumps(d, indent=4, sort_keys=True)
 
     @lazy_property
     def isarray(self):
@@ -163,14 +164,14 @@ class ValueWithUnit(yaml.YAMLObject):
         self.units = units
 
     def __str__(self):
-        return str(self.value) + " "+str(self.units)
+        return str(self.value) + " " + str(self.units)
 
     def __repr__(self):
         return str(self)
 
 
 def valuewithunit_representer(dumper, data):
-    return dumper.represent_mapping('!valuewithunit',data.__dict__)
+    return dumper.represent_mapping('!valuewithunit', data.__dict__)
 
 
 class Range(yaml.YAMLObject):
@@ -193,11 +194,11 @@ class Range(yaml.YAMLObject):
 
     def __repr__(self):
         if self.start is not None and self.stop is not None:
-            return "["+str(self.start)+" .. "+str(self.stop)+"]"
+            return "[" + str(self.start) + " .. " + str(self.stop) + "]"
         if self.start is not None:
-            return "["+str(self.start)+"; ->"
+            return "[" + str(self.start) + "; ->"
         if self.stop is not None:
-            return "<-;"+str(self.stop)+"]"
+            return "<-;" + str(self.stop) + "]"
         else:
             return None
 
@@ -209,7 +210,7 @@ class ValueWithConditions(yaml.YAMLObject):
         s = ''
         for key in self.__dict__.keys():
            if key != 'defaultval':
-             s += str(self.__dict__[key])+' if '+str(key)+',\n'
+             s += str(self.__dict__[key]) + ' if ' + str(key) + ',\n'
         s += str(self.defaultval) + ' otherwise.\n'
         return s
 
@@ -235,9 +236,10 @@ class MultipleValue(yaml.YAMLObject):
 
 __VARS_DATABASE = None
 
-##################
-### Public API ###
-##################
+
+##############
+# Public API #
+##############
 
 
 def get_abinit_variables():
@@ -253,7 +255,7 @@ def get_abinit_variables():
                 __VARS_DATABASE = pickle.load(fh)
 
         else:
-            # Make dir and file if not present.
+            # Make directory and file if not present.
             if not os.path.exists(os.path.dirname(pickle_file)):
                 os.makedirs(os.path.dirname(pickle_file))
 
@@ -342,11 +344,11 @@ class VariableDatabase(OrderedDict):
         sections can be a string or a list of strings.
         """
         sections = set(list_strings(sections))
-        vars = []
+        varlist = []
         for v in self.values():
             if v.section in sections:
-                vars.append(v)
-        return vars
+                varlist.append(v)
+        return varlist
 
     def vars_with_char(self, chars):
         """
@@ -354,12 +356,12 @@ class VariableDatabase(OrderedDict):
         chars can be a string or a list of strings.
         """
         chars = set(list_strings(chars))
-        vars = []
+        varlist = []
         for v in self.values():
             #if v.characteristic: print(v.characteristic)
             if v.characteristic in chars:
-                vars.append(v)
-        return vars
+                varlist.append(v)
+        return varlist
 
     def json_dumps_varnames(self):
         """JSON string with the list of variable names extracted from the database."""
@@ -372,15 +374,25 @@ def docvar(varname):
 
 
 def abinit_help(varname, info=True, stream=sys.stdout):
-    """Print the abinit documentation on the ABINIT input variable `varname`"""
+    """
+    Print the abinit documentation on the ABINIT input variable `varname`
+    """
     database = get_abinit_variables()
     if isinstance(varname, Variable): varname = varname.varname
     try:
         var = database[varname]
     except KeyError:
-        return stream.write("Variable %s not in the database\n" % varname)
+        return stream.write("Variable %s not in database" % varname)
 
-    text = html2text.html2text("<h2>Default value:</h2>" + str(var.defaultval) + "<br/><h2>Description</h2>" + str(var.text))
-    if info: text += var.info
-    stream.write(text.replace("[[", "\033[1m").replace("]]", "\033[0m"))
+    html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
+        str(var.defaultval), str(var.text))
+    text = html2text.html2text(html)
+    if info: text += str(var.info)
+    # FIXME: There are unicode chars in abinit doc (Greek symbols)
+    text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
+
+    try:
+        stream.write(text)
+    except UnicodeEncodeError:
+        stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")

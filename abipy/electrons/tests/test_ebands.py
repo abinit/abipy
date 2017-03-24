@@ -6,7 +6,8 @@ import abipy.data as abidata
 
 import pymatgen.core.units as units
 from abipy.core.kpoints import KpointList
-from abipy.electrons.ebands import ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronsReader, frame_from_ebands
+from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
+    ElectronsReader, frame_from_ebands)
 from abipy.core.testing import *
 
 
@@ -69,22 +70,30 @@ class ElectronBandsTest(AbipyTest):
         assert gs_bands.get_e0("None") == 0.0
         assert gs_bands.get_e0(1.0) == 1.0
 
-        dos = gs_bands.get_edos()
-        print(dos)
-        assert ElectronDos.as_edos(dos, {}) is dos
+        edos = gs_bands.get_edos()
+        print(edos)
+        assert ElectronDos.as_edos(edos, {}) is edos
         edos_samevals = ElectronDos.as_edos(gs_bands, {})
-        assert ElectronDos.as_edos(gs_bands, {}) == dos
-        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == dos
+        assert ElectronDos.as_edos(gs_bands, {}) == edos
+        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == edos
 
-        mu = dos.find_mu(8)
-        imu = dos.tot_idos.find_mesh_index(mu)
-        self.assert_almost_equal(dos.tot_idos[imu][1], 8, decimal=2)
+        mu = edos.find_mu(8)
+        imu = edos.tot_idos.find_mesh_index(mu)
+        self.assert_almost_equal(edos.tot_idos[imu][1], 8, decimal=2)
 
-        self.serialize_with_pickle(dos, protocols=[-1], test_eq=False)
+        d, i = edos.dos_idos(spin=0)
+        tot_d, tot_i = edos.dos_idos()
+        self.assert_almost_equal(2 * d.values, tot_d.values)
+        self.assert_almost_equal(2 * i.values, tot_i.values)
+
+        self.serialize_with_pickle(edos, protocols=[-1], test_eq=False)
 
         # Test plot methods
         if self.has_matplotlib():
-            gs_bands.plot_with_edos(dos=dos, show=False)
+            edos.plot(show=False)
+            edos.plot_dos_idos(show=False)
+            edos.plot_up_minus_down(show=False)
+            gs_bands.plot_with_edos(dos=edos, show=False)
             if self.has_seaborn(): gs_bands.boxplot(show=False)
 
     def test_jdos(self):
@@ -103,6 +112,9 @@ class ElectronBandsTest(AbipyTest):
 
         nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
+        diffs = nscf_bands.statdiff(nscf_bands)
+        print(diffs)
+
         # Test the detection of denerate states.
         degs = nscf_bands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
 
@@ -110,13 +122,26 @@ class ElectronBandsTest(AbipyTest):
         for i, (e, deg_bands) in enumerate(degs):
             self.assertEqual(deg_bands, ref_degbands[i])
 
+        # Test Electron
+        e1 = nscf_bands._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
+        str(e1)
+        e1_copy = e1.copy()
+        assert isinstance(e1.as_dict(), dict)
+        assert isinstance(e1.to_strdict(), dict)
+        assert e1.spin == 0
+        assert e1.skb[0] == 0
+        str(e1.tips)
+
         # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
             nscf_bands.get_ejdos(spin, 0, 4)
 
+    def test_ebands_skw_interpolation(self):
+        bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+
         # Test interpolate.
-        vertices_names=[((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
-        r = bands.interpolate(lpratio=5, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
+        vertices_names = [((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
+        r = bands.interpolate(lpratio=10, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
         assert r.ebands_kpath is not None
         assert r.ebands_kpath.kpoints.is_path
         assert not r.ebands_kpath.kpoints.is_ibz
@@ -186,7 +211,6 @@ class ElectronBandsPlotterTest(AbipyTest):
 
     def test_api(self):
         """Test ElelectronBandsPlotter API."""
-
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
         print(repr(plotter))
@@ -207,6 +231,27 @@ class ElectronBandsPlotterTest(AbipyTest):
             plotter.gridplot(title="Silicon band structure", show=False)
             plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
             plotter.animate(show=False)
+
+        if self.has_nbformat():
+            plotter.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+class ElectronDosPlotterTest(AbipyTest):
+
+    def test_api(self):
+        """Test ElelectronDosPlotter API."""
+        gsr_path = abidata.ref_file("si_scf_GSR.nc")
+        gs_bands = ElectronBands.from_file(gsr_path)
+        edos = gs_bands.get_edos()
+
+        plotter = ElectronDosPlotter()
+        plotter.add_edos("edos1", edos)
+        plotter.add_edos("edos2", gsr_path, edos_kwargs=dict(method="gaussian", step=0.2, width=0.4))
+        assert len(plotter.edos_list) == 2
+
+        if self.has_matplotlib():
+            plotter.combiplot(show=False)
+            plotter.gridplot(show=False)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))

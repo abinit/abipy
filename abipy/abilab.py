@@ -22,7 +22,7 @@ ArrayWithUnit = units.ArrayWithUnit
 ####################
 ### Abipy import ###
 ####################
-from abipy.flowapi import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager, AbinitBuild, flow_main
+from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager, AbinitBuild, flow_main
 #from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
 #    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
@@ -36,8 +36,8 @@ from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
 from abipy.abio.factories import *
-from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter,
-    ElectronDos, ElectronDosPlotter, frame_from_ebands)
+from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
+    frame_from_ebands)
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
@@ -47,7 +47,7 @@ from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
 from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot)
+from abipy.dfpt.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot
 from abipy.dfpt.ddb import DdbFile
 #from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
@@ -115,7 +115,9 @@ def abiopen_ext2class_table():
 
 
 def abifile_subclass_from_filename(filename):
-    """Returns the appropriate class associated to the given filename."""
+    """
+    Returns the appropriate class associated to the given filename.
+    """
     for ext, cls in ext2file.items():
         if filename.endswith(ext): return cls
 
@@ -150,7 +152,7 @@ def dir2abifiles(top, recurse=True):
         for f in os.listdir(top):
             path = os.path.join(top, f)
             if not isabifile(path): continue
-            dl[dirpath].append(path)
+            dl[top].append(path)
 
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
 
@@ -179,8 +181,8 @@ def abiopen(filepath):
 
     # Handle old output files produced by Abinit.
     import re
-    outnum = re.compile(".+\.out[\d]+")
-    abonum = re.compile(".+\.abo[\d]+")
+    outnum = re.compile(r".+\.out[\d]+")
+    abonum = re.compile(r".+\.abo[\d]+")
     if outnum.match(filepath) or abonum.match(filepath):
         return AbinitOutputFile.from_file(filepath)
 
@@ -231,10 +233,14 @@ def software_stack():
     """
     Import all the hard dependencies. Returns ordered dict: package --> string with version info.
     """
-    # Mandatory
+    import platform
+    system, node, release, version, machine, processor = platform.uname()
+    # These packages are required
     import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
 
     d = collections.OrderedDict([
+        ("system", system),
+        ("python_version", platform.python_version()),
         ("numpy", numpy.version.version),
         ("scipy", scipy.version.version),
         ("netCDF4", netCDF4.__version__),
@@ -272,7 +278,7 @@ def abicheck(verbose=0):
 
     # Get info on the Abinit build.
     from abipy.core.testing import cmp_version
-    from abipy.flowapi import PyFlowScheduler
+    from abipy.flowtk import PyFlowScheduler
 
     if manager is not None:
         cprint("AbiPy Manager:\n%s\n" % str(manager), color="green")
@@ -302,9 +308,10 @@ def abicheck(verbose=0):
 
     return "\n".join(err_lines)
 
+
 def abipy_logo1():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
 
                  `:-                                                               -:`
          --`  .+/`                              `                                  `/+.  .-.
@@ -320,9 +327,10 @@ def abipy_logo1():
                 ...                                                               ...
 """
 
+
 def abipy_logo2():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
 MMMMMMMMMddNMMmoyNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNyomMMmhmMMMMMMMM
 MMMmmMMhomMMMy/hMMMMMMMMMMMMMMMMMMMN::MMMMMMMMMm:oMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMd+yMMMhomMmmMMM
@@ -340,7 +348,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 def abipy_logo3():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
              `-.                                                  `--`
       -:. `//`              `/.       ::                           `+: `-:`
  --``+:  `o+        `.--.`  -y/.--.`  ::   `---`  `-     ..         `o+  `o-`--

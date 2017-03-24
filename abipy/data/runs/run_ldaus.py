@@ -7,7 +7,7 @@ import os
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
@@ -75,7 +75,7 @@ def build_flow(options):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the work for the band structure calculation.
     structure = abidata.structure_from_ucell("NiO")
@@ -96,7 +96,7 @@ def build_flow(options):
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)
 
-        work = flowapi.BandStructureWork(scf_input, nscf_input, dos_inputs=dos_input)
+        work = flowtk.BandStructureWork(scf_input, nscf_input, dos_inputs=dos_input)
         flow.register_work(work)
 
     return flow

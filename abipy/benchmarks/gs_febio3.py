@@ -5,10 +5,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from itertools import product
-from abipy.flowapi import ParalHints
+from abipy.flowtk import ParalHints
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 unit_cell = dict(
@@ -59,7 +60,7 @@ global_vars = dict(
     ngkpt=[8,8,8],
     shiftk=[0.0,0.0,0.0],
     nsym=1,
-    #accesswff=3
+    #iomode=3
 )
 
 def make_inputs(options):
@@ -97,16 +98,16 @@ def build_flow(options):
     if mpi_list is None:
         # Get the list of possible parallel configurations from abinit autoparal.
         max_ncpus, min_eff = options.max_ncpus, options.min_eff
-        print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+        print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
 
         pconfs = gs_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
 
     else:
         print("Initializing autoparal from command line options")
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
-        print(pconfs)
+        if options.verbose: print(pconfs)
 
-    work = abilab.Work()
+    work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         #if not options.accept_mpi_omp(mpi_procs,omp_threads): continue

@@ -10,21 +10,6 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`animator` Module
-----------------------
-
-.. automodule:: abipy.tools.animator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`decorators` Module
-------------------------
-
-.. automodule:: abipy.tools.decorators
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 :mod:`derivatives` Module
 -------------------------
@@ -38,14 +23,6 @@ tools Package
 ----------------------
 
 .. automodule:: abipy.tools.devtools
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`generic` Module
----------------------
-
-.. automodule:: abipy.tools.generic
    :members:
    :undoc-members:
    :show-inheritance:

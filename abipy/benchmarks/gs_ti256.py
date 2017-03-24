@@ -9,8 +9,10 @@ import sys
 import operator
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
+from functools import reduce
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
@@ -349,12 +351,12 @@ def build_flow(options):
     ]
 
     for wfoptalg in [None, 1]:
-        work = abilab.Work()
+        work = flowtk.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+            if options.verbose: print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
             inp = template.new_with_vars(d, wfoptalg=wfoptalg, np_slk=32)
             #inp.abivalidate()
             work.register_scf_task(inp, manager=manager)

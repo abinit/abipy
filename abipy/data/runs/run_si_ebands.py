@@ -6,7 +6,7 @@ import sys
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -62,7 +62,7 @@ def build_flow(options):
     scf_input, nscf_input = make_scf_nscf_inputs()
 
     # Build the flow.
-    return flowapi.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
+    return flowtk.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
 
 
 @abilab.flow_main

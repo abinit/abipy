@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab 
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 
@@ -45,8 +45,8 @@ def relax_input(tsmear, nksmall):
 
 
 def relax_flow():
-    flow = flowapi.Flow.from_inputs("flow_al_relax", inputs=relax_input(tsmear=0.05, nksmall=2), 
-                                    task_class=flowapi.RelaxTask)
+    flow = flowtk.Flow.from_inputs("flow_al_relax", inputs=relax_input(tsmear=0.05, nksmall=2),
+                                   task_class=flowtk.RelaxTask)
     flow.make_scheduler().start()
 
     #gs_task = flow[0][0]
@@ -63,8 +63,8 @@ def tsmear_nkpts_convergence(tsmear_list=(0.01, 0.02, 0.03, 0.04), nksmall_list=
     from itertools import product
     inputs = [relax_input(tsmear, nksmall) for tsmear, nksmall in product(tsmear_list, nksmall_list)]
 
-    flow = flowapi.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs, 
-                                   task_class=flowapi.RelaxTask)
+    flow = flowtk.Flow.from_inputs(workdir="flow_al_conv_relax", inputs=inputs,
+                                   task_class=flowtk.RelaxTask)
     flow.make_scheduler().start()
 
     with abilab.abirobot(flow, "GSR") as robot:

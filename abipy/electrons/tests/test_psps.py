@@ -6,7 +6,6 @@ import abipy.core
 
 from abipy.core.testing import *
 from abipy.electrons.psps import PspsFile
-
 from abipy.core.testing import has_matplotlib
 
 

@@ -139,7 +139,7 @@ The course of this lesson
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 from abipy.lessons.core import BaseLesson, get_pseudos
 
 
@@ -166,8 +166,8 @@ def make_electronic_structure_flow(ngkpts_for_dos=((2, 2, 2), (4, 4, 4), (6, 6, 
     inputs = multi.split_datasets()
     scf_input, nscf_input, dos_input = inputs[0], inputs[1], inputs[2:]
 
-    return flowapi.bandstructure_flow(workdir="flow_dos_bands", scf_input=scf_input, nscf_input=nscf_input,
-                                      dos_inputs=dos_input)
+    return flowtk.bandstructure_flow(workdir="flow_dos_bands", scf_input=scf_input, nscf_input=nscf_input,
+                                     dos_inputs=dos_input)
 
 
 class Lesson(BaseLesson):

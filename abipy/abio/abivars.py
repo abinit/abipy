@@ -509,7 +509,7 @@ class AbinitInputParser(object):
         """
         import math
         import re
-        re_sqrt = re.compile("[+|-]?sqrt\((.+)\)")
+        re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
 
         values = []
         for tok in tokens:

@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import abipy.data as abidata
-import abipy.flowapi as flowapi
+import abipy.flowtk as flowtk
 from abipy import abilab
 
 
@@ -20,7 +20,7 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Initialize the flow.
-    flow = flowapi.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -42,7 +42,7 @@ def build_flow(options):
     #multi.set_vars(paral_kgb=1)
 
     scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
-    work = flowapi.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
+    work = flowtk.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
 
     flow.register_work(work)
     return flow

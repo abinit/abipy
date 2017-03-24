@@ -364,6 +364,7 @@ class Density(ScalarField):
                 rho = rad_rho[:, 1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
                 func1d = Function1D(radii, rho)
                 rhoc_atom_splines[ifname] = func1d.spline
+
         elif isinstance(rhoc_files, collections.Mapping):
             atoms_symbols = [elmt.symbol for elmt in structure.composition]
             if not np.all([atom in rhoc_files for atom in atoms_symbols]):
@@ -378,6 +379,7 @@ class Density(ScalarField):
                 splines[symbol] = func1d.spline
             for isite, site in enumerate(structure):
                 rhoc_atom_splines[isite] = splines[site.specie.symbol]
+
         core_den = np.zeros_like(valence_density.datar)
         dvx = valence_density.mesh.dvx
         dvy = valence_density.mesh.dvy
@@ -387,6 +389,7 @@ class Density(ScalarField):
                        np.linalg.norm(dvx-dvy+dvz),
                        np.linalg.norm(dvx-dvy-dvz)])
         smallradius = small_dist_factor*maxdiag
+
         if method == 'get_sites_in_sphere':
             for ix in range(valence_density.mesh.nx):
                 for iy in range(valence_density.mesh.ny):
@@ -414,6 +417,7 @@ class Density(ScalarField):
                                             total += rhoc_atom_splines[site_index](dist2)
                                 total /= (nnx*nny*nnz)
                                 core_den[0, ix, iy, iz] += total
+
         elif method == 'mesh3d_dist_gridpoints':
             site_coords = [site.coords for site in structure]
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
@@ -441,12 +445,14 @@ class Density(ScalarField):
                         core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
         else:
             raise ValueError('Method "{}" is not allowed'.format(method))
+
         if nelec is not None:
             sum_elec = np.sum(core_den)*valence_density.mesh.dv
             if np.abs(sum_elec-nelec) / nelec > 0.01:
                 raise ValueError('Summed electrons is different from the actual number of electrons by '
                                  'more than 1% ...')
             core_den = core_den / sum_elec * nelec
+
         return cls(nspinor=1, nsppol=1, nspden=1, rhor=core_den, structure=structure, iorder='c')
 
     def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):

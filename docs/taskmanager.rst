@@ -1,8 +1,8 @@
-.. _workflows:
+.. _taskmanager:
 
-=========
-Workflows
-=========
+===========
+TaskManager
+===========
 
 Besides post-processing tools and a programmatic interface to generate input files,
 AbiPy also provides a pythonic API to execute small Abinit tasks directly or submit calculations on supercomputing clusters.
@@ -24,19 +24,18 @@ environment variables, load modules with ``module load``, run MPI applications w
 
     A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
 
-        $ conda install abinit -c gmatteo
-
-.. _task_manager:
+        $ conda install abinit --channel abinit
 
 --------------------------------
 How to configure the TaskManager
 --------------------------------
 
 The ``TaskManager`` takes care of task submission. This includes the creation of the submission script,
-initialization of the environment as well as for the optimization of the parallel algorithms
+the initialization of the environment as well as the optimization of the parallel algorithms
 (number of MPI processes, number of OpenMP threads, automatic parallelization with Abinit ``autoparal`` feature). 
 
-AbiPy obtains the information needed to create the correct ``TaskManager`` for a specific cluster from the ``manager.yml`` configuration file.
+AbiPy obtains the information needed to create the correct ``TaskManager`` for a specific cluster (personal computer)
+from the ``manager.yml`` configuration file.
 The file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_,
 a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
@@ -46,10 +45,10 @@ By default, AbiPy looks for a ``manager.yml`` file in the current working direct
 the directory in which you execute your script in first and then inside ``$HOME/.abinit/abipy``.
 If no file is found, the code aborts immediately.
 
-An important piece of information for the ``TaskManager`` is which queues in what queueing system are available on the cluster
-and what are their specifications. In AbiPy queueing systems or resource managers are supported via ``quadapters``.
-At the time of writing (|today|), AbiPy provides ``qadapters``
-for the following resource managers:
+An important piece of information for the ``TaskManager`` is the type of queueing system available on the cluster,
+the list of queues and their specifications. 
+In AbiPy queueing systems or resource managers are supported via ``quadapters``.
+At the time of writing (|today|), AbiPy provides ``qadapters`` for the following resource managers:
 
     * ``bluegene``
     * ``moab``
@@ -63,8 +62,6 @@ Manager configuration files for typical cases are available inside ``~abipy/data
 
 We first discuss how to configure AbiPy on a personal computer and then we look at the more
 complicated case in which the calculation must be submitted to a queue.
-
-.. _task_manager_personal_computer:
 
 -----------------------------------
 TaskManager for a personal computer
@@ -80,7 +77,6 @@ In its simplest form, the ``manager.yml`` file consists of a list of ``qadapters
 
     qadapters:
         -  # qadapter_0
-
         -  # qadapter_1
 
 Each item in the ``qadapters`` list is essentially a YAML dictionary with the following sub-dictionaries:
@@ -116,9 +112,10 @@ A typical configuration file used on a laptop to run jobs via the shell is:
     qadapters: # List of `qadapters` objects  (just one in this simplified example)
 
     -  priority: 1
-        queue:
+       queue:
             qtype: shell        # "Submit" jobs via the shell.
-            qname: localhost    # "Submit" to the localhost queue (it's a fake queue in this case)
+            qname: localhost    # "Submit" to the localhost queue 
+                                # (it's a fake queue in this case)
 
         job:
             pre_run: "export PATH=$HOME/git_repos/abinit/build_gcc/src/98_main:$PATH"
@@ -128,13 +125,11 @@ A typical configuration file used on a laptop to run jobs via the shell is:
             timelimit: 1:00:00   #  Time-limit for each task.
             max_cores: 2         #  Max number of cores that can be used by a single task.
 
-      # Hardware specification
-	  hardware:  
-        num_nodes: 1
-        sockets_per_node: 1
-        cores_per_socket: 2
-        mem_per_node: 4 Gb
-
+        hardware:  
+            num_nodes: 1
+            sockets_per_node: 1
+            cores_per_socket: 2
+            mem_per_node: 4 Gb
 
 The ``job`` section is the most critical one, in particular the ``pre_run`` option
 that will be executed by the shell script before invoking Abinit. 
@@ -142,7 +137,8 @@ In this case Abinit is not installed by default (the executable is not already i
 The directory where the Abinit executables are located hence have to be prepended to the original ``$PATH`` variable.
 Change ``pre_run`` according to your Abinit installation and make sure that ``mpirun`` is also in ``$PATH``.
 If you don't use a parallel version of Abinit, just set ``mpi_runner: null`` 
-(``null`` is the YAML version of the Python ``None``). Note this approache also allows you to safely use multiple versions.
+(``null`` is the YAML version of the Python ``None``). 
+Note this approach also allows you to safely use multiple versions.
 
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
@@ -244,7 +240,7 @@ Use::
 
     $ abirun.py flow_si_ebands status
 
-to have a summary with the status of the different tasks and::
+to get a summary with the status of the different tasks and::
 
     $ abirun.py flow_si_ebands deps
 
@@ -504,7 +500,7 @@ it is possible to automate complicated ab-initio workflows with little effort: w
 a script that implements the flow in python and save it to disk, run it with 
 ``abirun.py FLOWDIR scheduler`` and finally use the AbiPy/Pymatgen tools to analyze the final results.
 Even complicated convergence studies for G0W0 calculations can be implemented along these lines
-as show by this `video <https://youtu.be/M9C6iqJsvJI>`_.
+as shown by this `video <https://youtu.be/M9C6iqJsvJI>`_.
 The only problem is that at a certain point our flow will become too big or too computational expensive
 that cannot be executed on a personal computer anymore and we have to move to a supercomputing center.
 The next section discusses how to configure AbiPy to run on a cluster with a queue management system.
@@ -515,7 +511,7 @@ The next section discusses how to configure AbiPy to run on a cluster with a que
 
 .. command-output:: abirun.py doc_scheduler
 
-.. _abipy_on_cluster:
+.. _abipy-on-cluster:
 
 ------------------------------
 Configuring AbiPy on a cluster
@@ -528,8 +524,8 @@ that mush be specified in the submission script in order to have your job accept
 and executed by the management system (username, name of the queue, memory ...)
 
 Let's assume that our computing center uses ``Slurm`` and our jobs must be submitted to the ``default_queue`` partition.
-In the best case the system administrator of our cluster (or you create one yourself) already provides an ``Abinit module`` that can be loaded
-directly with ``module load`` before invoking the code.
+In the best case, the system administrator of our cluster (or you create one yourself) already provides 
+an ``Abinit module`` that can be loaded directly with ``module load`` before invoking the code.
 To make things a little bit more difficult, however, we assume the we had to compile our own version of Abinit
 inside the build directory ``${HOME}/git_repos/abinit/build_impi`` using the following two modules
 already installed by the system administrator::
@@ -606,7 +602,7 @@ The ``modules`` entry specifies the list of modules to load, ``shell_env`` allow
 
 .. IMPORTANT::
 
-    various resource managers will first execute your bashrc before starting to load the new modules.
+    Various resource managers will first execute your ``.bashrc`` before starting to load the new modules.
 
 We also increase the size of the stack with ``ulimit`` before running the code and we run Abinit 
 with the ``mpirun`` provided by the modules.
@@ -661,7 +657,7 @@ and reconnect the day after to collect our data.
     and will cancel the jobs of the flow and kill the scheduler as well.
 
 
-.. _inspecting_the_flow:
+.. _inspecting-the-flow:
 
 -------------------
 Inspecting the Flow
@@ -719,7 +715,7 @@ Expert users may want to use::
 to open the flow in the ``ipython`` shell to have direct access to the API provided by the flow.
 
 
-.. _event_handlers:
+.. _event-handlers:
 
 --------------
 Event handlers
@@ -789,7 +785,7 @@ by the event handlers.
     New error handlers will be added in the new versions of Abipy/Abinit.
     Please, let us know if you need handlers for errors commonly occuring in your calculations. 
 
-.. _flow_troubeshooting:
+.. _flow-troubeshooting:
 
 ---------------
 Troubleshooting

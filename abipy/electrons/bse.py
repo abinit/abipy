@@ -607,7 +607,7 @@ class MdfPlotter(object):
                 # Plot the average value
                 l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
                 lines.append(l)
-                legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
+                legends.append(r"%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)

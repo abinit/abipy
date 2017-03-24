@@ -1,6 +1,3 @@
-`run_deltafactor`:
-Compute the deltafactor for a given pseudopotential.
-
 `run_eph_al`:
 Electron-phonon calculations.
 

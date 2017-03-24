@@ -5,7 +5,7 @@ import wx
 import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from abipy.flowapi import AbinitTimerSection, AbinitTimerParser
+from abipy.flowtk import AbinitTimerSection, AbinitTimerParser
 
 
 class AbinitTimerFrame(awx.Frame):
