@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.abio.abivars_db &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.abio.abivars_db &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -53,7 +77,7 @@
 <span class="kn">import</span> <span class="nn">html2text</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">StringIO</span><span class="p">,</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 
@@ -85,14 +109,14 @@
 <span class="c1"># NEW VERSION BASED ON Yannick&#39;s database.</span>
 
 <span class="n">list_specials</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s1">&#39;AUTO_FROM_PSP&#39;</span><span class="p">,</span><span class="s1">&#39;Means that the value is read from the PSP file&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;CUDA&#39;</span><span class="p">,</span><span class="s1">&#39;True if CUDA is enabled (compilation)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;ETSF_IO&#39;</span><span class="p">,</span><span class="s1">&#39;True if ETSF_IO is enabled (compilation)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;FFTW3&#39;</span><span class="p">,</span><span class="s1">&#39;True if FFTW3 is enabled (compilation)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;MPI_IO&#39;</span><span class="p">,</span><span class="s1">&#39;True if MPI_IO is enabled (compilation)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;NPROC&#39;</span><span class="p">,</span><span class="s1">&#39;Number of processors used for Abinit&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;PARALLEL&#39;</span><span class="p">,</span><span class="s1">&#39;True if the code is compiled with MPI&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s1">&#39;SEQUENTIAL&#39;</span><span class="p">,</span><span class="s1">&#39;True if the code is compiled without MPI&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;AUTO_FROM_PSP&#39;</span><span class="p">,</span> <span class="s1">&#39;Means that the value is read from the PSP file&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;CUDA&#39;</span><span class="p">,</span> <span class="s1">&#39;True if CUDA is enabled (compilation)&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;ETSF_IO&#39;</span><span class="p">,</span> <span class="s1">&#39;True if ETSF_IO is enabled (compilation)&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;FFTW3&#39;</span><span class="p">,</span> <span class="s1">&#39;True if FFTW3 is enabled (compilation)&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;MPI_IO&#39;</span><span class="p">,</span> <span class="s1">&#39;True if MPI_IO is enabled (compilation)&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;NPROC&#39;</span><span class="p">,</span> <span class="s1">&#39;Number of processors used for Abinit&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;PARALLEL&#39;</span><span class="p">,</span> <span class="s1">&#39;True if the code is compiled with MPI&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;SEQUENTIAL&#39;</span><span class="p">,</span> <span class="s1">&#39;True if the code is compiled without MPI&#39;</span><span class="p">),</span>
 <span class="p">]</span>
 
 
@@ -140,7 +164,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">commentdefault</span> <span class="o">=</span> <span class="n">commentdefault</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">commentdims</span> <span class="o">=</span> <span class="n">commentdims</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>  <span class="c1"># py2</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
         <span class="c1"># Fix mnemonics with newlines!</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -181,9 +208,7 @@
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[[&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">astr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">}</span> <span class="c1">#if getattr(self, k) is not None}</span>
-        <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Variable.isarray"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.isarray">[docs]</a>    <span class="k">def</span> <span class="nf">isarray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -208,14 +233,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="valuewithunit_representer"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.valuewithunit_representer">[docs]</a><span class="k">def</span> <span class="nf">valuewithunit_representer</span><span class="p">(</span><span class="n">dumper</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">dumper</span><span class="o">.</span><span class="n">represent_mapping</span><span class="p">(</span><span class="s1">&#39;!valuewithunit&#39;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">dumper</span><span class="o">.</span><span class="n">represent_mapping</span><span class="p">(</span><span class="s1">&#39;!valuewithunit&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Range">[docs]</a><span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">YAMLObject</span><span class="p">):</span>
@@ -238,11 +263,11 @@
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; .. &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]&quot;</span>
+            <span class="k">return</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; .. &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;; -&gt;&quot;</span>
+            <span class="k">return</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;; -&gt;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;&lt;-;&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]&quot;</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;-;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
@@ -254,7 +279,7 @@
         <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
            <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;defaultval&#39;</span><span class="p">:</span>
-             <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39; if &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+             <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; if &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultval</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; otherwise.</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">return</span> <span class="n">s</span>
 
@@ -280,9 +305,10 @@
 
 <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="kc">None</span>
 
-<span class="c1">##################</span>
-<span class="c1">### Public API ###</span>
-<span class="c1">##################</span>
+
+<span class="c1">##############</span>
+<span class="c1"># Public API #</span>
+<span class="c1">##############</span>
 
 
 <div class="viewcode-block" id="get_abinit_variables"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.get_abinit_variables">[docs]</a><span class="k">def</span> <span class="nf">get_abinit_variables</span><span class="p">():</span>
@@ -298,7 +324,7 @@
                 <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Make dir and file if not present.</span>
+            <span class="c1"># Make directory and file if not present.</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">)):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">))</span>
 
@@ -387,11 +413,11 @@
 <span class="sd">        sections can be a string or a list of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sections</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_strings</span><span class="p">(</span><span class="n">sections</span><span class="p">))</span>
-        <span class="nb">vars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">varlist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
-                <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">vars</span></div>
+                <span class="n">varlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">varlist</span></div>
 
 <div class="viewcode-block" id="VariableDatabase.vars_with_char"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.vars_with_char">[docs]</a>    <span class="k">def</span> <span class="nf">vars_with_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -399,12 +425,12 @@
 <span class="sd">        chars can be a string or a list of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">chars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_strings</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
-        <span class="nb">vars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">varlist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="c1">#if v.characteristic: print(v.characteristic)</span>
             <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">characteristic</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
-                <span class="nb">vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">vars</span></div>
+                <span class="n">varlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">varlist</span></div>
 
 <div class="viewcode-block" id="VariableDatabase.json_dumps_varnames"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.json_dumps_varnames">[docs]</a>    <span class="k">def</span> <span class="nf">json_dumps_varnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;JSON string with the list of variable names extracted from the database.&quot;&quot;&quot;</span>
@@ -417,52 +443,37 @@
 
 
 <div class="viewcode-block" id="abinit_help"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.abinit_help">[docs]</a><span class="k">def</span> <span class="nf">abinit_help</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Print the abinit documentation on the ABINIT input variable `varname`&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print the abinit documentation on the ABINIT input variable `varname`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">varname</span><span class="o">.</span><span class="n">varname</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">var</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Variable </span><span class="si">%s</span><span class="s2"> not in the database</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Variable </span><span class="si">%s</span><span class="s2"> not in database&quot;</span> <span class="o">%</span> <span class="n">varname</span><span class="p">)</span>
 
-    <span class="n">text</span> <span class="o">=</span> <span class="n">html2text</span><span class="o">.</span><span class="n">html2text</span><span class="p">(</span><span class="s2">&quot;&lt;h2&gt;Default value:&lt;/h2&gt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">defaultval</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&lt;br/&gt;&lt;h2&gt;Description&lt;/h2&gt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">text</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">info</span><span class="p">:</span> <span class="n">text</span> <span class="o">+=</span> <span class="n">var</span><span class="o">.</span><span class="n">info</span>
-    <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[[&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[1m&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]]&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span><span class="p">))</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&lt;h2&gt;Default value:&lt;/h2&gt; </span><span class="si">%s</span><span class="s2"> &lt;br/&gt;&lt;h2&gt;Description&lt;/h2&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">defaultval</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">text</span><span class="p">))</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">html2text</span><span class="o">.</span><span class="n">html2text</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">info</span><span class="p">:</span> <span class="n">text</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+    <span class="c1"># FIXME: There are unicode chars in abinit doc (Greek symbols)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[[&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[1m&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]]&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">))</span>
     <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

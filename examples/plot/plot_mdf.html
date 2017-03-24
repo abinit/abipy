@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>plot example code: plot_mdf.py &#8212; abipy 0.1.0 documentation</title>
+    <title>plot example code: plot_mdf.py &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,60 +37,8 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="plot-example-code-plot-mdf-py">
-<span id="plot-plot-mdf"></span><h1>plot example code: plot_mdf.py<a class="headerlink" href="#plot-example-code-plot-mdf-py" title="Permalink to this headline">¶</a></h1>
-<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_mdf.py">Source code</a>)</p>
-<div class="figure" id="id1">
-<img alt="../../_images/plot_mdf_00.png" src="../../_images/plot_mdf_00.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_mdf_00.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_00.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_00.pdf">pdf</a>)</span></p>
-</div>
-<div class="figure" id="id2">
-<img alt="../../_images/plot_mdf_01.png" src="../../_images/plot_mdf_01.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_mdf_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_01.pdf">pdf</a>)</span></p>
-</div>
-<div class="figure" id="id3">
-<img alt="../../_images/plot_mdf_02.png" src="../../_images/plot_mdf_02.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_mdf_02.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_02.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_mdf_02.pdf">pdf</a>)</span></p>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This example shows how to plot the macroscopic dielectric function (MDF)</span>
-<span class="sd">computed in the Bethe-Salpeter code</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
-<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
-
-<span class="c1"># Open the MDF file produced in the tutorial.</span>
-<span class="n">mdf_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;tbs_4o_DS2_MDF.nc&quot;</span><span class="p">))</span>
-
-<span class="c1"># Plot the imaginary part of the macroscopic</span>
-<span class="c1"># dielectric function (EXC, RPA, GWRPA) between 2 and 5 eV.</span>
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si absorption spectrum: EXC vs RPA&quot;</span>
-<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-
-<span class="c1"># Plot the 6 different components of the macroscopic dielectric tensor</span>
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si macroscopic dielectric tensor (Reduced coord)&quot;</span>
-<span class="n">tensor_exc</span> <span class="o">=</span> <span class="n">mdf_file</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="s2">&quot;exc&quot;</span><span class="p">)</span>
-<span class="n">tensor_exc</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">(</span><span class="n">mdf_file</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
-<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
-
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si macroscopic dielectric tensor (Cartesian coord)&quot;</span>
-<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">red_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+  <div class="document">
+    
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../index.html">
@@ -125,10 +73,49 @@
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="plot-example-code-plot-mdf-py">
+<span id="plot-plot-mdf"></span><h1>plot example code: plot_mdf.py<a class="headerlink" href="#plot-example-code-plot-mdf-py" title="Permalink to this headline">¶</a></h1>
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_mdf.py">Source code</a>)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This example shows how to plot the macroscopic dielectric function (MDF)</span>
+<span class="sd">computed in the Bethe-Salpeter code</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+<span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
+
+<span class="c1"># Open the MDF file produced in the tutorial.</span>
+<span class="n">mdf_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;tbs_4o_DS2_MDF.nc&quot;</span><span class="p">))</span>
+
+<span class="c1"># Plot the imaginary part of the macroscopic</span>
+<span class="c1"># dielectric function (EXC, RPA, GWRPA) between 2 and 5 eV.</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si absorption spectrum: EXC vs RPA&quot;</span>
+<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="c1"># Plot the 6 different components of the macroscopic dielectric tensor</span>
+<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si macroscopic dielectric tensor (Reduced coord)&quot;</span>
+<span class="n">tensor_exc</span> <span class="o">=</span> <span class="n">mdf_file</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="s2">&quot;exc&quot;</span><span class="p">)</span>
+<span class="n">tensor_exc</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">(</span><span class="n">mdf_file</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+
+<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si macroscopic dielectric tensor (Cartesian coord)&quot;</span>
+<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">red_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

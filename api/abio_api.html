@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abio Package &#8212; abipy 0.1.0 documentation</title>
+    <title>abio Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="electrons Package" href="electrons_api.html" />
-    <link rel="prev" title="iotools Package" href="iotools_api.html" />
+    <link rel="next" title="core Package" href="core_api.html" />
+    <link rel="prev" title="API documentation" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,59 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">abio Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">abio</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.abivars"><code class="docutils literal"><span class="pre">abivars</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.abivars_db"><code class="docutils literal"><span class="pre">abivars_db</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.decorators"><code class="docutils literal"><span class="pre">decorators</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.factories"><code class="docutils literal"><span class="pre">factories</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.input_tags"><code class="docutils literal"><span class="pre">input_tags</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.inputs"><code class="docutils literal"><span class="pre">inputs</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.outputs"><code class="docutils literal"><span class="pre">outputs</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.robots"><code class="docutils literal"><span class="pre">robots</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.abio.timer"><code class="docutils literal"><span class="pre">timer</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">API documentation</a></li>
+      <li>Next: <a href="core_api.html" title="next chapter">core Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/abio_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -560,7 +610,7 @@ to be used for the computation of the DOS (None if DOS is not wanted).</li>
 <dl class="function">
 <dt id="abipy.abio.factories.phonons_from_gsinput">
 <code class="descclassname">abipy.abio.factories.</code><code class="descname">phonons_from_gsinput</code><span class="sig-paren">(</span><em>gs_inp</em>, <em>ph_ngqpt=None</em>, <em>qpoints=None</em>, <em>with_ddk=True</em>, <em>with_dde=True</em>, <em>with_bec=False</em>, <em>ph_tol=None</em>, <em>ddk_tol=None</em>, <em>dde_tol=None</em>, <em>wfq_tol=None</em>, <em>qpoints_to_skip=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#phonons_from_gsinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.phonons_from_gsinput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of inputs in the form of a MultiDataset to performe phonon calculations, based on
+<dd><p>Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
 a ground state AbinitInput.
 It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
 The inputs have the following tags, according to their function: &#8220;ddk&#8221;, &#8220;dde&#8221;, &#8220;nscf&#8221;, &#8220;ph_q_pert&#8221;.
@@ -744,6 +794,42 @@ atomic positions at fixed unit cell. The second datasets optimizes both ions and
 </dd></dl>
 
 <dl class="function">
+<dt id="abipy.abio.factories.ion_ioncell_relax_and_ebands_input">
+<code class="descclassname">abipy.abio.factories.</code><code class="descname">ion_ioncell_relax_and_ebands_input</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa=None</em>, <em>nband=None</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>accuracy=u'normal'</em>, <em>spin_mode=u'polarized'</em>, <em>smearing=u'fermi_dirac:0.1 eV'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#ion_ioncell_relax_and_ebands_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.ion_ioncell_relax_and_ebands_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">MultiDataset</span></code> for a structural relaxation followed by a band structure run.
+The first dataset optimizes the atomic positions at fixed unit cell.
+The second datasets optimizes both ions and unit cell parameters.
+The other datasets perform a band structure calculation.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Client code is responsible for propagating the relaxed structure obtained with the
+second dataset to the inputs used for the band structure calculation.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> &#8211; Defines the sampling used for the Brillouin zone.</li>
+<li><strong>nband</strong> &#8211; Number of bands included in the SCF run.</li>
+<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
+<li><strong>smearing</strong> &#8211; Smearing technique.</li>
+<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">MultiDataset</span></code> object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="abipy.abio.factories.scf_phonons_inputs">
 <code class="descclassname">abipy.abio.factories.</code><code class="descname">scf_phonons_inputs</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>scf_nband=None</em>, <em>accuracy=u'normal'</em>, <em>spin_mode=u'polarized'</em>, <em>smearing=u'fermi_dirac:0.1 eV'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#scf_phonons_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.scf_phonons_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of input files for performing phonon calculations.
@@ -766,6 +852,62 @@ pseudos, the structure and the smearing option.</li>
 <li><strong>smearing</strong> &#8211; Smearing technique.</li>
 <li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
 <li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abio.factories.piezo_elastic_inputs_from_gsinput">
+<code class="descclassname">abipy.abio.factories.</code><code class="descname">piezo_elastic_inputs_from_gsinput</code><span class="sig-paren">(</span><em>gs_inp</em>, <em>ddk_tol=None</em>, <em>rf_tol=None</em>, <em>ddk_split=False</em>, <em>rf_split=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#piezo_elastic_inputs_from_gsinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.piezo_elastic_inputs_from_gsinput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">MultiDataset</span></code> for performing elastic and piezoelectric constants calculations.
+GS input + the input files for the elastic and piezoelectric constants calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gs_inp</strong> &#8211; Ground State input to build piezo elastic inputs from.</li>
+<li><strong>ddk_tol</strong> &#8211; Tolerance for the DDK calculation (i.e. {&#8220;tolwfr&#8221;: 1.0e-20}).</li>
+<li><strong>rf_tol</strong> &#8211; Tolerance for the Strain RF calculations (i.e. {&#8220;tolvrs&#8221;: 1.0e-12}).</li>
+<li><strong>ddk_split</strong> &#8211; Whether to split the DDK calculations.</li>
+<li><strong>rf_split</strong> &#8211; whether to split the RF calculations.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abio.factories.scf_piezo_elastic_inputs">
+<code class="descclassname">abipy.abio.factories.</code><code class="descname">scf_piezo_elastic_inputs</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>scf_nband=None</em>, <em>accuracy=u'normal'</em>, <em>spin_mode=u'polarized'</em>, <em>smearing=u'fermi_dirac:0.1 eV'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em>, <em>ddk_tol=None</em>, <em>rf_tol=None</em>, <em>ddk_split=False</em>, <em>rf_split=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#scf_piezo_elastic_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.scf_piezo_elastic_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">MultiDataset</span></code> for performing elastic and piezoelectric constants calculations.
+GS input + the input files for the elastic and piezoelectric constants calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run.</li>
+<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
+pseudos according to accuracy)</li>
+<li><strong>scf_nband</strong> &#8211; Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+from the list of pseudos, the structure and the smearing option.</li>
+<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
+<li><strong>smearing</strong> &#8211; Smearing technique.</li>
+<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+<li><strong>ddk_tol</strong> &#8211; Tolerance for the Ddk calculation (i.e. {&#8220;tolwfr&#8221;: 1.0e-20}).</li>
+<li><strong>rf_tol</strong> &#8211; Tolerance for the Strain RF calculations (i.e. {&#8220;tolvrs&#8221;: 1.0e-12}).</li>
+<li><strong>ddk_split</strong> &#8211; Whether to split the ddk calculations.</li>
+<li><strong>rf_split</strong> &#8211; whether to split the RF calculations.</li>
 </ul>
 </td>
 </tr>
@@ -2511,16 +2653,16 @@ as computed from the different DDB files.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.robots.DdbRobot.get_qpoints_union">
+<code class="descname">get_qpoints_union</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_qpoints_union"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_qpoints_union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return numpy array with the q-points in reduced coordinates found in the DDB files.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint">
 <code class="descname">plot_conv_phfreqs_qpoint</code><span class="sig-paren">(</span><em>x_vars</em>, <em>qpoint=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.plot_conv_phfreqs_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the convergence of the phonon frequencies.
 kwargs are passed to <code class="xref py py-class docutils literal"><span class="pre">seaborn.PairGrid</span></code>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.abio.robots.DdbRobot.qpoints_union">
-<code class="descname">qpoints_union</code><a class="headerlink" href="#abipy.abio.robots.DdbRobot.qpoints_union" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return numpy array with the q-points in reduced coordinates found in the DDB files.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2697,7 +2839,7 @@ raised if label is already present.</li>
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_dir">
 <em class="property">classmethod </em><code class="descname">from_dir</code><span class="sig-paren">(</span><em>top</em>, <em>walk=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>This classmethod builds a robot by scanning all files located within directory <cite>top</cite>.
+<dd><p>This class method builds a robot by scanning all files located within directory <cite>top</cite>.
 Note that if walk is True, directories inside <cite>top</cite> are included as well.
 This method should be invoked with a concrete robot class, for example:</p>
 <blockquote>
@@ -2828,7 +2970,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.1)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>
@@ -2845,61 +2987,10 @@ working directory is created. Return path to the notebook.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">abio Package</a><ul>
-<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">abio</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.abivars"><code class="docutils literal"><span class="pre">abivars</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.abivars_db"><code class="docutils literal"><span class="pre">abivars_db</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.decorators"><code class="docutils literal"><span class="pre">decorators</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.factories"><code class="docutils literal"><span class="pre">factories</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.input_tags"><code class="docutils literal"><span class="pre">input_tags</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.inputs"><code class="docutils literal"><span class="pre">inputs</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.outputs"><code class="docutils literal"><span class="pre">outputs</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.robots"><code class="docutils literal"><span class="pre">robots</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.abio.timer"><code class="docutils literal"><span class="pre">timer</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="iotools_api.html" title="previous chapter">iotools Package</a></li>
-      <li>Next: <a href="electrons_api.html" title="next chapter">electrons Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/abio_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

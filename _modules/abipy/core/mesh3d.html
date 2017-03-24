@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.core.mesh3d &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.core.mesh3d &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -60,12 +84,12 @@
 
 
 <div class="viewcode-block" id="Mesh3D"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D">[docs]</a><span class="k">class</span> <span class="nc">Mesh3D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor-class for uniform 3D meshes.</span>
 
 <span class="sd">    A Mesh3D object holds information on how functions, such</span>
 <span class="sd">    as wave functions and electron densities, are discretized in a</span>
-<span class="sd">    certain domain in space.  The main information here is how many</span>
+<span class="sd">    certain domain in space. The main information here is how many</span>
 <span class="sd">    grid points are used in each direction of the unit cell.</span>
 
 <span class="sd">    There are methods for tasks such as allocating arrays, performing</span>
@@ -156,7 +180,6 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
@@ -210,7 +233,7 @@
 
 <div class="viewcode-block" id="Mesh3D.crandom"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.crandom">[docs]</a>    <span class="k">def</span> <span class="nf">crandom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Returns random complex array for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">random</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Mesh3D.reshape"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.reshape">[docs]</a>    <span class="k">def</span> <span class="nf">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -271,13 +294,17 @@
         <span class="k">return</span> <span class="n">fr</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span></div>
 
 <div class="viewcode-block" id="Mesh3D.fourier_interp"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fourier_interp">[docs]</a>    <span class="k">def</span> <span class="nf">fourier_interp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">new_mesh</span><span class="p">,</span> <span class="n">inspace</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;sphere in parallelepiped</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fourier interpolation of data.</span>
 
-<span class="sd">        :param data: Input array defined on this mesh</span>
-<span class="sd">        :param new_mesh: Mesh where data is interpolated</span>
-<span class="sd">        :param inspace: string specifying if data is given in real space &quot;r&quot; or in reciprocal space &quot;g&quot;.</span>
-<span class="sd">        :return: Numpy array in real space on the new_mesh</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">            data: Input array defined on this mesh</span>
+<span class="sd">            new_mesh: Mesh where data is interpolated</span>
+<span class="sd">            inspace: string specifying if data is given in real space &quot;r&quot; or in reciprocal space &quot;g&quot;.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            Numpy array in real space on the new_mesh</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;gtransfer is missing&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">inspace</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">)</span>
@@ -532,35 +559,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

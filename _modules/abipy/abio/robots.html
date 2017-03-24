@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.abio.robots &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.abio.robots &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -56,7 +80,7 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.eos</span> <span class="k">import</span> <span class="n">EOS</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">Flow</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 
 
@@ -138,7 +162,7 @@
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Robot.from_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir">[docs]</a>    <span class="k">def</span> <span class="nf">from_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This classmethod builds a robot by scanning all files located within directory `top`.</span>
+<span class="sd">        This class method builds a robot by scanning all files located within directory `top`.</span>
 <span class="sd">        Note that if walk is True, directories inside `top` are included as well.</span>
 <span class="sd">        This method should be invoked with a concrete robot class, for example:</span>
 
@@ -351,7 +375,7 @@
 
     <span class="k">def</span> <span class="nf">_exec_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Execute list of callables funcs. Each func receives arg as argument.</span>
+<span class="sd">        Execute list of callable functions. Each function receives arg as argument.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">funcs</span><span class="p">]</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
@@ -519,22 +543,22 @@
         <span class="p">]</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">[])</span>
 
         <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">sigr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">sigres</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;qpgap&quot;</span><span class="p">:</span> <span class="n">sigr</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)})</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sigres</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;qpgap&quot;</span><span class="p">:</span> <span class="n">sigres</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)})</span>
 
             <span class="c1"># Add convergence parameters</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigr</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigres</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
             <span class="c1"># Add info on structure.</span>
             <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;with_geo&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigres</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
             <span class="c1"># Execute funcs.</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">sigr</span><span class="p">))</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">sigres</span><span class="p">))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -549,6 +573,7 @@
         <span class="kn">import</span> <span class="nn">seaborn.apionly</span> <span class="k">as</span> <span class="nn">sns</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qpgaps_dataframe</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
         <span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_vars</span><span class="o">=</span><span class="n">x_vars</span><span class="p">,</span> <span class="n">y_vars</span><span class="o">=</span><span class="s2">&quot;qpgap&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">add_legend</span><span class="p">()</span>
@@ -614,25 +639,26 @@
 
 
 <div class="viewcode-block" id="DdbRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot">[docs]</a><span class="k">class</span> <span class="nc">DdbRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This robot analyzes the results contained in multiple DDB files.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This robot analyzes the results contained in multiple DDB files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;DDB&quot;</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">qpoints_union</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbRobot.get_qpoints_union"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_qpoints_union">[docs]</a>    <span class="k">def</span> <span class="nf">get_qpoints_union</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return numpy array with the q-points in reduced coordinates found in the DDB files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qpoints</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ddb</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="n">qpoints</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span> <span class="k">if</span> <span class="n">q</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)</span></div>
 
     <span class="c1">#@property</span>
     <span class="c1">#def qpoints_intersection(self):</span>
     <span class="c1">#    &quot;&quot;&quot;Return numpy array with the q-points in reduced coordinates found in the DDB files.&quot;&quot;&quot;</span>
     <span class="c1">#    qpoints = []</span>
-    <span class="c1">#    for (label, ddb) in enumerate(self):</span>
+    <span class="c1">#    for label, ddb in enumerate(self):</span>
     <span class="c1">#        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)</span>
     <span class="c1">#    return np.array(qpoints)</span>
 
@@ -656,15 +682,13 @@
         <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ddb</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-            <span class="c1">#    exc_mdf=mdf.exc_mdf,</span>
-            <span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
             <span class="c1">#d = {aname: getattr(ddb, aname) for aname in attrs}</span>
             <span class="c1">#d.update({&quot;qpgap&quot;: mdf.get_qpgap(spin, kpoint)})</span>
 
             <span class="c1"># Call anaddb to get the phonon frequencies.</span>
             <span class="n">phbands</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phmodes_at_qpoint</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">)</span>
-            <span class="n">freqs</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="c1"># (nq, nmodes)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># (nq, nmodes)</span>
 
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;mode&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="n">freqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">))})</span>
 
@@ -715,35 +739,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

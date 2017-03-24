@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.electrons.psps &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.electrons.psps &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -52,7 +76,7 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">find_gt</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">Pseudo</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span>
 
@@ -86,7 +110,7 @@
     <span class="k">if</span> <span class="n">der</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;$</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fsym</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">fsym</span> <span class="o">=</span> <span class="n">fsym</span> <span class="o">+</span> <span class="s2">&quot;^{&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="n">der</span> <span class="o">*</span> <span class="s2">&quot;\prime&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+        <span class="n">fsym</span> <span class="o">=</span> <span class="n">fsym</span> <span class="o">+</span> <span class="s2">&quot;^{&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="n">der</span> <span class="o">*</span> <span class="sa">r</span><span class="s2">&quot;\prime&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;$</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fsym</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span></div>
 
 
@@ -564,35 +588,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

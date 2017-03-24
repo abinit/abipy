@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>dfpt Package &#8212; abipy 0.1.0 documentation</title>
+    <title>dfpt Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="waves Package" href="waves_api.html" />
-    <link rel="prev" title="dynamics Package" href="dynamics_api.html" />
+    <link rel="next" title="dynamics Package" href="dynamics_api.html" />
+    <link rel="prev" title="data Package" href="data_api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,54 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dfpt Package</a><ul>
+<li><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.eph"><code class="docutils literal"><span class="pre">eph</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="data_api.html" title="previous chapter">data Package</a></li>
+      <li>Next: <a href="dynamics_api.html" title="next chapter">dynamics Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/dfpt_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -147,6 +192,11 @@ the error messages of the run.</p>
 <em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">Becs</code><span class="sig-paren">(</span><em>becs_arr</em>, <em>structure</em>, <em>chneut</em>, <em>order=u'c'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the Born effective charges and provides simple tools for data analysis.</p>
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.Becs.becs">
+<code class="descname">becs</code><a class="headerlink" href="#abipy.dfpt.ddb.Becs.becs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="abipy.dfpt.ddb.Becs.check_sumrule">
 <code class="descname">check_sumrule</code><span class="sig-paren">(</span><em>stream=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.check_sumrule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.check_sumrule" title="Permalink to this definition">¶</a></dt>
@@ -1806,56 +1856,10 @@ working directory is created. Return path to the notebook.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">dfpt Package</a><ul>
-<li><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.eph"><code class="docutils literal"><span class="pre">eph</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="dynamics_api.html" title="previous chapter">dynamics Package</a></li>
-      <li>Next: <a href="waves_api.html" title="next chapter">waves Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/dfpt_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.core.structure &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.core.structure &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -65,11 +89,11 @@
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span> <span class="c1">#, get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span><span class="p">,</span>  <span class="n">xsf</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi.abiobjects</span> <span class="k">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="k">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;Structure&quot;</span><span class="p">,</span>
@@ -443,7 +467,7 @@
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sorted_structure</span><span class="p">()</span>
         <span class="n">ase_adaptor</span> <span class="o">=</span> <span class="n">AseAtomsAdaptor</span><span class="p">()</span>
         <span class="n">ase_atoms</span> <span class="o">=</span> <span class="n">ase_adaptor</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-        <span class="n">standardized</span> <span class="o">=</span> <span class="n">spglib</span><span class="o">.</span><span class="n">standardize_cell</span><span class="p">(</span><span class="n">bulk</span><span class="o">=</span><span class="n">ase_atoms</span><span class="p">,</span> <span class="n">to_primitive</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">no_idealize</span><span class="o">=</span><span class="n">no_idealize</span><span class="p">,</span>
+        <span class="n">standardized</span> <span class="o">=</span> <span class="n">spglib</span><span class="o">.</span><span class="n">standardize_cell</span><span class="p">(</span><span class="n">ase_atoms</span><span class="p">,</span> <span class="n">to_primitive</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">no_idealize</span><span class="o">=</span><span class="n">no_idealize</span><span class="p">,</span>
                                                <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">standardized_ase_atoms</span> <span class="o">=</span> <span class="n">Atoms</span><span class="p">(</span><span class="n">scaled_positions</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">numbers</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cell</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">standardized_structure</span> <span class="o">=</span> <span class="n">ase_adaptor</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="n">standardized_ase_atoms</span><span class="p">)</span>
@@ -1654,35 +1678,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.electrons.fatbands &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.electrons.fatbands &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -100,12 +124,12 @@
     <span class="n">marker_spin</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;v&quot;</span><span class="p">}</span>
 
     <span class="c1"># Mapping spin --&gt; title used in subplots that depend on (collinear) spin.</span>
-    <span class="n">spin2tex</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">}</span>
+    <span class="n">spin2tex</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">}</span>
 
     <span class="c1"># Mappings used for non-collinear spins.</span>
-    <span class="n">spinors2tex</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span> <span class="s2">&quot;$\sigma_</span><span class="si">{x}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span> <span class="s2">&quot;$\sigma_</span><span class="si">{y}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span> <span class="s2">&quot;$\sigma_</span><span class="si">{z}</span><span class="s2">$&quot;</span><span class="p">,</span>
+    <span class="n">spinors2tex</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{x}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{y}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{z}</span><span class="s2">$&quot;</span><span class="p">,</span>
                   <span class="p">}</span>
     <span class="n">spinors2color</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="s2">&quot;brown&quot;</span><span class="p">,</span>
                      <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="s2">&quot;violet&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
@@ -1693,35 +1717,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

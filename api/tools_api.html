@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>tools Package &#8212; abipy 0.1.0 documentation</title>
+    <title>tools Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="iotools Package" href="iotools_api.html" />
-    <link rel="prev" title="core Package" href="core_api.html" />
+    <link rel="next" title="waves Package" href="waves_api.html" />
+    <link rel="prev" title="iotools Package" href="iotools_api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,57 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">tools Package</a></li>
+<li><a class="reference internal" href="#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a><ul>
+<li><a class="reference internal" href="#module-abipy.tools.derivatives"><code class="docutils literal"><span class="pre">derivatives</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.devtools"><code class="docutils literal"><span class="pre">devtools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.iotools"><code class="docutils literal"><span class="pre">iotools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.notebooks"><code class="docutils literal"><span class="pre">notebooks</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.numtools"><code class="docutils literal"><span class="pre">numtools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.plotting_utils"><code class="docutils literal"><span class="pre">plotting_utils</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.text"><code class="docutils literal"><span class="pre">text</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="iotools_api.html" title="previous chapter">iotools Package</a></li>
+      <li>Next: <a href="waves_api.html" title="next chapter">waves Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/tools_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -49,73 +97,6 @@
 </div>
 <div class="section" id="module-abipy.tools">
 <span id="tools-module"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module<a class="headerlink" href="#module-abipy.tools" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-abipy.tools.animator">
-<span id="animator-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">animator</span></code> Module<a class="headerlink" href="#module-abipy.tools.animator" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="abipy.tools.animator.FilesAnimator">
-<em class="property">class </em><code class="descclassname">abipy.tools.animator.</code><code class="descname">FilesAnimator</code><a class="reference internal" href="../_modules/abipy/tools/animator.html#FilesAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.animator.FilesAnimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>This object wraps the animate tool of ImageMagick.
-If received a list of files and/or a list of <cite>matplotlib</cite> figures
-and creates an animation.</p>
-<dl class="attribute">
-<dt id="abipy.tools.animator.FilesAnimator.DEFAULT_OPTIONS">
-<code class="descname">DEFAULT_OPTIONS</code><em class="property"> = {u'-delay': u'100'}</em><a class="headerlink" href="#abipy.tools.animator.FilesAnimator.DEFAULT_OPTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.animator.FilesAnimator.add_figure">
-<code class="descname">add_figure</code><span class="sig-paren">(</span><em>label</em>, <em>figure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/animator.html#FilesAnimator.add_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.animator.FilesAnimator.add_figure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a figure.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>label</strong> &#8211; </li>
-<li><strong>figure</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.animator.FilesAnimator.add_figures">
-<code class="descname">add_figures</code><span class="sig-paren">(</span><em>labels</em>, <em>figure_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/animator.html#FilesAnimator.add_figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.animator.FilesAnimator.add_figures" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a list of figures.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>labels</strong> &#8211; List of labels.</li>
-<li><strong>figure_list</strong> &#8211; List of Figures</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.animator.FilesAnimator.animate">
-<code class="descname">animate</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/animator.html#FilesAnimator.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.animator.FilesAnimator.animate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <cite>animate</cite> in a subprocess.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">return code of the subprocess.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-abipy.tools.derivatives">
 <span id="derivatives-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">derivatives</span></code> Module<a class="headerlink" href="#module-abipy.tools.derivatives" title="Permalink to this headline">¶</a></h2>
 <p>Tools for computing derivatives by finite differences.</p>
@@ -204,17 +185,6 @@ are available in <cite>arr</cite>.</p>
 <p>Base class for exceptions raised by <cite>Editor</cite></p>
 </dd></dl>
 
-<dl class="class">
-<dt id="abipy.tools.iotools.StringColorizer">
-<em class="property">class </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">StringColorizer</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#StringColorizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.StringColorizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="attribute">
-<dt id="abipy.tools.iotools.StringColorizer.COLORS">
-<code class="descname">COLORS</code><em class="property"> = {u'default': u'', u'blue': u'\x1b[01;34m', u'green': u'\x1b[01;32m', u'red': u'\x1b[01;31m', u'cyan': u'\x1b[01;36m'}</em><a class="headerlink" href="#abipy.tools.iotools.StringColorizer.COLORS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 <dl class="function">
 <dt id="abipy.tools.iotools.ask_yes_no">
 <code class="descclassname">abipy.tools.iotools.</code><code class="descname">ask_yes_no</code><span class="sig-paren">(</span><em>prompt</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ask_yes_no"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ask_yes_no" title="Permalink to this definition">¶</a></dt>
@@ -227,65 +197,9 @@ exception is raised to prevent infinite loops.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.tools.iotools.diff_files">
-<code class="descclassname">abipy.tools.iotools.</code><code class="descname">diff_files</code><span class="sig-paren">(</span><em>fname1</em>, <em>fname2</em>, <em>no_dupspace=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#diff_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.diff_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the <cite>Differ</cite>-style delta of two files.</p>
-<p>If no_duspace == True, multiple spaces are removed.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="abipy.tools.iotools.input_from_editor">
 <code class="descclassname">abipy.tools.iotools.</code><code class="descname">input_from_editor</code><span class="sig-paren">(</span><em>message=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#input_from_editor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.input_from_editor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.iotools.raw_input_ext">
-<code class="descclassname">abipy.tools.iotools.</code><code class="descname">raw_input_ext</code><span class="sig-paren">(</span><em>prompt=u''</em>, <em>ps2=u'... '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#raw_input_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.raw_input_ext" title="Permalink to this definition">¶</a></dt>
-<dd><p>Similar to raw_input(), but accepts extended lines if input ends with .</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.iotools.stream_has_colours">
-<code class="descclassname">abipy.tools.iotools.</code><code class="descname">stream_has_colours</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#stream_has_colours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.stream_has_colours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Python cookbook, #475186</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.iotools.write_temp_file">
-<code class="descclassname">abipy.tools.iotools.</code><code class="descname">write_temp_file</code><span class="sig-paren">(</span><em>src</em>, <em>suffix=u''</em>, <em>prefix=u'tmp'</em>, <em>dir=None</em>, <em>text=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#write_temp_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.write_temp_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a temporary file, return filename and filehandle.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>src</strong> &#8211; string or list of strings (no need for ending newlines if list)
-Source code to be written to the file.</td>
-</tr>
-</tbody>
-</table>
-<p>If &#8216;suffix&#8217; is specified, the file name will end with that suffix,
-otherwise there will be no suffix.</p>
-<p>If &#8216;prefix&#8217; is specified, the file name will begin with that prefix,
-otherwise a default prefix is used.</p>
-<p>If &#8216;dir&#8217; is specified, the file will be created in that directory,
-otherwise a default directory is used.</p>
-<p>If &#8216;text&#8217; is specified and False, the file is opened in binary mode.
-Else (the default) the file is opened in text mode.
-On some operating systems, this makes no difference.</p>
-<p>The file is readable and writable only by the creating user ID.
-If the operating system uses permission bits to indicate whether a
-file is executable, the file is executable by no one.
-The file descriptor is not inherited by children of this process</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(filename, open filehandle).
-It is the caller&#8217;s responsibility to close the open file and unlink it.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 </div>
 <div class="section" id="module-abipy.tools.notebooks">
@@ -559,60 +473,10 @@ Taken from <a class="reference external" href="http://www.scipy.org/Cookbook/Sig
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">tools Package</a></li>
-<li><a class="reference internal" href="#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a><ul>
-<li><a class="reference internal" href="#module-abipy.tools.animator"><code class="docutils literal"><span class="pre">animator</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.derivatives"><code class="docutils literal"><span class="pre">derivatives</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.devtools"><code class="docutils literal"><span class="pre">devtools</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.iotools"><code class="docutils literal"><span class="pre">iotools</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.notebooks"><code class="docutils literal"><span class="pre">notebooks</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.numtools"><code class="docutils literal"><span class="pre">numtools</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.plotting_utils"><code class="docutils literal"><span class="pre">plotting_utils</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.tools.text"><code class="docutils literal"><span class="pre">text</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="core_api.html" title="previous chapter">core Package</a></li>
-      <li>Next: <a href="iotools_api.html" title="next chapter">iotools Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/tools_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

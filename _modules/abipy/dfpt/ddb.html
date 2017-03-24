@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.dfpt.ddb &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.dfpt.ddb &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -57,8 +81,8 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span><span class="p">,</span> <span class="n">tree</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">get_ncpus</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">AnaddbTask</span>
+<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">get_ncpus</span><span class="p">,</span> <span class="n">deprecated</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">AnaddbTask</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">TextFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
@@ -717,7 +741,9 @@
 
 
 <div class="viewcode-block" id="Becs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.Becs">[docs]</a><span class="k">class</span> <span class="nc">Becs</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This object stores the Born effective charges and provides simple tools for data analysis.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object stores the Born effective charges and provides simple tools for data analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">becs_arr</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">chneut</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -732,12 +758,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span> <span class="o">=</span> <span class="n">chneut</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">becs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">becs_arr</span><span class="p">):</span>
             <span class="n">mat</span> <span class="o">=</span> <span class="n">becs_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">T</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>
-            <span class="c1">#self.becs[i] = Tensor.from_cartesian_tensor(mat, structure.lattice, space=&quot;r&quot;)</span>
+            <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">T</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;becs  has been renamed values. Will be removed in abipy 0.4.&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">becs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -751,10 +781,10 @@
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Born effective charges computed with chneut: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">bec</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">bec</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
             <span class="c1"># TODO: why PeriodicSite.__str__ does not give the frac_coords?</span>
             <span class="c1">#print(type(site))</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;bec at site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">site</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;BEC at site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">site</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">bec</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
@@ -767,7 +797,7 @@
 
 <div class="viewcode-block" id="Becs.check_sumrule"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.Becs.check_sumrule">[docs]</a>    <span class="k">def</span> <span class="nf">check_sumrule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
         <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Born effective charge neutrality sum-rule with chneut: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chneut</span><span class="p">)</span>
-        <span class="n">becs_atomsum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">becs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">becs_atomsum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">becs_atomsum</span><span class="p">))</span></div></div>
 
 
@@ -798,14 +828,14 @@
 <div class="viewcode-block" id="ElasticComplianceTensor.from_ec_nc_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.ElasticComplianceTensor.from_ec_nc_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_ec_nc_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ec_nc_file</span><span class="p">,</span> <span class="n">tensor_type</span><span class="o">=</span><span class="s1">&#39;relaxed_ion&#39;</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">NetcdfReader</span><span class="p">(</span><span class="n">ec_nc_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc_reader</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;relaxed_ion&#39;</span><span class="p">:</span>
-                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion&#39;</span><span class="p">))</span>
-                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion&#39;</span><span class="p">))</span>
+                <span class="n">ec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion&#39;</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;clamped_ion&#39;</span><span class="p">:</span>
-                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_clamped_ion&#39;</span><span class="p">))</span>
-                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_clamped_ion&#39;</span><span class="p">))</span>
+                <span class="n">ec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_clamped_ion&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_clamped_ion&#39;</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">tensor_type</span> <span class="o">==</span> <span class="s1">&#39;relaxed_ion_stress_corrected&#39;</span><span class="p">:</span>
-                <span class="n">ec</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
-                <span class="n">compl</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
+                <span class="n">ec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;elastic_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
+                <span class="n">compl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nc_reader</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s1">&#39;compliance_constants_relaxed_ion_stress_corrected&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;tensor_type &quot;</span><span class="si">{0}</span><span class="s1">&quot; not allowed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tensor_type</span><span class="p">))</span>
         <span class="c1">#TODO: add the structure object!</span>
@@ -864,35 +894,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

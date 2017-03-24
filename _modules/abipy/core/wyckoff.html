@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.core.wyckoff &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.core.wyckoff &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,16 +35,39 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
   <h1>Source code for abipy.core.wyckoff</h1><div class="highlight"><pre>
-<span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -86,15 +109,15 @@
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">            Args:</span>
-<span class="sd">                exprs:</span>
+<span class="sd">                matrix_str:</span>
 <span class="sd">                letter:</span>
 <span class="sd">                site_symmetry:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">letter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_symmetry</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
         <span class="c1"># Build numpy matrix of sympy expressions from the matrix of strings.</span>
-        <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span> 
-        <span class="kn">from</span> <span class="nn">sympy.parsing.sympy_parser</span> <span class="k">import</span> <span class="n">parse_expr</span> 
+        <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
+        <span class="kn">from</span> <span class="nn">sympy.parsing.sympy_parser</span> <span class="k">import</span> <span class="n">parse_expr</span>
         <span class="n">exprs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">matrix_str</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
             <span class="n">exprs</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">parse_expr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">vec</span><span class="p">])</span>
@@ -158,7 +181,7 @@
 
 <div class="viewcode-block" id="WyckoffPositions.error_of_params"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.WyckoffPositions.error_of_params">[docs]</a>    <span class="k">def</span> <span class="nf">error_of_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a numpy array with the difference between the </span>
+<span class="sd">        Return a numpy array with the difference between the</span>
 <span class="sd">        wyckoff positions computed from the sympy expressions and the input frac_coords</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -199,7 +222,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">site2params</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please use a OrderedDict for site2params so that</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> 
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please use a OrderedDict for site2params so that</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
                              <span class="s2">&quot;the algorithm used to build the structure is deterministic.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Build species and coords arrays.</span>
@@ -210,9 +233,11 @@
             <span class="k">for</span> <span class="n">vec_expr</span> <span class="ow">in</span> <span class="n">wpos</span><span class="p">:</span>
                 <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elsym</span><span class="p">)</span>
                 <span class="c1"># Evaluate sympy expression with params.</span>
-                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">expr</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">vec_expr</span><span class="p">])</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">vec_expr</span><span class="p">])</span>
 
-        <span class="c1">#print(list(zip(species, coords)))</span>
+        <span class="c1">#for sp, c in zip(species, coords):</span>
+        <span class="c1">#    print(sp, c, type(c), type(c[0]))</span>
+
         <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">struct_cls</span> <span class="k">if</span> <span class="n">struct_cls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Structure</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -235,94 +260,15 @@
         <span class="k">for</span> <span class="n">elsym</span><span class="p">,</span> <span class="n">wpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">site2wpos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">frac_errors</span> <span class="o">=</span> <span class="n">wpos</span><span class="o">.</span><span class="n">error_of_params</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">elsym</span><span class="p">],</span> <span class="n">fcoords</span><span class="p">[</span><span class="n">elsym</span><span class="p">])</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">frac_errors</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="test_sio2"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.test_sio2">[docs]</a><span class="k">def</span> <span class="nf">test_sio2</span><span class="p">():</span>
-    <span class="c1"># http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=152</span>
-    <span class="n">site2wpos</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1">#3	b	.2.	</span>
-    <span class="c1">#site2wpos[&quot;Si&quot;] = &quot;(x,0,5/6)  (0,x,1/6)   (-x,-x,1/2)&quot;</span>
-
-    <span class="c1">#3	a	.2.	</span>
-    <span class="n">site2wpos</span><span class="p">[</span><span class="s2">&quot;Si&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;[x,0,1/3], (0,x,2/3), (-x,-x,0)&quot;</span>
-
-    <span class="c1">#6	c	1	</span>
-    <span class="n">site2wpos</span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        (x,y,z), (-y,x-y,z+1/3), (-x+y,-x,z+2/3), (y,x,-z),</span>
-<span class="s2">        (x-y,-y,-z+2/3), (-x,-x+y,-z+1/3)&quot;&quot;&quot;</span>
-
-    <span class="n">wyck</span> <span class="o">=</span> <span class="n">Wyckoff</span><span class="p">(</span><span class="n">site2wpos</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">wyck</span><span class="p">)</span>
-
-    <span class="n">site2params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
-        <span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.4763</span><span class="p">)),</span>
-        <span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.1588</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.7439</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.4612</span><span class="p">)),</span>
-        <span class="c1">#(&quot;O&quot;, dict(x=0.1588, y=0.7439, z=0.4612, yyy=3)),</span>
-    <span class="p">])</span>
-
-    <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Lattice</span>
-    <span class="n">lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">hexagonal</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mf">4.971</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mf">5.473</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">to_unit_cell</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">]:</span>
-    <span class="c1">#for to_unit_cell in [False, True]:</span>
-        <span class="n">structure</span> <span class="o">=</span> <span class="n">wyck</span><span class="o">.</span><span class="n">gen_structure</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">site2params</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="n">to_unit_cell</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;to_unit_cell </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">to_unit_cell</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
-
-        <span class="c1">#from pymatgen.symmetry.analyzer import SpacegroupAnalyzer</span>
-        <span class="c1">#spga = SpacegroupAnalyzer(structure)</span>
-        <span class="c1">#structure = spga.get_refined_structure()</span>
-        <span class="c1">#print(&quot;Refined:&quot;, structure)</span>
-
-        <span class="n">wyck_params</span> <span class="o">=</span> <span class="n">wyck</span><span class="o">.</span><span class="n">find_params</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
-
-        <span class="c1">#structure.perturb(distance=0.01)</span>
-        <span class="c1">#wyck_params = wyck.find_params(structure)</span>
-
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error of params&quot;</span><span class="p">)</span>
-        <span class="n">wyck</span><span class="o">.</span><span class="n">error_of_params</span><span class="p">(</span><span class="n">wyck_params</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">site2params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">wyck_params</span><span class="p">[</span><span class="n">site</span><span class="p">])</span>
-            <span class="k">assert</span> <span class="n">wyck_params</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">==</span> <span class="n">params</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">test_sio2</span><span class="p">()</span>
 </pre></div>
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

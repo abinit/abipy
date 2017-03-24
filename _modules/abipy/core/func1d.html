@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.core.func1d &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.core.func1d &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -316,7 +340,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">finite_diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="n">acc</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Function1D.integral"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.integral">[docs]</a>    <span class="k">def</span> <span class="nf">integral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.</span>
 
 <span class="sd">        Returns:</span>
@@ -364,12 +388,12 @@
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Function1D.l1_norm"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.l1_norm">[docs]</a>    <span class="k">def</span> <span class="nf">l1_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute :math:`\int |f(x)| dx`.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`\int |f(x)| dx`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">integral</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span></div>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Function1D.l2_norm"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.l2_norm">[docs]</a>    <span class="k">def</span> <span class="nf">l2_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute :math:`\sqrt{\int |f(x)|^2 dx}`.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`\sqrt{\int |f(x)|^2 dx}`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">integral</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Function1D.fft"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.fft">[docs]</a>    <span class="k">def</span> <span class="nf">fft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -387,7 +411,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">freqs</span><span class="p">,</span> <span class="n">fft_vals</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Function1D.ifft"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.ifft">[docs]</a>    <span class="k">def</span> <span class="nf">ifft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Compute the FFT transform :math:`\int e+i`&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the FFT transform :math:`\int e+i`&quot;&quot;&quot;</span>
         <span class="c1"># Rearrange values in the standard order then perform IFFT.</span>
         <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">fftpack</span>
         <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span>
@@ -572,35 +596,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

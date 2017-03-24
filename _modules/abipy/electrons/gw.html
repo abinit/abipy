@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.electrons.gw &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.electrons.gw &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -501,7 +525,7 @@
 
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xc</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;$\Sigma(\omega)$&quot;</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Sigma(\omega)$&quot;</span><span class="p">)</span>
             <span class="n">extend</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Re &quot;</span> <span class="o">+</span> <span class="n">label</span><span class="p">))</span>
             <span class="n">extend</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;im&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Im &quot;</span> <span class="o">+</span> <span class="n">label</span><span class="p">))</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
@@ -509,7 +533,7 @@
 
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spfunc</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;$A(\omega)$&quot;</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$A(\omega)$&quot;</span><span class="p">)</span>
             <span class="n">extend</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">))</span>
             <span class="c1"># Plot I(w)</span>
             <span class="c1">#ax2 = ax.twinx()</span>
@@ -1117,8 +1141,8 @@
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="n">errlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
                 <span class="k">continue</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;skb = </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
-            <span class="n">sigw</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;$A(\omega)$:&quot;</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$A(\omega)$: skb = </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
+            <span class="n">sigw</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">errlines</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errlines</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
@@ -1137,7 +1161,6 @@
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-
             <span class="n">ksqp_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_eigvec_qp</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">)</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_array</span><span class="p">(</span><span class="n">ksqp_arr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -1384,7 +1407,9 @@
 
 
 <span class="k">class</span> <span class="nc">SigresReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This object provides method to read data from the SIGRES file produced ABINIT.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object provides method to read data from the SIGRES file produced ABINIT.</span>
+
 <span class="sd">    # See 70gw/m_sigma_results.F90</span>
 
 <span class="sd">    # Name of the diagonal matrix elements stored in the file.</span>
@@ -1810,35 +1835,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

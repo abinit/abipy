@@ -59,4 +59,5 @@ plot example code: plot_qpbands_with_scissor.py
     plotter.combiplot(title="Silicon band structure")
     
     plotter.gridplot(title="Silicon band structure")
+    sigma_file.close()
     

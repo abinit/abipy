@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.core.testing &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.core.testing &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -56,6 +80,7 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">numpy.testing.utils</span> <span class="k">as</span> <span class="nn">nptu</span>
 
 <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
@@ -162,6 +187,11 @@
     <span class="k">except</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+<span class="k">def</span> <span class="nf">straceback</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Returns a string with the traceback.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">traceback</span>
+    <span class="k">return</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+
 
 <div class="viewcode-block" id="AbipyTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyTest</span><span class="p">(</span><span class="n">PymatgenTest</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extends PymatgenTest with Abinit-specific methods &quot;&quot;&quot;</span>
@@ -199,18 +229,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="s1">&#39;_fw_name&#39;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basename</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an Abipy structure from the basename of one of the reference files.&quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
         <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
         <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="n">basename</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="AbipyTest.get_tmpname"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_tmpname">[docs]</a>    <span class="k">def</span> <span class="nf">get_tmpname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.get_tmpname"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_tmpname">[docs]</a>    <span class="k">def</span> <span class="nf">get_tmpname</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoke mkstep with kwargs, return the name of a temporary file.&quot;&quot;&quot;</span>
         <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tmpname</span></div>
 
-<div class="viewcode-block" id="AbipyTest.has_nbformat"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_nbformat">[docs]</a>    <span class="k">def</span> <span class="nf">has_nbformat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.has_nbformat"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_nbformat">[docs]</a>    <span class="k">def</span> <span class="nf">has_nbformat</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return True if nbformat is available and we can test the generation of ipython notebooks.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">nbformat</span>
@@ -230,7 +263,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Alternative naming for assertArrayEqual.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">nptu</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">desired</span><span class="p">,</span> <span class="n">err_msg</span><span class="o">=</span><span class="n">err_msg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">nptu</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">desired</span><span class="p">,</span> <span class="n">err_msg</span><span class="o">=</span><span class="n">err_msg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.straceback"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.straceback">[docs]</a>    <span class="k">def</span> <span class="nf">straceback</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string with the traceback.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">straceback</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>
@@ -292,40 +330,51 @@
         <span class="n">last</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">expression1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRegexpMatches</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="n">expression2</span><span class="p">)</span></div></div>
+
+
+<span class="n">CONF_FILE</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">BKP_FILE</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">def</span> <span class="nf">change_matplotlib_backend</span><span class="p">(</span><span class="n">new_backend</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change the backend by modifying the matplotlib configuration file.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">CONF_FILE</span><span class="p">,</span> <span class="n">BKP_FILE</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">new_backend</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">home</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">]</span>
+    <span class="n">CONF_FILE</span> <span class="o">=</span> <span class="n">conf_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">home</span><span class="p">,</span> <span class="s2">&quot;.matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">)</span>
+
+    <span class="n">BKP_FILE</span> <span class="o">=</span> <span class="n">conf_file</span> <span class="o">+</span> <span class="s2">&quot;.bkp&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">conf_file</span><span class="p">):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">conf_file</span><span class="p">,</span> <span class="n">BKP_FILE</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">conf_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">):</span>
+                <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;backend : &quot;</span> <span class="o">+</span> <span class="n">new_backend</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">conf_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">revert_matplotlib_backend</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">CONF_FILE</span><span class="p">,</span> <span class="n">BKP_FILE</span>
+    <span class="c1">#print(&quot;reverting: BKP_FILE %s --&gt; CONF %s&quot; % (BKP_FILE, CONF_FILE))</span>
+    <span class="k">if</span> <span class="n">BKP_FILE</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">BKP_FILE</span><span class="p">,</span> <span class="n">CONF_FILE</span><span class="p">)</span>
 </pre></div>
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

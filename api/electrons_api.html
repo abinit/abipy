@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>electrons Package &#8212; abipy 0.1.0 documentation</title>
+    <title>electrons Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="dynamics Package" href="dynamics_api.html" />
-    <link rel="prev" title="abio Package" href="abio_api.html" />
+    <link rel="next" title="flowtk Package" href="flowtk_api.html" />
+    <link rel="prev" title="dynamics Package" href="dynamics_api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,60 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">electrons Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">electrons</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.bse"><code class="docutils literal"><span class="pre">bse</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.charges"><code class="docutils literal"><span class="pre">charges</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.ebands"><code class="docutils literal"><span class="pre">ebands</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.fatbands"><code class="docutils literal"><span class="pre">fatbands</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.gsr"><code class="docutils literal"><span class="pre">gsr</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.gw"><code class="docutils literal"><span class="pre">gw</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.denpot"><code class="docutils literal"><span class="pre">denpot</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.psps"><code class="docutils literal"><span class="pre">psps</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.scissors"><code class="docutils literal"><span class="pre">scissors</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.electrons.scr"><code class="docutils literal"><span class="pre">scr</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="dynamics_api.html" title="previous chapter">dynamics Package</a></li>
+      <li>Next: <a href="flowtk_api.html" title="next chapter">flowtk Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/electrons_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -678,7 +729,7 @@ in the SCF run that produced the density used for the band structure calculation
 <dl class="classmethod">
 <dt id="abipy.electrons.ebands.ElectronBands.as_ebands">
 <em class="property">classmethod </em><code class="descname">as_ebands</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.as_ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.as_ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> from a generic obj.
+<dd><p>Return an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> from a generic <cite>obj</cite>.
 Supports:</p>
 <blockquote>
 <div><ul class="simple">
@@ -927,7 +978,7 @@ and the path contains duplicated k-points, the first k-point is selected.</li>
 <dl class="classmethod">
 <dt id="abipy.electrons.ebands.ElectronBands.from_file">
 <em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> from a netCDF file.</p>
+<dd><p>Initialize an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> from the netCDF file <cite>filepath</cite>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3345,7 +3396,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="attribute">
 <dt id="abipy.electrons.fatbands.FatBandsFile.spin2tex">
-<code class="descname">spin2tex</code><em class="property"> = {0: u'$\\sigma=\\uparrow$', 1: u'$\\sigma=\\downarrow$'}</em><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.spin2tex" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spin2tex</code><em class="property"> = {0: u'$\\sigma=\\\\uparrow$', 1: u'$\\sigma=\\\\downarrow$'}</em><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.spin2tex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -3355,7 +3406,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="attribute">
 <dt id="abipy.electrons.fatbands.FatBandsFile.spinors2tex">
-<code class="descname">spinors2tex</code><em class="property"> = {u'sigma_z': u'$\\sigma_{z}$', u'sigma_y': u'$\\sigma_{y}$', u'sigma_x': u'$\\sigma_{x}$', u'down-up': u'$\\downarrow,\\uparrow$', u'up-up': u'$\\uparrow,\\uparrow$', u'up-down': u'$\\uparrow,\\downarrow$', u'down-down': u'$\\downarrow,\\downarrow$'}</em><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.spinors2tex" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spinors2tex</code><em class="property"> = {u'sigma_z': u'$\\sigma_{z}$', u'sigma_y': u'$\\sigma_{y}$', u'sigma_x': u'$\\sigma_{x}$', u'down-up': u'$\\\\downarrow,\\\\uparrow$', u'up-up': u'$\\\\uparrow,\\\\uparrow$', u'up-down': u'$\\\\uparrow,\\\\downarrow$', u'down-down': u'$\\\\downarrow,\\\\downarrow$'}</em><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile.spinors2tex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -5258,7 +5309,7 @@ of <cite>cls</cite> where <cite>cls</cite> is a subclass of <cite>WGGFunction</c
 <em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">WGGFunction</code><span class="sig-paren">(</span><em>qpoint</em>, <em>wpts</em>, <em>gsphere</em>, <em>wggmat</em>, <em>inord=u'C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#WGGFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.WGGFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Base class for two-point functions expressed in
-reciprocal space i.e. a matrix A_{G,G&#8217;}(q, omega)</p>
+reciprocal space i.e. a matrix $A_{G,G&#8217;}(q, omega)$</p>
 <dl class="method">
 <dt id="abipy.electrons.scr.WGGFunction.gindex">
 <code class="descname">gindex</code><span class="sig-paren">(</span><em>gvec</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#WGGFunction.gindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.WGGFunction.gindex" title="Permalink to this definition">¶</a></dt>
@@ -5427,62 +5478,10 @@ example: size_kwargs=dict(w=3, h=4)</td>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">electrons Package</a><ul>
-<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">electrons</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.bse"><code class="docutils literal"><span class="pre">bse</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.charges"><code class="docutils literal"><span class="pre">charges</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.ebands"><code class="docutils literal"><span class="pre">ebands</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.fatbands"><code class="docutils literal"><span class="pre">fatbands</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.gsr"><code class="docutils literal"><span class="pre">gsr</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.gw"><code class="docutils literal"><span class="pre">gw</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.denpot"><code class="docutils literal"><span class="pre">denpot</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.psps"><code class="docutils literal"><span class="pre">psps</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.scissors"><code class="docutils literal"><span class="pre">scissors</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.electrons.scr"><code class="docutils literal"><span class="pre">scr</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="abio_api.html" title="previous chapter">abio Package</a></li>
-      <li>Next: <a href="dynamics_api.html" title="next chapter">dynamics Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/electrons_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

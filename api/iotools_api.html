@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>iotools Package &#8212; abipy 0.1.0 documentation</title>
+    <title>iotools Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="abio Package" href="abio_api.html" />
-    <link rel="prev" title="tools Package" href="tools_api.html" />
+    <link rel="next" title="tools Package" href="tools_api.html" />
+    <link rel="prev" title="flowtk Package" href="flowtk_api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,52 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">iotools Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">iotools</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.iotools.visualizer"><code class="docutils literal"><span class="pre">visualizer</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.iotools.xsf"><code class="docutils literal"><span class="pre">xsf</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="flowtk_api.html" title="previous chapter">flowtk Package</a></li>
+      <li>Next: <a href="tools_api.html" title="next chapter">tools Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/iotools_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -51,7 +94,7 @@
 <span class="target" id="module-abipy.iotools"></span><dl class="class">
 <dt id="abipy.iotools.ETSF_Reader">
 <em class="property">class </em><code class="descclassname">abipy.iotools.</code><code class="descname">ETSF_Reader</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v4.7.1)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
 <p>Overrides the read_structure method so that we always return
 an instance of our Structure object</p>
 <dl class="method">
@@ -230,54 +273,10 @@ Possible choices are (case-insensitive):</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">iotools Package</a><ul>
-<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">iotools</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.iotools.visualizer"><code class="docutils literal"><span class="pre">visualizer</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.iotools.xsf"><code class="docutils literal"><span class="pre">xsf</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="tools_api.html" title="previous chapter">tools Package</a></li>
-      <li>Next: <a href="abio_api.html" title="next chapter">abio Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/iotools_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

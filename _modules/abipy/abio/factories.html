@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.abio.factories &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.abio.factories &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -48,21 +72,20 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
 <span class="kn">import</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">as</span> <span class="nn">aobj</span>
 
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">jsanitize</span><span class="p">,</span> <span class="n">MontyDecoder</span>
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.input_tags</span> <span class="k">import</span> <span class="o">*</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
-
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 
@@ -74,7 +97,10 @@
     <span class="s2">&quot;g0w0_convergence_inputs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;bse_with_mdf_inputs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;ion_ioncell_relax_input&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ion_ioncell_relax_and_ebands_input&quot;</span><span class="p">,</span>
     <span class="s2">&quot;scf_phonons_inputs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;piezo_elastic_inputs_from_gsinput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;scf_piezo_elastic_inputs&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -144,8 +170,8 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_object</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns an instance of ShiftMode based on the type of object passed. convertes strings to ShiftMode depending</span>
-<span class="sd">        on the inital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.</span>
+<span class="sd">        Returns an instance of ShiftMode based on the type of object passed. Converts strings to ShiftMode depending</span>
+<span class="sd">        on the iniital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.</span>
 <span class="sd">        Case insensitive.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
@@ -407,13 +433,13 @@
     <span class="k">return</span> <span class="n">multi</span></div>
 
 
-<span class="k">def</span> <span class="nf">ion_ioncell_relax_and_ebands_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
+<div class="viewcode-block" id="ion_ioncell_relax_and_ebands_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.ion_ioncell_relax_and_ebands_input">[docs]</a><span class="k">def</span> <span class="nf">ion_ioncell_relax_and_ebands_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
                                        <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                        <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                                        <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.</span>
-<span class="sd">    The first dataset optmizes the atomic positions at fixed unit cell.</span>
+<span class="sd">    The first dataset optimizes the atomic positions at fixed unit cell.</span>
 <span class="sd">    The second datasets optimizes both ions and unit cell parameters.</span>
 <span class="sd">    The other datasets perform a band structure calculation.</span>
 
@@ -432,6 +458,9 @@
 <span class="sd">        smearing: Smearing technique.</span>
 <span class="sd">        charge: Electronic charge added to the unit cell.</span>
 <span class="sd">        scf_algorithm: Algorithm used for solving of the SCF cycle.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`MultiDataset` object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
@@ -445,7 +474,7 @@
                                 <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="n">pawecutdg</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="n">spin_mode</span><span class="p">,</span>
                                 <span class="n">smearing</span><span class="o">=</span><span class="n">smearing</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="n">scf_algorithm</span><span class="p">,</span> <span class="n">dos_kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">relax_multi</span> <span class="o">+</span> <span class="n">ebands_multi</span>
+    <span class="k">return</span> <span class="n">relax_multi</span> <span class="o">+</span> <span class="n">ebands_multi</span></div>
 
 
 <div class="viewcode-block" id="g0w0_with_ppmodel_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.g0w0_with_ppmodel_inputs">[docs]</a><span class="k">def</span> <span class="nf">g0w0_with_ppmodel_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
@@ -526,7 +555,6 @@
     <span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nscf_electrons</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">self_energy</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">_stopping_criterion</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">))</span> <span class="c1"># Dummy</span>
-    <span class="c1">#sigma_strategy = aobj.SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)</span>
 
     <span class="c1"># TODO: Cannot use istwfk != 1.</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">istwfk</span><span class="o">=</span><span class="s2">&quot;*1&quot;</span><span class="p">)</span>
@@ -642,15 +670,13 @@
         <span class="n">scf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-
     <span class="n">scf_electrons</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">Electrons</span><span class="p">(</span><span class="n">spin_mode</span><span class="o">=</span><span class="n">spin_mode</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="n">smearing</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">scf_algorithm</span><span class="p">,</span>
                                    <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">scf_nband</span><span class="p">,</span> <span class="n">fband</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">nscf_electrons</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">Electrons</span><span class="p">(</span><span class="n">spin_mode</span><span class="o">=</span><span class="n">spin_mode</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="n">smearing</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;iscf&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">},</span>
                                     <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">nscf_nband</span><span class="p">),</span> <span class="n">fband</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="n">multi_scf</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">scf_diffs</span><span class="p">)))</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">scf_diffs</span><span class="p">))</span>
+    <span class="c1">#print(len(scf_diffs))</span>
 
     <span class="n">multi_scf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_ksampling</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi_scf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_electrons</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
@@ -687,10 +713,10 @@
 
     <span class="c1"># create screening and sigma inputs</span>
 
-<span class="c1">#    if scr_nband is None:</span>
-<span class="c1">#        scr_nband = nscf_nband_nscf</span>
-<span class="c1">#   if sigma_nband is None:</span>
-<span class="c1">#        sigma_nband = nscf_nband_nscf</span>
+    <span class="c1">#if scr_nband is None:</span>
+    <span class="c1">#   scr_nband = nscf_nband_nscf</span>
+    <span class="c1">#if sigma_nband is None:</span>
+    <span class="c1">#     sigma_nband = nscf_nband_nscf</span>
 
     <span class="k">if</span> <span class="s1">&#39;cd&#39;</span> <span class="ow">in</span> <span class="n">response_models</span><span class="p">:</span>
         <span class="n">hilbert</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">HilbertTransform</span><span class="p">(</span><span class="n">nomegasf</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">domegasf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spmeth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nfreqre</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freqremax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nfreqim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -698,8 +724,7 @@
     <span class="n">scr_inputs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sigma_inputs</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">ecuteps</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">nscf_nband</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ecuteps&quot;</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="s2">&quot;nscf_nband&quot;</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">response_model</span> <span class="ow">in</span> <span class="n">response_models</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">ecuteps_v</span> <span class="ow">in</span> <span class="n">ecuteps</span><span class="p">:</span>
@@ -894,7 +919,7 @@
 <div class="viewcode-block" id="phonons_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.phonons_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">phonons_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ph_ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_ddk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_dde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_bec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                          <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wfq_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints_to_skip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a list of inputs in the form of a MultiDataset to performe phonon calculations, based on</span>
+<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on</span>
 <span class="sd">    a ground state AbinitInput.</span>
 <span class="sd">    It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.</span>
 <span class="sd">    The inputs have the following tags, according to their function: &quot;ddk&quot;, &quot;dde&quot;, &quot;nscf&quot;, &quot;ph_q_pert&quot;.</span>
@@ -926,9 +951,7 @@
 <span class="sd">            Useful when calculating multiple grids for the same system to avoid duplicate calculations.</span>
 <span class="sd">            If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
-
     <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">with_dde</span><span class="p">:</span>
@@ -949,7 +972,6 @@
 
     <span class="k">if</span> <span class="n">wfq_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">wfq_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
-
 
     <span class="n">multi</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1019,16 +1041,16 @@
 
     <span class="k">return</span> <span class="n">multi</span></div>
 
-<span class="k">def</span> <span class="nf">piezo_elastic_inputs_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="piezo_elastic_inputs_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.piezo_elastic_inputs_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">piezo_elastic_inputs_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.</span>
+<span class="sd">    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.</span>
 <span class="sd">    GS input + the input files for the elastic and piezoelectric constants calculation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        gs_inp: Ground State input to build piezo elastic inputs from.</span>
-<span class="sd">        ddk_tol: Tolerance for the Ddk calculation (i.e. {&quot;tolwfr&quot;: 1.0e-20}).</span>
+<span class="sd">        ddk_tol: Tolerance for the DDK calculation (i.e. {&quot;tolwfr&quot;: 1.0e-20}).</span>
 <span class="sd">        rf_tol: Tolerance for the Strain RF calculations (i.e. {&quot;tolvrs&quot;: 1.0e-12}).</span>
-<span class="sd">        ddk_split: Whether to split the ddk calculations.</span>
+<span class="sd">        ddk_split: Whether to split the DDK calculations.</span>
 <span class="sd">        rf_split: whether to split the RF calculations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Ddk input(s)</span>
@@ -1100,10 +1122,10 @@
 
     <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_rf</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">multi</span>
+    <span class="k">return</span> <span class="n">multi</span></div>
 
 
-<span class="k">def</span> <span class="nf">scf_piezo_elastic_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="scf_piezo_elastic_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.scf_piezo_elastic_inputs">[docs]</a><span class="k">def</span> <span class="nf">scf_piezo_elastic_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                              <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                              <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                              <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1146,7 +1168,7 @@
 
     <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">piezo_elastic_inputs</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">multi</span>
+    <span class="k">return</span> <span class="n">multi</span></div>
 
     <span class="c1"># gs_inp = AbinitInput(structure=structure, pseudos=pseudos)</span>
     <span class="c1">#</span>
@@ -1251,11 +1273,15 @@
 
 <span class="k">def</span> <span class="nf">ebands_from_gsinput</span><span class="p">(</span><span class="n">gsinput</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    :param gsinput:</span>
-<span class="sd">    :param nband:</span>
-<span class="sd">    :param ndivsm:</span>
-<span class="sd">    :param accuracy:</span>
-<span class="sd">    :return: AbinitInput</span>
+<span class="sd">    Return an :class:`AbinitInput` object to compute a band structure from a GS SCF input.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gsinput:</span>
+<span class="sd">        nband:</span>
+<span class="sd">        ndivsm:</span>
+<span class="sd">        accuracy:</span>
+
+<span class="sd">    Return: :class:`AbinitInput`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># create a copy to avoid messing with the previous input</span>
     <span class="n">bands_input</span> <span class="o">=</span> <span class="n">gsinput</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1277,15 +1303,15 @@
 
     <span class="c1"># create a copy to avoid messing with the previous input</span>
     <span class="n">dos_input</span> <span class="o">=</span> <span class="n">gsinput</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
-
     <span class="n">dos_input</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
 
-    <span class="n">dos_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">dos_kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dos_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">dos_input</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">dos_kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">dos_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">dos_ksampling</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
-    <span class="n">dos_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">dos_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">dos_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">_stopping_criterion</span><span class="p">(</span><span class="s2">&quot;nscf&quot;</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">pdos</span><span class="p">:</span>
+        <span class="c1"># FIXME</span>
         <span class="k">pass</span>
 
     <span class="k">return</span> <span class="n">dos_input</span>
@@ -1306,7 +1332,6 @@
 <span class="k">def</span> <span class="nf">hybrid_oneshot_input</span><span class="p">(</span><span class="n">gsinput</span><span class="p">,</span> <span class="n">functional</span><span class="o">=</span><span class="s2">&quot;hse06&quot;</span><span class="p">,</span> <span class="n">ecutsigx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gw_qprange</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 
     <span class="n">hybrid_input</span> <span class="o">=</span> <span class="n">gsinput</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
-
     <span class="n">hybrid_input</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
 
     <span class="n">functional</span> <span class="o">=</span> <span class="n">functional</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -1451,35 +1476,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

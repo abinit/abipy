@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>core Package &#8212; abipy 0.1.0 documentation</title>
+    <title>core Package &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tools Package" href="tools_api.html" />
-    <link rel="prev" title="API documentation" href="index.html" />
+    <link rel="next" title="data Package" href="data_api.html" />
+    <link rel="prev" title="abio Package" href="abio_api.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +37,63 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">core Package</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">core</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.core.abinit_units"><code class="docutils literal"><span class="pre">abinit_units</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.fields"><code class="docutils literal"><span class="pre">fields</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.func1d"><code class="docutils literal"><span class="pre">func1d</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.gsphere"><code class="docutils literal"><span class="pre">gsphere</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.mesh3d"><code class="docutils literal"><span class="pre">mesh3d</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.mixins"><code class="docutils literal"><span class="pre">mixins</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.irrepsdb"><code class="docutils literal"><span class="pre">irrepsdb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.kpoints"><code class="docutils literal"><span class="pre">kpoints</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.structure"><code class="docutils literal"><span class="pre">structure</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.symmetries"><code class="docutils literal"><span class="pre">symmetries</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.tensor"><code class="docutils literal"><span class="pre">tensor</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.testing"><code class="docutils literal"><span class="pre">testing</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.wyckoff"><code class="docutils literal"><span class="pre">wyckoff</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="abio_api.html" title="previous chapter">abio Package</a></li>
+      <li>Next: <a href="data_api.html" title="next chapter">data Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/core_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -788,7 +842,7 @@ Extra dimensions can be added with <code class="docutils literal"><span class="p
 <p>Descriptor-class for uniform 3D meshes.</p>
 <p>A Mesh3D object holds information on how functions, such
 as wave functions and electron densities, are discretized in a
-certain domain in space.  The main information here is how many
+certain domain in space. The main information here is how many
 grid points are used in each direction of the unit cell.</p>
 <p>There are methods for tasks such as allocating arrays, performing
 symmetry operations and integrating functions over space.</p>
@@ -849,8 +903,7 @@ Extra dimensions can be added with <cite>extra_dims</cite>.</p>
 <dl class="method">
 <dt id="abipy.core.mesh3d.Mesh3D.fourier_interp">
 <code class="descname">fourier_interp</code><span class="sig-paren">(</span><em>data</em>, <em>new_mesh</em>, <em>inspace=u'r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mesh3d.html#Mesh3D.fourier_interp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mesh3d.Mesh3D.fourier_interp" title="Permalink to this definition">¶</a></dt>
-<dd><p>sphere in parallelepiped
-Fourier interpolation of data.</p>
+<dd><p>Fourier interpolation of data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1230,7 +1283,7 @@ instance or a list of <cite>Kpoint</cite> items.</li>
 <dl class="class">
 <dt id="abipy.core.kpoints.Kpoint">
 <em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpoint</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>lattice</em>, <em>weight=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pymatgen.serializers.pickle_coders.SlotPickleMixin</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.serializers.pickle_coders.html#pymatgen.serializers.pickle_coders.SlotPickleMixin" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.serializers.pickle_coders.SlotPickleMixin</span></code></a></p>
 <p>Class defining one k-point.</p>
 <dl class="classmethod">
 <dt id="abipy.core.kpoints.Kpoint.as_kpoint">
@@ -1593,7 +1646,7 @@ as well as the mapping BZ &#8211;&gt; IBZ.</p>
 <dl class="class">
 <dt id="abipy.core.structure.Structure">
 <em class="property">class </em><code class="descclassname">abipy.core.structure.</code><code class="descname">Structure</code><span class="sig-paren">(</span><em>lattice</em>, <em>species</em>, <em>coords</em>, <em>validate_proximity=False</em>, <em>to_unit_cell=False</em>, <em>coords_are_cartesian=False</em>, <em>site_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v4.7.1)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Extends <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code> with Abinit-specific methods.</p>
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.ABO3">
@@ -2739,7 +2792,7 @@ in a single location, so that test scripts can just import it and work right awa
 <dl class="class">
 <dt id="abipy.core.testing.AbipyTest">
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v4.7.1)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
 <p>Extends PymatgenTest with Abinit-specific methods</p>
 <dl class="method">
 <dt id="abipy.core.testing.AbipyTest.assertFwSerializable">
@@ -2758,15 +2811,15 @@ in a single location, so that test scripts can just import it and work right awa
 <dd><p>Alternative naming for assertArrayEqual.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.get_abistructure_from_abiref">
-<code class="descname">get_abistructure_from_abiref</code><span class="sig-paren">(</span><em>basename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.get_abistructure_from_abiref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.get_abistructure_from_abiref" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_abistructure_from_abiref</code><span class="sig-paren">(</span><em>basename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.get_abistructure_from_abiref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.get_abistructure_from_abiref" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an Abipy structure from the basename of one of the reference files.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.get_tmpname">
-<code class="descname">get_tmpname</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.get_tmpname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.get_tmpname" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_tmpname</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.get_tmpname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.get_tmpname" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invoke mkstep with kwargs, return the name of a temporary file.</p>
 </dd></dl>
 
@@ -2787,9 +2840,9 @@ in a single location, so that test scripts can just import it and work right awa
 <em class="property">static </em><code class="descname">has_matplotlib</code><span class="sig-paren">(</span><em>version=None</em>, <em>op=u'&gt;='</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_matplotlib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_matplotlib" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.has_nbformat">
-<code class="descname">has_nbformat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_nbformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_nbformat" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">has_nbformat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_nbformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_nbformat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if nbformat is available and we can test the generation of ipython notebooks.</p>
 </dd></dl>
 
@@ -2797,6 +2850,12 @@ in a single location, so that test scripts can just import it and work right awa
 <dt id="abipy.core.testing.AbipyTest.has_seaborn">
 <em class="property">static </em><code class="descname">has_seaborn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_seaborn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_seaborn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="abipy.core.testing.AbipyTest.straceback">
+<em class="property">static </em><code class="descname">straceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.straceback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.straceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string with the traceback.</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.which">
@@ -2920,11 +2979,6 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
 
 </dd></dl>
 
-<dl class="function">
-<dt id="abipy.core.wyckoff.test_sio2">
-<code class="descclassname">abipy.core.wyckoff.</code><code class="descname">test_sio2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/wyckoff.html#test_sio2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.wyckoff.test_sio2" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 </div>
 
@@ -2932,65 +2986,10 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">core Package</a><ul>
-<li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">core</span></code> Package</a></li>
-<li><a class="reference internal" href="#module-abipy.core.abinit_units"><code class="docutils literal"><span class="pre">abinit_units</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.fields"><code class="docutils literal"><span class="pre">fields</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.func1d"><code class="docutils literal"><span class="pre">func1d</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.gsphere"><code class="docutils literal"><span class="pre">gsphere</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.mesh3d"><code class="docutils literal"><span class="pre">mesh3d</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.mixins"><code class="docutils literal"><span class="pre">mixins</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.irrepsdb"><code class="docutils literal"><span class="pre">irrepsdb</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.kpoints"><code class="docutils literal"><span class="pre">kpoints</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.structure"><code class="docutils literal"><span class="pre">structure</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.symmetries"><code class="docutils literal"><span class="pre">symmetries</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.tensor"><code class="docutils literal"><span class="pre">tensor</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.testing"><code class="docutils literal"><span class="pre">testing</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.wyckoff"><code class="docutils literal"><span class="pre">wyckoff</span></code> Module</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">API documentation</a></li>
-      <li>Next: <a href="tools_api.html" title="next chapter">tools Package</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/core_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

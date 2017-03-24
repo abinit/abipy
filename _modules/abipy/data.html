@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>abipy.data &#8212; abipy 0.1.0 documentation</title>
+    <title>abipy.data &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -35,9 +35,33 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -47,13 +71,13 @@
 <span class="sd">Functions providing access to file data for unit tests and tutorials.</span>
 <span class="sd">Preferred way to import the module is via the import syntax:</span>
 
-<span class="sd">import abipy.abidata as abidata</span>
+<span class="sd">    import abipy.abidata as abidata</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">abipy.flowapi</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.data.ucells</span> <span class="k">import</span> <span class="n">structure_from_ucell</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -81,8 +105,9 @@
 
 
 <span class="k">def</span> <span class="nf">pyscript</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return the absolute name of one of the scripts in the `examples` directory from its basename.&quot;&quot;&quot;</span>
-
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the absolute name of one of the scripts in the `examples` directory from its basename.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">_SCRIPTS</span>
     <span class="k">if</span> <span class="n">_SCRIPTS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Build mapping basename --&gt; path.</span>
@@ -187,23 +212,19 @@
 
 
 <span class="k">def</span> <span class="nf">mp_structures</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Returns a dictionary containg the structures stored in mpdata/mp_structures. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Returns a dictionary containing the structures stored in mpdata/mp_structures. &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">json</span>
     <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_MPDATA_DIRPATH</span><span class="p">,</span> <span class="s1">&#39;mp_structures.json&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_MPDATA_DIRPATH</span><span class="p">,</span> <span class="s1">&#39;mp_structures.json&#39;</span><span class="p">),</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">)</span>
 
 
 <span class="n">WFK_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;WFK&quot;</span><span class="p">)</span>
-
 <span class="n">DEN_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;DEN&quot;</span><span class="p">)</span>
-
 <span class="n">GSR_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;GSR&quot;</span><span class="p">)</span>
-
 <span class="n">SIGRES_NCFILES</span> <span class="o">=</span> <span class="n">ncfiles_with_ext</span><span class="p">(</span><span class="s2">&quot;SIGRES&quot;</span><span class="p">)</span>
-
-<span class="n">ALL_NCFILES</span> <span class="o">=</span> <span class="n">_DATA_NCFILES</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<span class="n">ALL_NCFILES</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_DATA_NCFILES</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
 
 <span class="k">class</span> <span class="nc">FilesGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -367,35 +388,10 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../index.html">
-              <img class="logo" src="../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
