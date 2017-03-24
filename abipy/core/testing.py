@@ -120,6 +120,17 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
     except:
         return False
 
+def json_read_abinit_input_from_path(json_path):
+    from abipy.abio.inputs import AbinitInput
+    import abipy.data as abidata
+
+    with open(json_path, "rt") as fh:
+        d = json.load(fh)
+
+    for pdict in d["pseudos"]:
+        pdict["filepath"] = os.path.join(abidata.dirpath, "pseudos", os.path.basename(pdict["filepath"]))
+
+    return AbinitInput.from_dict(d)
 
 def straceback():
     """Returns a string with the traceback."""
@@ -138,6 +149,7 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
     """
 
     from abipy.abio.inputs import AbinitInput
+    import abipy.data as abidata
 
     def check_int(i, j):
         return i != j
@@ -169,7 +181,8 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
         return flat_var
 
     with open(ref_file) as fp:
-        input_ref = AbinitInput.from_dict(json.load(fp))
+        d = json.load(fp)
+        input_ref = AbinitInput.from_dict(d)
 
     errors = []
     diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
@@ -289,6 +302,10 @@ class AbipyTest(PymatgenTest):
         Alternative naming for assertArrayEqual.
         """
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
+
+    @staticmethod
+    def json_read_abinit_input(json_basename):
+        return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
     def assert_input_equallity(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):

@@ -21,10 +21,13 @@ class TestTEstingTools(AbipyTest):
         ref_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00.json')
         bad_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00-bad.json')
 
-        with open(ref_file) as fp:
-            input_good = AbinitInput.from_dict(json.load(fp))
-        with open(bad_file) as fp:
-            input_bad = AbinitInput.from_dict(json.load(fp))
+        input_good = self.json_read_abinit_input('convergence_inputs_single_factory_00.json')
+        input_bad =  self.json_read_abinit_input('convergence_inputs_single_factory_00-bad.json')
+
+        #with open(ref_file) as fp:
+        #    input_good = AbinitInput.from_dict(json.load(fp))
+        #with open(bad_file) as fp:
+        #    input_bad = AbinitInput.from_dict(json.load(fp))
 
         input_equality_check(ref_file, input_good)
 
