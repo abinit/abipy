@@ -34,14 +34,22 @@ install:
   - pip install pep8 python-coveralls
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
+
   # Install abinit from abinit conda channel.
   - conda config --add channels conda-forge
   - conda install -c abinit abinit=8.2.2
+
   # phonopy is not a requirement but we test scripts in data/runs that use it
   - conda install -c conda-forge phonopy
-  # FIXME: I'm still using my fork
+
+  # Get pymatgen from matsci
+  - conda config --add channels matsci
+  - conda install pymatgen #=4.7.2
+  # Use my pymatgen fork
   #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
-  - git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+  # pymatgen master
+  #- git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+
   - python setup.py install
   - mkdir -p ${HOME}/.abinit/abipy 
   - cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
