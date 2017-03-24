@@ -95,7 +95,10 @@ class Variable(yaml.YAMLObject):
         self.commentdefault = commentdefault
         self.commentdims = commentdims
 
-        self.text = unicode(text)
+        try:
+            self.text = unicode(text)  # py2
+        except:
+            self.text = str(text, "utf-8")
 
         # Fix mnemonics with newlines!
         if self.definition is not None:
@@ -233,9 +236,10 @@ class MultipleValue(yaml.YAMLObject):
 
 __VARS_DATABASE = None
 
-##################
-### Public API ###
-##################
+
+##############
+# Public API #
+##############
 
 
 def get_abinit_variables():
@@ -381,12 +385,11 @@ def abinit_help(varname, info=True, stream=sys.stdout):
         return stream.write("Variable %s not in database" % varname)
 
     html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
-        str(var.defaultval).decode("utf-8"), str(var.text).decode("utf-8"))
-    text = html2text.html2text(html) #.encode("utf-8")
-    if info: text += str(var.info).decode("utf-8")
+        str(var.defaultval), str(var.text))
+    text = html2text.html2text(html)
+    if info: text += str(var.info)
     # FIXME: There are unicode chars in abinit doc (Greek symbols)
     text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
-    #    text = text.encode('ascii', 'replace')
 
     try:
         stream.write(text)

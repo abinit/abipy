@@ -18,7 +18,6 @@ class TestPlots(AbipyTest):
 
         import matplotlib.pyplot as plt
 
-
         plot_dir = os.path.join(root, "..", "plot")
         count, errors = 0, []
         for fname in os.listdir(plot_dir):
