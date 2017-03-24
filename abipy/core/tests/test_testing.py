@@ -21,12 +21,8 @@ class TestTEstingTools(AbipyTest):
         ref_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00.json')
         bad_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00-bad.json')
 
-        with open(ref_file) as fp:
-            indict = json.load(fp)
-            indict['pseudos'] = abidata.pseudos("14si.pspnc")
-            input_good = AbinitInput.from_dict(indict)
-        with open(bad_file) as fp:
-            input_bad = AbinitInput.from_dict(json.load(fp))
+        input_good = self.json_read_abinit_input(ref_file)
+        input_bad = self.json_read_abinit_input(bad_file)
 
         input_equality_check(ref_file, input_good)
 

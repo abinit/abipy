@@ -114,8 +114,7 @@ class FactoryTest(AbipyTest):
         if True:
             for t in ['00', '10', '20', '30']:
                 input_dict = inputs[int(t[0])][int(t[1])].as_dict()
-                input_dict.pop('pseudos')
-                with open('convergence_inputs_single_factory_t.json', mode='w') as fp:
+                with open('convergence_inputs_single_factory_' + t + '.json', mode='w') as fp:
                     json.dump(input_dict, fp, indent=2)
 
         for t in ['00', '10', '20', '30']:

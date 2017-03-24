@@ -131,6 +131,20 @@
     ]
   ], 
   "decorators": [], 
+  "pseudos": [
+    {
+      "l_max": 2, 
+      "Z_val": 4.0, 
+      "filepath": "/Users/setten/software/conda_install/setten_stack/abipy/abipy/data/pseudos/14si.pspnc", 
+      "symbol": "Si", 
+      "@module": "pymatgen.io.abinit.pseudos", 
+      "Z": 14, 
+      "type": "NcAbinitPseudo", 
+      "basename": "14si.pspnc", 
+      "@class": "NcAbinitPseudo", 
+      "md5": "3916b143991b1cfa1542b130be320e5e"
+    }
+  ], 
   "structure": {
     "lattice": {
       "a": 3.86697462, 
