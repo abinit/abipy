@@ -8,7 +8,7 @@
         :target: https://travis-ci.org/abinit/abipy
 
 .. image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=master
-    :target: https://coveralls.io/github/abinit/abipy?branch=master
+        :target: https://coveralls.io/github/abinit/abipy?branch=master
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
