@@ -275,7 +275,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'abipy', u'abipy Documentation',
-     ", ",join(list(release.authors.values())), 1)
+     ", ".join(list(release.authors.values())), 1)
 ]
 
 # If true, show URL addresses after external links.

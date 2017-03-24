@@ -82,5 +82,5 @@ classifiers=[
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Chemistry",
-    "Topic :: Software Development :: Libraries :: Python Modules"
-],
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
