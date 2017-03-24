@@ -799,7 +799,6 @@ class SkwInterpolator(ElectronInterpolator):
                 de_kbs[:, ib, spin] = eigens[spin, 0:nkpt-1, ib] - eigens[spin, nkpt-1, ib]
 
         # Solve all bands and spins at once
-        #call np.linalg.zhesv("U", nkpt-1, nband*nsppol, hmat, nkpt-1, ipiv, lmbs, nkpt-1, work, lwork, ierr)
         try:
             lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
                     sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, check_finite=False)

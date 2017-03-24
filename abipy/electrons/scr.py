@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class WGGFunction(object):
-    """
+    r"""
     Base class for two-point functions expressed in
     reciprocal space i.e. a matrix $A_{G,G'}(q, \omega)$
 

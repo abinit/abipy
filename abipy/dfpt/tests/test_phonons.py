@@ -85,6 +85,7 @@ class PlotterTest(AbipyTest):
         fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
                                phdos_objects=phdos_objects, show=False)
         assert fig is not None
+        phdos.close()
 
 
 class PhbstFileTest(AbipyTest):
@@ -164,7 +165,6 @@ class InteratomicForceConstantsTest(AbipyTest):
     @classmethod
     def setUpClass(cls):
         cls.ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
-
         cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4,4,4], verbose=1)
 
     @classmethod

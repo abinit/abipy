@@ -38,6 +38,7 @@ PRIMCOORD 1
 """
         tmp_file.seek(0)
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
+        tmp_file.close()
 
     def test_xsf_write_data(self):
         """Testing XSF file with datasets."""
@@ -86,6 +87,7 @@ END_BLOCK_DATAGRID_3D
         xsf_write_data(tmp_file, self.mgb2, cplx_data, cplx_mode="re")
         tmp_file.seek(0)
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
+        tmp_file.close()
 
     def test_bxsf_write(self):
         tmp_file = tempfile.TemporaryFile(mode="w+")
@@ -141,8 +143,4 @@ END_BLOCK_BANDGRID_3D
         print(xsf_string)
         self.maxDiff = None
         self.assertMultiLineEqual(s, xsf_string)
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+        tmp_file.close()

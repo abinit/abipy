@@ -136,9 +136,12 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             nscf_bands.get_ejdos(spin, 0, 4)
 
+    def test_ebands_skw_interpolation(self):
+        bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+
         # Test interpolate.
-        vertices_names=[((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
-        r = bands.interpolate(lpratio=5, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
+        vertices_names = [((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
+        r = bands.interpolate(lpratio=10, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
         assert r.ebands_kpath is not None
         assert r.ebands_kpath.kpoints.is_path
         assert not r.ebands_kpath.kpoints.is_ibz
