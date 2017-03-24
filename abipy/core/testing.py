@@ -8,6 +8,7 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
+import numpy
 import subprocess
 import json
 import tempfile
@@ -19,6 +20,7 @@ from pymatgen.util.testing import PymatgenTest
 import logging
 logger = logging.getLogger(__file__)
 
+root = os.path.dirname(__file__)
 
 __all__ = [
     "AbipyTest",
@@ -118,6 +120,97 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
         return False
 
 
+def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=False):
+    """
+    function to compare two inputs
+    ref_file takes the path to reference input in json: json.dump(input.as_dict(), fp, indent=2)
+    input2 takes an AbinintInput object
+    tol relative tolerance for floats
+    we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)
+    or almost equal (floats)
+    """
+
+    from abipy.abio.inputs import AbinitInput
+
+    def check_int(i, j):
+        return i != j
+
+    def check_float(x, y):
+        return not numpy.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+    def check_str(s, t):
+        return s != t
+
+    def check_var(v, w):
+        _error = False
+        if isinstance(v, int):
+            _error = check_int(v, w)
+        elif isinstance(v, float):
+            _error = check_float(v, w)
+        elif isinstance(v, (str, unicode)):
+            _error = check_str(v, w)
+        return _error
+
+    def flatten_var(o, tree_types=(list, tuple, numpy.ndarray)):
+        flat_var = []
+        if isinstance(o, tree_types):
+            for value in o:
+                for sub_value in flatten_var(value, tree_types):
+                    flat_var.append(sub_value)
+        else:
+            flat_var.append(o)
+        return flat_var
+
+    with open(ref_file) as fp:
+        input_ref = AbinitInput.from_dict(json.load(fp))
+
+    errors = []
+    diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
+    diff_in_actual = [var for var in input2.vars if var not in input_ref.vars]
+    if len(diff_in_ref) > 0 or len(diff_in_actual) > 0:
+        error_description = 'not the same input parameters:\n' \
+                            '     %s were found in ref but not in actual\n' \
+                            '     %s were found in actual but not in ref\n' % \
+                            (diff_in_ref, diff_in_actual)
+        errors.append(error_description)
+
+    for var, val_r in input_ref.vars.items():
+        try:
+            val_t = input2.vars[var]
+        except KeyError:
+            errors.append('variable %s from the reference is not in the actual input\n' % str(var))
+            continue
+        val_list_t = flatten_var(val_t)
+        val_list_r = flatten_var(val_r)
+        error = False
+        print(var)
+        print(val_list_r, type(val_list_r[0]))
+        print(val_list_t, type(val_list_t[0]))
+        for k, var_item in enumerate(val_list_r):
+            try:
+                error = error or check_var(val_list_t[k], val_list_r[k])
+            except IndexError:
+                print(val_list_t, type(val_list_t[0]))
+                print(val_list_r, type(val_list_r[0]))
+                raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
+                                   'type to the tree_types tuple in flatten_var')
+
+        if error:
+            error_description = 'var %s differs: %s (reference) != %s (actual)' % \
+                                (var, val_r, val_t)
+            errors.append(error_description)
+
+    if input2.structure != input_ref.structure:
+        errors.append('Structures are not the same.\n')
+        print(input2.structure, input_ref.structure)
+
+    if len(errors) > 0:
+        msg = 'Two inputs were found to be not equal:\n'
+        for err in errors:
+            msg += '   ' + err + '\n'
+        raise AssertionError(msg)
+
+
 class AbipyTest(PymatgenTest):
     """Extends PymatgenTest with Abinit-specific methods """
 
@@ -129,7 +222,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_abinit(version=None, op=">="):
         """Return True if abinit is in $PATH and version is op min_version."""
-        return has_abinit(version=None, op=op)
+        return has_abinit(version=version, op=op)
 
     @staticmethod
     def has_matplotlib(version=None, op=">="):
@@ -186,6 +279,24 @@ class AbipyTest(PymatgenTest):
         Alternative naming for assertArrayEqual.
         """
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
+
+    @staticmethod
+    def assert_input_equallity(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
+        """
+        Check equality between an input and a reference in test_files.
+        only input variables and structure are compared.
+        Args:
+            ref_basename: base name of the reference file to test against in test_files
+            input_to_test: AbinitInput object to test
+            rtol: passed to numpy.isclose for float comparison
+            atol: passed to numpy.isclose for float comparison
+            equal_nan: passed to numpy.isclose for float comparison
+
+        Returns:
+            raises an assertion error if the two inputs are not the same
+        """
+        ref_file = os.path.join(root, '..', 'test_files', ref_basename)
+        input_equality_check(ref_file, input_to_test, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
 class AbipyFileTest(AbipyTest):
