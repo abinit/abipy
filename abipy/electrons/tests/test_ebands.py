@@ -1,10 +1,11 @@
 """Tests for electrons.ebands module"""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 
+import sys
 import numpy as np
 import abipy.data as abidata
-
 import pymatgen.core.units as units
+
 from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
     ElectronsReader, frame_from_ebands)
@@ -137,6 +138,11 @@ class ElectronBandsTest(AbipyTest):
             nscf_bands.get_ejdos(spin, 0, 4)
 
     def test_ebands_skw_interpolation(self):
+        if sys.version[0:3] >= '3.4':
+            raise unittest.SkipTest(
+                "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
+             )
+
         bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
         # Test interpolate.
