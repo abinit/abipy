@@ -56,7 +56,7 @@ license = 'GPL'
 author = 'The AbiPy group'
 author_email = 'matteo.giantomassi at uclouvain.be'
 maintainer = "Matteo Giantomassi"
-maintainer = author_email
+maintainer_email = author_email
 authors = OrderedDict([
     ('Matteo', ('M. Giantomassi', 'matteo.giantomassi at uclouvain.be')),
     ('Michiel', ('M. J. van Setten', 'mjvansetten at gmail.com')),
