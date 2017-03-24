@@ -3,6 +3,7 @@ from __future__ import print_function, division, unicode_literals
 
 import sys
 import numpy as np
+import unittest
 import abipy.data as abidata
 import pymatgen.core.units as units
 
