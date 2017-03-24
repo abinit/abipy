@@ -7,97 +7,7 @@ from abipy.flowapi import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWo
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
-import numpy
 import json
-
-
-def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=False):
-    """
-    function to compare two inputs
-    ref_file takes the path to reference input in json: json.dump(input.as_dict(), fp, indent=2)
-    input2 takes an AbinintInput object
-    tol relative tolerance for floats
-    we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)
-    or almost equal (floats)
-    """
-
-    def check_int(i, j):
-        return i != j
-
-    def check_float(x, y):
-        return not numpy.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
-
-    def check_str(s, t):
-        return s != t
-
-    def check_var(v, w):
-        _error = False
-        if isinstance(v, int):
-            _error = check_int(v, w)
-        elif isinstance(v, float):
-            _error = check_float(v, w)
-        elif isinstance(v, (str, unicode)):
-            _error = check_str(v, w)
-        return _error
-
-    def flatten_var(o, tree_types=(list, tuple, numpy.ndarray)):
-        flat_var = []
-        if isinstance(o, tree_types):
-            for value in o:
-                for sub_value in flatten_var(value, tree_types):
-                    flat_var.append(sub_value)
-        else:
-            flat_var.append(o)
-        return flat_var
-
-    with open(ref_file) as fp:
-        input_ref = AbinitInput.from_dict(json.load(fp))
-
-    errors = []
-    diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
-    diff_in_actual = [var for var in input2.vars if var not in input_ref.vars]
-    if len(diff_in_ref) > 0 or len(diff_in_actual) > 0:
-        error_description = 'not the same input parameters:\n' \
-                            '     %s were found in ref but not in actual\n' \
-                            '     %s were found in actual but not in ref\n' % \
-                            (diff_in_ref, diff_in_actual)
-        errors.append(error_description)
-
-    for var, val_r in input_ref.vars.items():
-        try:
-            val_t = input2.vars[var]
-        except KeyError:
-            errors.append('variable %s from the reference is not in the actual input\n' % str(var))
-            continue
-        val_list_t = flatten_var(val_t)
-        val_list_r = flatten_var(val_r)
-        error = False
-        print(var)
-        print(val_list_r, type(val_list_r[0]))
-        print(val_list_t, type(val_list_t[0]))
-        for k, var_item in enumerate(val_list_r):
-            try:
-                error = error or check_var(val_list_t[k], val_list_r[k])
-            except IndexError:
-                print(val_list_t, type(val_list_t[0]))
-                print(val_list_r, type(val_list_r[0]))
-                raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
-                                   'type to the tree_types tuple in flatten_var')
-
-        if error:
-            error_description = 'var %s differs: %s (reference) != %s (actual)' % \
-                                (var, val_r, val_t)
-            errors.append(error_description)
-
-    if input2.structure != input_ref.structure:
-        errors.append('Structures are not the same.\n')
-        print(input2.structure, input_ref.structure)
-
-    if len(errors) > 0:
-        msg = 'Two inputs were found to be not equal:\n'
-        for err in errors:
-            msg += '   ' + err + '\n'
-        raise AssertionError(msg)
 
 
 class FactoryTest(AbipyTest):
@@ -209,9 +119,7 @@ class FactoryTest(AbipyTest):
 
         for t in ['00', '10', '20', '30']:
             ref_file = 'convergence_inputs_single_factory_' + t + '.json'
-            input_equality_check(ref_file, inputs[int(t[0])][int(t[1])])
-
-        self.assertTrue(False)
+            self.assert_input_equallity(ref_file, inputs[int(t[0])][int(t[1])])
 
         for inp in [item for sublist in inputs for item in sublist]:
             val = inp.abivalidate()
