@@ -26,7 +26,8 @@ class TestPlots(AbipyTest):
             count += 1
             path = os.path.join(plot_dir, fname)
             try:
-                exec(open(path))
+                with open(path, "rt") as fh:
+                    exec(fh.read())
             except Exception:
                 errors.append("file %s\n %s" % (path, self.straceback()))
             plt.close("all")
