@@ -111,7 +111,7 @@ class FactoryTest(AbipyTest):
         for i, p in enumerate(inputs[0][0].as_dict()['pseudos']):
             print(p['filepath'])
 
-        if True:
+        if False:
             for t in ['00', '10', '20', '30']:
                 input_dict = inputs[int(t[0])][int(t[1])].as_dict()
                 with open('convergence_inputs_single_factory_' + t + '.json', mode='w') as fp:
