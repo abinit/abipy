@@ -169,7 +169,9 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
         return flat_var
 
     with open(ref_file) as fp:
-        input_ref = AbinitInput.from_dict(json.load(fp))
+        input_dict = json.load(fp)
+        input_dict['pseudos'] = input2.as_dict()['pseudos']
+        input_ref = AbinitInput.from_dict(input_dict)
 
     errors = []
     diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]

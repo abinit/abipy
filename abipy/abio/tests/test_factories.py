@@ -8,6 +8,7 @@ from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 import json
+import os
 
 
 class ShiftModeTest(AbipyTest):
@@ -107,15 +108,15 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        if False:
-            with open('convergence_inputs_single_factory_00.json', mode='w') as fp:
-                json.dump(inputs[0][0].as_dict(), fp, indent=2)
-            with open('convergence_inputs_single_factory_10.json', mode='w') as fp:
-                json.dump(inputs[1][0].as_dict(), fp, indent=2)
-            with open('convergence_inputs_single_factory_20.json', mode='w') as fp:
-                json.dump(inputs[2][0].as_dict(), fp, indent=2)
-            with open('convergence_inputs_single_factory_30.json', mode='w') as fp:
-                json.dump(inputs[3][0].as_dict(), fp, indent=2)
+        for i, p in enumerate(inputs[0][0].as_dict()['pseudos']):
+            print(p['filepath'])
+
+        if True:
+            for t in ['00', '10', '20', '30']:
+                input_dict = inputs[int(t[0])][int(t[1])].as_dict()
+                input_dict.pop('pseudos')
+                with open('convergence_inputs_single_factory_t.json', mode='w') as fp:
+                    json.dump(input_dict, fp, indent=2)
 
         for t in ['00', '10', '20', '30']:
             ref_file = 'convergence_inputs_single_factory_' + t + '.json'

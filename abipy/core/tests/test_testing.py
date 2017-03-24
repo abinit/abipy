@@ -4,7 +4,7 @@ from __future__ import print_function, division
 
 import os
 import json
-
+import abipy.data as abidata
 from abipy.core.testing import *
 from abipy.core.testing import input_equality_check
 from abipy.abio.inputs import AbinitInput
@@ -22,7 +22,9 @@ class TestTEstingTools(AbipyTest):
         bad_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00-bad.json')
 
         with open(ref_file) as fp:
-            input_good = AbinitInput.from_dict(json.load(fp))
+            indict = json.load(fp)
+            indict['pseudos'] = abidata.pseudos("14si.pspnc")
+            input_good = AbinitInput.from_dict(indict)
         with open(bad_file) as fp:
             input_bad = AbinitInput.from_dict(json.load(fp))
 
