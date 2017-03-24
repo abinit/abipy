@@ -14,7 +14,6 @@ from __future__ import print_function, absolute_import
 
 import sys
 import os
-#import sphinx_bootstrap_theme
 #import matplotlib as mpl
 #mpl.use("Agg")
 
@@ -22,19 +21,12 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-#sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('sphinxext'))
-#sys.path.insert(0, os.path.abspath('.'))
-#sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../abipy'))
-#sys.path.insert(0, os.path.abspath('../..'))
 
 import imp
 mod_name = "../abipy/core/release.py"
 release = imp.load_source(mod_name, mod_name)
-
-#__version__ = 0.1
-#__author__ = "gmatteo"
 
 # -- General configuration -----------------------------------------------------
 
@@ -55,7 +47,7 @@ extensions = [
 'sphinx.ext.ifconfig',
 'sphinx.ext.viewcode',
 'sphinx.ext.graphviz',
-'sphinx.ext.napoleon',
+'sphinx.ext.napoleon',   # For Google Python Style Guide
 'sphinx.ext.inheritance_diagram',
 'sphinxcontrib.programoutput',
 ]
@@ -64,7 +56,6 @@ extensions = [
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
 extensions += [
-          #'sphinxcontrib.napoleon',   # For Google Python Style Guide
           'matplotlib.sphinxext.mathmpl',
           'matplotlib.sphinxext.only_directives',
           'matplotlib.sphinxext.plot_directive',
@@ -250,8 +241,11 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'abipy.tex', u'abipy Documentation',
-   u'M. Giantomassi', 'manual'),
+  ('index',
+   'abipy.tex',
+   'AbiPy Documentation',
+   u'M. Giantomassi',
+   'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -281,7 +275,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'abipy', u'abipy Documentation',
-     [u'M. Giantomassi'], 1)
+     ", ",join(list(release.authors.values())), 1)
 ]
 
 # If true, show URL addresses after external links.

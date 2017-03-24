@@ -2,6 +2,8 @@
 """Release data for the abipy project."""
 from __future__ import print_function, division, unicode_literals
 
+from collections import OrderedDict
+
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'abipy'
@@ -9,7 +11,7 @@ name = 'abipy'
 # version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development version
 _version_major = 0
-_version_minor = 1
+_version_minor = 2
 _version_micro = '0'  # use '' for first of series, number for 1 and above
 #_version_extra = 'dev'
 _version_extra = ''  # Uncomment this for full releases
@@ -24,56 +26,59 @@ __version__ = '.'.join(map(str, _ver))
 version = __version__  # backwards compatibility name
 
 # The minimum Abinit version compatible with AbiPy
-min_abinit_version = "8.0.1"
+min_abinit_version = "8.0.8"
 
-description = "Python modules and scripts to analyze the results of ab-initio calculation performed with ABINIT"
+description = "Python package to automate ABINIT calculations and analyze the results."
 
 long_description = \
     """
-    The goal of abipy is to create a comprehensive environment for
-    interactive and exploratory computing.  To support this goal,
-    abipy provides:
+    AbiPy is a Python library to analyze the results produced by `ABINIT <http://www.abinit.org>`_,
+    an open-source program for the ab-initio calculations of the physical properties of materials
+    within Density Functional Theory and Many-Body perturbation theory.
+    AbiPy also provides tools to generate input files and workflows to automate
+    ab-initio calculations and typical convergence studies.
+    AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ allowing users to
+    benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-    * A set of pythons objects to store the results of the calculations.
+    AbiPy can be used in conjunction with  `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
+    `ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
+    thus providing a powerful and user-friendly environment for data analysis and visualization.
+    Check out the list of plotting scripts available in our :doc:`gallery </examples/index>`.
+    To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
+    <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
+    and the `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
-    * A set of scripts for performing common tasks such as plotting the results
-      of the calculation.
-
-    The latest development version is always available from site <https://github.com/gmatteo/abipy>
+    The latest development version is always available from <https://github.com/abinit/abipy>
     """
 
 license = 'GPL'
 
-authors = {
-    'Matteo': ('Matteo Giantomassi', 'gmatteo at gmail.com'),
-    'Antonius': ('Gabriel Antonius', 'gabriel.antonius at gmail.com'),
-}
+author = 'The AbiPy group'
+author_email = 'matteo.giantomassi at uclouvain.be'
+maintainer = "Matteo Giantomassi"
+maintainer = author_email
+authors = OrderedDict([
+    ('Matteo', ('M. Giantomassi', 'matteo.giantomassi at uclouvain.be')),
+    ('Michiel', ('M. J. van Setten', 'mjvansetten at gmail.com')),
+    ('Guido', ('G. Petretto', 'guido.petretto at gmail.com')),
+    ('Gabriel', ('G. Antonius', 'gabriel.antonius at gmail.com')),
+])
 
-author = 'The ABINIT group'
-
-author_email = 'gmatteo at gmail com'
-
-url = 'https://github.com/gmatteo/abipy'
-
-#download_url = 'https://github.com/gmatteo/abipy'
-
+url = "https://github.com/abinit/abipy"
+download_url = "https://github.com/abinit/abipy"
 platforms = ['Linux', 'darwin']
-
-keywords = ["ABINIT", "ab initio", "first principles", "electronic", "structure"]
-
+keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
 classifiers=[
     "Programming Language :: Python :: 2",
     "Programming Language :: Python :: 2.7",
-    #"Programming Language :: Python :: 3",
-    #"Programming Language :: Python :: 3.2",
-    #"Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.4",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
-    #"Development Status :: 4 - Beta",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    #"License :: OSI Approved :: MIT License",
-    #"Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Chemistry",

@@ -180,6 +180,7 @@ install_requires = [
     "pandas",
     "numpy>=1.9",
     "scipy>=0.14",
+    "spglib",
     "pymatgen>=4.7.1",
     "netCDF4",
     "matplotlib>=1.5",
@@ -191,8 +192,6 @@ if with_ipython:
         "ipython",
         "jupyter",
         "nbformat",
-        #"pyzmq",
-        #"jinja2",
     ]
 
 #if with_cython:
@@ -231,6 +230,8 @@ setup_args = dict(
       long_description=long_description,
       author=author,
       author_email=author_email,
+      maintainer=maintainer,
+      maintainer_email=maintainer_email,
       url=url,
       license=license,
       platforms=platforms,
@@ -241,7 +242,7 @@ setup_args = dict(
       package_data=my_package_data,
       exclude_package_data=my_excl_package_data,
       scripts=my_scripts,
-      #download_url=download_url,
+      download_url=download_url,
       ext_modules=ext_modules,
       )
 
