@@ -388,7 +388,8 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
     #    text = text.encode('ascii', 'replace')
 
-    #print(type(text))
-    stream.write(text)
-    stream.write(text.encode('ascii', 'ignore'))
+    try:
+        stream.write(text)
+    except UnicodeEncodeError:
+        stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")

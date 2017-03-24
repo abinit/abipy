@@ -1072,8 +1072,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             except ValueError as exc:
                 errlines.append(str(exc))
                 continue
-            label = "skb = %s, %s, %s" % (spin, kpoint, band)
-            sigw.plot_ax(ax, label=r"$A(\omega)$:" + label, **kwargs)
+            label = r"$A(\omega)$: skb = %s, %s, %s" % (spin, kpoint, band)
+            sigw.plot_ax(ax, label=label, **kwargs)
 
         if errlines:
             cprint("\n".join(errlines), "red")
@@ -1092,7 +1092,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             fig = plotter.plot(**kwargs)
 
         else:
-
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
             fig = plot_array(ksqp_arr, **kwargs)
 

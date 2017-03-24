@@ -146,7 +146,7 @@ class ArrayPlotter(object):
             arr_list: List of arrays.
         """
         assert len(labels) == len(arr_list)
-        for (label, arr) in zip(labels, arr_list):
+        for label, arr in zip(labels, arr_list):
             self.add_array(label, arr)
 
     @add_fig_kwargs
@@ -156,29 +156,51 @@ class ArrayPlotter(object):
             cplx_mode: "abs" for absolute value, "re", "im", "angle"
             color_map: matplotlib colormap
         """
-        ax, fig, plt = get_ax_fig_plt(None)
-        plt.axis("off")
+        #ax, fig, plt = get_ax_fig_plt(None)
+        #plt.axis("off")
 
-        # Grid parameters
+        # Build grid of plots.
         num_plots, ncols, nrows = len(self), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = num_plots // ncols + (num_plots % ncols)
 
-        # use origin to place the [0,0] index of the array in the lower left corner of the axes.
-        for n, (label, arr) in enumerate(self.items()):
-            fig.add_subplot(nrows, ncols, n)
+        import matplotlib.pyplot as plt
+        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
+
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+        from matplotlib.ticker import MultipleLocator
+
+        for ax, (label, arr) in zip(axmat.flat, self.items()):
             data = data_from_cplx_mode(cplx_mode, arr)
-            img = plt.imshow(data, interpolation='nearest', cmap=color_map, origin='lower')
+            # use origin to place the [0,0] index of the array in the lower left corner of the axes.
+            #img = ax.imshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
+            img = ax.matshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
+            #img = ax.matshow(data, cmap=color_map)
 
-            # make a color bar
-            plt.colorbar(img, cmap=color_map)
-            plt.title(label + " (%s)" % cplx_mode)
+            ax.set_title(label + " (%s)" % cplx_mode)
+
+            # Make a color bar for this ax
+            # Create divider for existing axes instance
+            # http://stackoverflow.com/questions/18266642/multiple-imshow-subplots-each-with-colorbar
+            divider3 = make_axes_locatable(ax)
+            # Append axes to the right of ax, with 10% width of ax
+            cax3 = divider3.append_axes("right", size="10%", pad=0.05)
+            # Create colorbar in the appended axes
+            # Tick locations can be set with the kwarg `ticks`
+            # and the format of the ticklabels with kwarg `format`
+            cbar3 = plt.colorbar(img, cax=cax3, ticks=MultipleLocator(0.2), format="%.2f")
+            # Remove xticks from ax
+            ax.xaxis.set_visible(False)
+            # Manually set ticklocations
+            #ax.set_yticks([0.0, 2.5, 3.14, 4.0, 5.2, 7.0])
 
             # Set grid
-            plt.grid(True, color='white')
+            ax.grid(True, color='white')
 
-
+        fig.tight_layout()
         return fig
 
 

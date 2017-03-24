@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This script runs all the python scripts located in this directory
 """
@@ -10,7 +9,6 @@ import tempfile
 from subprocess import call
 from abipy.core.testing import AbipyTest
 import abipy.flowtk as flowtk
-
 
 root = os.path.dirname(__file__)
 
@@ -43,9 +41,14 @@ class TestScripts(AbipyTest):
                 flow = module.build_flow(options)
                 assert flow is not None
                 flow.build_and_pickle_dump()
-            except Exception as exc:
-                errors.append(str(exc))
+            except Exception:
+                errors.append("file %s\n %s" % (s, self.straceback()))
 
         print("Tested ", count, "scripts")
-        assert not errors
         assert count > 0
+        if errors:
+            for i, e in enumerate(errors):
+                print(80 * "*")
+                print(i, e)
+                print(80 * "*")
+        assert not errors

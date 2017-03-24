@@ -311,7 +311,7 @@ def abicheck(verbose=0):
 
 def abipy_logo1():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
 
                  `:-                                                               -:`
          --`  .+/`                              `                                  `/+.  .-.
@@ -330,7 +330,7 @@ def abipy_logo1():
 
 def abipy_logo2():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
 MMMMMMMMMddNMMmoyNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNyomMMmhmMMMMMMMM
 MMMmmMMhomMMMy/hMMMMMMMMMMMMMMMMMMMN::MMMMMMMMMm:oMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMd+yMMMhomMmmMMM
@@ -348,7 +348,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 def abipy_logo3():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return """\
+    return r"""\
              `-.                                                  `--`
       -:. `//`              `/.       ::                           `+: `-:`
  --``+:  `o+        `.--.`  -y/.--.`  ::   `---`  `-     ..         `o+  `o-`--
