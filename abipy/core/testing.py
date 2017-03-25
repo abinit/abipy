@@ -16,6 +16,7 @@ import shutil
 import numpy.testing.utils as nptu
 
 from monty.os.path import which
+from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 
 import logging
@@ -150,9 +151,6 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
     or almost equal (floats)
     """
 
-    from abipy.abio.inputs import AbinitInput
-    import abipy.data as abidata
-
     def check_int(i, j):
         return i != j
 
@@ -168,7 +166,7 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
             _error = check_int(v, w)
         elif isinstance(v, float):
             _error = check_float(v, w)
-        elif isinstance(v, (str, unicode)):
+        elif is_string(v):
             _error = check_str(v, w)
         return _error
 
@@ -424,6 +422,6 @@ def change_matplotlib_backend(new_backend=""):
 
 def revert_matplotlib_backend():
     global CONF_FILE, BKP_FILE
-    #print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
+    # print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
     if BKP_FILE is not None:
         shutil.move(BKP_FILE, CONF_FILE)

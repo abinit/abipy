@@ -8,7 +8,6 @@ from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 import json
-import os
 
 
 class ShiftModeTest(AbipyTest):
@@ -27,7 +26,8 @@ class FactoryTest(AbipyTest):
         self.si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         self.si_pseudo = abidata.pseudos("14si.pspnc")
 
-    def validate_multi(self, multi):
+    @staticmethod
+    def validate_multi(multi):
         """Test validity of MultiDataset or a list of input objects."""
         if hasattr(multi, "split_datasets"):
             dtlist = multi.split_datasets()
@@ -56,8 +56,8 @@ class FactoryTest(AbipyTest):
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
         multi = ion_ioncell_relax_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
-                            #scf_kppa, scf_nband #accuracy="normal", spin_mode="polarized",
-                            #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+        # scf_kppa, scf_nband #accuracy="normal", spin_mode="polarized",
+        # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
         ion_inp, ioncell_inp = multi.split_datasets()
 
@@ -68,12 +68,12 @@ class FactoryTest(AbipyTest):
     def test_ion_ioncell_relax_and_ebands_input(self):
         """Testing ion_ioncell_relax_ands_ebands_input factory."""
         multi = ion_ioncell_relax_and_ebands_input(self.si_structure, self.si_pseudo, ecut=4)
-                                       #kppa=None, nband=None,
-                                       #pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                                       #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+        # kppa=None, nband=None,
+        # pawecutdg=None, accuracy="normal", spin_mode="polarized",
+        # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
         self.validate_multi(multi)
-        #ion_inp, ioncell_inp = multi.split_datasets()
+        # ion_inp, ioncell_inp = multi.split_datasets()
 
     def test_g0w0_with_ppmodel_inputs(self):
         """Testing g0w0_with_ppmodel_input factory."""
@@ -107,9 +107,6 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[1][0], AbinitInput)
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
-
-        for i, p in enumerate(inputs[0][0].as_dict()['pseudos']):
-            print(p['filepath'])
 
         if False:
             for t in ['00', '10', '20', '30']:
@@ -170,14 +167,13 @@ class FactoryTest(AbipyTest):
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 10, 10, 10, 4
-        ecuteps, ecutsigx = 3, 2
-        nscf_ngkpt, nscf_shiftk = [2,2,2], [[0,0,0]]
+        # ecuteps, ecutsigx = 3, 2
+        nscf_ngkpt, nscf_shiftk = [2, 2, 2], [[0, 0, 0]]
 
         multi = bse_with_mdf_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                                     ecuteps=2, bs_loband=1, bs_nband=2, mbpt_sciss="0.1 eV", mdf_epsinf=12, ecut=2)
-                                    #exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
-                                    #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
-
+                                    # exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
+                                    # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         scf_input, nscf_input, bse_input = multi.split_datasets()
         self.validate_multi(multi)
 
@@ -185,8 +181,8 @@ class FactoryTest(AbipyTest):
         """Testing scf_phonons_inputs."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 10, 10, 10, 4
         ecut = 4
-        multi = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa,
-                                  ecut=ecut) #, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
+        multi = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa, ecut=ecut)
+        # , pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
         self.validate_multi(multi)
 
     def test_phonons_from_gsinput(self):
@@ -205,19 +201,18 @@ class FactoryTest(AbipyTest):
     def test_scf_piezo_elastic_inputs(self):
         """Testing scf_piezo_elastic_inputs."""
         kppa = 800
-        multi = scf_piezo_elastic_inputs(self.si_structure, self.si_pseudo, kppa, ecut=3, pawecutdg=None, scf_nband=None,
-                                 accuracy="normal", spin_mode="polarized",
-                                 smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                                 ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
+        multi = scf_piezo_elastic_inputs(self.si_structure, self.si_pseudo, kppa, ecut=3, pawecutdg=None,
+                                         scf_nband=None, accuracy="normal", spin_mode="polarized",
+                                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
+                                         ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.validate_multi(multi)
 
     def test_scf_input(self):
         """Testing scf_input"""
         from abipy.abio.factories import scf_input
-        kppa = 800
-        inp = scf_input(self.si_structure, self.si_pseudo, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
-                  spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                  shift_mode="Monkhorst-Pack")
+        inp = scf_input(self.si_structure, self.si_pseudo, kppa=None, ecut=None, pawecutdg=None, nband=None,
+                        accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0,
+                        scf_algorithm=None, shift_mode="Monkhorst-Pack")
         inp.abivalidate()
 
     def test_ebands_dos_from_gsinput(self):

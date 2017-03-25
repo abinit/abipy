@@ -3,11 +3,8 @@
 from __future__ import print_function, division
 
 import os
-import json
-import abipy.data as abidata
 from abipy.core.testing import *
 from abipy.core.testing import input_equality_check
-from abipy.abio.inputs import AbinitInput
 
 root = os.path.dirname(__file__)
 
