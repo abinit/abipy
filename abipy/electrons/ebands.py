@@ -1965,7 +1965,7 @@ class ElectronBands(object):
         kfrac_coords, knames = kpath.frac_coords, kpath.names
 
         # Interpolate energies.
-        eigens_kpath = skw.eval_all(kfrac_coords)
+        eigens_kpath = skw.interp_kpts(kfrac_coords).eigens
 
         # Build new ebands object.
         kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
@@ -1977,7 +1977,7 @@ class ElectronBands(object):
         if kmesh is not None:
             # Get kpts and weights in IBZ.
             kdos = Ktables(self.structure, kmesh, is_shift, self.has_timrev)
-            eigens_kmesh = skw.eval_all(kdos.ibz)
+            eigens_kmesh = skw.interp_kpts(kdos.ibz).eigens
 
             # Build new ebands object with k-mesh
             #kptopt = kptopt_from_timrev()
