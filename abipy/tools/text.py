@@ -10,7 +10,7 @@ def tonumber(s):
     # Duck test.
     try:
         stnum = s.upper().replace("D", "E")  # D-01 is not recognized by python: Replace it with E.
-        stnum = strip_punct(stnum)           # Remove punctuation chars.
+        # stnum = strip_punct(stnum)           # Remove punctuation chars.
         return float(stnum)                  # Try to convert.
 
     except ValueError:
