@@ -224,7 +224,6 @@ class FactoryTest(AbipyTest):
         # exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
         # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         scf_input, nscf_input, bse_input = multi.split_datasets()
-        bse_input.abivalidate()
         self.validate_multi(multi)
 
     def test_scf_phonons_inputs(self):
