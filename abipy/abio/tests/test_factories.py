@@ -9,10 +9,14 @@ from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 import json
 
+write_inputs_to_json = False
+
 
 class ShiftModeTest(AbipyTest):
-    def test_shiftmode(self):
-        """Testing shifmode"""
+
+    @staticmethod
+    def test_shiftmode():
+        """Testing shiftmode"""
         from abipy.abio.factories import ShiftMode
         gamma = ShiftMode.GammaCentered
         assert ShiftMode.from_object("G") == gamma
@@ -46,12 +50,27 @@ class FactoryTest(AbipyTest):
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         inp.abivalidate()
 
+        if False:  # write_inputs_to_json:
+            with open('gs_input.json', mode='w') as fp:
+                json.dump(inp.as_dict(), fp, indent=2)
+
+        self.assert_input_equallity('gs_input.json', inp)
+
     def test_ebands_input(self):
         """Testing ebands_input factory."""
         multi = ebands_input(self.si_structure, self.si_pseudo, kppa=10, ecut=2)
 
         scf_inp, nscf_inp = multi.split_datasets()
+
+        if False:  # write_inputs_to_json:
+            with open('scf_input.json', mode='w') as fp:
+                json.dump(scf_inp.as_dict(), fp, indent=2)
+            with open('nscf_input.json', mode='w') as fp:
+                json.dump(nscf_inp.as_dict(), fp, indent=2)
+
         self.validate_multi(multi)
+        self.assert_input_equallity('scf_input.json', scf_inp)
+        self.assert_input_equallity('nscf_input.json', nscf_inp)
 
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
@@ -86,6 +105,26 @@ class FactoryTest(AbipyTest):
 
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
 
+        scf_input.abivalidate()
+        nscf_input.abivalidate()
+        scr_input.abivalidate()
+        sigma_input.abivalidate()
+
+        if False:  # write_inputs_to_json:
+            with open('g0w0_with_ppmodel_scf_input.json', mode='w') as fp:
+                json.dump(scf_input.as_dict(), fp, indent=2)
+            with open('g0w0_with_ppmodel_nscf_input.json', mode='w') as fp:
+                json.dump(nscf_input.as_dict(), fp, indent=2)
+            with open('g0w0_with_ppmodel_scr_input.json', mode='w') as fp:
+                json.dump(scr_input.as_dict(), fp, indent=2)
+            with open('g0w0_with_ppmodel_sigma_input.json', mode='w') as fp:
+                json.dump(sigma_input.as_dict(), fp, indent=2)
+
+        self.assert_input_equallity('g0w0_with_ppmodel_scf_input.json', scf_input)
+        self.assert_input_equallity('g0w0_with_ppmodel_nscf_input.json', nscf_input)
+        self.assert_input_equallity('g0w0_with_ppmodel_scr_input.json', scr_input)
+        self.assert_input_equallity('g0w0_with_ppmodel_sigma_input.json', sigma_input)
+
         flow = Flow.temporary_flow()
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
@@ -108,7 +147,7 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        if False:
+        if False:  # write_inputs_to_json:
             for t in ['00', '10', '20', '30']:
                 input_dict = inputs[int(t[0])][int(t[1])].as_dict()
                 with open('convergence_inputs_single_factory_' + t + '.json', mode='w') as fp:
@@ -172,8 +211,8 @@ class FactoryTest(AbipyTest):
 
         multi = bse_with_mdf_inputs(self.si_structure, self.si_pseudo, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
                                     ecuteps=2, bs_loband=1, bs_nband=2, mbpt_sciss="0.1 eV", mdf_epsinf=12, ecut=2)
-                                    # exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
-                                    # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+        # exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
+        # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         scf_input, nscf_input, bse_input = multi.split_datasets()
         self.validate_multi(multi)
 
