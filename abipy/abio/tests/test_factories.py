@@ -3,7 +3,7 @@ from __future__ import unicode_literals, division, print_function
 import abipy.data as abidata
 import abipy.abilab as abilab
 
-from abipy.flowtk import Flow, BandStructureWork, RelaxWork, G0W0Work, BseMdfWork
+from abipy.flowtk import Flow, RelaxWork, G0W0Work
 from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
@@ -41,7 +41,8 @@ class FactoryTest(AbipyTest):
         rcode = 0
         for dtset in dtlist:
             v = dtset.abivalidate()
-            if v.retcode != 0: print("Validation error in %s" % str(v))
+            if v.retcode != 0:
+                print("Validation error in %s" % str(v))
             rcode += v.retcode
         assert rcode == 0
 
@@ -110,7 +111,7 @@ class FactoryTest(AbipyTest):
         scr_input.abivalidate()
         sigma_input.abivalidate()
 
-        if False:  # write_inputs_to_json:
+        if write_inputs_to_json:
             with open('g0w0_with_ppmodel_scf_input.json', mode='w') as fp:
                 json.dump(scf_input.as_dict(), fp, indent=2)
             with open('g0w0_with_ppmodel_nscf_input.json', mode='w') as fp:
@@ -147,7 +148,7 @@ class FactoryTest(AbipyTest):
         self.assertIsInstance(inputs[2][0], AbinitInput)
         self.assertIsInstance(inputs[3][0], AbinitInput)
 
-        if False:  # write_inputs_to_json:
+        if write_inputs_to_json:
             for t in ['00', '10', '20', '30']:
                 input_dict = inputs[int(t[0])][int(t[1])].as_dict()
                 with open('convergence_inputs_single_factory_' + t + '.json', mode='w') as fp:
@@ -179,6 +180,22 @@ class FactoryTest(AbipyTest):
 
         inputs_flat = [item for sublist in inputs for item in sublist]
 
+        for i, inp in enumerate(inputs_flat):
+            ref_file = "gw_convergence_full_" + str(i) + ".json"
+            if write_inputs_to_json:
+                with open(ref_file, mode='w') as fp:
+                    json.dump(inp.as_dict(), fp, indent=2)
+            # self.assert_input_equallity(ref_file, inp)
+
+        for inp in [item for sublist in inputs for item in sublist]:
+            val = inp.abivalidate()
+            if val.retcode != 0:
+                print(inp)
+                print(val.log_file.read())
+                self.assertEqual(val.retcode, 0)
+
+        # the rest is redundant now..
+
         self.assertEqual(len(inputs_flat), 24)
         nbands = [inp['nband'] for inp in inputs_flat]
         print(nbands)
@@ -195,13 +212,6 @@ class FactoryTest(AbipyTest):
 
         self.assertEqual(inputs_flat[-1]['ecuteps'], 4)
         self.assertEqual(inputs_flat[-1]['nband'], 14)
-
-        for inp in [item for sublist in inputs for item in sublist]:
-            val = inp.abivalidate()
-            if val.retcode != 0:
-                print(inp)
-                print(val.log_file.read())
-                self.assertEqual(val.retcode, 0)
 
     def test_bse_with_mdf(self):
         """Testing bse_with_mdf input factory."""
