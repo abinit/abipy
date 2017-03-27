@@ -1,22 +1,19 @@
 .. _documenting-abipy:
 
 *****************
-Documenting abipy
+Documenting AbiPy
 *****************
 
 Getting started
 ===============
 
-The documentation for abipy is generated from ReStructured Text using the Sphinx_ documentation generation tool. 
-Sphinx-1.0 or later is required.
-
+The documentation for AbiPy is generated from ReStructured Text using the Sphinx_ documentation generation tool. 
 The documentation sources are found in the :file:`docs/` directory in the trunk.  
 To build the users guide in html format, cd into :file:`docs/` and do::
 
   make html 
 
 The output produced by Sphinx can be configured by editing the :file:`conf.py` file located in the :file:`docs/`.
-
 
 Organization of AbiPy's documentation
 =====================================

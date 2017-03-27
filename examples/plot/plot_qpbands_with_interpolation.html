@@ -126,7 +126,8 @@
 <span class="c1"># because the code will interpolate the corrections instead of the QP energies.</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">lpratio</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                        <span class="n">ks_ebands_kpath</span><span class="o">=</span><span class="n">ks_ebands_kpath</span><span class="p">,</span>
-                       <span class="n">ks_ebands_kmesh</span><span class="o">=</span><span class="n">ks_ebands_kmesh</span><span class="p">)</span>
+                       <span class="n">ks_ebands_kmesh</span><span class="o">=</span><span class="n">ks_ebands_kmesh</span>
+                       <span class="p">)</span>
 <span class="n">qp_edos</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kmesh</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
 
 <span class="c1"># Shortcut: pass the name of the GSR files directly.</span>

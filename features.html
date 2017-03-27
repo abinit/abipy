@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Feature Overview &#8212; abipy 0.1.0 documentation</title>
+    <title>Feature Overview &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,45 +37,8 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="feature-overview">
-<h1>Feature Overview<a class="headerlink" href="#feature-overview" title="Permalink to this headline">¶</a></h1>
-<p>AbiPy is a Python library to analyze the results produced by <a class="reference external" href="http://www.abinit.org">ABINIT</a>,
-an open-source program for the ab-initio calculations of the physical properties of materials
-within Density Functional Theory and Many-Body perturbation theory.
-It also provides tools to generate input files and workflows to automate
-ab-initio calculations and typical convergence studies.
-AbiPy is interfaced with <a class="reference external" href="http://www.pymatgen.org">Pymatgen</a> and this allows users to
-benefit from the different tools and python objects available in the pymatgen ecosystem.</p>
-<p>AbiPy can be used in conjunction with  <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://pandas.pydata.org">pandas</a>,
-<a class="reference external" href="https://ipython.org/index.html">ipython</a> and <a class="reference external" href="http://jupyter.org/">jupyter</a>
-thus providing a powerful and user-friendly environment for data analysis and visualization.
-Check out the list of plotting scripts available in our <a class="reference internal" href="examples/index.html"><span class="doc">gallery</span></a>.
-To learn more about the integration between jupyter and AbiPy, visit our collection of <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb">notebooks</a>
-and the
-<a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb">AbiPy lessons</a>.</p>
-<p>AbiPy supports both Python 2.7 as well as Python &gt;= 3.4.
-Note however that Python 2.7 is more intensively tested than py3k especially at the level of workflows
-so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.</p>
-<p>Note also that the majority of the post-processing tools available in AbiPy require output files in
-<code class="docutils literal"><span class="pre">netcdf</span></code> format so we strongly suggest to compile Abinit with netcdf support
-(use <code class="docutils literal"><span class="pre">--with_trio_flavor=&quot;netcdf-fallback&quot;</span></code> at configure time to activate the internal netcdf library,
-to link Abinit against an external netcdf library please consult the configuration examples
-provided by the <a class="reference external" href="https://github.com/abinit/abiconfig">abiconfig package</a>.</p>
-<p>AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
-Please report any bugs and issues at AbiPy&#8217;s <a class="reference external" href="https://github.com/abinit/abipy">Github page</a>.</p>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+  <div class="document">
+    
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="index.html">
@@ -108,10 +71,46 @@ Please report any bugs and issues at AbiPy&#8217;s <a class="reference external"
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="feature-overview">
+<h1>Feature Overview<a class="headerlink" href="#feature-overview" title="Permalink to this headline">¶</a></h1>
+<p>AbiPy is a Python library to analyze the results produced by <a class="reference external" href="http://www.abinit.org">ABINIT</a>,
+an open-source program for the ab-initio calculations of the physical properties of materials
+within Density Functional Theory and Many-Body perturbation theory.
+AbiPy also provides tools to generate input files and workflows to automate
+ab-initio calculations and typical convergence studies.
+AbiPy is interfaced with <a class="reference external" href="http://www.pymatgen.org">Pymatgen</a> allowing users to
+benefit from the different tools and python objects available in the pymatgen ecosystem.</p>
+<p>AbiPy can be used in conjunction with  <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://pandas.pydata.org">pandas</a>,
+<a class="reference external" href="https://ipython.org/index.html">ipython</a> and <a class="reference external" href="http://jupyter.org/">jupyter</a>
+thus providing a powerful and user-friendly environment for data analysis and visualization.
+Check out the list of plotting scripts available in our <a class="reference internal" href="examples/index.html"><span class="doc">gallery</span></a>.
+To learn more about the integration between jupyter and AbiPy, visit our collection of <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb">notebooks</a>
+and the
+<a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb">AbiPy lessons</a>.</p>
+<p>AbiPy supports both Python 2.7 as well as Python &gt;= 3.4.
+Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
+We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.</p>
+<p>Note also that the majority of the post-processing tools available in AbiPy require Abinit output files in
+<code class="docutils literal"><span class="pre">netcdf</span></code> format so we strongly suggest to compile Abinit with netcdf support
+(use <code class="docutils literal"><span class="pre">--with_trio_flavor=&quot;netcdf-fallback&quot;</span></code> at configure time to activate the internal netcdf library,
+to link Abinit against an external netcdf library please consult the configuration examples
+provided by the <a class="reference external" href="https://github.com/abinit/abiconfig">abiconfig package</a>.</p>
+<p>AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
+Please report any bugs and issues at AbiPy&#8217;s <a class="reference external" href="https://github.com/abinit/abipy">Github page</a>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

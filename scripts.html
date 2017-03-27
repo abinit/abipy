@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Command line tools &#8212; abipy 0.1.0 documentation</title>
+    <title>Command line tools &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.0',
+        VERSION:     '0.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,9 +37,53 @@
 
   </head>
   <body role="document">
-  
-
-    <div class="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Command line tools</a><ul>
+<li><a class="reference internal" href="#abiopen-py"><code class="docutils literal"><span class="pre">abiopen.py</span></code></a></li>
+<li><a class="reference internal" href="#abistruct-py"><code class="docutils literal"><span class="pre">abistruct.py</span></code></a></li>
+<li><a class="reference internal" href="#abicomp-py"><code class="docutils literal"><span class="pre">abicomp.py</span></code></a></li>
+<li><a class="reference internal" href="#abidoc-py"><code class="docutils literal"><span class="pre">abidoc.py</span></code></a></li>
+<li><a class="reference internal" href="#abicheck-py"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a></li>
+<li><a class="reference internal" href="#abirun-py"><code class="docutils literal"><span class="pre">abirun.py</span></code></a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="whats_new.html" title="previous chapter">What&#8217;s new in abipy</a></li>
+      <li>Next: <a href="examples/plot/index.html" title="next chapter">plot Examples</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/scripts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -48,28 +92,29 @@
 <h1>Command line tools<a class="headerlink" href="#command-line-tools" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="abiopen-py">
 <span id="abiopen"></span><h2><code class="docutils literal"><span class="pre">abiopen.py</span></code><a class="headerlink" href="#abiopen-py" title="Permalink to this headline">¶</a></h2>
-<p>AbiPy provides python objects associated to several Abinit output files
-and these objects implement methods to analyze and plot the results.
+<p>AbiPy provides python objects associated to several Abinit output files.
+These objects implement methods to analyze and plot the results.
 The examples in our <a class="reference internal" href="examples/index.html"><span class="doc">gallery</span></a> use this API to plot data with <code class="docutils literal"><span class="pre">matplotlib</span></code>.</p>
-<p>The <code class="docutils literal"><span class="pre">abiopen.py</span></code> script provides a handy interface to the AbiPy objects since
-users can open Abinit files directly in the <code class="docutils literal"><span class="pre">ipython`</span></code> shell and interact with the object
-(called <code class="docutils literal"><span class="pre">abifile</span></code> in the <code class="docutils literal"><span class="pre">ipython</span></code> terminal).
+<p>The <code class="docutils literal"><span class="pre">abiopen.py</span></code> script provides a handy interface to the AbiPy objects.
+It can be used to open Abinit files directly in the <code class="docutils literal"><span class="pre">ipython`</span></code> shell or in a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook and interact with
+the associated object (called <code class="docutils literal"><span class="pre">abifile</span></code> in the <code class="docutils literal"><span class="pre">ipython</span></code> terminal).
 The syntax of the script is:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py FILE [options]
 </pre></div>
 </div>
 <p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <code class="docutils literal"><span class="pre">netcdf</span></code> format but other
 files are supported as well).
+By default <code class="docutils literal"><span class="pre">abiopen</span></code> starts the <code class="docutils literal"><span class="pre">ipython</span></code> terminal.
 Alternatively, it is possible to generate automatically a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_FATBANDS.nc -nb
 </pre></div>
 </div>
-<p>will produce a notebook to visualize the electronic fatbands produced with <code class="docutils literal"><span class="pre">prtdos</span> <span class="pre">3</span></code> inside a web browser.</p>
+<p>which will produce a notebook to visualize the electronic fatbands produced with <code class="docutils literal"><span class="pre">prtdos</span> <span class="pre">3</span></code> inside a web browser.</p>
 <p>Use the <code class="docutils literal"><span class="pre">-p</span></code> option if you just want to get information on the file without opening it, e.g.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_GSR.nc -p
 </pre></div>
 </div>
-<p><code class="docutils literal"><span class="pre">abiopen.py</span></code> employs the file extension to decide what to do with the file and the type
+<p><code class="docutils literal"><span class="pre">abiopen.py</span></code> uses the file extension to decide what to do with the file and the type
 of python object that should be instantiated.
 The list of supported file extensions is obtained with:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abiopen.py --help
@@ -308,7 +353,7 @@ Usage example:
 <span id="abicheck"></span><h2><code class="docutils literal"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h2>
 <p>This script checks that the options specified in <code class="docutils literal"><span class="pre">manager.yml</span></code>, <code class="docutils literal"><span class="pre">scheduler.yml</span></code>,
 and the environment on the local machine are properly configured.
-Please consult the documentation on <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Workflows</span></a> for a more detailed description of these YAML files.</p>
+Please consult the documentation on the <a class="reference internal" href="taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> for a more detailed description of these YAML files.</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
 AbiPy Manager:
 [Qadapter 0]
@@ -324,20 +369,22 @@ Abinit Build Information:
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 29447
+PyFlowScheduler, Pid: 13777
 Scheduler options: {&#39;seconds&#39;: 10, &#39;hours&#39;: 0, &#39;weeks&#39;: 0, &#39;minutes&#39;: 0, &#39;days&#39;: 0}
 
 Installed packages:
-Package      Version
------------  ----------------------
-numpy        1.12.0
-scipy        0.19.0
-netCDF4      1.2.7
-apscheduler  2.1.0
-pydispatch   2.0.5
-yaml         3.12
-pymatgen     4.7.1
-matplotlib   2.0.0 (backend: TkAgg)
+Package         Version
+--------------  ----------------------
+system          Darwin
+python_version  2.7.12
+numpy           1.12.0
+scipy           0.19.0
+netCDF4         1.2.7
+apscheduler     2.1.0
+pydispatch      2.0.5
+yaml            3.12
+pymatgen        4.7.1
+matplotlib      2.0.0 (backend: TkAgg)
 
 
 Abipy requirements are properly configured
@@ -347,7 +394,7 @@ Abipy requirements are properly configured
 <div class="section" id="abirun-py">
 <span id="abirun"></span><h2><code class="docutils literal"><span class="pre">abirun.py</span></code><a class="headerlink" href="#abirun-py" title="Permalink to this headline">¶</a></h2>
 <p>This script allows the user to submit the calculations contained in the AbiPy Flow
-(for further detail, consult the <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Workflows</span></a> documentation).
+(for further detail, consult the <a class="reference internal" href="taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> documentation).
 It provides a command line interface as well as a graphical interface based on <code class="docutils literal"><span class="pre">wxpython</span></code>.</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py --help
 usage: abirun.py [-h] [-V]
@@ -591,7 +638,7 @@ qtype supported: [u&#39;bluegene&#39;, u&#39;moab&#39;, u&#39;pbspro&#39;, u&#39
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Mar 22, 2017), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Mar 27, 2017), AbiPy supports the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -603,7 +650,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <li><code class="docutils literal"><span class="pre">torque</span></code></li>
 </ul>
 </div></blockquote>
-<p>To obtain the list of options supported by a particular resource manager e.g. slurm:</p>
+<p>To obtain the list of options supported by a particular resource manager e.g. <code class="docutils literal"><span class="pre">slurm</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager slurm
 </pre></div>
 </div>
@@ -614,55 +661,10 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Command line tools</a><ul>
-<li><a class="reference internal" href="#abiopen-py"><code class="docutils literal"><span class="pre">abiopen.py</span></code></a></li>
-<li><a class="reference internal" href="#abistruct-py"><code class="docutils literal"><span class="pre">abistruct.py</span></code></a></li>
-<li><a class="reference internal" href="#abicomp-py"><code class="docutils literal"><span class="pre">abicomp.py</span></code></a></li>
-<li><a class="reference internal" href="#abidoc-py"><code class="docutils literal"><span class="pre">abidoc.py</span></code></a></li>
-<li><a class="reference internal" href="#abicheck-py"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a></li>
-<li><a class="reference internal" href="#abirun-py"><code class="docutils literal"><span class="pre">abirun.py</span></code></a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="whats_new.html" title="previous chapter">What&#8217;s new in abipy</a></li>
-      <li>Next: <a href="examples/plot/index.html" title="next chapter">plot Examples</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/scripts.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
-      &copy;2017, The ABINIT group.
+      &copy;2017, The AbiPy group.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>

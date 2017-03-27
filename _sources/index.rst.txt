@@ -1,11 +1,11 @@
-.. image:: https://pypip.in/v/abipy/badge.png
-        :target: https://pypi.python.org/pypi/abipy
+.. image:: https://badge.fury.io/py/abipy.svg
+        :target: https://badge.fury.io/py/abipy
 
-.. image:: https://img.shields.io/travis/abinit/abipy/master.svg
+.. image:: https://travis-ci.org/abinit/abipy.svg?branch=master
         :target: https://travis-ci.org/abinit/abipy
 
-.. image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=master
-        :target: https://coveralls.io/github/abinit/abipy?branch=master
+.. image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop
+        :target: https://coveralls.io/github/abinit/abipy?branch=develop
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
