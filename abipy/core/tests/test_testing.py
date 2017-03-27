@@ -36,7 +36,7 @@ class TestTEstingTools(AbipyTest):
                             "   var ngkpt differs: [10, 10, 10] (reference) != [11, 10, 10] (actual)\n" \
                             "   var nshiftk differs: 1 (reference) != 5 (actual)\n" \
                             "   var charge differs: 0.0 (reference) != 0.01 (actual)\n"
-            self.assertEqual(ex.message, error_message)
+            self.assertEqual(str(ex), error_message)
 
 if __name__ == "__main__":
     import unittest
