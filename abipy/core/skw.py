@@ -8,30 +8,27 @@ import itertools
 import pickle
 import numpy as np
 import scipy
-import sys
+import time
 
 from collections import deque, OrderedDict
 from monty.collections import dict2namedtuple
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools import gaussian
-from abipy.core.kpoints import Ktables
-
-_np_matmul = np.matmul
-_np_dot = np.dot
-_np_vdot = np.vdot
+from abipy.core.kpoints import Ktables, Kpath
+from abipy.core.symmetries import mati3inv
 
 
 def n_fermi_dirac(enes, mu, temp):
     """
-    Fermi-Dirac distribution
+    Fermi-Dirac distribution.
 
     Args:
         enes: Energies in eV
         mu: Chemical potential in eV.
-        temp: Temperature in kelvin.
+        temp: Temperature in Kelvin.
 
     Return:
-        numpy array with occupations in [0, 1]
+        numpy array with occupations in [0, 1].
     """
     if temp > 1e-2:
         return 1. / (np.exp((enes - mu) / (kboltz * temp)) + 1)
@@ -53,6 +50,11 @@ def find_degs_sk(enesb, atol):
     Return:
         List of lists. The i-th item contains the indices of the degenerates states
             for the i-th degenerated set.
+
+    :Examples:
+
+    >>> find_degs_sk([1, 1, 2, 3.4, 3.401], atol=0.01)
+    [[0, 1], [2], [3, 4]]
     """
     ndeg = 0
     degs = [[0]]
@@ -109,6 +111,12 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev):
     return bz2ibz
 
 
+class EDOS(object):
+    def __init__(self, mesh, values, integral, is_shift, method, step, width):
+        self.mesh, self.values, self.integral = mesh, values, integral
+        self.is_shift, self.method, self.step, self.width = is_shift, method, step, width
+
+
 class ElectronInterpolator(object):
     """
     """
@@ -116,14 +124,14 @@ class ElectronInterpolator(object):
     symprec = 1e-5
     angle_tolerance = -1.0
 
+    occtype = "insulator"
     # insulator: fermi level set to homo = nelect//2, occupation factors are either 0 or 1
     #   not suitable for metals, semi-metals, doped semiconductors)
     # fermi-dirac: metallic occupation scheme with physical temperature.
     # gaussian (metallic occupation scheme with gaussian broadening)
-    occtype = "insulator"
 
     # Disable cache
-    no_cache = False
+    use_cache = True
 
     @classmethod
     def pickle_load(cls, filepath):
@@ -136,14 +144,7 @@ class ElectronInterpolator(object):
         with open(filepath , "wb") as fh:
             pickle.dump(self, fh)
 
-    @property
-    def val_ib(self):
-        """The index of the valence band."""
-        if self.occtype != "insulator":
-            print("Trying to access valence band index with occtype:", self.occtype)
-        return self.nelect // 2 - 1
-
-    def get_ksampling(self, mesh, is_shift):
+    def get_sampling(self, mesh, is_shift):
         """
         Use spglib to compute the k-points in the IBZ with the corresponding weights
         as well as the k-points in the full BZ.
@@ -192,24 +193,42 @@ class ElectronInterpolator(object):
         #return Ktables(structure, mesh, is_shift, has_timrev)
 
     #def recalc_fermie(self, kmesh, is_shift=None)
-    #    # Compute DOS/IDOS
-    #    wmesh, dos, idos = _get_cached_dos_idos(kmesh, is_shift)
-    #    #if dos is None:
-    #    #    wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift,
-    #    #       method="gaussian", step=0.1, width=0.2, wmesh=None)
-    #    #    self._cache_dos_idos(kmesh, is_shift, wmesh, dos, idos):
+    #    # Compute DOS
+    #    edos = _get_cached_edos(kmesh, is_shift)
+    #    #if edos is None:
+    #    #    edos = self.get_edos(kmesh, is_shift=is_shift, method="gaussian", step=0.1, width=0.2, wmesh=None)
+    #    #    self._cache_edos(kmesh, is_shift, edos)
     #    self.fermie = fermie
     #    # Find number of electrons from new chemical potential from nelect.
-    #    self.nelect = idos.spline(fermie)
+    #    self.nelect = edos.integral.spline(fermie)
     #    return self.fermie
 
+    @property
+    def val_ib(self):
+        """The index of the valence band."""
+        if self.occtype != "insulator":
+            print("Trying to access valence band index with occtype:", self.occtype)
+        return int(self.nelect // 2 - 1)
+
     def set_fermie(self, fermie, kmesh, is_shift=None):
-        # Compute DOS/IDOS
-        wmesh, dos, idos = self._get_cached_dos_idos(kmesh, is_shift)
-        #if dos is None:
-        #    wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift,
-        #       method="gaussian", step=0.1, width=0.2, wmesh=None)
-        #    self._cache_dos_idos(kmesh, is_shift, wmesh, dos, idos):
+        """
+        Change the Fermi level. Use the IDOS computed on the k-grid specifined by
+        `kmesh` and `is_shift` to recompute the total number of electrons.
+
+        Args:
+            fermie: New Fermi level in eV
+            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+
+        Return:
+            New value of `self.nelect`.
+        """
+        # Compute DOS
+        edos = self._get_cached_edos(kmesh, is_shift)
+        #if edos is None:
+        #    edos = self.get_edos(kmesh, is_shift=is_shift, method="gaussian", step=0.1, width=0.2, wmesh=None)
+        #    self._cache_edos(kmesh, is_shift, edos)
 
         self.fermie = fermie
         # Find number of electrons from new chemical potential from nelect.
@@ -217,12 +236,24 @@ class ElectronInterpolator(object):
         return self.nelect
 
     def set_nelect(self, nelect, kmesh, is_shift=None):
-        # Compute DOS/IDOS
-        wmesh, dos, idos =self._get_cached_dos_idos(kmesh, is_shift)
-        #if dos is None:
-        #    wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift,
-        #       method="gaussian", step=0.1, width=0.2, wmesh=None)
-        #    self._cache_dos_idos(kmesh, is_shift, wmesh, dos, idos):
+        """
+        Change the total number of electrons. Use the IDOS computed on the k-grid specifined by
+        `kmesh` and `is_shift` to recompute the new Fermi level
+
+        Args:
+            nelect: New numbre of electrons.
+            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+
+        Return:
+            New value of `self.fermie`.
+        """
+        # Compute DOS
+        edos = self._get_cached_edos(kmesh, is_shift)
+        #if edos is None:
+        #    edos = self.get_edos(kmesh, is_shift=is_shift, method="gaussian", step=0.1, width=0.2, wmesh=None)
+        #    self._cache_edos(kmesh, is_shift, edos)
         self.nelect = nelect
         # Find new chemical potential from nelect.
         idos
@@ -233,44 +264,46 @@ class ElectronInterpolator(object):
 
     def calc_occfacts(self, eigens, temp):
         """
-        Compute occupation factors from the eigenvalues `eigens` and temperature `temp` in K.
-        occfacts in [0, 1].
+        Compute occupation factors from the eigenvalues `eigens` and
+        the temperature `temp` in K. occfacts in [0, 1].
         """
         if self.occtype == "insulator":
             occfacts = np.ones(eigens.shape)
             occfacts[:, :, self.val_ib + 1:] = 0.0
         else:
             return {
-                "gaussian": n_gaussian,
+                #"gaussian": n_gaussian,
                 "fermi-dirac": n_fermi_dirac,
             }[self.occtype](eigens, self.fermie, temp)
 
-    def get_dos_idos(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
+    def get_edos(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
         """
-        Compute the DOS/IDOS on a linear mesh.
+        Compute the electron DOS on a linear mesh.
 
         Args:
-            kmesh:
-            is_shift:
+            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             mesh: Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.
 
         Returns:
+            (mesh, values, integral)
         """
-        k = self.get_ksampling(kmesh, is_shift)
+        k = self.get_sampling(kmesh, is_shift)
 
         # Interpolate eigenvalues in the IBZ.
         eigens = self._get_cached_eigens(kmesh, is_shift, "ibz")
         if eigens is None:
-            eigens = self.eval_all(k.ibz)
+            eigens = self.interp_kpts(k.ibz).eigens
             self._cache_eigens(kmesh, is_shift, eigens, "ibz")
 
         # Compute the linear mesh.
         wmesh, step = self._get_wmesh_step(eigens, wmesh, step)
         nw = len(wmesh)
-        dos = np.zeros((self.nsppol, nw))
+        values = np.zeros((self.nsppol, nw))
 
         # TODO: Write cython version.
         if method == "gaussian":
@@ -278,13 +311,16 @@ class ElectronInterpolator(object):
                 for ik, wtk in enumerate(k.weights):
                     for band in range(self.nband):
                         e = eigens[spin, ik, band]
-                        dos[spin] += wtk * gaussian(wmesh, width, center=e)
+                        values[spin] += wtk * gaussian(wmesh, width, center=e)
+
+            # Compute IDOS
+            integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
 
         else:
             raise ValueError("Method %s is not supported" % method)
 
-        idos = None
-        return wmesh, dos, idos
+        return dict2namedtuple(mesh=wmesh, values=values, integral=integral)
+        #return ElectronDos(wmesh, values, integral, is_shift, method, step, width)
 
     def get_jdos_q0(self, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
         r"""
@@ -293,8 +329,9 @@ class ElectronInterpolator(object):
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
 
         Args:
-            kmesh:
-            is_shift:
+            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -302,17 +339,17 @@ class ElectronInterpolator(object):
 
         Returns:
         """
-        k = self.get_ksampling(kmesh, is_shift)
+        k = self.get_sampling(kmesh, is_shift)
 
         # Interpolate eigenvalues in the IBZ.
         eigens = self._get_cached_eigens(kmesh, is_shift, "ibz")
         if eigens is None:
-            eigens = self.eval_all(k.ibz)
+            eigens = self.interp_kpts(k.ibz).eigens
             self._cache_eigens(kmesh, is_shift, eigens, "ibz")
 
         wmesh, step = self._get_w2mesh_step(eigens, wmesh, step)
         nw = len(wmesh)
-        jdos = np.zeros((self.nsppol, nw))
+        values = np.zeros((self.nsppol, nw))
 
         if self.occtype == "insulator":
             if method == "gaussian":
@@ -322,7 +359,7 @@ class ElectronInterpolator(object):
                             ec = eigens[spin, ik, icb]
                             for icv in range(self.val_ib):
                                 ev = eigens[spin, ik, icv]
-                                jdos[spin] += wtk * gaussian(wmesh, width, center=ec-ev)
+                                values[spin] += wtk * gaussian(wmesh, width, center=ec-ev)
 
             else:
                 raise ValueError("Method %s is not supported" % method)
@@ -330,32 +367,34 @@ class ElectronInterpolator(object):
         else:
             #occfacts = self.
             if method == "gaussian":
-                for ik, wtk in enumerate(k.weights):
-                    for icb in conduction:
-                        ec = eigens[spin, ik, icb]
-                        fc = 1.0 - occfacts[spin, ik, icb]
-                        for icv in valence:
-                            ev = eigens[spin, ik, icv]
-                            fv = occfacts[spin, ik, icv]
-                            fact = wtk * fv * fc
-                            jdos += fact * gaussian(wmesh, width, center=ec-ev)
+                for spin in range(self.nsppol):
+                    for ik, wtk in enumerate(k.weights):
+                        for icb in conduction:
+                            ec = eigens[spin, ik, icb]
+                            fc = 1.0 - occfacts[spin, ik, icb]
+                            for icv in valence:
+                                ev = eigens[spin, ik, icv]
+                                fv = occfacts[spin, ik, icv]
+                                fact = wtk * fv * fc
+                                values[spin] += fact * gaussian(wmesh, width, center=ec-ev)
 
             else:
                 raise ValueError("Method %s is not supported" % method)
 
-        if self.nsppol == 1: jdos *= 2.0
-        int_jdos = np.zeros((self.nsppol, nw))
+        if self.nsppol == 1: values *= 2.0
+        integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
 
-        return wmesh, jdos, int_jdos
+        return dict2namedtuple(mesh=wmesh, values=values, integral=integral)
+        #return ElectronJointDos(wmesh, values, integral, is_shift, method, step, width)
 
     #def get_jdos_qpts(self, qpoints, kmesh, is_shift=None, method="gaussian", step=0.1, width=0.2, wmesh=None):
     #    qpoints = np.reshape(qpoints, (-1, 3))
-    #    k = self.get_ksampling(kmesh, is_shift)
+    #    k = self.get_sampling(kmesh, is_shift)
 
     #    # Interpolate eigenvalues in the full BZ.
     #    eigens_kbz = self._get_cached_eigens(kmesh, is_shift, "bz")
     #    if eigens is None:
-    #        eigens_kbz = self.eval_all(k.bz)
+    #        eigens_kbz = self.interp_kpts(k.bz).eigens
     #        self._cache_eigens(kmesh, is_shift, eigens_kbz, "bz")
     #    g_skb = gaussian(eigens_kbz, width)
 
@@ -363,7 +402,7 @@ class ElectronInterpolator(object):
     #    jdos_sqw = np.zeros((self.nsppol, len(qpoints), nw))
     #    for iq, qpt in enumerate(qpoints):
     #        kpq_bz = k.bz + qpt
-    #        eigens_kqbz = self.eval_all(kpq_bz)
+    #        eigens_kqbz = self.interp_kpts(kpq_bz).eigens
     #        g_skqb = gaussian(eigens_kqbz, width)
     #        #vals = g_skb * g_skqb
     #        #jdos_sqw[:, iq] = vals.sum(axis=(1, 2))
@@ -373,25 +412,28 @@ class ElectronInterpolator(object):
 
     def get_nesting_at_e0(self, qpoints, kmesh, e0, width=0.2, is_shift=None):
         """
-        Compute the nesting factoro with gaussian broadening for a list of q-points
+        Compute the nesting factor with gaussian broadening for an arbitrary list of q-points.
 
         Args:
-            qpoints:
-            kmesh:
-            e0:
+            qpoints: List of q-points in reduced coordinates.
+            kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
+            e0: Energy level in eV.
             width: Standard deviation (eV) of the gaussian.
-            is_shift:
+            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+                the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
 
         Returns:
+            numpy array of shape [self.nsppol, len(qpoints)]
         """
         qpoints = np.reshape(qpoints, (-1, 3))
-        k = self.get_ksampling(kmesh, is_shift)
+        k = self.get_sampling(kmesh, is_shift)
 
         # Interpolate eigenvalues in the full BZ.
         eigens_kbz = self._get_cached_eigens(kmesh, is_shift, "bz")
         if eigens is None:
-            eigens_kbz = self.eval_all(k.bz)
+            eigens_kbz = self.interp_kpts(k.bz).eigens
             self._cache_eigens(kmesh, is_shift, eigens_kbz, "bz")
+
         eigens_kbz -= e0
         g_skb = gaussian(eigens_kbz, width)
 
@@ -399,7 +441,7 @@ class ElectronInterpolator(object):
         nest_sq = np.zeros((self.nsppol, len(qpoints)))
         for iq, qpt in enumerate(qpoints):
             kpq_bz = kbz + qpt
-            eigens_kqbz = self.eval_all(kpq_bz) - e0
+            eigens_kqbz = self.interp_kpts(kpq_bz).eigens - e0
             g_skqb = gaussian(eigens_kqbz, width)
             vals = g_skb * g_skqb
             nest_sq[:, iq] = vals.sum(axis=(1, 2))
@@ -407,40 +449,41 @@ class ElectronInterpolator(object):
         nest_sq *= 1. / k.nbz
         return nest_sq
 
-    def get_unitcell_vals(self, kmesh):
-        is_shift = None
-        k = self.get_ksampling(kmesh, is_shift=is_shift)
+    #def get_unitcell_vals(self, kmesh):
+    #    is_shift = None
+    #    k = self.get_sampling(kmesh, is_shift=is_shift)
 
-        # Interpolate eigenvalues in the IBZ.
-        eigens_ibz = self._get_cached_eigens(kmesh, is_shift, "ibz")
-        if eigens_ibz is None:
-            eigens_ibz = self.eval_all(k.ibz)
-            self._cache_eigens(kmesh, is_shift, eigens_ibz, "ibz")
+    #    # Interpolate eigenvalues in the IBZ.
+    #    eigens_ibz = self._get_cached_eigens(kmesh, is_shift, "ibz")
+    #    if eigens_ibz is None:
+    #        eigens_ibz = self.interp_kpts(k.ibz).eigens
+    #        self._cache_eigens(kmesh, is_shift, eigens_ibz, "ibz")
 
-        egrid_sbuc = np.empty((self.nsppol, self.nband) + tuple(kmesh))
-        egrid_sbuc[...] = np.inf
-        print("shape eigens_ibz", eigens_ibz.shape)
-        print("shape egrid_sbuc", egrid_sbuc.shape)
-        print("nkibz: ", k.nibz, "nbz: ", k.nbz)
-        for gp, ik_ibz in zip(k.grid, k.bz2ibz):
-            ucgp = np.where(gp >= 0, gp, gp + k.mesh)
-            print("gp", gp, "ucgp", ucgp, "ik_ibz", ik_ibz)
-            egrid_sbuc[:, :, ucgp[0], ucgp[1], ucgp[2]] = eigens_ibz[:, ik_ibz, :]
-        print(np.any(egrid_sbuc == np.inf))
-        #print(egrid_sbuc[0, 0, ...])
+    #    egrid_sbuc = np.empty((self.nsppol, self.nband) + tuple(kmesh))
+    #    egrid_sbuc[...] = np.inf
+    #    print("shape eigens_ibz", eigens_ibz.shape)
+    #    print("shape egrid_sbuc", egrid_sbuc.shape)
+    #    print("nkibz: ", k.nibz, "nbz: ", k.nbz)
+    #    for gp, ik_ibz in zip(k.grid, k.bz2ibz):
+    #        ucgp = np.where(gp >= 0, gp, gp + k.mesh)
+    #        print("gp", gp, "ucgp", ucgp, "ik_ibz", ik_ibz)
+    #        egrid_sbuc[:, :, ucgp[0], ucgp[1], ucgp[2]] = eigens_ibz[:, ik_ibz, :]
+    #    print(np.any(egrid_sbuc == np.inf))
+    #    #print(egrid_sbuc[0, 0, ...])
 
-        return egrid_sbuc
+    #    return egrid_sbuc
 
     def _get_wmesh_step(self, eigens, wmesh, step):
         if wmesh is not None:
             return wesh, wmesh[1] - wmesh[0]
 
         # Compute the linear mesh.
-        epad = 3.0
+        epad = 1.0
         e_min = eigens.min() - epad
         e_max = eigens.max() + epad
         nw = int(1 + (e_max - e_min) / step)
         wmesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
+
         return wmesh, step
 
     def _get_w2mesh_step(self, eigens, wmesh, step):
@@ -477,7 +520,7 @@ class ElectronInterpolator(object):
         Return a copy of the interpolated eigenvalues associated to (kmesh, is_shift, kzone).
         Return None if eigens are not available.
         """
-        if self.no_cache: return None
+        if not self.use_cache: return None
         if not hasattr(self, "_cached_eigens"): self._cached_eigens = OrderedDict()
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
@@ -489,32 +532,32 @@ class ElectronInterpolator(object):
         """
         Save interpolated eigenvalues associated to (kmesh, is_shift, kzone).
         """
-        if self.no_cache: return
+        if not self.use_cache: return None
         if not hasattr(self, "_cached_eigens"): self._cached_eigens = OrderedDict()
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
         self._cached_eigens[(kmesh, is_shift, kzone)] = eigens.copy()
 
-    def _get_cached_dos_idos(self, kmesh, is_shift):
+    def _get_cached_edos(self, kmesh, is_shift):
         """
-        Return the DOS/IDOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
-        (None, None) if DOS/IDOS is not available.
+        Return the electron DOS obtained from the interpolated eigenvalues associated
+        to (kmesh, is_shift). None if DOS is not available.
         """
-        if self.no_cache: return None
-        if not hasattr(self, "_cached_dos_idos"): self._cached_dos_idos = OrderedDict()
+        if not self.use_cache: return None
+        if not hasattr(self, "_cached_edos"): self._cached_edos = OrderedDict()
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
-        return self._cached_dos_idos.get((kmesh, is_shift))
+        return self._cached_edos.get((kmesh, is_shift))
 
-    def _cache_dos_idos(self, kmesh, is_shift, wmesh, dos, idos):
+    def _cache_edos(self, kmesh, is_shift, edos):
         """
-        Save DOS/IDOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
+        Save the electron DOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
         """
-        if self.no_cache: return
-        if not hasattr(self, "_cached_dos_idos"): self._cached_dos_idos = OrderedDict()
+        if not self.use_cache: return None
+        if not hasattr(self, "_cached_edos"): self._cached_edos = OrderedDict()
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
-        self._cached_dos_idos[(kmesh, is_shift)] = (wmesh.copy(), dos.dopy(), idos.copy())
+        self._cached_edos[(kmesh, is_shift)] = edos # .copy()
 
     @add_fig_kwargs
     def plot_dos_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2, ax=None, **kwargs):
@@ -538,10 +581,10 @@ class ElectronInterpolator(object):
 
         kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
         for kmesh in kmeshes:
-            wmesh, dos, idos = self.get_dos_idos(kmesh, is_shift=is_shift, method=method, step=step, width=width)
+            edos = self.get_edos(kmesh, is_shift=is_shift, method=method, step=step, width=width)
             for spin in range(self.nsppol):
                 spin_sign = +1 if spin == 0 else -1
-                ax.plot(wmesh, dos[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+                ax.plot(edos.mesh, edos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
@@ -571,10 +614,10 @@ class ElectronInterpolator(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
         for kmesh in kmeshes:
-            wmesh, jdos, int_jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
+            jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
             for spin in range(self.nsppol):
                spin_sign = +1 if spin == 0 else -1
-               ax.plot(wmesh, jdos[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
+               ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
@@ -593,7 +636,7 @@ class ElectronInterpolator(object):
             widths: List of standard deviations (eV) of the gaussian.
             kmeshes: List of kmeshes. Each item is given by three integers with the number of
                 divisions along the reciprocal primitive axes.
-            e0:
+            e0: Energy level in eV.
             qvertices_names
             line_density:
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
@@ -606,7 +649,7 @@ class ElectronInterpolator(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
-        e0 = self.interpolated_fermie
+        e0 = self.interpolated_fermie if e0 is None else e0
         for width in np.asarray(widths):
             nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
             for spin in range(self.nsppol):
@@ -629,7 +672,7 @@ class ElectronInterpolator(object):
             width: Gaussian broadening (eV).
             kmeshes: List of kmeshes. Each item is given by three integers with the number of
                 divisions along the reciprocal primitive axes.
-            e0:
+            e0: Energy level in eV.
             qvertices_names
             line_density:
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
@@ -643,7 +686,7 @@ class ElectronInterpolator(object):
         qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
         kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
-        e0 = self.interpolated_fermie
+        e0 = self.interpolated_fermie if e0 is None else e0
         for kmesh in kmeshes:
             nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
             for spin in range(self.nsppol):
@@ -657,12 +700,12 @@ class ElectronInterpolator(object):
         return fig
 
     @add_fig_kwargs
-    def plot_group_velocites(self, kvertices_names=None, line_density=20, ax=None, **kwargs):
+    def plot_group_velocites(self, vertices_names=None, line_density=20, ax=None, **kwargs):
         """
-        Plot (interpolated) nesting factor computed with different k-meshes.
+        Plot (interpolated) group velocities computed along an arbitrary k-path.
 
         Args:
-            kvertices_names
+            vertices_names
             line_density:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
@@ -670,9 +713,9 @@ class ElectronInterpolator(object):
             matplotlib figure.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        kpoints = self._get_kpts_kticks_klabels(ax, kvertices_names, line_density)
+        kfrac_coords = self._get_kpts_kticks_klabels(ax, vertices_names, line_density)
 
-        v_skb = self.eval_all_dk1(kpoints)
+        #v_skb = self.interp_kpts(kfrac_coords, dk1=v_skb)
         for spin in range(self.nsppol):
             for band in range(self.nband):
                 # plot |v|
@@ -684,11 +727,11 @@ class ElectronInterpolator(object):
 
         return fig
 
-    def _get_kpts_kticks_klabels(self, ax, kvertices_names, line_density):
+    def _get_kpts_kticks_klabels(self, ax, vertices_names, line_density):
         if vertices_names is None:
             vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
-        from abipy.kpoints import Kpath
-        kpath = Kpath.from_vertices_and_names(self.structure, kvertices_names, line_density=line_density)
+
+        kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
 
         #self._axset_ticks_labels(ax, xticks, xlabels)
         return kpath.frac_coords, list(range(len(kpath))), kpath.names
@@ -707,31 +750,37 @@ class SkwInterpolator(ElectronInterpolator):
     def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
                  filter_params=None, verbose=1):
         """
-
         Args:
-            self.cell = (lattice, positions, numbers)
             lpratio: Ratio between the number of star-functions and the number of ab-initio k-points.
-                5 should be OK in many systems, larger values may be required for accurate derivatives.
+                5-10 should be OK in many systems, larger values may be required for accurate derivatives.
             kpts: numpy array with the [nkpt, 3] ab-initio k-points in reduced coordinates.
             eigens: numpy array with the ab-initio energies. shape [nsppol, nkpt, nband].
-            fermie: Fermi energy in Ev.
-            lattice: numpy array with direct lattice vectors along the rows.
+            fermie: Fermi energy in eV.
+            nelect: Number of electrons in the unit cell
+            cell: (lattice, positions, numbers)
+                lattice: numpy array with direct lattice vectors along the rows.
+                positions: atomic positions in reduced coordinates.
+                numbers: Atomic number for each atom in positions.
             symrel: [nsym, 3, 3] numpy array with the (ferromagnetic) symmetry operations of the direct lattice
                 in reduced coordinates. anti-ferromagnetic symmetries (if any) should be removed by the caller.
             has_timrev: True is time-reversal can be used.
-            nelect: Number of electrons in the unit cell
-            filter_params:
+            filter_params: List with parameters used to filter high-frequency components (Eq 9 of PhysRevB.61.1639)
+                First item gives rcut, second item sigma. Ignored if None.
+            verbose: Verbosity level.
         """
         self.verbose = verbose
         self.cell = cell
         lattice = self.cell[0]
-        self.abinitio_fermie = fermie
-        self.interpolated_fermie = self.abinitio_fermie
+        self.original_fermie = fermie
+        self.interpolated_fermie = self.original_fermie
         self.nelect = nelect
         self.has_timrev = has_timrev
 
+        # iscomplexobj is used to handle lifetimes.
         eigens = np.atleast_3d(eigens)
+        self.iscomplexobj = np.iscomplexobj(eigens)
         self.nsppol, self.nkpt, self.nband = eigens.shape
+
         if len(kpts) != self.nkpt:
             raise ValueError("Second dimension of eigens should be %d but got array of shape: %s" %
                 (len(kpts), eigens.shape))
@@ -744,13 +793,13 @@ class SkwInterpolator(ElectronInterpolator):
 
         # Find point group operations.
         symrel = np.reshape(symrel, (-1, 3, 3))
-        self.ptg_symrel, self.ptg_symrec, has_inversion = self._get_point_group(symrel)
+        self.ptg_symrel, self.ptg_symrec, has_inversion = extract_point_group(symrel, has_timrev)
         self.ptg_nsym = len(self.ptg_symrel)
         if self.verbose:
             print("Found", self.ptg_nsym, "symmetries in point group")
 
         # Find nrwant star points.
-        lpration = int(lpratio)
+        self.lpratio = lpratio = int(lpratio)
         if lpratio <= 1:
             raise ValueError("lpratio must be > 1 but got %s" % lpratio)
 
@@ -765,9 +814,9 @@ class SkwInterpolator(ElectronInterpolator):
             if ok:
                 break
             else:
-                print("rmax: ",rmax," was not large enough to find", nrwant, "R-star points.")
+                print("rmax: ", rmax," was not large enough to find", nrwant, "R-star points.")
                 rmax *= 2
-                print("Will try again with enlarged rmax:",rmax)
+                print("Will try again with enlarged rmax:", rmax)
 
         print("Will use:", self.nr, "star-functions. nstars/nk:", self.nr / self.nkpt)
 
@@ -786,11 +835,11 @@ class SkwInterpolator(ElectronInterpolator):
         hmat = np.empty((nkpt-1, nkpt-1), dtype=np.complex)
         for jk in range(nkpt-1):
             v_jkr = self.skr[jk, 1:] - self.skr[nkpt-1, 1:]
-            for ik in range(jk + 1):
-            #for ik in range(nkpt-1):
+            #for ik in range(jk + 1):
+            for ik in range(nkpt-1):
                 v_ikr = inv_rhor[1:] * (self.skr[ik, 1:] - self.skr[nkpt-1, 1:])
                 hmat[ik, jk] = np.vdot(v_jkr, v_ikr)
-                if (ik == jk): hmat[ik, jk] = hmat[ik, jk].real
+                if ik == jk: hmat[ik, jk] = hmat[ik, jk].real
 
         # Solving system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)..."
         de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=np.complex)
@@ -799,10 +848,18 @@ class SkwInterpolator(ElectronInterpolator):
                 de_kbs[:, ib, spin] = eigens[spin, 0:nkpt-1, ib] - eigens[spin, nkpt-1, ib]
 
         # Solve all bands and spins at once
+        # FIXME: Portability problem with scipy 0.19 in which linalg.solve wraps the expert drivers
+        # http://scipy.github.io/devdocs/release.0.19.0.html#foreign-function-interface-improvements
+        if scipy.__version__ == "0.19.0":
+            import warnings
+            warnings.warn("linalg.solve in scipy 0.19.0 gives weird results. Use at your own risk!!!")
+
         try:
-            lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
-                    sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, check_finite=False)
+            lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)))
+            #lmb_kbs = scipy.linalg.solve(hmat, np.reshape(de_kbs, (-1, nband * nsppol)),
+                    #sym_pos=True, lower=False, overwrite_a=True, overwrite_b=True, check_finite=False)
                     #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, check_finite=True)
+
         except scipy.linalg.LinAlgError as exc:
             print("Cannot solve system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)")
             print("This usually happens when there are symmetrical k-points passed to the interpolator.")
@@ -856,6 +913,10 @@ class SkwInterpolator(ElectronInterpolator):
             # Issue warning if error too large.
             print("Large error in SKW interpolation!")
             print("MAE:", mae, "[meV]")
+
+        if np.isnan(mae) or np.isinf(mae):
+            raise RuntimeError("Interpolation went bananas! mae = %s" % mae)
+
         self.mae = mae
 
     def __str__(self):
@@ -875,44 +936,54 @@ class SkwInterpolator(ElectronInterpolator):
 
         return "\n".join(lines)
 
-    def eval_all(self, kfrac_coords, der1=None, der2=None):
+    def interp_kpts(self, kfrac_coords, dk1=False, dk2=False):
         """
-        Interpolate energies on an arbitrary set of k-points.
+        Interpolate energies on an arbitrary set of k-points. Optionally, compute
+        gradients and Hessian matrices.
+
+        Args:
+            kfrac_coords: K-points in reduced coordinates.
+            dk1 (bool): True if gradient is wanted.
+            dk2 (bool): True to compute 2nd order derivatives.
+
+        Return:
+            namedtuple with:
+            interpolated energies in eigens[nsppol, len(kfrac_coords), nband]
+            gradient in dedk[self.nsppol, len(kfrac_coords), self.nband, 3))
+            hessian in dedk2[self.nsppol, len(kfrac_coords), self.nband, 3, 3))
+
+            gradient and hessian are set to None if not computed.
         """
-        import time
         start = time.time()
 
         kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
         new_nkpt = len(kfrac_coords)
         new_eigens = np.empty((self.nsppol, new_nkpt, self.nband))
 
+        dedk = None if not dk1 else np.empty((self.nsppol, new_nkpt, self.nband, 3))
+        dedk2 = None if not dk2 else np.empty((self.nsppol, new_nkpt, self.nband, 3, 3))
+
+        der1, der2 = None, None
         for spin in range(self.nsppol):
             for ik, newk in enumerate(kfrac_coords):
-                new_eigens[spin, ik] = self.eval_sk(spin, newk)
-
-                if der1 is not None:
-                    #der1 = np.empty((self.nsppol, new_nkpt, self.nband, 3))
-                    der1[spin, ik] = self.evaldk1_sk(spin, newk)
-
-                if der2 is not None:
-                    #der2 = np.empty((self.nsppol, new_nkpt, self.nband, 3, 3))
-                    der2[spin, ik] = self.evaldk2_sk(spin, newk)
+                if dk1: der1 = dedk[spin, ik]
+                if dk2: der2 = dedk2[spin, ik]
+                new_eigens[spin, ik] = self.eval_sk(spin, newk, der1=der1, der2=der2)
 
         print("Interpolation completed", time.time() - start)
-        return new_eigens
+        return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
 
-    def eval_all_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
+    def interp_kpts_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
         """
         Interpolate energies on an arbitrary set of k-points. Use `ref_eigens`
-        to detect degeneracies and average the interpolated values in the
-        degenerate subspace.
+        to detect degeneracies and average the interpolated values in the degenerate subspace.
         """
         kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
         new_nkpt = len(kfrac_coords)
         ref_eigens = np.reshape(ref_eigens, (self.nsppol, new_nkpt, self.nband))
 
         # Interpolate eigenvales.
-        new_eigens = self.eval_all(kfrac_coords)
+        new_eigens = self.interp_kpts(kfrac_coords).eigens
 
         # Average interpolated values over degenerates bands.
         for spin in range(self.nsppol):
@@ -921,107 +992,118 @@ class SkwInterpolator(ElectronInterpolator):
                     if len(dgbs) == 1: continue
                     new_eigens[spin, ik, dgbs] = new_eigens[spin, ik, dgbs].sum() / len(dgbs)
 
-        return new_eigens
+        return dict2namedtuple(eigens=new_eigens, dedk=None, dedk2=None)
 
     def eval_sk(self, spin, kpt, der1=None, der2=None):
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
+        Optionally compute gradients and Hessian matrices.
 
         Args:
-            spin: Spin index
+            spin: Spin index.
             kpt: K-point in reduced coordinates.
+            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der2: If not None, output Hessian is der2[nband, 3, 3].
 
         Return:
             oeigs[nband]
-            der1[nband, 3]
-            der2[nband, 3, 3]
         """
         # [NB, NR] x [NR]
-        oeigs = _np_matmul(self.coefs[spin], self.get_stark(kpt)).real
+        oeigs = np.matmul(self.coefs[spin], self.get_stark(kpt))
+        if not self.iscomplexobj: oeigs = oeigs.real
 
         if der1 is not None:
             skr_dk1 = self.get_stark_dk1(kpt)
             for ii in range(3):
-                der1[:, ii] = np.matmul(self.coefs[spin, :, :], skr_dk1[ii]).real
+                value = np.matmul(self.coefs[spin, :, :], skr_dk1[ii])
+                if not self.iscomplexobj: value = value.real
+                der1[:, ii] = value
 
         if der2 is not None:
             skr_dk2 = self.get_stark_dk2(kpt)
             for jj in range(3):
                 for ii in range(jj + 1):
-                    der2[:, ii, jj] = np.matmul(self.coefs[spin, :, :], skr_dk2[ii,jj]).real
+                    value = np.matmul(self.coefs[spin, :, :], skr_dk2[ii,jj])
+                    if not self.iscomplexobj: value = value.real
+                    der2[:, ii, jj] = value
                     if ii != jj: der2[jj, ii] = der2[ii, jj]
 
         return oeigs
 
-    def eval_skb(self, spin, kpt, band, der1=None, der2=None):
-        """
-        Interpolate eigenvalues for a given (spin, k-point, band).
+    #def eval_skb(self, spin, kpt, band, der1=None, der2=None):
+    #    """
+    #    Interpolate eigenvalues for a given (spin, k-point, band).
 
-        Args:
+    #    Args:
 
-        Return:
-        """
-        # Compute star function for this k-point (if not already in memory)
-        if np.any(kpt != self.cached_kpt):
-            self.cached_skr, self.cached_kpt = self.get_stark(kpt), kpt
+    #    Return:
+    #    """
+    #    # Compute star function for this k-point (if not already in memory)
+    #    if np.any(kpt != self.cached_kpt):
+    #        self.cached_skr, self.cached_kpt = self.get_stark(kpt), kpt
 
-        # Do not take complex conjugate.
-        oeig = _np_dot(self.coefs[spin, band], self.cached_skr)
-        if der1 is None and der2 is None: return oeig.real
+    #    # Do not take complex conjugate.
+    #    oeig = np.dot(self.coefs[spin, band], self.cached_skr)
+    #    if not self.iscomplexobj: oeigs = oeigs.real
+    #    if der1 is None and der2 is None: return oeig
 
-        # TODO: Test Derivatives
-        if der1 is not None:
-            # Compute first-order derivatives.
-            if np.any(kpt != self.cached_kpt_dk1):
-                self.cached_skr_dk1, self.cached_kpt_dk1 = self.get_stark_dk1(kpt), kpt
+    #    # TODO: Test Derivatives
+    #    if der1 is not None:
+    #        # Compute first-order derivatives.
+    #        if np.any(kpt != self.cached_kpt_dk1):
+    #            self.cached_skr_dk1, self.cached_kpt_dk1 = self.get_stark_dk1(kpt), kpt
 
-            for ii in range(3):
-                der1[ii] = np.dot(self.coefs[spin, band], self.cached_skr_dk1[ii])
+    #        for ii in range(3):
+    #            value = np.dot(self.coefs[spin, band], self.cached_skr_dk1[ii])
+    #            if not self.iscomplexobj: value = value.real
+    #            der1[ii] = value
 
-            if der2 is None: return oeig.real, der1.real
+    #        if der2 is None: return oeig, der1
 
-        if der2 is not None:
-            # Compute second-order derivatives.
-            if np.any(kpt != self.cached_kpt_dk2):
-                self.cached_skr_dk2, self.cached_kpt_dk2 = self.get_stark_dk2(kpt), kpt
+    #    if der2 is not None:
+    #        # Compute second-order derivatives.
+    #        if np.any(kpt != self.cached_kpt_dk2):
+    #            self.cached_skr_dk2, self.cached_kpt_dk2 = self.get_stark_dk2(kpt), kpt
 
-            der2 = zero
-            for jj in range(3):
-                for ii in range(jj + 1):
-                    der2[ii, jj] = np.dot(self.coefs[spin, band], self.cached_skr_dk2[ii,jj])
-                    if ii != jj: der2[jj, ii] = der2[ii, jj]
+    #        der2 = zero
+    #        for jj in range(3):
+    #            for ii in range(jj + 1):
+    #                value = np.dot(self.coefs[spin, band], self.cached_skr_dk2[ii,jj])
+    #                if not self.iscomplexobj: value = value.real
+    #                der2[ii, jj] = value
+    #                if ii != jj: der2[jj, ii] = der2[ii, jj]
 
-        return oeig.real, der1.real, der2.real
+    #    return oeig, der1, der2
 
     def get_stark(self, kpt):
         """
-        Return the star function for a given k-point.
+        Return the star function for k-point `kpt`.
 
         Args:
             kpt: K-point in reduced coordinates.
 
         Return:
-            complex numpy arrays of shape [self.nr]
+            complex array of shape [self.nr]
         """
         two_pi = 2.0 * np.pi
         skr = np.zeros(self.nr, dtype=np.complex)
         _np_exp = np.exp
         for omat in self.ptg_symrel:
-            sk = two_pi * _np_matmul(omat.T, kpt)
-            skr += _np_exp(1.j * _np_matmul(self.rpts, sk))
+            sk = two_pi * np.matmul(omat.T, kpt)
+            skr += _np_exp(1.j * np.matmul(self.rpts, sk))
         skr /= self.ptg_nsym
 
         return skr
 
     def get_stark_dk1(self, kpt):
         """
-        Compute the 1st derivative of the star function wrt k
+        Compute the 1st-order derivative of the star function wrt k
 
         Args:
             kpt: K-point in reduced coordinates.
 
         Return:
-            complex numpy array [3, self.nr]  with the derivative of the
+            complex array [3, self.nr]  with the derivative of the
             star function wrt k in reduced coordinates.
         """
         srk_dk1 = np.zeros((3, self.nr), dtype=np.complex)
@@ -1029,54 +1111,50 @@ class SkwInterpolator(ElectronInterpolator):
         rpts_t = self.rpts.T
 
         for omat in self.ptg_symrel:
-            sk = two_pi * _np_matmul(omat.T, kpt)
-            exp_skr = _np_exp(1.j * _np_matmul(self.rpts, sk))
+            sk = two_pi * np.matmul(omat.T, kpt)
+            exp_skr = np.exp(1.j * np.matmul(self.rpts, sk))
             for ir, rr in enumerate(self.rpts):
-                srk_dk1[:, ir] += exp_skr[ir] * _np_matmul(omat, rr)
-            #for ir, or in enumerate(_np_matmul(omat, rpts_t).T):
+                srk_dk1[:, ir] += exp_skr[ir] * np.matmul(omat, rr)
+            #for ir, or in enumerate(np.matmul(omat, rpts_t).T):
             #    srk_dk1[:, ir] += exp_skr[ir] * or
 
-        srk_dk1 *= 1.j / self%ptg_nsym
+        srk_dk1 *= 1.j / self.ptg_nsym
         return srk_dk1
 
     def get_stark_dk2(self, kpt):
         """
-        Compute the 2st derivatives of the star function wrt k.
+        Compute the 2nd-order derivatives of the star function wrt k.
 
         Args:
             kpt: K-point in reduced coordinates.
 
         Return:
-            Complex numpy array of shape [3, 3, self.nr] with the 2nd derivatives
+            Complex numpy array of shape [3, 3, self.nr] with the 2nd-order derivatives
             of the star function wrt k in reduced coordinates.
         """
         srk_dk2 = np.zeros((3, 3, self.nr), dtype=np.complex)
-
+        raise NotImplementedError()
         #work = zero
-        #do isym=1,self%ptg_nsym
-        #  sk = two_pi * matmul(transpose(self%ptg_symrel(:,:,isym)), kpt)
-        #  do ir=1,self%nr
-        #    sr = matmul(self%ptg_symrel(:,:,isym), self%rpts(:,ir))
-        #    eiskr = exp(j_dpc * dot_product(sk, self%rpts(:,ir)))
-        #    do jj=1,3
-        #      do ii=1,jj
-        #        work(ii,jj,ir) = work(ii,jj,ir) + eiskr * sr(ii) * sr(jj)
-        #      end do
-        #    end do
-        #  end do
-        #end do
-        #work = - work / self%ptg_nsym
+        #do isym=1,self.ptg_nsym
+        #   sk = two_pi * matmul(transpose(self%ptg_symrel(:,:,isym)), kpt)
+        #   do ir=1,self%nr
+        #     sr = matmul(self%ptg_symrel(:,:,isym), self%rpts(:,ir))
+        #     eiskr = exp(j_dpc * dot_product(sk, self%rpts(:,ir)))
+        #     do jj=1,3
+        #        do ii=1,jj
+        #            work(ii,jj,ir) = work(ii,jj,ir) + eiskr * sr(ii) * sr(jj)
+
+        #work = - work / self.ptg_nsym
 
         #do jj=1,3
-        #  do ii=1,jj
-        #    srk_dk2(:, ii, jj) = work(ii, jj, :)
-        #    if (ii /= jj) srk_dk2(:,jj,ii) = work(:,ii,jj)
-        #  end do
-        #end do
+        #   do ii=1,jj
+        #       srk_dk2(:, ii, jj) = work(ii, jj, :)
+        #       if (ii /= jj) srk_dk2(:,jj,ii) = work(:,ii,jj)
+
         return srk_dk2
 
     #def find_stationary_points(self, kmesh, bstart=None, bstop=None, is_shift=None)
-    #    k = self.get_ksampling(kmesh, is_shift)
+    #    k = self.get_sampling(kmesh, is_shift)
     #    if bstart is None: bstart = self.nelect // 2 - 1
     #    if bstop is None: bstop = self.nelect // 2
     #    nb = bstop - bstart + 1
@@ -1095,16 +1173,15 @@ class SkwInterpolator(ElectronInterpolator):
 
     def _find_rstar_gen(self, nrwant, rmax):
         """
-        Find all lattice points generating the stars inside the supercell defined `rmax`
+        Find all lattice points generating the stars inside the supercell defined by `rmax`
 
         Args:
             nrwant: Number of star-functions required.
             rmax: numpy array with the maximum number of cells along the 3 reduced directions.
 
         Returns:
-            (rpts, r2vals, ok)
+            tuple: (rpts, r2vals, ok)
         """
-        import time
         msize = (2 * rmax + 1).prod()
         rtmp = np.empty((msize, 3), dtype=np.int)
         r2tmp = np.empty(msize)
@@ -1152,23 +1229,23 @@ class SkwInterpolator(ElectronInterpolator):
                 rgen.append(rtmp[ss])
                 continue
 
-            rs = set([tuple(rtmp[ss])])
-            for ir in range(ss + 1, ee):
-                rvec = rtmp[ir]
-                if all(tuple(_np_matmul(rot, rvec)) not in rs for rot in self.ptg_symrel):
-                    rs.add(tuple(rvec))
-
-            """
-            rs = deque([rtmp[ss]])
-            for ir in range(ss + 1, ee):
-                for rot in self.ptg_symrel:
-                    rot_r = np.matmul(rot, rtmp[ir])
-                    if any(np.all(rot_r == x) for x in rs): break
-                else:
-                    # We have new R-point.
-                    #print("Adding new point")
-                    rs.append(rtmp[ir])
-            """
+            if True:
+                # This is faster
+                rs = set([tuple(rtmp[ss])])
+                for ir in range(ss + 1, ee):
+                    rvec = rtmp[ir]
+                    if all(tuple(np.matmul(rot, rvec)) not in rs for rot in self.ptg_symrel):
+                        rs.add(tuple(rvec))
+            else:
+                rs = deque([rtmp[ss]])
+                for ir in range(ss + 1, ee):
+                    for rot in self.ptg_symrel:
+                        rot_r = np.matmul(rot, rtmp[ir])
+                        if any(np.all(rot_r == x) for x in rs): break
+                    else:
+                        # We have new R-point.
+                        #print("Adding new point")
+                        rs.append(rtmp[ir])
 
             #print(len(rs), rs)
             rgen.extend(rs)
@@ -1196,40 +1273,42 @@ class SkwInterpolator(ElectronInterpolator):
 
         return rpts, r2vals, ok
 
-    def _get_point_group(self, symrel):
-        """
-        Extract the point group rotations from the spacegroup. Add time-reversal
-        if spatial inversion is not present and `has_timrev`.
-        Return (ptg_symrel, ptg_symrec) with rotations in real- and reciprocal-space.
-        """
-        nsym = len(symrel)
-        tmp_nsym = 1
-        work_symrel = np.empty((2*nsym, 3, 3), dtype=np.int)
-        work_symrel[0] = symrel[0]
 
-        for isym in range(1, nsym):
-            found = any(np.all(symrel[isym] == work_symrel[search]) for search in range(tmp_nsym))
-            if not found:
-                work_symrel[tmp_nsym] = symrel[isym]
-                tmp_nsym += 1
+def extract_point_group(symrel, has_timrev):
+    """
+    Extract the point group rotations from the spacegroup. Add time-reversal
+    if spatial inversion is not present and `has_timrev`.
 
-        inversion_3d = -np.eye(3, dtype=np.int)
-        has_inversion = any(np.all(w == inversion_3d) for w in work_symrel[:tmp_nsym])
+    Return:
+        (ptg_symrel, ptg_symrec) with rotations in real- and reciprocal-space.
+    """
+    nsym = len(symrel)
+    tmp_nsym = 1
+    work_symrel = np.empty((2*nsym, 3, 3), dtype=np.int)
+    work_symrel[0] = symrel[0]
 
-        # Now we know the symmetries of the point group.
-        ptg_nsym = 2 * tmp_nsym if not has_inversion and self.has_timrev else tmp_nsym
-        ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=np.int)
-        ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=np.int)
+    for isym in range(1, nsym):
+        found = any(np.all(symrel[isym] == work_symrel[search]) for search in range(tmp_nsym))
+        if not found:
+            work_symrel[tmp_nsym] = symrel[isym]
+            tmp_nsym += 1
 
-        from abipy.core.symmetries import mati3inv
-        ptg_symrel[:tmp_nsym] = work_symrel[:tmp_nsym]
-        for isym in range(tmp_nsym):
+    inversion_3d = -np.eye(3, dtype=np.int)
+    has_inversion = any(np.all(w == inversion_3d) for w in work_symrel[:tmp_nsym])
+
+    # Now we know the symmetries of the point group.
+    ptg_nsym = 2 * tmp_nsym if not has_inversion and has_timrev else tmp_nsym
+    ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=np.int)
+    ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=np.int)
+
+    ptg_symrel[:tmp_nsym] = work_symrel[:tmp_nsym]
+    for isym in range(tmp_nsym):
+        ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
+
+    if not has_inversion and has_timrev:
+        # Add inversion.
+        ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
+        for isym in range(tmp_nsym, ptg_nsym):
             ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 
-        if not has_inversion and self.has_timrev:
-            # Add inversion.
-            ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
-            for isym in range(tmp_nsym, ptg_nsym):
-                ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
-
-        return ptg_symrel, ptg_symrec, has_inversion
+    return ptg_symrel, ptg_symrec, has_inversion

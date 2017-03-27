@@ -28,7 +28,8 @@ ks_edos = ks_ebands_kmesh.get_edos()
 # because the code will interpolate the corrections instead of the QP energies.
 r = sigres.interpolate(lpratio=5,
                        ks_ebands_kpath=ks_ebands_kpath,
-                       ks_ebands_kmesh=ks_ebands_kmesh)
+                       ks_ebands_kmesh=ks_ebands_kmesh
+                       )
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
 # Shortcut: pass the name of the GSR files directly.

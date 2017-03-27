@@ -1251,11 +1251,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         if ks_ebands_kpath is None:
             # Interpolate QP energies.
-            eigens_kpath = skw.eval_all(kfrac_coords)
+            eigens_kpath = skw.interp_kpts(kfrac_coords).eigens
         else:
             # Interpolate QP energies corrections and add them to KS.
             ref_eigens = ks_ebands_kpath.eigens[:, :, bstart:bstop]
-            qp_corrs = skw.eval_all_and_enforce_degs(kfrac_coords, ref_eigens, atol=ks_degatol)
+            qp_corrs = skw.interp_kpts_and_enforce_degs(kfrac_coords, ref_eigens, atol=ks_degatol).eigens
             eigens_kpath = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
         # Build new ebands object with k-path.
@@ -1290,7 +1290,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
             # Interpolate QP corrections from bstart to bstop
             ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
-            qp_corrs = skw.eval_all_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol)
+            qp_corrs = skw.interp_kpts_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol).eigens
             eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
             # Build new ebands object with k-mesh

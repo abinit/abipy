@@ -14,4 +14,3 @@ if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
     ./docs/install_reqs.sh;
     cd ./docs && make && cd ..;
 fi
-
