@@ -29,14 +29,14 @@ class TestTEstingTools(AbipyTest):
             self.assertIsInstance(ex, AssertionError)
             error_message = "Two inputs were found to be not equal:\n" \
                             "   not the same input parameters:\n" \
-                            "     [u'kptopt'] were found in ref but not in actual\n" \
+                            "     ['kptopt'] were found in ref but not in actual\n" \
                             "     [] were found in actual but not in ref\n\n" \
                             "   variable kptopt from the reference is not in the actual input\n\n" \
                             "   var shiftk differs: [[0.0, 0.0, 0.0]] (reference) != [[0.1, 0.0, 0.0]] (actual)\n" \
                             "   var ngkpt differs: [10, 10, 10] (reference) != [11, 10, 10] (actual)\n" \
                             "   var nshiftk differs: 1 (reference) != 5 (actual)\n" \
                             "   var charge differs: 0.0 (reference) != 0.01 (actual)\n"
-            self.assertEqual(str(ex), error_message)
+            self.assertEqual(str(ex).replace("[u'", "['"), error_message)
 
 if __name__ == "__main__":
     import unittest
