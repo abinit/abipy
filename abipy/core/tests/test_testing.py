@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-"""Tests for core.density module"""
-from __future__ import print_function, division
+"""Tests for test_testing module"""
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.core.testing import input_equality_check
 
 root = os.path.dirname(__file__)
@@ -37,7 +36,3 @@ class TestTEstingTools(AbipyTest):
                             "   var nshiftk differs: 1 (reference) != 5 (actual)\n" \
                             "   var charge differs: 0.0 (reference) != 0.01 (actual)\n"
             self.assertEqual(str(ex).replace("[u'", "['"), error_message)
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()

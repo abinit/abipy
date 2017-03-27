@@ -1,8 +1,7 @@
-==============
-abipy examples
+AbiPy examples
 ==============
 
-There are a variety of ways to use abipy, and most of them are
+There are a variety of ways to use AbiPy, and most of them are
 illustrated in the examples in this directory.
 
 Below is a brief description of the different directories found here:
