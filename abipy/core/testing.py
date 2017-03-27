@@ -123,12 +123,16 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
 
 
 def json_read_abinit_input_from_path(json_path):
+    """
+    Read a json file from the absolute path `json_path`, return AbinitInput instance.
+    """
     from abipy.abio.inputs import AbinitInput
     import abipy.data as abidata
 
     with open(json_path, "rt") as fh:
         d = json.load(fh)
 
+    # Convert pseudo paths: extract basename and build path in abipy/data/pseudos.
     for pdict in d["pseudos"]:
         pdict["filepath"] = os.path.join(abidata.dirpath, "pseudos", os.path.basename(pdict["filepath"]))
 
@@ -143,7 +147,7 @@ def straceback():
 
 def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=False):
     """
-    function to compare two inputs
+    Function to compare two inputs
     ref_file takes the path to reference input in json: json.dump(input.as_dict(), fp, indent=2)
     input2 takes an AbinintInput object
     tol relative tolerance for floats
@@ -303,6 +307,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def json_read_abinit_input(json_basename):
+        """Return an AbinitInput from the basename of the file in abipy/data/test_files."""
         return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
@@ -421,6 +426,7 @@ def change_matplotlib_backend(new_backend=""):
 
 
 def revert_matplotlib_backend():
+    """Revert matplotlib backend to the previous value."""
     global CONF_FILE, BKP_FILE
     # print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
     if BKP_FILE is not None:

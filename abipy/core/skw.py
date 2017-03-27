@@ -310,8 +310,7 @@ class ElectronInterpolator(object):
             for spin in range(self.nsppol):
                 for ik, wtk in enumerate(k.weights):
                     for band in range(self.nband):
-                        e = eigens[spin, ik, band]
-                        values[spin] += wtk * gaussian(wmesh, width, center=e)
+                        values[spin] += wtk * gaussian(wmesh, width, center=eigens[spin, ik, band])
 
             # Compute IDOS
             integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)

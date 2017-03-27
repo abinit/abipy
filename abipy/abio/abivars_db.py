@@ -250,9 +250,13 @@ def get_abinit_variables():
         pickle_file = os.path.join(os.getenv("HOME"), ".abinit", "abipy", "abinit_vars.pickle")
 
         if os.path.exists(pickle_file):
-            #print("Reading from pickle")
-            with open(pickle_file, "rb") as fh:
-                __VARS_DATABASE = pickle.load(fh)
+            try:
+                with open(pickle_file, "rb") as fh:
+                    __VARS_DATABASE = pickle.load(fh)
+            except Exception as exc:
+                print("Error while trying to read variables from pickle file %s" % pickle_file)
+                print("Please remove the file and rerun.")
+                raise exc
 
         else:
             # Make directory and file if not present.
