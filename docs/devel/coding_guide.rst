@@ -15,9 +15,9 @@ When committing changes to AbiPy, there are a few things to bear in mind.
 
 * Are your changes python2.7 compatible?
 
-* Can you pass the automatic tests? (:file:`README-tests.rst` describes how to run the tests)
+* Can you pass the automatic tests? 
 
-* Can you add a test to :file:`abipy/tests` to test your changes?
+* Can you add a test to test your changes?
 
 * if you have added new files or directories, or reorganized existing
   ones, are the new files included in the match patterns in :file:`MANIFEST.in`.  
@@ -60,9 +60,6 @@ Prefer the shortest names that are still readable.
 Configure your editor to use spaces, not hard tabs. 
 The standard indentation unit is always four spaces; 
 if there is a file with tabs or a different number of spaces it is a bug -- please fix it.
-To detect and fix these and other whitespace errors (see below),
-use :file:`tools/reindent.py` as a command-line script.  
-Unless you are sure your editor always does the right thing, please use reindent.py before committing your changes.
 
 Keep docstrings uniformly indented as in the example below, with nothing to the left of the triple quotes.  
 
