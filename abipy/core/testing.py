@@ -311,7 +311,7 @@ class AbipyTest(PymatgenTest):
         return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
-    def assert_input_equallity(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
+    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
         """
         Check equality between an input and a reference in test_files.
         only input variables and structure are compared.

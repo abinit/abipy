@@ -54,7 +54,7 @@ class FactoryTest(AbipyTest):
             with open('gs_input.json', mode='w') as fp:
                 json.dump(inp.as_dict(), fp, indent=2)
 
-        self.assert_input_equallity('gs_input.json', inp)
+        self.assert_input_equality('gs_input.json', inp)
 
     def test_ebands_input(self):
         """Testing ebands_input factory."""
@@ -69,8 +69,8 @@ class FactoryTest(AbipyTest):
                 json.dump(nscf_inp.as_dict(), fp, indent=2)
 
         self.validate_multi(multi)
-        self.assert_input_equallity('scf_input.json', scf_inp)
-        self.assert_input_equallity('nscf_input.json', nscf_inp)
+        self.assert_input_equality('scf_input.json', scf_inp)
+        self.assert_input_equality('nscf_input.json', nscf_inp)
 
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
@@ -120,10 +120,10 @@ class FactoryTest(AbipyTest):
             with open('g0w0_with_ppmodel_sigma_input.json', mode='w') as fp:
                 json.dump(sigma_input.as_dict(), fp, indent=2)
 
-        self.assert_input_equallity('g0w0_with_ppmodel_scf_input.json', scf_input)
-        self.assert_input_equallity('g0w0_with_ppmodel_nscf_input.json', nscf_input)
-        self.assert_input_equallity('g0w0_with_ppmodel_scr_input.json', scr_input)
-        self.assert_input_equallity('g0w0_with_ppmodel_sigma_input.json', sigma_input)
+        self.assert_input_equality('g0w0_with_ppmodel_scf_input.json', scf_input)
+        self.assert_input_equality('g0w0_with_ppmodel_nscf_input.json', nscf_input)
+        self.assert_input_equality('g0w0_with_ppmodel_scr_input.json', scr_input)
+        self.assert_input_equality('g0w0_with_ppmodel_sigma_input.json', sigma_input)
 
         flow = Flow.temporary_flow()
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
@@ -155,7 +155,7 @@ class FactoryTest(AbipyTest):
 
         for t in ['00', '10', '20', '30']:
             ref_file = 'convergence_inputs_single_factory_' + t + '.json'
-            self.assert_input_equallity(ref_file, inputs[int(t[0])][int(t[1])])
+            self.assert_input_equality(ref_file, inputs[int(t[0])][int(t[1])])
 
         for inp in [item for sublist in inputs for item in sublist]:
             val = inp.abivalidate()
