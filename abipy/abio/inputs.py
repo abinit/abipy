@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict, MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
-from monty.json import MontyEncoder, MontyDecoder, MSONable
+from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.structure import Structure
@@ -477,10 +477,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         elif optdriver == 3:
             runlevel.update([MANY_BODY, SCREENING])
         elif optdriver == 4:
-            runlevel.update([MANY_BODY, SIGMA])
             gwcalctyp = self.get("gwcalctyp")
-            if gwcalctyp > 100:
+            if int(gwcalctyp) > 100:
                 runlevel.add(HYBRID)
+            else:
+                runlevel.update([MANY_BODY, SIGMA])
         elif optdriver == 99:
             runlevel.update([MANY_BODY, BSE])
 
