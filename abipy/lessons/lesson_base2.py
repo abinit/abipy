@@ -6,6 +6,7 @@ import abipy.flowtk as flowtk
 import abipy.data as abidata
 import numpy as np
 
+
 def h2_h_input(x=0.7, ecut=10, acell=(10, 10, 10)):
     """
     This file to optimize the H2 bond length, compute the associated total
