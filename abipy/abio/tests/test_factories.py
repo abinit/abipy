@@ -54,7 +54,8 @@ class FactoryTest(AbipyTest):
         if False:  # write_inputs_to_json:
             with open('gs_input.json', mode='w') as fp:
                 json.dump(inp.as_dict(), fp, indent=2)
-
+        self.assertIn('scf', inp.runlevel)
+        self.assertIn('ground_state', inp.runlevel)
         self.assert_input_equality('gs_input.json', inp)
 
     def test_ebands_input(self):
@@ -69,6 +70,9 @@ class FactoryTest(AbipyTest):
             with open('nscf_input.json', mode='w') as fp:
                 json.dump(nscf_inp.as_dict(), fp, indent=2)
 
+        self.assertIn('bands', nscf_inp.runlevel)
+        self.assertIn('nscf', nscf_inp.runlevel)
+        self.assertIn('ground_state', nscf_inp.runlevel)
         self.validate_multi(multi)
         self.assert_input_equality('scf_input.json', scf_inp)
         self.assert_input_equality('nscf_input.json', nscf_inp)
@@ -80,7 +84,9 @@ class FactoryTest(AbipyTest):
         # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
         ion_inp, ioncell_inp = multi.split_datasets()
-
+        self.assertIn('ion_relax', ion_inp.runlevel)
+        self.assertIn('relax', ion_inp.runlevel)
+        self.assertIn('ground_state', ion_inp.runlevel)
         flow = Flow.temporary_flow()
         flow.register_work(RelaxWork(ion_inp, ioncell_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
@@ -109,7 +115,12 @@ class FactoryTest(AbipyTest):
         scf_input.abivalidate()
         nscf_input.abivalidate()
         scr_input.abivalidate()
+        self.assertIn('many_body', scr_input.runlevel)
+        self.assertIn('screening', scr_input.runlevel)
         sigma_input.abivalidate()
+        self.assertIn('many_body', sigma_input.runlevel)
+        self.assertIn('sigma', sigma_input.runlevel)
+        self.assertNotIn('hybrid', sigma_input.runlevel)
 
         if write_inputs_to_json:
             with open('g0w0_with_ppmodel_scf_input.json', mode='w') as fp:
@@ -169,6 +180,8 @@ class FactoryTest(AbipyTest):
         self.assertEqual(inputs[3][0]['gwmem'], '10')
         self.assertEqual(inputs[2][0]['optdriver'], 3)
         self.assertEqual(inputs[3][0]['optdriver'], 4)
+        self.assertNotIn('hybrid', inputs[3][0].runlevel)
+        self.assertIn('many_body', inputs[3][0].runlevel)
 
     def test_convergence_inputs_conv(self):
         """Testing g0w0_convergence_input factory convergence calculation."""
@@ -224,6 +237,10 @@ class FactoryTest(AbipyTest):
         # exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
         # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
         scf_input, nscf_input, bse_input = multi.split_datasets()
+        self.assertIn('many_body', bse_input.runlevel)
+        self.assertIn('bse', bse_input.runlevel)
+        self.assertNotIn('hybrid', bse_input.runlevel)
+
         self.validate_multi(multi)
 
     def test_scf_phonons_inputs(self):
@@ -231,8 +248,9 @@ class FactoryTest(AbipyTest):
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 10, 10, 10, 4
         ecut = 4
         multi = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa, ecut=ecut)
-        # , pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
         self.validate_multi(multi)
+        self.assertIn('dfpt', multi[-1].runlevel)
+        self.assertIn('ph_q_pert', multi[-1].runlevel)
 
     def test_phonons_from_gsinput(self):
         """Testing phonons_from_gsinput"""
@@ -290,6 +308,8 @@ class FactoryTest(AbipyTest):
         hyb_inp = hybrid_oneshot_input(gs_inp, functional="hse06", ecutsigx=None, gw_qprange=1)
         assert "ecutsigx" in hyb_inp and hyb_inp["ecutsigx"] == ecut * 2
         hyb_inp.abivalidate()
+        self.assertIn('hybrid', hyb_inp.runlevel)
+        self.assertNotIn('many_body', hyb_inp.runlevel)
 
     def test_scf_for_phonons(self):
         """Testing scf_for_phonons."""

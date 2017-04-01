@@ -774,6 +774,7 @@ def bse_with_mdf_inputs(structure, pseudos,
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    # TODO: Please check the unused variables in the function
     """
     Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
@@ -827,6 +828,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
             #kptopt   2      # Automatic generation of k points, taking
 
         irred_perts = ph_inp.abiget_irred_phperts()
+        # TODO irred_perts is not used ??
 
         #for pert in irred_perts:
         #    #print(pert)
