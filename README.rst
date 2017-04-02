@@ -203,6 +203,6 @@ Users are strongly encouraged to explore the detailed `api docs <http://pythonho
 License
 =======
 
-AbiPy is released under an GNU GPL license. For more details see the LICENSE file.
+AbiPy is released under the GNU GPL license. For more details see the LICENSE file.
 
 .. _`abipy docpage` : http://pythonhosted.org/abipy

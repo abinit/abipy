@@ -10,7 +10,7 @@ import abipy.data as abidata
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
     KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestWrapWS(AbipyTest):

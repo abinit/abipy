@@ -229,7 +229,7 @@ class PhonopyGruneisenWork(Work):
 		(Optional) dictionary with arguments passed to generate_displacements.
 
 	Return:
-	    PhonopyGruneisenWork instance.
+	    `PhonopyGruneisenWork` instance.
         """
         new = cls()
 

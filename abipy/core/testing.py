@@ -277,6 +277,11 @@ class AbipyTest(PymatgenTest):
         return Structure.as_structure(abidata.ref_file(basename))
 
     @staticmethod
+    def mkdtemp(**kwargs):
+        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        return tempfile.mkdtemp(**kwargs)
+
+    @staticmethod
     def get_tmpname(**kwargs):
         """Invoke mkstep with kwargs, return the name of a temporary file."""
         fd, tmpname = tempfile.mkstemp(**kwargs)

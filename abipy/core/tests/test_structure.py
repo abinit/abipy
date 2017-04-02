@@ -8,7 +8,7 @@ import abipy.data as abidata
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 

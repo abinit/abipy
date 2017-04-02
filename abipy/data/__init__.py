@@ -8,6 +8,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 
+from abipy.core.structure import Structure
 from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
@@ -47,7 +48,10 @@ def pyscript(basename):
         _SCRIPTS = {}
         for p in pypaths:
             k = os.path.basename(p)
-            assert k not in _SCRIPTS
+            # Ingnore e.g. __init__.py and private scripts.
+            if k.startswith("_"): continue
+            if k in _SCRIPTS:
+                raise ValueError("Fond duplicated basenames with name %s\nPrevious %s" % (k, _SCRIPTS[k]))
             _SCRIPTS[k] = p
 
     return _SCRIPTS[basename]
@@ -56,6 +60,14 @@ def pyscript(basename):
 def cif_file(filename):
     """Returns the absolute path of the CIF file in tests/data/cifs."""
     return os.path.join(_CIF_DIRPATH, filename)
+
+
+def structure_from_cif(filename):
+    """
+    Returnn an Abipy structure from the basename of the cif file in data/cifs.
+    """
+    return Structure.from_file(cif_file(filename))
+
 
 pseudo_dir = _PSEUDOS_DIRPATH
 
@@ -77,16 +89,15 @@ def var_file(filename):
     return os.path.join(_VARIABLES_DIRPATH, filename)
 
 
-def find_ncfiles(top):
+def find_ncfiles(top, verbose=0):
     """
-    Find all netcdf files starting from the top-level directory top.
+    Find all netcdf files starting from the top-level directory `top`.
     Filenames must be unique. Directories whose start with "tmp_" are
     excluded from the search.
 
     Returns:
         dictionary with mapping: basename --> absolute path.
     """
-    SILENT = 0
     ncfiles = {}
     for dirpath, dirnames, filenames in os.walk(top):
 
@@ -101,11 +112,10 @@ def find_ncfiles(top):
                     err_msg =  "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
 
-                    if not SILENT:
+                    if not verbose:
                         import warnings
                         warnings.warn(err_msg)
                         #raise ValueError(err_msg)
-                        SILENT += 1
 
                 else:
                     ncfiles[basename] = apath
@@ -141,14 +151,37 @@ def ncfiles_with_ext(ext):
 
     return ncfiles
 
+_MP_STRUCT_DICT = None
 
-def mp_structures():
-    """Returns a dictionary containing the structures stored in mpdata/mp_structures. """
+def get_mp_structures_dict():
+    """
+    Returns a dictionary containing the structures stored in mpdata/mp_structures.
+    """
+    global _MP_STRUCT_DICT
+    if  _MP_STRUCT_DICT is not None:
+        return _MP_STRUCT_DICT
+
     import json
     from monty.json import MontyDecoder
 
     with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
-        return json.load(f, cls=MontyDecoder)
+        _MP_STRUCT_DICT = json.load(f, cls=MontyDecoder)
+        # Change Structure class
+        for k, v in _MP_STRUCT_DICT.items():
+            _MP_STRUCT_DICT[k].__class__ = Structure
+        return _MP_STRUCT_DICT
+
+
+def structure_from_mpid(mpid):
+    """
+    Return an Abipy Structure from the `mpid` identifier.
+    See mpdata/mp_structure.json
+    """
+    d = get_mp_structures_dict()
+    if mpid not in d:
+        raise KeyError("%s not in dictionary keys:\n%s" % (mpid, list(d.keys())))
+
+    return d[mpid]
 
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
@@ -169,11 +202,7 @@ class FilesGenerator(object):
             verbose: Verbosity level.
         """
         if not hasattr(self, "files_to_save"):
-            raise ValueError("files_to_save are not defined")
-
-        from monty.os.path import which
-        if which(self.executable) is None:
-            raise RuntimeError("Cannot find %s in $PATH" % self.executable)
+            raise ValueError("files_to_save is not defined")
 
         self.workdir = os.path.abspath(kwargs.pop("workdir", "."))
         self.finalize = kwargs.pop("finalize", True)
@@ -191,6 +220,10 @@ class FilesGenerator(object):
 
     def run(self):
         """Run Abinit and rename output files. Return 0 if success"""
+        from monty.os.path import which
+        if which(self.executable) is None:
+            raise RuntimeError("Cannot find %s in $PATH" % self.executable)
+
         os.chdir(self.workdir)
         process = self._run()
         process.wait()
@@ -249,8 +282,7 @@ class AbinitFilesGenerator(FilesGenerator):
         self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
     def make_filesfile_str(self):
-        s = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
-        return s
+        return "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
 
 
 class AnaddbFilesGenerator(FilesGenerator):
@@ -310,7 +342,3 @@ class AnaddbFilesGenerator(FilesGenerator):
             self.elph_basename,
             self.in_ddk,
         ])
-
-
-if __name__ == "__main__":
-    print(pyscript("plot_spectral_functions.py"))

@@ -7,7 +7,7 @@ import abipy.data as abidata
 
 from abipy.core import Structure
 from abipy.core.symmetries import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.abilab import abiopen
 
 

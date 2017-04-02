@@ -6,7 +6,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.fields import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestScalarField(AbipyTest):

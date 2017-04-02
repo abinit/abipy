@@ -5,7 +5,7 @@ import numpy as np
 
 from abipy.core import Mesh3D
 from abipy.core.gsphere import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestGSphere(AbipyTest):
@@ -62,8 +62,3 @@ class TestGSphere(AbipyTest):
                 int_r = mesh.integrate(fr)
                 int_g = fg[...,0,0,0]
                 self.assert_almost_equal(int_r, int_g)
-
-
-if __name__ == "__main__": 
-    import unittest
-    unittest.main()

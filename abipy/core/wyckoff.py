@@ -7,11 +7,13 @@ from collections import Sequence, OrderedDict
 
 
 def _validate_params(params, wpos):
-    """Check keys in params"""
+    """
+    Check keys in params. Raises ValueError.
+    """
     check = params.copy()
     for k in params:
         if k not in wpos.names:
-            raise ValueError("Cannot find %s in symbol_names: %s" % (k, wpos.names))
+            raise ValueError("Cannot find key: %s in symbol_names: %s" % (k, wpos.names))
         check.pop(k)
     if check:
         raise ValueError("Found unknown symbol names in %s" % check)
@@ -23,7 +25,9 @@ class WyckoffPositions(Sequence):
     """
     @classmethod
     def from_string(cls, s):
-        """Initialize the object from a string."""
+        """
+        Initialize the object from string `s`.
+        """
         # Build a matrix of strings with expressions.
         s = s.replace("\n", "")
         s = s.replace("(", "").replace(")", "")
@@ -32,17 +36,17 @@ class WyckoffPositions(Sequence):
         try:
             matrix_str = np.reshape(s.split(","), (-1, 3))
         except ValueError:
-            raise ValueError("Wrong string in input, perhaps missing comma")
+            raise ValueError("Wrong string in input, perhaps missing comma. Input string:\n %s" % str(s))
 
         return cls(matrix_str)
 
     def __init__(self, matrix_str, letter=None, site_symmetry=None):
         """
 
-            Args:
-                matrix_str:
-                letter:
-                site_symmetry:
+        Args:
+            matrix_str:
+            letter:
+            site_symmetry:
         """
         self.letter, self.site_symmetry = None, None
 
@@ -72,6 +76,7 @@ class WyckoffPositions(Sequence):
         return self._expr_mat.__getitem__(key)
 
     def __str__(self):
+        """String representation."""
         lines = []
         for vec in self:
             lines.append("(" + ",".join(str(e) for e in vec) + ")")
@@ -92,6 +97,9 @@ class WyckoffPositions(Sequence):
         return len(self.symbols)
 
     def params_from_frac_coords(self, frac_coords):
+        """
+        Compute the wyckoff parameters from the fractional coordinates.
+        """
         frac_coords = np.reshape(frac_coords, (-1, 3))
         assert len(self) == len(frac_coords)
         equations = []
@@ -142,15 +150,18 @@ class Wyckoff(object):
         self.site2wpos = d
 
     def __str__(self):
+        """String representation."""
         lines = []
         app = lines.append
         app("Wyckoff positions:")
         for site, wpos in self.site2wpos.items():
             app("%s site:\n\t%s" % (site, wpos))
+
         return "\n".join(lines)
 
     def gen_structure(self, lattice, site2params, to_unit_cell=False, struct_cls=None):
         """
+        Generate structure object from `lattice` and dictionary `site2params`
         """
         if not isinstance(site2params, OrderedDict):
             raise ValueError("Please use a OrderedDict for site2params so that\n" +
@@ -175,6 +186,9 @@ class Wyckoff(object):
                    to_unit_cell=to_unit_cell, coords_are_cartesian=False, site_properties=None)
 
     def find_params(self, structure):
+        """
+        Compute the value of the parameter given a Structure object.
+        """
         fcoords = structure.get_symbol2coords()
 
         # Solve the problem.

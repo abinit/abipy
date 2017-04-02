@@ -27,7 +27,7 @@ class FactoryTest(AbipyTest):
 
     def setUp(self):
         # Si ebands
-        self.si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+        self.si_structure = abidata.structure_from_cif("si.cif")
         self.si_pseudo = abidata.pseudos("14si.pspnc")
 
     @staticmethod

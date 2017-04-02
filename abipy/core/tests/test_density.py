@@ -5,7 +5,7 @@ import tempfile
 import abipy.data as abidata
 
 from abipy.core import Density
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
 

@@ -7,7 +7,8 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.tensor import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
+
 
 class TestTensor(AbipyTest):
     """Unit tests for Tensor."""
