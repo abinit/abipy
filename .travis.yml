@@ -31,7 +31,7 @@ install:
   # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
   - conda install hdf4=4.2.12
   - pip install pytest scripttest nose nose-exclude
-  - if [[ "${PYTHON_VERSION}" == "2.7" ]]; conda install mock; fi
+  - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install pep8 python-coveralls
   - conda install matplotlib seaborn
   - conda install ipython jupyter nbformat
