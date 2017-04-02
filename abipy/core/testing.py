@@ -13,6 +13,7 @@ import subprocess
 import json
 import tempfile
 import shutil
+import unittest
 import numpy.testing.utils as nptu
 
 from monty.os.path import which
@@ -98,6 +99,38 @@ def has_seaborn():
         return True
     except ImportError:
         return False
+
+
+def has_phonopy(version=None, op=">="):
+    """
+    True if phonopy is installed.
+    If version is None, the result of phonopy.__version__ `op` version is returned.
+    """
+    try:
+        import phonopy
+
+    except ImportError:
+        print("Skipping phonopy test")
+        return False
+
+    if version is None: return True
+    return cmp_version(phonopy.__version__, version, op=op)
+
+
+def get_mock_module():
+    """Return mock module for testing. Raises ImportError if not found."""
+    try:
+        # py > 3.3
+        from unittest import mock
+    except ImportError:
+        try:
+            import mock
+        except ImportError:
+            print("mock module required for unit tests")
+            print("Use py > 3.3 or install it with `pip install mock` if py2.7")
+            raise
+
+    return mock
 
 
 def has_fireworks():
@@ -337,6 +370,24 @@ class AbipyTest(PymatgenTest):
     def straceback():
         """Returns a string with the traceback."""
         return straceback()
+
+    @staticmethod
+    def skip_if_not_phonopy(version=None, op=">="):
+        """
+        Raise SkipTest if phonopy is not installed.
+        Use `version` and `op` to ask for a specific version
+        """
+        if not has_phonopy(version=version, op=op):
+            if version is None:
+                msg = "This test requires phonopy"
+            else:
+                msg = "This test requires phonopy version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    @staticmethod
+    def get_mock_module():
+        """Return mock module for testing. Raises ImportError if not found."""
+        return get_mock_module()
 
 
 class AbipyFileTest(AbipyTest):

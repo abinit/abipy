@@ -897,11 +897,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             scdims = np.array(scdims)
             if scdims.shape != (3,):
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+
             numcells = np.product(scdims)
             if len(structure) != numcells * len(self.structure):
-                errmsg = "Number of atoms in input structure should be %d * %d but found" % (
+                errmsg = "Number of atoms in input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(structure))
                 raise ValueError(errmsg)
+
             if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
                                   [site.specie.symbol for site in structure]):
                 errmsg = "Wrong supercell"
@@ -922,8 +924,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             var_database = get_abinit_variables()
             for name in new:
                 var = var_database[name]
-                if var.isarray and "natom" in str(var.dimensions): # This test is not very robust and can fail.
-                    errors.append("Found variable %d with natom in dimensions %s" % (name, str(var.dimensions)))
+                # This test is not very robust and can fail.
+                if var.isarray and "natom" in str(var.dimensions):
+                    errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
 
             if errors:
                 errmsg = ("\n".join(errors) +
@@ -939,6 +942,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
                 print("new new:", new["ngkpt"])
+
+            # TODO
             #elif "kptrlatt" in new:
             #   new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
             #else:
