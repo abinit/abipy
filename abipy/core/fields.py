@@ -7,6 +7,7 @@ import collections
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.string import is_string
 from pymatgen.core.units import bohr_to_angstrom
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Chgcar
@@ -52,7 +53,7 @@ class ScalarField(Has_Structure):
 
         # Init Mesh3D
         mesh_shape = datar.shape[-3:]
-        self._mesh = Mesh3D(mesh_shape, structure.lattice_vectors())
+        self._mesh = Mesh3D(mesh_shape, structure.lattice.matrix)
 
         # Make sure we have the correct shape.
         self._datar = np.reshape(datar, (nspden,) + self.mesh.shape)
@@ -669,8 +670,51 @@ class Density(ScalarField):
         return chgcar
 
     # TODO
-    #@classmethod
-    #def from_chgcar_file(cls, filename):
+    @classmethod
+    def from_chgcar_poscar(cls, chgcar, poscar):
+        """
+        Build a `Density` object from Vasp data.
+
+        Args:
+            chgcar: Either string with the name of a CHGCAR file or :class:`Chgcar` pymatgen object.
+            poscar: Either string with the name of a POSCAR file or :class:`Poscar` pymatgen object.
+
+        .. warning:
+
+            The present version does not support non-collinear calculations.
+            The Chgcar object provided by pymatgen does not provided enough information
+            to understand if the calculation is collinear or no.
+        """
+        if is_string(chgcar):
+            chgcar = Chgcar.from_file(chgcar)
+        if is_string(poscar):
+            poscar = Poscar.from_file(poscar, check_for_POTCAR=False, read_velocities=False)
+
+        nx, ny, nz = chgcar.dim
+        nspinor = 1
+        nsppol = 2 if chgcar.is_spin_polarized else 1
+        nspden = 2 if nsppol == 2 else 1
+
+        # Convert pymatgen chgcar data --> abipy representation.
+        abipy_datar = np.empty((nspden, nx, ny, nz))
+
+        if nspinor == 1:
+            if nspden == 1:
+                abipy_datar = chgcar.data["total"]
+            elif nspden == 2:
+                total, diff = chgcar.data["total"], chgcar.data["diff"]
+                abipy_datar[0] = 0.5 * (total + diff)
+                abipy_datar[1] = 0.5 * (total - diff)
+            else:
+                raise ValueError("Wrong nspden %s" % nspden)
+
+        else:
+            raise NotImplementedError("nspinor == 2 requires more info in Chgcar")
+
+        abipy_datar /= poscar.structure.volume
+
+        return cls(nspinor=nspinor, nsppol=nsppol, nspden=nspden, datar=abipy_datar,
+                   structure=poscar.structure, iorder="c")
 
 
 class DensityReader(ETSF_Reader):

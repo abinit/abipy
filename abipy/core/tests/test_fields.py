@@ -84,14 +84,17 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(nup, 8 / 2)
         self.assert_almost_equal(density.zeta, 0)
 
-        # Export to chgcar
+        # Export to chgcar and re-read it.
         chgcar_path = self.get_tmpname(text=True)
         chgcar = density.to_chgcar(filename=chgcar_path)
         assert hasattr(chgcar, "structure")
         assert not chgcar.is_spin_polarized
 
-        #same_density = Density.from_chgcar_file(chgcar_path)
-        #self.assert_almost_equal(same_density.datar, density.datar)
+        poscar_path = self.get_tmpname(text=True)
+        density.structure.to(fmt="poscar", filename=poscar_path)
+
+        same_density = Density.from_chgcar_poscar(chgcar_path, poscar_path)
+        self.assert_almost_equal(same_density.datar, density.datar)
 
         # TODO@DW
         #den.ae_core_density_on_mesh(cls, valence_density, structure, rhoc_files, maxr=2.0, nelec=None,

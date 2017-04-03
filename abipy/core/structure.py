@@ -484,7 +484,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.matrix
         if space.lower() == "g":
             return self.lattice.reciprocal_lattice.matrix
-        raise ValueError("Wrong value for space: %s " % space)
+        raise ValueError("Wrong value for space: %s " % str(space))
 
     def spglib_summary(self, verbose=0):
         """
