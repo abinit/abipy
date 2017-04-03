@@ -2531,6 +2531,15 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return self._write_nb_nbpath(nb, nbpath)
 
+    #def _can_use_basenames_as_labels(self):
+    #    """
+    #    Return True if all labels represent valid files and the basenames are unique
+    #    In this case one can use the file basename instead of the full path in the plots.
+    #    """
+    #    if not all(os.path.exists(l) for l in self.ebands_dict): return False
+    #    labels = [os.path.basename(l) for l in self.ebands_dict]
+    #    return len(set(labels)) == len(labels)
+
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
@@ -2977,9 +2986,14 @@ class ElectronDosPlotter(NotebookWriter):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
+        can_use_basename = self._can_use_basenames_as_labels()
+
         for label, dos in self.edoses_dict.items():
-            # Use relative paths if label is a file.
-            if os.path.isfile(label): label = os.path.relpath(label)
+            if can_use_basename:
+                label = os.path.basename(label)
+            else:
+                # Use relative paths if label is a file.
+                if os.path.isfile(label): label = os.path.relpath(label)
             dos.plot_ax(ax, e0, label=label)
 
         ax.grid(True)
@@ -3080,3 +3094,12 @@ class ElectronDosPlotter(NotebookWriter):
     #        dos.plot(show=False, savefig=savefig)
     #        animator.add_figure(label, savefig)
     #    return animator.animate(**kwargs)
+
+    def _can_use_basenames_as_labels(self):
+        """
+        Return True if all labels represent valid files and the basenames are unique
+        In this case one can use the file basename instead of the full path in the plots.
+        """
+        if not all(os.path.exists(l) for l in self.edoses_dict): return False
+        labels = [os.path.basename(l) for l in self.edoses_dict]
+        return len(set(labels)) == len(labels)

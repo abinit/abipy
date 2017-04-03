@@ -255,6 +255,7 @@ class ElectronDosPlotterTest(AbipyTest):
         plotter.add_edos("edos1", edos)
         plotter.add_edos("edos2", gsr_path, edos_kwargs=dict(method="gaussian", step=0.2, width=0.4))
         assert len(plotter.edos_list) == 2
+        assert not plotter._can_use_basenames_as_labels()
 
         if self.has_matplotlib():
             plotter.combiplot(show=False)

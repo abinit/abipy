@@ -106,6 +106,7 @@ class _File(object):
     #    finally:
     #        super(_File, self).__close__(self)
 
+
 class TextFile(_File):
 
     def __enter__(self):

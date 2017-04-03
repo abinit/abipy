@@ -32,6 +32,7 @@ class RobotTest(AbipyTest):
         with self.assertRaises(ValueError):
             robot.add_file("gsr0", gsr_path)
 
+        assert robot.EXT == "GSR"
         assert len(robot) == 1 and not robot.exceptions
         print(robot)
         print(repr(robot))
@@ -60,13 +61,24 @@ class RobotTest(AbipyTest):
         assert len(filepaths) == 3
 
         with SigresRobot.from_files(filepaths) as robot:
+            assert robot.EXT == "SIGRES"
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe()
             if self.has_seaborn():
                 robot.plot_conv_qpgap(x_vars="sigma_nband")
 
-    #def test_mdf_robot(self):
-    #    """Testing MDF robot."""
+    def test_mdf_robot(self):
+        """Testing MDF robot."""
+        mdf_paths = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
+        robot = MdfRobot.from_files(mdf_paths)
+
+        df = robot.get_dataframe(with_geo=True)
+        assert df is not None
+
+        plotter = robot.get_multimdf_plotter()
+        if self.has_matplotlib():
+            plotter.plot()
+            #robot.plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
 
     #def test_ddb_robot(self):
     #    """Testing DDB robots."""
@@ -79,10 +91,11 @@ class RobotTest(AbipyTest):
 
     #    plotter = robot.get_phbands_plotter()
     #    if self.has_matplotlib():
-    #        plotter.gridplot()
+    #       plotter.gridplot(show=False)
 
     #    with DdbRobot.from_files(filepaths) as robot:
+    #        assert robot.EXT == "DDB"
     #        robot.get_qpoints_union()
     #        df = robot.get_dataframe_at_qpoint(qpoint=None, asr=2, chneut=1, dipdip=1)
     #        if self.has_seaborn():
-    #            robot.plot_conv_qpgap(x_vars="sigma_nband")
+    #            robot.plot_conv_qpgap(x_vars="sigma_nband", show=False)

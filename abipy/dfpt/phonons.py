@@ -1522,6 +1522,7 @@ class PhononDos(Function1D):
             phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
             Used when obj is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
+        if phdos_kwargs is None: phdos_kwargs = {}
         if isinstance(obj, cls):
             return obj
         elif is_string(obj):
@@ -2078,22 +2079,31 @@ class PhononBandsPlotter(object):
                 label = ncfile.filepath
             self.add_phbands(label, ncfile.phbands)
 
-    def add_phbands(self, label, bands, dos=None):
+    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
         """
         Adds a band structure for plotting.
 
         Args:
             label: label for the bands. Must be unique.
             bands: :class:`PhononBands` object.
-            dos: :class:`PhononDos` object.
+            phdos: :class:`PhononDos` object.
+            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+              Used only if `phdos` is not None.
         """
+        if dos is not None:
+            import warnings
+            warnings.warn("dos has been renamed phdos. The argument will removed in abipy 0.4")
+            if phdos is not None:
+                raise ValueError("phdos and dos are mutually exclusive")
+            phdos = dos
+
         if label in self._bands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
 
-        self._bands_dict[label] = bands
+        self._bands_dict[label] = PhononBands.as_phbands(bands)
 
-        if dos is not None:
-            self.phdoses_dict[label] = dos
+        if phdos is not None:
+            self.phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     def bands_statdiff(self, ref=0):
         """

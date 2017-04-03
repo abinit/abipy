@@ -457,7 +457,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         else:
             raise ValueError("Wrong value for view: %s" % str(view))
 
-        # Build grid of plots.
+        # Build plot grid.
         ncols, nrows = 1, 1
         if num_plots > 1:
             ncols = 2
@@ -1385,7 +1385,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # TOT = PW + AE - PS
         pwdos_al = totdos_al - paw1dos_al + pawt1dos_al
 
-        # Build grid of plots.
+        # Build plot grid.
         import matplotlib.pyplot as plt
         fig, axmat = plt.subplots(nrows=np.count_nonzero(self.has_atom), ncols=self.lsize,
                                   sharex=True, sharey=True, squeeze=False)

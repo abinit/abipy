@@ -3,19 +3,21 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
+import os
 import itertools
 import collections
 import numpy as np
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from monty.string import marquee
+from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import set_axlims
 
 
 __all__ = [
@@ -24,6 +26,7 @@ __all__ = [
     "MdfFile",
     "MdfReader",
     "MdfPlotter",
+    "MultipleMdfPlotter",
 ]
 
 
@@ -109,7 +112,7 @@ class DielectricTensor(object):
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the 6 independent components
-        for icomponent in [0,4,8,1,2,5]:
+        for icomponent in [0, 4, 8, 1, 2, 5]:
             self.plot_ax(ax, icomponent, red_coords, *args, **kwargs)
 
         return fig
@@ -152,6 +155,7 @@ class DielectricFunction(object):
     computed for different q-directions in reciprocal space.
 
     .. note:
+
         Frequencies are in eV
     """
 
@@ -185,7 +189,19 @@ class DielectricFunction(object):
         self.emacro_avg = Function1D(wmesh, em_avg / self.num_qpoints)
 
     def __str__(self):
-        return self.__class__.__name__
+        return self.to_string()
+
+    def to_string(self, with_info=False):
+        """String representation."""
+        lines = []
+        app = lines.append
+        app(self.__class__.__name__)
+        #app("calc_type: %s, has_lfe: %s, num_qpoints: %d" % (self.calc_type, self.has_lfe, self.num_qpoints))
+        app("num_qpoints: %d" % (self.num_qpoints))
+        if with_info:
+            app(str(self.info))
+
+        return "\n".join(lines)
 
     def __iter__(self):
         """Iterate over (q, em_q)."""
@@ -200,21 +216,21 @@ class DielectricFunction(object):
         """The fractional coordinates of the q-points as a ndarray."""
         return self.qpoints.frac_coords
 
-    @property
-    def has_lfe(self):
-        """True if MDF includes local field effects."""
-        return bool(self.info["lfe"])
+    #@property
+    #def has_lfe(self):
+    #    """True if MDF includes local field effects."""
+    #    return bool(self.info["lfe"])
 
-    @property
-    def calc_type(self):
-        """String with the type of calculation."""
-        return self.info["calc_type"]
+    #@property
+    #def calc_type(self):
+    #    """String with the type of calculation."""
+    #    return self.info["calc_type"]
 
-    def show_info(self, stream=sys.stdout):
-        """Pretty print of the info."""
-        import pprint
-        printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
-        printer.pprint(self.info)
+    #def show_info(self, stream=sys.stdout):
+    #    """Pretty print of the info."""
+    #    import pprint
+    #    printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)
+    #    printer.pprint(self.info)
 
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
@@ -260,7 +276,7 @@ class DielectricFunction(object):
 
         Args:
             ax: plot axis.
-            qpoint: index of the q-point or Kpoint object or None) to plot emacro_avg.
+            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
             kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
                 cplx_mode:
@@ -371,15 +387,12 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_params()
 
     def get_mdf(self, mdf_type="exc"):
-        """"Returns the macroscopic dielectric function."""
-        d = {"exc": self.exc_mdf,
-             "rpa": self.rpanlf_mdf,
-             "gwrpa": self.gwnlf_mdf}
-
-        try:
-            return d[mdf_type.lower()]
-        except KeyError:
-            raise ValueError("Wrong value for mdf_type: %s" % mdf_type)
+        """"
+        Returns the macroscopic dielectric function.
+        """
+        return {"exc": self.exc_mdf,
+                "rpa": self.rpanlf_mdf,
+                "gwrpa": self.gwnlf_mdf}[mdf_type.lower()]
 
     def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs):
         """
@@ -400,9 +413,9 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 Select the type of macroscopic dielectric function.
                 Possible choices are
 
-                    - "exc" for the excitonic MDF.
-                    - "rpa" for RPA MDF.
-                    - "gwrpa" for GW-RPA MDF
+                    - "exc" for the MDF with excitonic effects.
+                    - "rpa" for RPA with KS energies.
+                    - "gwrpa" for RPA with GW (or KS-corrected) results
                     - "all" if all types are wanted.
 
                 Options can be concated with "-".
@@ -487,7 +500,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
 
     def read_params(self):
         """Dictionary with the parameters of the run."""
-        # TODO
+        # TODO: Add more info.
         keys = [
             "nsppol", "ecutwfn", "ecuteps",
             "eps_inf", "soenergy", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
@@ -520,15 +533,15 @@ class MdfReader(ETSF_Reader): #ElectronsReader
 
 class MdfPlotter(object):
     """
-    Class for plotting multiple MDFs.
+    Class for plotting Macroscopic dielectric functions.
 
     Usage example:
 
     .. code-block:: python
 
         plotter = MdfPlotter()
-        plotter.add_mdf_from_file("foo_MDF.nc", label="foo mdf")
-        plotter.add_mdf_from_file("bar_MDF.nc", label="bar mdf")
+        plotter.add_mdf("EXC", exc_mdf)
+        plotter.add_mdf("KS-RPA", rpanlf_mdf)
         plotter.plot()
     """
     def __init__(self):
@@ -543,28 +556,12 @@ class MdfPlotter(object):
             mdf: :class:`DielectricFunction` object.
         """
         if label in self._mdfs:
-            raise ValueError("name %s is already in %s" % (label, self._mdfs.keys()))
+            raise ValueError("label: %s is already in: %s" % (label, list(self._mdfs.keys())))
 
         self._mdfs[label] = mdf
 
-    def add_mdf_from_file(self, filepath, mdf_type="exc", label=None):
-        """
-        Adds a mdf for plotting. Reads data from file filepaths.
-
-        Args:
-            mdf_type: String defining the type of mdf.
-            name: Optional string used to name the plot.
-        """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            mdf = ncfile.get_mdf(mdf_type=mdf_type)
-
-        if label is None:
-            label = mdf_type + ncfile.filepath
-        self.add_mdf(label, mdf)
-
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, **kwargs):
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlim=None, ylim=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
 
@@ -574,22 +571,12 @@ class MdfPlotter(object):
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
             qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        xlim            x-axis limits. None (Default) for automatic determination.
-        ylim            y-axis limits. None (Default) for automatic determination.
-        ==============  ==============================================================
+            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                  or scalar e.g. `left`. If left (right) is None, default values are used
+            ylim: Same meaning as `ylim` but for the y-axis
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
-
-        xlim = kwargs.pop("xlim", None)
-        if xlim is not None: ax.set_xlim(xlim)
-
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None: ax.set_ylim(ylim)
 
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
@@ -599,17 +586,279 @@ class MdfPlotter(object):
 
         lines, legends = [], []
         for label, mdf in self._mdfs.items():
-            # Plot the q-points
-            #for (iq, qpoint) in enumerate(self.qpoints):
-            #    self.plot_ax(ax, iq, **kwargs)
-
             for cmode in cmodes:
                 # Plot the average value
                 l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
                 lines.append(l)
-                legends.append(r"%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
+                legends.append(r"%s: %s, %s $\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)
+        set_axlims(ax, xlim, "x")
+        set_axlims(ax, ylim, "y")
+
         return fig
 
+
+class MultipleMdfPlotter(object):
+    """
+    Class for plotting multipe macroscopic dielectric functions
+    extracted from several MDF.nc files
+
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = MultipleMdfPlotter()
+        plotter.add_mdf_file("file1", mdf_file1)
+        plotter.add_mdf_file("file2", mdf_file2)
+        plotter.plot()
+    """
+    # By default the plotter will extracts these MDF types.
+    MDF_TYPES = ("exc", "rpa", "gwrpa")
+
+    # Mapping mdf_type --> color used in plots.
+    #MDF_TYPE2COLOR = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
+
+    #MDF_TYPE2LINESTYLE = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
+
+    # Mapping [mdf_type][cplx_mode] --> ylable used in plots.
+    MDF_TYPECPLX2TEX = {
+        "exc": dict(re=r"$\Re(\varepsilon_{exc})$", im=r"$\Im(\varepsilon_{exc}$)", abs=r"$|\varepsilon_{exc}|$"),
+        "rpa": dict(re=r"$\Re(\varepsilon_{rpa})$", im=r"$\Im(\varepsilon_{rpa})$", abs=r"$|\varepsilon_{rpa}|$"),
+        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs= r"$|\varepsilon_{gw-rpa}|$"),
+        }
+
+    #alpha = 0.6
+
+    def __init__(self):
+        # [label][mdf_type] --> DielectricFunction
+        self._mdfs = collections.OrderedDict()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, **kwargs):
+        """String representation."""
+        lines = []
+        app = lines.append
+
+        for label, mdf_dict in self._mdfs.items():
+            app(marquee(label, mark="="))
+            for mdf_type, mdf in mdf_dict.items():
+                app("%s: %s" % (mdf_type, mdf.to_string(**kwargs)))
+
+        return "\n".join(lines)
+
+    def add_mdf_file(self, label, obj):
+        """
+        Extract dielectric functions from `obj`, store data for plotting.
+
+        Args:
+            label: label associated to the MDF file. Must be unique.
+            mdf: filepath or :class:`MdfFile` object.
+        """
+        if label in self._mdfs:
+            raise ValueError("label: %s already in: %s" % (label, list(self._mdfs.keys())))
+
+        self._mdfs[label] = collections.OrderedDict()
+
+        if is_string(obj):
+            # Open the file.
+            with MdfFile(obj) as mdf_file:
+                for mdf_type in self.MDF_TYPES:
+                    self._mdfs[label][mdf_type] = mdf_file.get_mdf(mdf_type=mdf_type)
+        else:
+            # Extract data from `MdfFile` object
+            for mdf_type in self.MDF_TYPES:
+                self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
+
+    @add_fig_kwargs
+    def plot(self, mdf_type="exc", qview="avg", xlim=None, ylim=None, **kwargs):
+        """
+        Plot all macroscopic dielectric functions (MDF) stored in the plotter
+
+        Args:
+            mdf_type: Selects the type of dielectric function.
+                "exc" for the MDF with excitonic effects.
+                "rpa" for RPA with KS energies.
+                "gwrpa" for RPA with GW (or KS-corrected) results.
+            qview: "avg" to plot the results averaged over q-points. "all" to plot q-point dependence.
+            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                  or scalar e.g. `left`. If left (right) is None, default values are used
+            ylim: Same meaning as `ylim` but for the y-axis
+
+        Return: matplotlib figure
+        """
+        # Build plot grid.
+        if qview == "avg":
+            ncols, nrows = 2, 1
+        elif qview == "all":
+            qpoints = self._get_qpoints()
+            ncols, nrows = 2, len(qpoints)
+        else:
+            raise ValueError("Invalid value of qview: %s" % str(qview))
+
+        import matplotlib.pyplot as plt
+        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
+
+        if qview == "avg":
+            # Plot averaged values
+            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlim=xlim, ylim=ylim,
+                                   with_legend=True, show=False)
+            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlim=xlim, ylim=ylim,
+                                   with_legend=False, show=False)
+        elif qview == "all":
+            # Plot MDF(q)
+            nqpt = len(qpoints)
+            for iq, qpt in enumerate(qpoints):
+                islast = (iq == nqpt - 1)
+                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlim=xlim, ylim=ylim,
+                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
+                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlim=xlim, ylim=ylim,
+                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
+
+        else:
+            raise ValueError("Invalid value of qview: %s" % str(qview))
+
+        #axmat[0, 0].legend(loc="best")
+        #fig.tight_layout()
+
+        return fig
+
+    #@add_fig_kwargs
+    #def plot_mdftypes(self, qview="avg", xlim=None, ylim=None, **kwargs):
+    #    """
+
+    #    Args:
+    #        qview:
+    #        xlim
+    #        ylim
+
+    #    Return: matplotlib figure
+    #    """
+    #    # Build plot grid.
+    #    if qview == "avg":
+    #        ncols, nrows = 2, 1
+    #    elif qview == "all":
+    #        qpoints = self._get_qpoints()
+    #        ncols, nrows = 2, len(qpoints)
+    #    else:
+    #        raise ValueError("Invalid value of qview: %s" % str(qview))
+
+    #    import matplotlib.pyplot as plt
+    #    fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
+
+    #    if qview == "avg":
+    #        # Plot averaged values
+    #        for mdf_type in self.MDF_TYPES:
+    #            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlim=xlim, ylim=ylim,
+    #                                   with_legend=True, show=False)
+    #            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlim=xlim, ylim=ylim,
+    #                                   with_legend=False, show=False)
+    #    elif qview == "all":
+    #        # Plot MDF(q)
+    #        nqpt = len(qpoints)
+    #        for iq, qpt in enumerate(qpoints):
+    #            islast = (iq == nqpt - 1)
+    #            for mdf_type in self.MDF_TYPES:
+    #                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlim=xlim, ylim=ylim,
+    #                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
+    #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlim=xlim, ylim=ylim,
+    #                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
+
+    #    else:
+    #        raise ValueError("Invalid value of qview: %s" % str(qview))
+
+    #    #axmat[0, 0].legend(loc="best")
+    #    #fig.tight_layout()
+
+    #    return fig
+
+    @add_fig_kwargs
+    def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None,
+                          xlim=None, ylim=None, with_legend=True, with_xlabel=True, with_ylabel=True, **kwargs):
+        """
+        Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            mdf_type:
+            cplx_mode: string defining the data to print (case-insensitive).
+                Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
+            qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
+            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                  or scalar e.g. `left`. If left (right) is None, default values are used
+            ylim: Same meaning as `ylim` but for the y-axis
+            with_legend: True if legend should be added
+            with_xlabel:
+            with_ylabel:
+
+        Return: matplotlib figure
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+        ax.grid(True)
+
+        if with_xlabel: ax.set_xlabel(r'$\omega [eV]$')
+        if with_ylabel: ax.set_ylabel(self.MDF_TYPECPLX2TEX[mdf_type][cplx_mode.lower()])
+
+        can_use_basename = self._can_use_basenames_as_labels()
+        qtag = "avg" if qpoint is None else repr(qpoint)
+
+        lines, legends = [], []
+        for label, mdf_dict in self._mdfs.items():
+            mdf = mdf_dict[mdf_type]
+            # Plot the average value
+            l = mdf.plot_ax(ax, qpoint, cplx_mode=cplx_mode, **kwargs)[0]
+            lines.append(l)
+            if can_use_basename:
+                label = os.path.basename(label)
+            else:
+                # Use relative paths if label is a file.
+                if os.path.isfile(label): label = os.path.relpath(label)
+
+            legends.append(r"%s: %s, %s $\varepsilon$" % (cplx_mode, qtag, label))
+
+        set_axlims(ax, xlim, "x")
+        set_axlims(ax, ylim, "y")
+
+        # Set legends.
+        if with_legend:
+            ax.legend(lines, legends, loc='best', shadow=False)
+
+        return fig
+
+    def _get_qpoints(self):
+        """
+        This function is called when we have to plot quantities as function of q-points.
+        It checks that all dielectric functions stored in the plotter have the same list of
+        q-points and returns the q-points of the first dielectric function.
+
+        Raises: ValueError if the q-points cannot be compared.
+        """
+        qpoints, errors = [], []
+        eapp = errors.append
+        for i, d in enumerate(self._mdfs.values()):
+            mdf = d[self.MDF_TYPES[0]]
+            if i == 0:
+                qpoints = mdf.qpoints
+            else:
+                if qpoints != mdf.qpoints:
+                    eapp("List of q-points for MDF index %i does not agree with first set:\n" % str(qpoints))
+
+        if errors:
+            msg = "\n".join(errors)
+            raise ValueError(msg + "\n" +
+                             "Your MDF files have been computed with a different set of q-points\n" +
+                             "Cannot compare dielectric functions as as function of q, use average value")
+
+        return qpoints
+
+    def _can_use_basenames_as_labels(self):
+        """
+        Return True if all labels represent valid files and the basenames are unique
+        In this case one can use the file basename instead of the full path in the plots.
+        """
+        if not all(os.path.exists(l) for l in self._mdfs): return False
+        labels = [os.path.basename(l) for l in self._mdfs]
+        return len(set(labels)) == len(labels)

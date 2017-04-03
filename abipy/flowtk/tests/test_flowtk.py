@@ -1,7 +1,6 @@
 """Tests for flowtk __init__ module"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-#import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from abipy.core.testing import AbipyTest
@@ -11,8 +10,10 @@ class TestFlowtk(AbipyTest):
     """Unit tests for flowtk.__init__ module."""
 
     def test_flow_main(self):
+        """Testing flow_main decorator."""
         parser = flowtk.build_flow_main_parser()
         assert parser is not None
+        #parser.parse_args("--help")
 
         @flowtk.flow_main
         def main(options):

@@ -5,10 +5,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import numpy as np
+import pandas as pd
 
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
-from monty.functools import lazy_property
+#from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import Flow
@@ -344,9 +345,12 @@ class GsrRobot(Robot, NotebookWriter):
     """
     EXT = "GSR"
 
-    def get_dataframe(self, **kwargs):
+    def get_dataframe(self, with_geo=True, **kwargs):
         """
         Return a pandas DataFrame with the most important GS results.
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
 
         kwargs:
             attrs:
@@ -379,21 +383,28 @@ class GsrRobot(Robot, NotebookWriter):
                 d[aname] = value
 
             # Add info on structure.
-            if kwargs.get("with_geo", True):
+            if with_geo:
                 d.update(gsr.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    def get_ebands_plotter(self):
-        from abipy import abilab
-        plotter = abilab.ElectronBandsPlotter()
+    def get_ebands_plotter(self, cls=None):
+        """
+        Build and return an instance of `ElectronBandsPlotter` or a subclass is cls is not None.
+
+        Args:
+            cls: subclass of `ElectronBandsPlotter`
+        """
+        from abipy.electrons.ebands import ElectronBandsPlotter
+        plotter = ElectronBandsPlotter() if cls is None else cls()
+
         for label, gsr in self:
             plotter.add_ebands(label, gsr.ebands)
+
         return plotter
 
     def eos_fit(self, eos_name="murnaghan"):
@@ -420,7 +431,6 @@ class GsrRobot(Robot, NotebookWriter):
                 fits.append(fit)
                 rows.append(fit.results)
 
-            import pandas as pd
             frame = pd.DataFrame(rows, index=EOS.MODELS, columns=list(rows[0].keys()))
             return fits, frame
 
@@ -463,7 +473,13 @@ class SigresRobot(Robot):
 
         return table
 
-    def get_qpgaps_dataframe(self, spin=None, kpoint=None, **kwargs):
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, **kwargs):
+        """
+        Return a pandas DataFrame with the most important results for the given (spin, kpoint).
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
+        """
         # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
         if spin is None: spin = 0
         if kpoint is None: kpoint = 0
@@ -485,14 +501,13 @@ class SigresRobot(Robot):
             d.update(sigres.params)
 
             # Add info on structure.
-            if kwargs.get("with_geo", False):
+            if with_geo:
                 d.update(sigres.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_qpgap(self, x_vars, **kwargs):
@@ -517,14 +532,25 @@ class MdfRobot(Robot):
     """
     EXT = "MDF.nc"
 
-    def get_mdf_plotter(self):
-        from abipy.electrons.bse import MdfPlotter
-        plotter = MdfPlotter()
+    def get_multimdf_plotter(self, cls=None):
+        from abipy.electrons.bse import MultipleMdfPlotter
+        plotter = MultipleMdfPlotter() if cls is None else cls()
+
         for label, mdf in self:
-            plotter.add_mdf(label, mdf.exc_mdf)
+            plotter.add_mdf_file(label, mdf)
+
         return plotter
 
-    def get_dataframe(self, **kwargs):
+    def get_dataframe(self, with_geo=False, **kwargs):
+        """
+
+        Args:
+            funcs:
+            with_geo: True if structure info should be added to the dataframe
+
+        Return:
+            pandas DataFrame
+        """
         rows, row_names = [], []
         for i, (label, mdf) in enumerate(self):
             row_names.append(label)
@@ -540,14 +566,13 @@ class MdfRobot(Robot):
             d.update(mdf.params)
 
             # Add info on structure.
-            if kwargs.get("with_geo", False):
+            if with_geo:
                 d.update(mdf.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
@@ -593,7 +618,7 @@ class DdbRobot(Robot):
     #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
     #    return np.array(qpoints)
 
-    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, **kwargs):
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
         """
         Return a pandas table with the phonon frequencies at the given q-point
         as computed from the different DDB files.
@@ -601,6 +626,10 @@ class DdbRobot(Robot):
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            with_geo: True if structure info should be added to the dataframe
+
+        Return:
+            pandas DataFrame
         """
         # If qpoint is None, all the DDB must contain have the same q-point .
         if qpoint is None:
@@ -627,7 +656,7 @@ class DdbRobot(Robot):
             d.update(ddb.params)
 
             # Add info on structure.
-            if kwargs.get("with_geo", True):
+            if with_geo:
                 d.update(phbands.structure.get_dict4frame(with_spglib=True))
 
             # Execute funcs.
@@ -635,7 +664,6 @@ class DdbRobot(Robot):
 
             rows.append(d)
 
-        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
@@ -659,9 +687,16 @@ class DdbRobot(Robot):
         plt.show()
 
     # TODO
-    #def get_phbands_plotter(self):
-    #    from abipy import abilab
-    #    plotter = abilab.PhononBandsPlotter()
+    #def get_phbands_plotter(self, with_phdos=True, cls=None, **kwargs):
+    #    if "workdir" in kwargs:
+    #        raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+
+    #    from abipy.dfpt.phonons import PhononBandsPlotter
+    #    plotter = PhononBandsPlotter() if cls is None else cls()
     #    for label, ddb in self:
-    #        plotter.add_ebands(label, ddb.ebands)
+    #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+    #        plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+    #        phbst_file.close()
+    #        phdos_file.close()
+
     #    return plotter
