@@ -22,15 +22,18 @@ class AbinitOutputTest(AbipyTest):
                 gs_cycle.plot(show=False)
             gs_abo.seek(0)
             assert gs_abo.next_d2de_scf_cycle() is None
+
             timer = gs_abo.get_timer()
             assert len(timer) == 1
-            print(timer.summarize())
+            str(timer.summarize())
 
             if self.has_matplotlib():
                 gs_abo.compare_gs_scf_cycles([abo_path], show=False)
+                timer.plot_all()
 
             if self.has_nbformat():
                 gs_abo.write_notebook(nbpath=self.get_tmpname(text=True))
+                timer.write_notebook(nbpath=self.get_tmpname(text=True))
 
     def test_ph_output(self):
         """Testing AbinitOutputFile with phonon calculations."""

@@ -4,9 +4,8 @@ import numpy as np
 import abipy.data as abidata
 import abipy.core
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.electrons.psps import PspsFile
-from abipy.core.testing import has_matplotlib
 
 
 class PspsFileTestCase(AbipyTest):
@@ -20,6 +19,6 @@ class PspsFileTestCase(AbipyTest):
             r = psps.reader
             assert r.usepaw == 0 and r.ntypat == 1
 
-            if has_matplotlib():
+            if self.has_matplotlib():
                 psps.plot(what="all", show=False)
                 psps.compare(psps, show=False)

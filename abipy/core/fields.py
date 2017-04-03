@@ -11,6 +11,7 @@ from monty.string import is_string
 from pymatgen.core.units import bohr_to_angstrom
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Chgcar
+from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
@@ -42,7 +43,8 @@ class ScalarField(Has_Structure):
             iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
         self.nspinor, self.nsppol, self.nspden = nspinor, nsppol, nspden
-        self._structure = structure
+        # Convert to Abipy Structure.
+        self._structure = Structure.as_structure(structure)
 
         iorder = iorder.lower()
         assert iorder in ["f", "c"]
@@ -646,6 +648,9 @@ class Density(ScalarField):
         Convert a `Density` object into a `Chgar` object.
         If `filename` is not None, density is written to this file in `Chgar` format
 
+        Return:
+            :class:`Chgcar` instance.
+
         .. note::
 
             From: http://cms.mpi.univie.ac.at/vasp/vasp/CHGCAR_file.html:
@@ -669,7 +674,6 @@ class Density(ScalarField):
 
         return chgcar
 
-    # TODO
     @classmethod
     def from_chgcar_poscar(cls, chgcar, poscar):
         """
@@ -711,6 +715,7 @@ class Density(ScalarField):
         else:
             raise NotImplementedError("nspinor == 2 requires more info in Chgcar")
 
+        # density in Chgcar is multiplied by volume!
         abipy_datar /= poscar.structure.volume
 
         return cls(nspinor=nspinor, nsppol=nsppol, nspden=nspden, datar=abipy_datar,

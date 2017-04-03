@@ -9,6 +9,7 @@ from subprocess import call
 from monty.termcolor import cprint
 from monty.string import list_strings
 
+
 def ask_yes_no(prompt, default=None):
     """
     Ask a question and return a boolean (y/n) answer.

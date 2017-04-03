@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import abipy.data as abidata
 
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestElectronFatbands(AbipyTest):
@@ -12,7 +12,7 @@ class TestElectronFatbands(AbipyTest):
     def test_MgB2_fatbands(self):
         """Test MgB2 fatbands with prtdos 3."""
         fbnc_kpath = FatBandsFile(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
-        print(fbnc_kpath)
+        str(fbnc_kpath)
         assert fbnc_kpath.ebands.kpoints.is_path
         assert not fbnc_kpath.ebands.kpoints.is_ibz
         assert fbnc_kpath.prtdos == 3
@@ -42,6 +42,13 @@ class TestElectronFatbands(AbipyTest):
             fbnc_kmesh.plot_pjdos_typeview(tight_layout=True, show=False)
             fbnc_kmesh.plot_pjdos_lview(tight_layout=True, show=False)
             fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", tight_layout=True, show=False)
+
+            # These calls should return None
+            assert fbnc_kpath.plot_fatbands_spinor() is None
+            assert fbnc_kpath.plot_pjdos_lview() is None
+            assert fbnc_kpath.plot_pawdos_terms() is None
+            assert fbnc_kpath.plot_pjdos_spinor() is None
+            assert fbnc_kpath.plot_fatbands_mview(iatom=0) is None
 
         fbnc_kpath.close()
         fbnc_kmesh.close()

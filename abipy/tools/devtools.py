@@ -21,7 +21,7 @@ class NumPyArangeEncoder(json.JSONEncoder):
 
 def profile(statement, global_vars, local_vars):
     """
-    Run statement under profiler, supplying your own globals and locals,
+    Run statement under profiler, supplying your own globals and locals
     """
     import pstats
     import cProfile
