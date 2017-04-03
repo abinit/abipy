@@ -275,6 +275,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             abi_kwargs: Dictionary with the initial set of variables. Default: Empty
             tags: list/set of tags describing the input
         """
+        self._spell_check = True
+
         # Internal dict with variables. we use an ordered dict so that
         # variables will be likely grouped by `topics` when we fill the input.
         abi_args = [] if abi_args is None else abi_args
@@ -391,15 +393,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return super(AbinitInput, self).__setitem__(key, value)
 
     def _check_varname(self, key):
-        if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
-                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
-                             "and rerun the code. If the problems persists, contact the abipy developers\n"
-                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
         if key in _GEOVARS:
             raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
+
+        if not is_abivar(key) and self.spell_check:
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
+                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
+                             "and rerun the code. If the problems persists, contact the abipy developers\n"
+                             "or use input.set_spell_check(False)\n"
+                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
     #def __eq__(self, other)
     #def __ne__(self, other)
@@ -507,6 +511,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except AttributeError:
             return False
 
+    def set_spell_check(self, false_or_true):
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self):
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # This is to maintain compatibility with pickle
+            return False
+
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
         """
         String representation.
@@ -533,6 +549,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         mnemonics = self.mnemonics
         if with_mnemonics: mnemonics = with_mnemonics
+
+        # If spell checking is deactivates, we cannot use mmemonics or sormode == "section"
+        if not self.spell_check:
+            mnemonics = False
+            sortmode = "a"
 
         if mnemonics or sortmode == "section":
             var_database = get_abinit_variables()
@@ -1959,6 +1980,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
+        self._spell_check = True
         self._structure = structure
         self.comment = comment
 
@@ -1979,10 +2001,23 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def vars(self):
         return self._vars
 
+    def set_spell_check(self, false_or_true):
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self):
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # This is to maintain compatibility with pickle
+            return False
+
     def _check_varname(self, key):
-        if not is_anaddb_var(key):
+        if not is_anaddb_var(key) and self.spell_check:
             raise self.Error("%s is not a registered Anaddb variable\n"
                              "If you are sure the name is correct, please contact the abipy developers\n"
+                             "or use input.set_spell_check(False)\n"
                              "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
 
     @classmethod

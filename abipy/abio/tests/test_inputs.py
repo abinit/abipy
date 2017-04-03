@@ -7,7 +7,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy import abilab
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.abio.inputs import *
 from abipy.abio.input_tags import *
 
@@ -47,7 +47,18 @@ class TestAbinitInput(AbipyTest):
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8
 
         # foo is not a valid Abinit variable
-        with self.assertRaises(inp.Error): inp["foo"] = 1
+        with self.assertRaises(inp.Error):
+            inp["foo"] = 1
+
+        # unless we deactive spell_check
+        assert inp.spell_check
+        inp.set_spell_check(False)
+        inp["foo"] = 1
+        assert inp["foo"] == 1
+        inp.pop("foo")
+        assert "foo" not in inp
+        inp.set_spell_check(True)
+
         inp["ecut" ] = 1
         assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
 
@@ -359,6 +370,15 @@ class AnaddbInputTest(AbipyTest):
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
             AnaddbInput(self.structure, anaddb_kwargs={"foo": 1})
+
+        # unless we deactive spell_check
+        assert inp.spell_check
+        inp.set_spell_check(False)
+        inp["foo"] = 1
+        assert inp["foo"] == 1
+        inp.pop("foo")
+        assert "foo" not in inp
+        inp.set_spell_check(True)
 
         ndivsm = 1
         nqsmall = 3
