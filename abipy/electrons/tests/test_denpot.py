@@ -10,7 +10,7 @@ from abipy.electrons.denpot import DensityNcFile
 
 class DensityNcFileTest(AbipyTest):
 
-    def test_silicon_density(self):
+    def test_silicon_density_ncfile(self):
         """Test si_DEN.nc"""
         with DensityNcFile(abidata.ref_file("si_DEN.nc")) as denc:
             print(denc)

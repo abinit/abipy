@@ -319,24 +319,24 @@ class Robot(object):
                 self._exceptions.append(str(exc))
         return d
 
-    def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
-        # TODO: Remove
-        import matplotlib.pyplot as plt
-        import seaborn.apionly as sns
-        if data is None:
-            data = getattr(self, getter)()
+    #def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
+    #    # TODO: Remove
+    #    import matplotlib.pyplot as plt
+    #    import seaborn.apionly as sns
+    #    if data is None:
+    #        data = getattr(self, getter)()
 
-        #grid = sns.PairGrid(data, x_vars="nkpt", y_vars=["a", "volume"]) #, hue="tsmear")
-        grid = sns.PairGrid(data, **kwargs)
-        if map_kws is None:
-            grid.map(plt.plot, marker="o")
-        else:
-            func = map_kws.pop("func", plt.plot)
-            grid.map(func, **map_kws)
+    #    #grid = sns.PairGrid(data, x_vars="nkpt", y_vars=["a", "volume"]) #, hue="tsmear")
+    #    grid = sns.PairGrid(data, **kwargs)
+    #    if map_kws is None:
+    #        grid.map(plt.plot, marker="o")
+    #    else:
+    #        func = map_kws.pop("func", plt.plot)
+    #        grid.map(func, **map_kws)
 
-        grid.add_legend()
-        if show: plt.show()
-        return grid
+    #    grid.add_legend()
+    #    if show: plt.show()
+    #    return grid
 
 
 class GsrRobot(Robot, NotebookWriter):
@@ -575,23 +575,23 @@ class MdfRobot(Robot):
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    @add_fig_kwargs
-    def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
-        import matplotlib.pyplot as plt
-        frame = self.get_dataframe()
-        grouped = frame.groupby(hue)
+    #@add_fig_kwargs
+    #def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+    #    import matplotlib.pyplot as plt
+    #    frame = self.get_dataframe()
+    #    grouped = frame.groupby(hue)
 
-        fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
+    #    fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
 
-        for i, (hue_val, group) in enumerate(grouped):
-            #print(group)
-            mdfs = group[mdf_type]
-            ax = ax_list[i]
-            ax.set_title("%s = %s" % (hue, hue_val))
-            for mdf in mdfs:
-                mdf.plot_ax(ax)
+    #    for i, (hue_val, group) in enumerate(grouped):
+    #        #print(group)
+    #        mdfs = group[mdf_type]
+    #        ax = ax_list[i]
+    #        ax.set_title("%s = %s" % (hue, hue_val))
+    #        for mdf in mdfs:
+    #            mdf.plot_ax(ax)
 
-        return fig
+    #    return fig
 
 
 class DdbRobot(Robot):

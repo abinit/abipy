@@ -69,8 +69,9 @@ class RobotTest(AbipyTest):
 
     def test_mdf_robot(self):
         """Testing MDF robot."""
-        mdf_paths = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
-        robot = MdfRobot.from_files(mdf_paths)
+        #robot = MdfRobot.from_files(abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc"))
+        robot = MdfRobot.from_dir(os.path.join(abidata.dirpath, "refs", "si_bse_kpoints"))
+        assert len(robot) == 3
 
         df = robot.get_dataframe(with_geo=True)
         assert df is not None

@@ -8,6 +8,8 @@ import collections
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import bohr_to_angstrom
+from pymatgen.io.vasp.inputs import Poscar
+from pymatgen.io.vasp.outputs import Chgcar
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
@@ -27,6 +29,7 @@ class ScalarField(Has_Structure):
     The field is represented on a homogenous real-space mesh.
     This class provides helper functions to perform common operations such as FFT transforms.
     """
+
     def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
@@ -76,23 +79,24 @@ class ScalarField(Has_Structure):
         self._check_other(other)
         return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                               datar=self.datar + other.datar,
-                              structure=self.structure)
+                              structure=self.structure, iorder="c")
 
     def __sub__(self, other):
         """self - other"""
         self._check_other(other)
         return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                               datar=self.datar - other.datar,
-                              structure=self.structure)
+                              structure=self.structure, iorder="c")
 
     def __neg__(self):
         """-self"""
         return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              rhor=-self.datar,
-                              structure=self.structure)
+                              datar=-self.datar,
+                              structure=self.structure, iorder="c")
 
     @property
     def structure(self):
+        """Structure object."""
         return self._structure
 
     def to_string(self, prtvol=0):
@@ -107,18 +111,18 @@ class ScalarField(Has_Structure):
 
     @property
     def datar(self):
-        """`ndarray` with data in real space."""
+        """`ndarray` with data in real space. shape: [nspden, nx, ny, nz]"""
         return self._datar
 
     @lazy_property
     def datag(self):
-        """`ndarrray` with data in reciprocal space."""
+        """`ndarrray` with data in reciprocal space. shape: [nspden, nx, ny, nz]"""
         # FFT R --> G.
         return self.mesh.fft_r2g(self.datar)
 
     @property
     def mesh(self):
-        """:class:`Mesh3D`"""
+        """:class:`Mesh3D`. datar and datag are defined on this mesh."""
         return self._mesh
 
     @property
@@ -165,28 +169,29 @@ class ScalarField(Has_Structure):
 
     @staticmethod
     def _check_space(space):
+        """Helper function used in __add__ ... methods to check Consistency."""
         space = space.lower()
         if space not in ("r", "g"):
             raise ValueError("Wrong space %s" % space)
         return space
 
-    def mean(self, space="r"):
+    def mean(self, space="r", axis=0):
         """
-        Returns the average of the array elements.
+        Returns the average of the array elements along the given axis.
         """
         if "r" == self._check_space(space):
-            return self.datar.mean(axis=0)
+            return self.datar.mean(axis=axis)
         else:
-            return self.datag.mean(axis=0)
+            return self.datag.mean(axis=axis)
 
-    def std(self, space="r"):
+    def std(self, space="r", axis=0):
         """
-        Returns the standard deviation.
+        Returns the standard deviation of the array elements along the given axis.
         """
         if "r" == self._check_space(space):
-            return self.datar.std(axis=0)
+            return self.datar.std(axis=axis)
         else:
-            return self.datag.std(axis=0)
+            return self.datag.std(axis=axis)
 
     #def spheres_indexarr(self, symbrad=None):
     #    if not hasattr(self, "_cached_spheres_indexarr"):
@@ -254,7 +259,7 @@ class ScalarField(Has_Structure):
 
     def export(self, filename, visu=None):
         """
-        Export the real space data on file filename.
+        Export the real space data to file filename.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -279,7 +284,7 @@ class ScalarField(Has_Structure):
             import tempfile
             filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
 
-        with open(filename, mode="w") as fh:
+        with open(filename, mode="wt") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf.xsf_write_structure(fh, self.structure)
@@ -337,8 +342,12 @@ class ScalarField(Has_Structure):
 class Density(ScalarField):
     """
     Electronic density.
-    Note that unlike Abinit, datar[nspden] contains the up/down components if nsppol = 2
+
+    .. note::
+
+        Unlike in the Abinit code, datar[nspden] contains the up/down components if nsppol = 2
     """
+
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a netCDF file."""
@@ -447,40 +456,25 @@ class Density(ScalarField):
             raise ValueError('Method "{}" is not allowed'.format(method))
 
         if nelec is not None:
-            sum_elec = np.sum(core_den)*valence_density.mesh.dv
+            sum_elec = np.sum(core_den) * valence_density.mesh.dv
             if np.abs(sum_elec-nelec) / nelec > 0.01:
                 raise ValueError('Summed electrons is different from the actual number of electrons by '
                                  'more than 1% ...')
             core_den = core_den / sum_elec * nelec
 
-        return cls(nspinor=1, nsppol=1, nspden=1, rhor=core_den, structure=structure, iorder='c')
+        return cls(nspinor=1, nsppol=1, nspden=1, datar=core_den, structure=structure, iorder='c')
 
-    def __init__(self, nspinor, nsppol, nspden, rhor, structure, iorder="c"):
+    def __init__(self, nspinor, nsppol, nspden, datar, structure, iorder="c"):
         """
         Args:
             nspinor: Number of spinorial components.
             nsppol: Number of spins.
             nspden: Number of spin density components.
-            datar:
-                `numpy` array with the field in real space.
-            structure: pymatgen structure
+            datar: `numpy` array with the field in real space.
+            structure: structure object.
             iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
-        super(Density, self).__init__(nspinor, nsppol, nspden, rhor, structure, iorder=iorder)
-
-    def __add__(self, other):
-        """self + other"""
-        self._check_other(other)
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              rhor=self.datar + other.datar,
-                              structure=self.structure, iorder="c")
-
-    def __sub__(self, other):
-        """self - other"""
-        self._check_other(other)
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              rhor=self.datar - other.datar,
-                              structure=self.structure, iorder="c")
+        super(Density, self).__init__(nspinor, nsppol, nspden, datar, structure, iorder=iorder)
 
     def get_nelect(self, spin=None):
         """
@@ -513,8 +507,9 @@ class Density(ScalarField):
         raise NotImplementedError
 
     def total_rhor_as_density(self):
-        return Density(nspinor=1, nsppol=1, nspden=1, rhor=self.total_rhor,
-                       structure=self.structure, iorder=self.iorder)
+        """Return a `Density` object with the total density."""
+        return self.__class__(nspinor=1, nsppol=1, nspden=1, datar=self.total_rhor,
+                              structure=self.structure, iorder="c")
 
     @lazy_property
     def total_rhog(self):
@@ -525,7 +520,7 @@ class Density(ScalarField):
     @lazy_property
     def magnetization_field(self):
         """
-        :return: numpy array with the magnetization field in real space on the FFT mesh:
+        numpy array with the magnetization field in real space on the FFT mesh:
 
             #. 0 if spin-unpolarized calculation
             #. spin_up - spin_down if collinear spin-polarized
@@ -552,7 +547,12 @@ class Density(ScalarField):
 
     @lazy_property
     def nelect_updown(self):
-        if not self.is_collinear: return None, None
+        """
+        Tuple with the number of electrons in the up/down channel.
+        Return (None, None) if non-collinear.
+        """
+        if not self.is_collinear:
+            return None, None
 
         if self.nsppol == 1:
             if self.nspden == 2: raise NotImplementedError()
@@ -565,8 +565,10 @@ class Density(ScalarField):
 
     @lazy_property
     def zeta(self):
-        """Magnetization(r) / total_density(r)"""
-        fact = np.where(self.tot_rhor > 1e-16, 1/self.tot_rhor, 0.0)
+        """
+        numpy array with Magnetization(r) / total_density(r)
+        """
+        fact = np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
         return self.magnetization * fact
 
     def vhartree(self):
@@ -608,18 +610,26 @@ class Density(ScalarField):
         return vhr, vhg
 
     def export_to_cube(self, filename, spin='total'):
+        """
+        Export real space density to CUBE file `filename`.
+        """
         if spin != 'total':
             raise ValueError('Argument "spin" should be "total"')
-        with open(filename, mode="w") as fh:
+
+        with open(filename, mode="wt") as fh:
             cube.cube_write_structure_mesh(file=fh, structure=self.structure, mesh=self.mesh)
             cube.cube_write_data(file=fh, data=self.total_rhor, mesh=self.mesh)
 
     @classmethod
     def from_cube(cls, filename, spin='total'):
+        """
+        Read real space density to CUBE file `filename`. Return new `Density` instance.
+        """
         if spin != 'total':
             raise ValueError('Argument "spin" should be "total"')
-        structure, mesh, data = cube.cube_read_structure_mesh_data(file=filename)
-        return cls(nspinor=1, nsppol=1, nspden=1, rhor=data, structure=structure, iorder="c")
+
+        structure, mesh, datar = cube.cube_read_structure_mesh_data(file=filename)
+        return cls(nspinor=1, nsppol=1, nspden=1, datar=datar, structure=structure, iorder="c")
 
     #@lazy_property
     #def kinden(self):
@@ -631,24 +641,36 @@ class Density(ScalarField):
         #return vxcr, vxcg
 
     def to_chgcar(self, filename=None):
-        from pymatgen.io.vasp.inputs import Poscar
-        from pymatgen.io.vasp.outputs import Chgcar
+        """
+        Convert a `Density` object into a `Chgar` object.
+        If `filename` is not None, density is written to this file in `Chgar` format
 
-        # From: http://cms.mpi.univie.ac.at/vasp/vasp/CHGCAR_file.html
-        # This file contains the total charge density multiplied by the volume
-        # For spinpolarized calculations, two sets of data can be found in the CHGCAR file.
-        # The first set contains the total charge density (spin up plus spin down),
-        # the second one the magnetization density (spin up minus spin down).
-        # For non collinear calculations the CHGCAR file contains the total charge density
-        # and the magnetisation density in the x, y and z direction in this order.
+        .. note::
+
+            From: http://cms.mpi.univie.ac.at/vasp/vasp/CHGCAR_file.html:
+
+            This file contains the total charge density multiplied by the volume
+            For spinpolarized calculations, two sets of data can be found in the CHGCAR file.
+            The first set contains the total charge density (spin up plus spin down),
+            the second one the magnetization density (spin up minus spin down).
+            For non collinear calculations the CHGCAR file contains the total charge density
+            and the magnetisation density in the x, y and z direction in this order.
+        """
         myrhor = self.datar * self.structure.volume
         data_dict = {"total": myrhor[0]}
         if self.nsppol == 2: {"diff": myrhor[0] - myrhor[1]}
-        if self.nspinor == 2: raise NotImplementedError("pymatgen Chgcar does not implement nspinor == 2")
+        if self.nspinor == 2:
+            raise NotImplementedError("pymatgen Chgcar does not implement nspinor == 2")
 
         chgcar = Chgcar(Poscar(self.structure), data_dict)
-        if filename is not None: chgcar.write_file(filename)
+        if filename is not None:
+            chgcar.write_file(filename)
+
         return chgcar
+
+    # TODO
+    #@classmethod
+    #def from_chgcar_file(cls, filename):
 
 
 class DensityReader(ETSF_Reader):
@@ -660,7 +682,6 @@ class DensityReader(ETSF_Reader):
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
             nsppol=self.read_dimvalue("number_of_spins"),
-            #nspden=self.read_dimvalue("number_of_spin_density_components"),
             nspden=self.read_dimvalue("number_of_components"),
             nfft1=self.read_dimvalue("number_of_grid_points_vector1"),
             nfft2=self.read_dimvalue("number_of_grid_points_vector2"),
