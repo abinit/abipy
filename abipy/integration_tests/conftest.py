@@ -19,9 +19,7 @@ from monty.collections import AttrDict
 USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 #USER_CONFIG_DIR = os.path.dirname(__file__)
 
-
 # Read the base configuration from file
-#with open(os.path.join(os.path.dirname(__file__), "manager.yml")) as fh:
 with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
     base_conf = yaml.load(fh)
 

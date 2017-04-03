@@ -19,7 +19,7 @@ def make_g0w0_inputs(ngkpt, tvars):
     Returns:
         gs_input, nscf_input, scr_input, sigma_input
     """
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
 
     # This grid is the most economical, but does not contain the Gamma point.
@@ -192,7 +192,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
 
     # Run the flow.
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() == 0 
+    assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
 
     flow.show_status()
@@ -236,7 +236,7 @@ def itest_htc_g0w0(fwp, tvars):
     )
 
     multi = abilab.g0w0_with_ppmodel_inputs(
-        structure, pseudos, 
+        structure, pseudos,
         scf_kppa, nscf_nband, ecuteps, ecutsigx,
         ecut=ecut, pawecutdg=None,
         accuracy="normal", spin_mode="unpolarized", smearing=None,

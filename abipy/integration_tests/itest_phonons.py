@@ -46,7 +46,7 @@ def scf_ph_inputs(tvars=None):
                        paral_kgb=0 if tvars is None else tvars.paral_kgb,
                     )
 
-    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), 
+    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                               ndtset=1+len(qpoints))
 
     multi.set_vars(global_vars)
@@ -190,7 +190,7 @@ def itest_phonon_restart(fwp):
                        tolvrs=1.0e-5,
                     )
 
-    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), 
+    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1+len(qpoints))
 
     multi.set_vars(global_vars)
@@ -261,7 +261,7 @@ def itest_oneshot_phonon_work(fwp):
     flow.check_status(show=True, verbose=1)
     assert all(work.finalized for work in flow)
     assert flow.all_ok
-    
+
     # Read phonons from main output file.
     phonons_list = phon_work.read_phonons()
     assert len(phonons_list) == 2
@@ -271,9 +271,9 @@ def itest_oneshot_phonon_work(fwp):
     assert ph1.qpt == [2.50000000E-01,  0.00000000E+00,  0.00000000E+00]
     assert len(ph0.freqs) == 3 * len(scf_input.structure)
     assert len(ph1.freqs) == 3 * len(scf_input.structure)
-    nptu.assert_almost_equal(ph0.freqs.to("Ha"), 
+    nptu.assert_almost_equal(ph0.freqs.to("Ha"),
         [-1.219120E-05, -1.201501E-05, -1.198453E-05,  1.577646E-03,  1.577647E-03, 1.577647E-03])
-    nptu.assert_almost_equal(ph1.freqs.to("Ha"), 
+    nptu.assert_almost_equal(ph1.freqs.to("Ha"),
         [2.644207E-04, 2.644236E-04, 6.420904E-04, 1.532696E-03, 1.532697E-03, 1.707196E-03])
 
     #assert 0
