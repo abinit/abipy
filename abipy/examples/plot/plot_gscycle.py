@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This example shows how to plot the results of the GS self-consistent cycle
-reported in the main output file.
+This example shows how to plot the results of the
+GS self-consistent cycle reported in the main output file.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata
@@ -12,7 +12,7 @@ abo = abiopen(abidata.ref_file("refs/si_ebands/run.abo"))
 
 # Plot all SCF-GS sections found in the output file.
 while True:
-    scf_cycle = abo.next_gs_scf_cycle()   # abo.next_d2de_scf_cycle() for DFPT cycles.
+    scf_cycle = abo.next_gs_scf_cycle()   # Use abo.next_d2de_scf_cycle() for DFPT cycles.
     if scf_cycle is None: break
     scf_cycle.plot()
 

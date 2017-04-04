@@ -84,15 +84,16 @@ class RobotTest(AbipyTest):
     #def test_ddb_robot(self):
     #    """Testing DDB robots."""
     #    filepaths = abidata.ref_files(
-    #        "si_g0w0ppm_nband10_SIGRES.nc",
-    #        "si_g0w0ppm_nband20_SIGRES.nc",
-    #        "si_g0w0ppm_nband30_SIGRES.nc",
     #    )
     #    assert len(filepaths) == 3
 
-    #    plotter = robot.get_phbands_plotter()
+    #     df = robot.get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
+
+    #    phbands_plotter = robot.get_phbands_plotter()
+    #    phdos_plotter = robot.get_phbands_plotter()
     #    if self.has_matplotlib():
-    #       plotter.gridplot(show=False)
+    #       phbands_plotter.gridplot(show=False)
+    #       phdos_plotter.gridplot(show=False)
 
     #    with DdbRobot.from_files(filepaths) as robot:
     #        assert robot.EXT == "DDB"

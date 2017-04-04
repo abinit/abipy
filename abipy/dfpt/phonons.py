@@ -30,6 +30,7 @@ __all__ = [
     "PhononBandsPlotter",
     "PhbstFile",
     "PhononDos",
+    "PhononDosPlotter",
     "PhdosReader",
     "PhdosFile",
 ]

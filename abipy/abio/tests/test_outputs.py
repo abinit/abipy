@@ -5,7 +5,19 @@ from __future__ import unicode_literals, division, print_function
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.abio.outputs import AbinitOutputFile
+from abipy.abio.outputs import AbinitOutputFile, AbinitLogFile
+
+
+class AbinitLogFileTest(AbipyTest):
+
+    def test_abinit_logfile(self):
+        """"Testing AbinitLogFile."""
+        log_path = abidata.ref_file("refs/abinit.log")
+        with AbinitLogFile(log_path) as abilog:
+            str(abilog)
+            assert len(abilog.events) == 2
+            if self.has_nbformat():
+                abilog.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class AbinitOutputTest(AbipyTest):
@@ -37,19 +49,17 @@ class AbinitOutputTest(AbipyTest):
 
     def test_ph_output(self):
         """Testing AbinitOutputFile with phonon calculations."""
-        # TODO: File is missing
-        #abo_path = abidata.ref_file("refs/si_ebands.run.abo"))
-        #with AbinitOutputFile(abo_path) as gs_abo:
-        #    print(ph_abo)
-        #    print(gs_abo.events)
-        #    assert ph_abo.next_gs_scf_cycle() is None
+        abo_path = abidata.ref_file("refs/gs_dfpt.abo")
+        with AbinitOutputFile(abo_path) as abo:
+             str(abo)
+             gs_cycle = abo.next_gs_scf_cycle()
+             assert gs_cycle is not None
+             #abo.seek(0)
+             ph_cycle = abo.next_d2de_scf_cycle()
+             assert ph_cycle is not None
+             if self.has_matplotlib():
+                ph_cycle.plot(show=False)
+                abo.compare_d2de_scf_cycles([abo_path], show=False)
 
-        #    ph_abo.seek(0)
-        #    ph_cycle = ph_abo.next_d2de_scf_cycle()
-        #    assert ph_cycle is not None
-        #    if self.has_matplotlib():
-        #        ph_cycle.plot(show=False)
-        #        gs_abo.compare_d2de_cycles([abo_path], show=False)
-
-        #    if self.has_nbformat():
-        #        ph_abo.write_notebook(nbpath=self.get_tmpname(text=True))
+             if self.has_nbformat():
+                abo.write_notebook(nbpath=self.get_tmpname(text=True))

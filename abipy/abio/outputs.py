@@ -45,7 +45,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.path),
+            nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(abilog.events)"),
         ])
 

@@ -133,7 +133,7 @@ class ArrayPlotter(object):
     def add_array(self, label, array):
         """Add array with the given name."""
         if label in self._arr_dict:
-            raise ValueError("%s is already in %s" % (label, self._arr_dict.keys()))
+            raise ValueError("%s is already in %s" % (label, list(self._arr_dict.keys())))
 
         self._arr_dict[label] = array
 
@@ -156,9 +156,6 @@ class ArrayPlotter(object):
             cplx_mode: "abs" for absolute value, "re", "im", "angle"
             color_map: matplotlib colormap
         """
-        #ax, fig, plt = get_ax_fig_plt(None)
-        #plt.axis("off")
-
         # Build grid of plots.
         num_plots, ncols, nrows = len(self), 1, 1
         if num_plots > 1:

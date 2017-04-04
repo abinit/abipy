@@ -383,8 +383,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                       ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
-                                       qptbounds=None, anaddb_kwargs=None):
+                                     ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
+                                     qptbounds=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 

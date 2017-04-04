@@ -600,15 +600,15 @@ class DdbRobot(Robot):
     """
     EXT = "DDB"
 
-    def get_qpoints_union(self):
-        """
-        Return numpy array with the q-points in reduced coordinates found in the DDB files.
-        """
-        qpoints = []
-        for label, ddb in enumerate(self):
-            qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #def get_qpoints_union(self):
+    #    """
+    #    Return numpy array with the q-points in reduced coordinates found in the DDB files.
+    #    """
+    #    qpoints = []
+    #    for label, ddb in enumerate(self):
+    #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
 
-        return np.array(qpoints)
+    #    return np.array(qpoints)
 
     #@property
     #def qpoints_intersection(self):
@@ -635,7 +635,9 @@ class DdbRobot(Robot):
         if qpoint is None:
             if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
                 raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+
             qpoint = self[0].qpoints[0]
+
             if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
                 raise ValueError("All the q-points in the DDB files must be equal")
 
@@ -696,6 +698,20 @@ class DdbRobot(Robot):
     #    for label, ddb in self:
     #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
     #        plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+    #        phbst_file.close()
+    #        phdos_file.close()
+
+    #    return plotter
+
+    #def get_phdos_plotter(self, cls=None, **kwargs):
+    #    if "workdir" in kwargs:
+    #        raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+
+    #    from abipy.dfpt.phonons import PhononDosPlotter
+    #    plotter = PhononDosPlotter() if cls is None else cls()
+    #    for label, ddb in self:
+    #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+    #        plotter.add_phdos(label, phdos=phdos_file.phdos)
     #        phbst_file.close()
     #        phdos_file.close()
 

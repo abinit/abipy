@@ -132,7 +132,7 @@ def ref_file(basename):
     else:
         path = os.path.join(dirpath, basename)
         if not os.path.exists(path):
-            raise ValueError("Cannot find reference file %s" % path)
+            raise ValueError("Cannot find reference file %s" % basename)
         return path
 
 
@@ -146,7 +146,7 @@ def ncfiles_with_ext(ext):
     ncfiles = []
     for basename, path in _DATA_NCFILES.items():
         f = basename.rstrip(".nc").rstrip("-etsf")
-        if f.endswith("_"+ext):
+        if f.endswith("_" + ext):
             ncfiles.append(path)
 
     return ncfiles
