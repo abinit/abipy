@@ -248,12 +248,13 @@ class Robot(object):
         """Remove file with the given `label` and close it."""
         if label in self._ncfiles:
             ncfile = self._ncfiles.pop(label)
-            try:
-                ncfile.close()
-            except Exception as exc:
-                raise
-                print("Exception while closing: ", ncfile.filepath)
-                print(exc)
+            if self._do_close.pop(ncfile.filepath, False):
+                try:
+                    ncfile.close()
+                except Exception as exc:
+                    print("Exception while closing: ", ncfile.filepath)
+                    print(exc)
+                    #raise
 
     @property
     def exceptions(self):
@@ -321,7 +322,9 @@ class Robot(object):
                 try:
                     ncfile.close()
                 except:
-                    pass
+                    print("Exception while closing: ", ncfile.filepath)
+                    print(exc)
+                    #raise
 
     @classmethod
     def open(cls, obj, nids=None, **kwargs):
@@ -695,7 +698,7 @@ class DdbRobot(Robot, NotebookWriter):
     #    """
     #    qpoints = []
     #    for label, ddb in enumerate(self):
-    #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
 
     #    return np.array(qpoints)
 
@@ -704,7 +707,7 @@ class DdbRobot(Robot, NotebookWriter):
     #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
     #    qpoints = []
     #    for label, ddb in enumerate(self):
-    #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
     #
     #    return np.array(qpoints)
 
