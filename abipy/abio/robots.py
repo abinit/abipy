@@ -74,9 +74,6 @@ class Robot(object):
         for label, ncfile in args:
             self.add_file(label, ncfile)
 
-    #@abstractmethod
-    #def get_dataframe(self, **kwargs):
-
     @classmethod
     def class_for_ext(cls, ext):
         """Return the Robot subclass associated to the given extension."""
@@ -95,40 +92,48 @@ class Robot(object):
     def from_dir(cls, top, walk=True):
         """
         This class method builds a robot by scanning all files located within directory `top`.
-        Note that if walk is True, directories inside `top` are included as well.
         This method should be invoked with a concrete robot class, for example:
 
             robot = GsrRobot.from_dir(".")
 
         Args:
             top (str): Root directory
+	    walk: if True, directories inside `top` are included as well.
         """
-        top = os.path.abspath(top)
+        return cls(*cls._open_files_in_dir(top, walk))
 
+    @classmethod
+    def _open_files_in_dir(cls, top, walk):
+        """Open files in directory tree starting from `top`. Return list of Abinit files."""
+        top = os.path.abspath(top)
         from abipy.abilab import abiopen
         items = []
         if walk:
             for dirpath, dirnames, filenames in os.walk(top):
-                filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+                filenames = [f for f in filenames if cls.class_handles_filename(f)]
                 for f in filenames:
                     ncfile = abiopen(os.path.join(dirpath, f))
                     if ncfile is not None: items.append((ncfile.filepath, ncfile))
         else:
-            filenames = [f for f in os.listdir(top) if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+            filenames = [f for f in os.listdir(top) if cls.class_handles_filename(f)]
             for f in filenames:
                 ncfile = abiopen(os.path.join(top, f))
                 if ncfile is not None: items.append((ncfile.filepath, ncfile))
 
-        return cls(*items)
+        return items
+
+    @classmethod
+    def class_handles_filename(cls, filename):
+        """True if robot class handles filename."""
+        return filename.endswith("_" + cls.EXT + ".nc")
 
     @classmethod
     def from_files(cls, filenames):
         """
         Build a Robot from a list of files.
         """
-        # Refactor this. cls should be automatically detecteed from the extension in filenames[0]
         from abipy.abilab import abiopen
-        filenames = [f for f in filenames if f.endswith(cls.EXT + ".nc") or f.endswith(cls.EXT)]
+        filenames = [f for f in filenames if cls.class_handles_filename(f)]
         items = []
         for f in filenames:
             try:
@@ -202,6 +207,24 @@ class Robot(object):
 
             self.add_file(label, filepath)
 
+    def scan_dir(self, top, walk=True):
+        """
+        Scan directory tree starting from top. Add files to the robot.
+
+        Args:
+            top (str): Root directory
+            walk: if True, directories inside `top` are included as well.
+
+        Return:
+            Number of files found.
+	"""
+        count = 0
+        for filepath, ncfile in self.__class__._open_files_in_dir(top, walk):
+            count += 1
+            self.add_file(filepath, ncfile)
+
+        return count
+
     def add_file(self, label, ncfile):
         """
         Add a file to the robot with the given label.
@@ -221,7 +244,16 @@ class Robot(object):
 
         self._ncfiles[label] = ncfile
 
-    #def pop(self, label):
+    def pop(self, label):
+        """Remove file with the given `label` and close it."""
+        if label in self._ncfiles:
+            ncfile = self._ncfiles.pop(label)
+            try:
+                ncfile.close()
+            except Exception as exc:
+                raise
+                print("Exception while closing: ", ncfile.filepath)
+                print(exc)
 
     @property
     def exceptions(self):
@@ -252,13 +284,28 @@ class Robot(object):
         stream.write(s)
 
     def __repr__(self):
+        """Invoked by repr(obj)"""
         lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
         for i, f in enumerate(self.ncfiles):
             path = f.relpath if len(f.relpath) < len(f.filepath) else f.filepath
             lines.append("  [%d] %s" % (i, path))
+
         return "\n".join(lines)
 
-    __str__ = __repr__
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
+        lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
+        app = lines.append
+        for i, f in enumerate(self.ncfiles):
+            app(" ")
+            app(str(f))
+            app(" ")
+
+        return "\n".join(lines)
 
     @property
     def ncfiles(self):
@@ -457,7 +504,7 @@ class GsrRobot(Robot, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class SigresRobot(Robot):
+class SigresRobot(Robot, NotebookWriter):
     """
     This robot analyzes the results contained in multiple SIGRES files.
     """
@@ -525,12 +572,30 @@ class SigresRobot(Robot):
         grid.add_legend()
         plt.show()
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-class MdfRobot(Robot):
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nprint(robot)" % str(args)),
+            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            #nbv.new_code_cell("fig = plotter.gridplot()"),
+            #nbv.new_code_cell("fig = plotter.combiboxplot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class MdfRobot(Robot, NotebookWriter):
     """
     This robot analyzes the results contained in multiple MDF files.
     """
-    EXT = "MDF.nc"
+    EXT = "MDF"
 
     def get_multimdf_plotter(self, cls=None):
         from abipy.electrons.bse import MultipleMdfPlotter
@@ -593,12 +658,36 @@ class MdfRobot(Robot):
 
     #    return fig
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-class DdbRobot(Robot):
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nprint(robot)" % str(args)),
+            nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
+            nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
+            nbv.new_code_cell('fig = plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None)'),
+            #nbv.new_code_cell("fig = plotter.combiboxplot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class DdbRobot(Robot, NotebookWriter):
     """
     This robot analyzes the results contained in multiple DDB files.
     """
     EXT = "DDB"
+
+    @classmethod
+    def class_handles_filename(cls, filename):
+        """Exclude DDB.nc files."""
+        return filename.endswith("_" + cls.EXT)
 
     #def get_qpoints_union(self):
     #    """
@@ -616,12 +705,13 @@ class DdbRobot(Robot):
     #    qpoints = []
     #    for label, ddb in enumerate(self):
     #        qpoints.extend(q for q in ddb.qpoints if q not in qpoints)
+    #
     #    return np.array(qpoints)
 
     def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
         """
-        Return a pandas table with the phonon frequencies at the given q-point
-        as computed from the different DDB files.
+	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
+	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
@@ -650,7 +740,7 @@ class DdbRobot(Robot):
 
             # Call anaddb to get the phonon frequencies.
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
-            freqs = phbands.phfreqs[0, :]  # (nq, nmodes)
+            freqs = phbands.phfreqs[0, :]  # [nq, nmodes]
 
             d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
 
@@ -716,3 +806,21 @@ class DdbRobot(Robot):
     #        phdos_file.close()
 
     #    return plotter
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nprint(robot)" % str(args)),
+            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            #nbv.new_code_cell("fig = plotter.gridplot()"),
+            #nbv.new_code_cell("fig = plotter.combiboxplot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import pytest
 import os
+import numpy.testing.utils as nptu
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 import abipy.flowtk.abiphonopy as abiph
@@ -20,8 +21,7 @@ def itest_phonopy_flow(fwp, tvars):
     if not has_phonopy():
         raise unittest.SkipTest("This test requires phonopy")
 
-    print("tvars:\n %s" % str(tvars))
-
+    #print("tvars:\n %s" % str(tvars))
     si_structure = abidata.structure_from_cif("si.cif")
 
     gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), kppa=10, ecut=2, spin_mode="unpolarized")
@@ -37,6 +37,7 @@ def itest_phonopy_flow(fwp, tvars):
     assert len(phpy_work.phonopy_tasks) == len(phpy_work)
     assert len(phpy_work.phonopy_tasks) == 1
     assert len(phpy_work.bec_tasks) == 0
+    assert nptu.assert_equal(scdims, phpy_work.scdims)
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()
@@ -71,8 +72,7 @@ def itest_phonopy_flow(fwp, tvars):
     if not has_phonopy():
         raise unittest.SkipTest("This test requires phonopy")
 
-    print("tvars:\n %s" % str(tvars))
-
+    #print("tvars:\n %s" % str(tvars))
     si_structure = abidata.structure_from_cif("si.cif")
 
     gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), kppa=10, ecut=2, spin_mode="unpolarized")
@@ -86,7 +86,7 @@ def itest_phonopy_flow(fwp, tvars):
                                                          phonopy_kwargs=None, displ_kwargs=None)
     flow.register_work(grun_work)
     assert len(grun_work) == 3
-    #self.assert_equal(scdims, grun_work.scdims)
+    assert nptu.assert_equal(scdims, grun_work.scdims)
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()
@@ -104,7 +104,7 @@ def itest_phonopy_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
-    # FIXME: This does not work due to new works that have been created.
+    # FIXME: This does not work because new works that have been created.
     #for task in flow.iflat_tasks():
     #    assert not task.outdir.has_abiext("WFK")
 

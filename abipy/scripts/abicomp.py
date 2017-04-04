@@ -145,6 +145,51 @@ def abicomp_edos(options):
 
     return 0
 
+##################
+# Robot commands #
+##################
+
+def abicomp_gsr(options):
+    """
+    Compare multiple GSR files.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_ddb(options):
+    """
+    Compare multiple DDB files.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_phbst(options):
+    """
+    Compare multiple PHBST files.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_phdos(options):
+    """
+    Compare multiple PHDOS files.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_sigres(options):
+    """
+    Compare multiple SIGRES files.
+    """
+    return _invoke_robot(options)
+
+
+def abicomp_mdf(options):
+    """
+    Compare macroscopic dielectric functions stored in multiple MDF files.
+    """
+    return _invoke_robot(options)
+
 
 def abicomp_phbands(options):
     """
@@ -169,7 +214,7 @@ def abicomp_phbands(options):
 #    return 0
 
 
-def abicomp_robot(options):
+def _invoke_robot(options):
     """
     Analyze multiple files with a robot. The command has two different variants.
 
@@ -190,33 +235,43 @@ def abicomp_robot(options):
     with the most important results. For finer control, use --ipy to start an ipython
     console to interact with the robot directly or --nb to generate a jupyter notebook.
     """
+    robot_cls = abilab.Robot.class_for_ext(options.command.upper())
+
     # To define an Help action
     #http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
-
-    # Temporary code
-    #robot = abilab.abirobot(".", "GSR")
+    #print(paths)
 
     if os.path.isdir(paths[0]):
-        # Assume directory + extension
-        top, ext = paths[:2]
-        cls = abilab.Robot.class_for_ext(ext)
-        robot = cls.from_dir(top, walk=True)
+        # Assume directory.
+        robot = robot_cls.from_dir(top=paths[0], walk=options.walk)
+
+        if len(paths) > 1:
+            # Handle multiple arguments. Could be either other directories or files.
+            for p in paths[1:]:
+                if os.path.isdir(p):
+                    robot.scan_dir(top=p, walk=options.walk)
+                elif os.path.isfile(p):
+                    robot.add_file(os.path.abspath(p), p)
+                else:
+                    cprint("Ignoring %s. Neither file or directory." % str(p), "red")
+
     else:
         # Assume file list.
-        ext = "GSR"
-        cls = abilab.Robot.class_for_ext(ext)
-        robot = cls.from_files(paths)
+        robot = robot_cls.from_files(paths)
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
-                     robot=robot)
+        IPython.embed(header=repr(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
+                      robot=robot)
+
     elif options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
+
     else:
-        print(robot)
-        abilab.print_frame(robot.get_dataframe())
+        print(robot.to_string(verbose=options.verbose))
+        if not options.verbose:
+            print("\nUse --verbose for more information")
 
     return 0
 
@@ -308,6 +363,9 @@ Usage example:
   abicomp.py ebands *_GSR.nc -ipy                     => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                      => Interact with the plotter via the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                        => Compare electron DOS in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB              => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+  abicomp.py sigres *_SIGRES.nc                       => Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc                             => Compare macroscopic dielectric functions.
   abicomp.py gs_scf run1.abo run2.abo                 => Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo              => Compare the DFPT SCF cycles in two output files.
   abicomp.py.py time [OUT_FILES]                      => Parse timing data in files and plot results
@@ -327,15 +385,19 @@ Usage example:
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='Verbose, can be supplied multiple times to increase verbosity')
+                              help='Verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings")
 
-    # Parent parser for commands support (ipython/jupyter)
+    # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     ipy_parser.add_argument('--foreground', action='store_true', default=False,
                             help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+
+    # Parent parser for robot commands
+    robot_parser = argparse.ArgumentParser(add_help=False)
+    robot_parser.add_argument('--walk', default=True, action="store_true", help='Walk directory tree.')
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -360,20 +422,25 @@ Usage example:
     # Subparser for edos command.
     p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser], help=abicomp_edos.__doc__)
     p_edos.add_argument("-p", "--plot-mode", default="gridplot",
-                          choices=["gridplot", "combiplot", "None"],
-                          help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
+                        choices=["gridplot", "combiplot", "None"],
+                        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
-                          help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
+                        help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
+
+    # Subparser robot commads
+    robot_parents = [copts_parser, ipy_parser, robot_parser]
+    p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
+    p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
+    #p_phbst = subparsers.add_parser('phbsr', parents=robot_parents, help=abicomp_phbst.__doc__)
+    #p_phbdos = subparsers.add_parser('phbsr', parents=robot_parents, help=abicomp_phdos.__doc__)
+    p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
+    p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
 
     # Subparser for phbands command.
     #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
 
     # Subparser for pseudos command.
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)
-
-    # Subparser for robot command.
-    # TODO
-    #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
