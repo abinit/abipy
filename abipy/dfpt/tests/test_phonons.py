@@ -52,10 +52,10 @@ class PhononBandsTest(AbipyTest):
         assert np.allclose(np.dot(eig[0], eig[0].T), np.eye(len(eig[0]), dtype=np.complex), atol=1e-5, rtol=1e-3)
 
         if self.has_matplotlib():
-            phbands.plot(show=False)
-            phbands.plot_fatbands(show=False)
-            phbands.plot_colored_matched(show=False)
-            phbands.boxplot(show=False)
+            phbands.plot(units="cm-1", show=False)
+            phbands.plot_fatbands(units="ha", show=False)
+            phbands.plot_colored_matched(units="cm^-1", show=False)
+            phbands.boxplot(units="ev", show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -88,7 +88,7 @@ class PlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
-                               phdos_objects=phdos_objects, show=False)
+                               phdos_objects=phdos_objects, units="cm-1", show=False)
             assert fig is not None
 
         phdos.close()
@@ -149,10 +149,10 @@ class PhononBandsPlotterTest(AbipyTest):
         assert df is not None
 
         if self.has_matplotlib():
-            plotter.combiplot(show=True)
-            plotter.gridplot(show=True)
-            plotter.boxplot(show=True)
-            plotter.combiboxplot(show=True)
+            plotter.combiplot(units="eV", show=True)
+            plotter.gridplot(units="Ha", show=True)
+            plotter.boxplot(units="cm-1", show=True)
+            plotter.combiboxplot(units="cm^-1", show=True)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -188,8 +188,10 @@ class PhononDosTest(AbipyTest):
 
         if self.has_matplotlib():
             ncfile.plot_pjdos_type(show=False)
-            phdos.plot(show=False)
-            phdos.plot_harmonic_thermo(tstar=20, tstop=350)
+            phdos.plot(units="cm-1", show=False)
+            phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1)
+            # FIXME
+            #phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=1)
 
         # Test notebook
         if self.has_nbformat():
