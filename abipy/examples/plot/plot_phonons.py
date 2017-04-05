@@ -12,8 +12,8 @@ with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands
 
 # Plot the phonon frequencies. Note that the labels for the q-points
-# are found automatically by searching in an internal database.
-phbands.plot(title="AlAs without LO-TO splitting")
+# are found automatically in an internal database.
+phbands.plot(units="cm-1", title="AlAs without LO-TO splitting")
 
 # Alternatively you can use the optional argument qlabels
 # that defines the mapping reduced_coordinates --> name of the q-point.

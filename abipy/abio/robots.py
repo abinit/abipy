@@ -133,6 +133,7 @@ class Robot(object):
         """
         Build a Robot from a list of files.
         """
+        filenames = list_strings(filenames)
         from abipy.abilab import abiopen
         filenames = [f for f in filenames if cls.class_handles_filename(f)]
         items = []
@@ -488,7 +489,7 @@ class GsrRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -591,7 +592,7 @@ class SigresRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -677,7 +678,7 @@ class MdfRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -795,6 +796,14 @@ class DdbRobot(Robot, NotebookWriter):
 
     # TODO Test
     def get_phbands_plotter(self, with_phdos=True, cls=None, **kwargs):
+        """
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+        Collect results and return `PhononBandsPlotter` object.
+
+        Args:
+            with_phdos: True to compute phonon DOS
+            cls:
+        """
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -810,6 +819,14 @@ class DdbRobot(Robot, NotebookWriter):
 
     # TODO Test
     def get_phdos_plotter(self, cls=None, **kwargs):
+        """
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+        Collect results and return `PhononDosPlotter` object.
+
+        Args:
+            cls:
+
+        """
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -825,7 +842,7 @@ class DdbRobot(Robot, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -834,12 +851,12 @@ class DdbRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nprint(robot)" % str(args)),
-            #nbv.new_code_cell("phbands_plotter = robot.get_phbands_plotter()"),
-            #nbv.new_code_cell("fig = phbands_plotter.gridplot()"),
-            #nbv.new_code_cell("fig = phbands_plotter.combiboxplot()"),
-            #nbv.new_code_cell("phdos_plotter = robot.get_phdos_plotter()"),
-            #nbv.new_code_cell("fig = phdos_plotter.gridplot()"),
-            #nbv.new_code_cell("fig = phdos_plotter.plot_harmonic_thermo()"),
+            nbv.new_code_cell("phbands_plotter = robot.get_phbands_plotter()"),
+            nbv.new_code_cell("fig = phbands_plotter.gridplot()"),
+            nbv.new_code_cell("fig = phbands_plotter.combiboxplot()"),
+            nbv.new_code_cell("phdos_plotter = robot.get_phdos_plotter()"),
+            nbv.new_code_cell("fig = phdos_plotter.gridplot()"),
+            nbv.new_code_cell("fig = phdos_plotter.plot_harmonic_thermo()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

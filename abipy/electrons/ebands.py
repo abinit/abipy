@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import tempfile
 import copy
 import itertools
 import json
@@ -2023,7 +2022,7 @@ def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
     Build a pandas dataframe with the most important results available in a list of band structures.
 
     Args:
-        struct_objects: List of objects that can be converted to structure.
+        ebands_objects: List of objects that can be converted to structure.
             Support netcdf filenames or :class:`ElectronBands` objects
             See `ElectronBands.as_ebands` for the complete list.
         index: Index of the dataframe.
@@ -2065,13 +2064,14 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         Args:
             key_ebands: List of (label, ebands) tuples.
-                ebands is any object that can be converted into  :class:`ElectronBands` e.g. ncfile, path.
+                ebands is any object that can be converted into :class:`ElectronBands` e.g. ncfile, path.
             key_edos: List of (label, edos) tuples.
-                edos is any object that can be converted into :class:`ElectronDoc`
+                edos is any object that can be converted into :class:`ElectronDos`
         """
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
         self.ebands_dict = OrderedDict(key_ebands)
+
         if key_edos is None: key_edos = []
         key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
         self.edoses_dict = OrderedDict(key_edos)
@@ -2115,7 +2115,7 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    @deprecated(message="add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will removed in 0.4")
+    @deprecated(message="add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will be removed in 0.4")
     def add_ebands_from_file(self, filepath, label=None):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
@@ -2248,7 +2248,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of ElectronBandsPlotter has been replaced by combiplot. It will removed in 0.4")
+    @deprecated(message="plot method of ElectronBandsPlotter has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, *args, **kwargs):
         if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
             raise ValueError("align|xlim|ylim options are not supported anymore.")
@@ -2498,34 +2498,16 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the ebands and the edoses from this file by calling as_ebands, as_edos
-        #key_ebands = []
-        #for label, ebands in self.ebands_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(ebands, fh)
-        #        key_ebands.append((label, tmpfile))
-
-        #key_edos = []
-        #for label, edos in self.edoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(edos, fh)
-        #        key_edos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_ebands), str(key_edos))),
             nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
@@ -2950,7 +2932,7 @@ class ElectronDosPlotter(NotebookWriter):
         """List of DOSes"""
         return list(self.edoses_dict.values())
 
-    @deprecated(message="add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will removed in 0.4")
+    @deprecated(message="add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will be removed in 0.4")
     def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
         """
         Adds a dos for plotting. Reads data from a Netcdf file
@@ -3012,7 +2994,7 @@ class ElectronDosPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of ElectronDos has been replaced by combiplot. It will removed in 0.4")
+    @deprecated(message="plot method of ElectronDos has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, *args, **kwargs):
         return self.combiplot(*args, **kwargs)
 
@@ -3067,27 +3049,16 @@ class ElectronDosPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the ebands and the edoses from this file by calling as_ebands, as_edos
-        #key_edos = []
-        #for label, edos in self.edoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(edos, fh)
-        #        key_edos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
 
         nb.cells.extend([
             nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_edos))),
             nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("xlims = (None, None)"),
@@ -3099,6 +3070,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     #def animate(self, **kwargs):
     #    animator = Animator()
+    #    import tempfile
     #    tmpdir = tempfile.mkdtemp()
     #    for (label, dos) in self.edoses_dict.items():
     #        savefig = os.path.join(tmpdir, label + ".png")

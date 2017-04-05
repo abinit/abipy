@@ -18,10 +18,10 @@ plotter = abilab.PhononBandsPlotter()
 plotter.add_phbands("AlAs", phbst_paths[0])
 plotter.add_phbands("Same AlAs", phbst_paths[1])
 
-#plotter.combiplot()
-plotter.gridplot()
-plotter.boxplot()
-plotter.combiboxplot()
+#plotter.combiplot(title="CombiPlot in eV")
+plotter.gridplot(units="eV", title="GridPlot in eV")
+plotter.boxplot(units="cm-1", title="BoxPlot in cm-1")
+plotter.combiboxplot(units="Ha", title="CombiboxPlot in Ha")
 
 # To plot a grid with band structures + DOS, use the optional argument `phdos`of add_phbands
 # The first subplot will get the band dispersion from phbst_paths[0] and the dos from phdos_paths[0]
@@ -33,5 +33,5 @@ plotter.add_phbands("AlAs phbands + DOS", phbst_paths[0], phdos=phdos_paths[0])
 plotter.add_phbands("Same-data", phbst_paths[1], phdos=phdos_paths[1])
 plotter.add_phbands("Same-data2", phbst_paths[2], phdos=phdos_paths[2])
 
-#plotter.combiplot()
-plotter.gridplot(tight_layout=True)
+#plotter.combiplot(title="Bands + DOS in eV with combiplot")
+plotter.gridplot(units="cm-1", tight_layout=True, title="Bands + DOS in cm-1 with gridplot")
