@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>plot example code: plot_gscycle.py &#8212; abipy 0.2.0 documentation</title>
+    <title>plot example code: plot_dfpt_cycle.py &#8212; abipy 0.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -27,8 +27,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_hist.py" href="plot_hist.html" />
-    <link rel="prev" title="plot example code: plot_funcs.py" href="plot_funcs.html" />
+    <link rel="next" title="plot example code: plot_ebands.py" href="plot_ebands.html" />
+    <link rel="prev" title="plot example code: plot_bz.py" href="plot_bz.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -48,8 +48,8 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
-      <li>Previous: <a href="plot_funcs.html" title="previous chapter">plot example code: plot_funcs.py</a></li>
-      <li>Next: <a href="plot_hist.html" title="next chapter">plot example code: plot_hist.py</a></li>
+      <li>Previous: <a href="plot_bz.html" title="previous chapter">plot example code: plot_bz.py</a></li>
+      <li>Next: <a href="plot_ebands.html" title="next chapter">plot example code: plot_ebands.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -57,7 +57,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../../_sources/examples/plot/plot_gscycle.rst.txt"
+      <li><a href="../../_sources/examples/plot/plot_dfpt_cycle.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -77,33 +77,43 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="plot-example-code-plot-gscycle-py">
-<span id="plot-plot-gscycle"></span><h1>plot example code: plot_gscycle.py<a class="headerlink" href="#plot-example-code-plot-gscycle-py" title="Permalink to this headline">¶</a></h1>
-<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_gscycle.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_gscycle.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_gscycle.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_gscycle.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../../_images/plot_gscycle.png" src="../../_images/plot_gscycle.png" />
+  <div class="section" id="plot-example-code-plot-dfpt-cycle-py">
+<span id="plot-plot-dfpt-cycle"></span><h1>plot example code: plot_dfpt_cycle.py<a class="headerlink" href="#plot-example-code-plot-dfpt-cycle-py" title="Permalink to this headline">¶</a></h1>
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle.py">Source code</a>)</p>
+<div class="figure" id="id1">
+<img alt="../../_images/plot_dfpt_cycle_00.png" src="../../_images/plot_dfpt_cycle_00.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_00.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_00.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_00.pdf">pdf</a>)</span></p>
+</div>
+<div class="figure" id="id2">
+<img alt="../../_images/plot_dfpt_cycle_01.png" src="../../_images/plot_dfpt_cycle_01.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_01.pdf">pdf</a>)</span></p>
+</div>
+<div class="figure" id="id3">
+<img alt="../../_images/plot_dfpt_cycle_02.png" src="../../_images/plot_dfpt_cycle_02.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_02.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_02.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_dfpt_cycle_02.pdf">pdf</a>)</span></p>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This example shows how to plot the results of the</span>
-<span class="sd">GS self-consistent cycle reported in the main output file.</span>
+<span class="sd">This example shows how to plot the results of the DFPT</span>
+<span class="sd">self-consistent cycle reported in the main output file.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="c1"># Open the output file with GS calculation (Note the .abo extension).</span>
+<span class="c1"># Open the output file with DFPT calculations (Note the .abo extension).</span>
 <span class="c1"># Alternatively, one can use `abiopen.py run.abo -nb` to generate a jupyter notebook.</span>
-<span class="n">abo</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;refs/si_ebands/run.abo&quot;</span><span class="p">))</span>
+<span class="n">abo</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;refs/gs_dfpt.abo&quot;</span><span class="p">))</span>
 
 <span class="c1"># Plot all SCF-GS sections found in the output file.</span>
 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-    <span class="n">scf_cycle</span> <span class="o">=</span> <span class="n">abo</span><span class="o">.</span><span class="n">next_gs_scf_cycle</span><span class="p">()</span>   <span class="c1"># Use abo.next_d2de_scf_cycle() for DFPT cycles.</span>
-    <span class="k">if</span> <span class="n">scf_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
-    <span class="n">scf_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    <span class="n">dfpt_cycle</span> <span class="o">=</span> <span class="n">abo</span><span class="o">.</span><span class="n">next_d2de_scf_cycle</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">dfpt_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
+    <span class="n">dfpt_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
 
 <span class="c1"># If timopt -1, we can extract the timing and plot the data.</span>
-<span class="n">timer</span> <span class="o">=</span> <span class="n">abo</span><span class="o">.</span><span class="n">get_timer</span><span class="p">()</span>
-<span class="n">timer</span><span class="o">.</span><span class="n">plot_pie</span><span class="p">()</span>
+<span class="c1">#timer = abo.get_timer()</span>
+<span class="c1">#timer.plot_pie()</span>
 
 <span class="n">abo</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
@@ -124,7 +134,7 @@
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/examples/plot/plot_gscycle.rst.txt"
+      <a href="../../_sources/examples/plot/plot_dfpt_cycle.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

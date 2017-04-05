@@ -128,6 +128,9 @@ Please consult the documentation on the :ref:`taskmanager` for a more detailed d
 
 .. command-output:: abicheck.py --no-colors
 
+The command ``abicheck.py --with-flow`` can be used to run a small AbiPy flow in order to
+check the interface with the Abinit executables.
+
 .. _abirun:
 
 ^^^^^^^^^^^^^

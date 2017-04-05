@@ -13,6 +13,7 @@ plot Examples
     :maxdepth: 1
 
     plot_bz <plot_bz.rst>
+    plot_dfpt_cycle <plot_dfpt_cycle.rst>
     plot_ebands <plot_ebands.rst>
     plot_ebands_boxplot <plot_ebands_boxplot.rst>
     plot_ebands_edos <plot_ebands_edos.rst>
@@ -26,6 +27,7 @@ plot Examples
     plot_gscycle <plot_gscycle.rst>
     plot_hist <plot_hist.rst>
     plot_mdf <plot_mdf.rst>
+    plot_multiple_mdf <plot_multiple_mdf.rst>
     plot_phbands_and_dos <plot_phbands_and_dos.rst>
     plot_phbands_grid <plot_phbands_grid.rst>
     plot_phmarkers <plot_phmarkers.rst>

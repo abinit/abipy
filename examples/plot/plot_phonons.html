@@ -97,8 +97,8 @@
     <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
 
 <span class="c1"># Plot the phonon frequencies. Note that the labels for the q-points</span>
-<span class="c1"># are found automatically by searching in an internal database.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs without LO-TO splitting&quot;</span><span class="p">)</span>
+<span class="c1"># are found automatically in an internal database.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs without LO-TO splitting&quot;</span><span class="p">)</span>
 
 <span class="c1"># Alternatively you can use the optional argument qlabels</span>
 <span class="c1"># that defines the mapping reduced_coordinates --&gt; name of the q-point.</span>
@@ -127,7 +127,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

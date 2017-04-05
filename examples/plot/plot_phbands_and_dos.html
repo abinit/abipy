@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="plot example code: plot_phbands_grid.py" href="plot_phbands_grid.html" />
-    <link rel="prev" title="plot example code: plot_mdf.py" href="plot_mdf.html" />
+    <link rel="prev" title="plot example code: plot_multiple_mdf.py" href="plot_multiple_mdf.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -48,7 +48,7 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
-      <li>Previous: <a href="plot_mdf.html" title="previous chapter">plot example code: plot_mdf.py</a></li>
+      <li>Previous: <a href="plot_multiple_mdf.html" title="previous chapter">plot example code: plot_multiple_mdf.py</a></li>
       <li>Next: <a href="plot_phbands_grid.html" title="next chapter">plot example code: plot_phbands_grid.py</a></li>
   </ul></li>
   </ul></li>
@@ -79,9 +79,14 @@
             
   <div class="section" id="plot-example-code-plot-phbands-and-dos-py">
 <span id="plot-plot-phbands-and-dos"></span><h1>plot example code: plot_phbands_and_dos.py<a class="headerlink" href="#plot-example-code-plot-phbands-and-dos-py" title="Permalink to this headline">¶</a></h1>
-<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../../_images/plot_phbands_and_dos.png" src="../../_images/plot_phbands_and_dos.png" />
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos.py">Source code</a>)</p>
+<div class="figure" id="id1">
+<img alt="../../_images/plot_phbands_and_dos_00.png" src="../../_images/plot_phbands_and_dos_00.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_00.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_00.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_00.pdf">pdf</a>)</span></p>
+</div>
+<div class="figure" id="id2">
+<img alt="../../_images/plot_phbands_and_dos_01.png" src="../../_images/plot_phbands_and_dos_01.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phbands_and_dos_01.pdf">pdf</a>)</span></p>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -102,7 +107,16 @@
     <span class="n">phdos</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phdos</span>
 
 <span class="c1"># plot phonon bands and DOS.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands and DOS&quot;</span><span class="p">)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands and DOS in eV&quot;</span><span class="p">)</span>
+
+<span class="c1"># plot phonon bands with DOS.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands + DOS in cm-1&quot;</span><span class="p">)</span>
+
+<span class="c1"># plot phonon DOS.</span>
+<span class="n">phdos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon DOS and IDOS in cm-1&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot the phonon band structure with different color for each line.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_colored_matched</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs with different color for each line.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -117,7 +131,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
