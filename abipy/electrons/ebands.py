@@ -2508,8 +2508,6 @@ class ElectronBandsPlotter(NotebookWriter):
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_ebands), str(key_edos))),
             nbv.new_code_cell("plotter = abilab.ElectronBandsPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
@@ -3061,8 +3059,6 @@ class ElectronDosPlotter(NotebookWriter):
 
         nb.cells.extend([
             nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_edos))),
             nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("xlims = (None, None)"),

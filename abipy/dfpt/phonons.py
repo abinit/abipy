@@ -544,9 +544,9 @@ class PhononBands(object):
             with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
         """
         odict = OrderedDict([
-            ("nqpt", self.num_qpoints), ("nbranches", self.num_branches),
-            ("minfreq", self.minfreq), ("maxfreq", self.maxfreq),
-            #("meanfreq", self.meanfreq), ("stdfreq", self.stdfreq)
+            ("nqpt", self.num_qpoints), ("nmodes", self.num_branches),
+            ("min_freq", self.minfreq), ("max_freq", self.maxfreq),
+            ("mean_freq", self.phfreqs.mean()), ("std_freq", self.phfreqs.std())
 
         ])
         odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
@@ -806,11 +806,12 @@ class PhononBands(object):
         if title is not None: ax.set_title(title)
 
         ax.grid(True)
-        if units in ['eV', 'ev', 'electronvolt']:
+        units = units.lower()
+        if units in ('ev', 'electronvolt'):
             ax.set_ylabel('Energy [eV]')
-        elif units in ['Ha', 'ha', 'Hartree']:
+        elif units in ('ha', 'hartree'):
             ax.set_ylabel('Energy [Ha]')
-        elif units in ['cm-1', 'cm^-1']:
+        elif units in ('cm-1', 'cm^-1'):
             ax.set_ylabel(r'Frequency [cm$^{-1}$]')
         else:
             raise ValueError('Value for units {} unknown'.format(units))
@@ -901,9 +902,10 @@ class PhononBands(object):
         first_xx = 0
         lines = []
 
-        if units in ['eV', 'ev', 'electronvolt']:
+        units = units.lower()
+        if units in ['ev', 'electronvolt']:
             factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
+        elif units in ['ha', 'hartree']:
             factor = eV_to_Ha
         elif units in ['cm-1', 'cm^-1']:
             factor = 8065.5440044136285
@@ -926,7 +928,7 @@ class PhononBands(object):
     def plot_colored_matched(self, ax=None, qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
                              **kwargs):
         r"""
-        Plot the phonon band structure with different color for each line .
+        Plot the phonon band structure with different color for each line.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -955,12 +957,13 @@ class PhononBands(object):
 
         first_xx = 0
         lines = []
-        units="eV"
-        if units in ['eV', 'ev', 'electronvolt']:
+        units = "eV"
+        units = units.lower()
+        if units in ('ev', 'electronvolt'):
             factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
+        elif units in ('ha', 'hartree'):
             factor = eV_to_Ha
-        elif units in ['cm-1', 'cm^-1']:
+        elif units in ('cm-1', 'cm^-1'):
             factor = 8065.5440044136285
         else:
             raise ValueError('Value for units {} unknown'.format(units))
@@ -1337,7 +1340,7 @@ class PhononBands(object):
         Column          Meaning
         ==============  ==========================
         qidx            q-point index.
-        nu              phonon branch index.
+        mode            phonon branch index.
         freq            Phonon frequency in eV.
         qpoint          :class:`Kpoint` object
         ==============  ==========================
@@ -1351,7 +1354,7 @@ class PhononBands(object):
                 freq = self.phfreqs[iq, nu]
                 rows.append(OrderedDict([
                            ("qidx", iq),
-                           ("nu", nu),
+                           ("mode", nu),
                            ("freq", freq),
                            ("qpoint", self.qpoints[iq]),
                         ]))
@@ -1360,28 +1363,28 @@ class PhononBands(object):
         return frame
 
     @add_fig_kwargs
-    def boxplot(self, ax=None, nurange=None, swarm=False, **kwargs):
+    def boxplot(self, ax=None, mode_range=None, swarm=False, **kwargs):
         """
         Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            nurange: Only modes such as `nurange[0] <= mode_index < nurange[1]` are included in the plot.
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         # Get the dataframe and select bands
         frame = self.to_dataframe()
-        if nurange is not None: frame = frame[nurange[0] <= frame["nu"] < nurange[1]]
+        if mode_range is not None: frame = frame[mode_range[0] <= frame["mode"] < mode_range[1]]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
         import seaborn.apionly as sns
         hue = None
-        ax = sns.boxplot(x="nu", y="freq", data=frame, hue=hue, ax=ax, **kwargs)
+        ax = sns.boxplot(x="mode", y="freq", data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="nu", y="freq", data=frame, hue=hue, color=".25", ax=ax)
+            sns.swarmplot(x="mode", y="freq", data=frame, hue=hue, color=".25", ax=ax)
         return fig
 
     def to_pymatgen(self, qlabels= None):
@@ -1523,7 +1526,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             branch=list(range(3 * len(self.structure))),
         )
 
-        # Add geo information
+        # Add geometrical information
         if with_structure:
             d.update(self.structure.get_dict4frame(with_spglib=True))
 
@@ -1673,11 +1676,12 @@ class PhononDos(Function1D):
         """
         opts = [c.lower() for c in what]
 
-        if units in ['eV', 'ev', 'electronvolt']:
+        units = units.lower()
+        if units in ['ev', 'electronvolt']:
             factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
+        elif units in ('ha', 'hartree'):
             factor = eV_to_Ha
-        elif units in ['cm-1', 'cm^-1']:
+        elif units in ('cm-1', 'cm^-1'):
             factor = 8065.5440044136285
         else:
             raise ValueError('Value for units {} unknown'.format(units))
@@ -2443,13 +2447,13 @@ class PhononBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def combiboxplot(self, nurange=None, swarm=False, ax=None, **kwargs):
+    def combiboxplot(self, mode_range=None, swarm=False, ax=None, **kwargs):
         """
         Use seaborn to draw a box plot comparing the distributions of the frequencies.
         Phonon Band structures are drawn on the same plot.
 
         Args:
-            nurange: Only bands such as `nurange[0] <= nu_index < nurange[1]` are included in the plot.
+            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn boxplot.
@@ -2458,7 +2462,7 @@ class PhononBandsPlotter(NotebookWriter):
         for label, phbands in self.phbands_dict.items():
             # Get the dataframe, select bands and add column with label
             frame = phbands.to_dataframe()
-            if nurange is not None: frame = frame[nurange[0] <= frame["nu"] < nurange[1]]
+            if mode_range is not None: frame = frame[mode_range[0] <= frame["mode"] < mode_range[1]]
             frame["label"] = label
             frames.append(frame)
 
@@ -2470,9 +2474,9 @@ class PhononBandsPlotter(NotebookWriter):
         import seaborn.apionly as sns
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        sns.boxplot(x="nu", y="freq", data=data, hue="label", ax=ax, **kwargs)
+        sns.boxplot(x="mode", y="freq", data=data, hue="label", ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="nu", y="freq", data=data, hue="label", color=".25", ax=ax)
+            sns.swarmplot(x="mode", y="freq", data=data, hue="label", color=".25", ax=ax)
 
         return fig
 

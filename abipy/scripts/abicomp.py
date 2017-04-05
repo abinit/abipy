@@ -285,13 +285,13 @@ def _invoke_robot(options):
 
     if os.path.isdir(paths[0]):
         # Assume directory.
-        robot = robot_cls.from_dir(top=paths[0], walk=options.walk)
+        robot = robot_cls.from_dir(top=paths[0], walk=not options.no_walk)
 
         if len(paths) > 1:
             # Handle multiple arguments. Could be either other directories or files.
             for p in paths[1:]:
                 if os.path.isdir(p):
-                    robot.scan_dir(top=p, walk=options.walk)
+                    robot.scan_dir(top=p, walk=not options.no_walk)
                 elif os.path.isfile(p):
                     robot.add_file(os.path.abspath(p), p)
                 else:
@@ -403,11 +403,13 @@ def main():
 Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc         => Compare structures in multiple files.
-  abicomp.py ebands out1_GSR.nc out2_GSR.nc           => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc           => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                     => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                      => Interact with the plotter via the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                        => Compare electron DOS in the jupyter notebook.
-  abicomp.py ddb outdir1 outdir2 out_DDB              => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+  abicomp.py phbands *_PHBST.nc -nb                   => Compare phonon bands in the jupyter notebook.
+  abicomp.py phdos *_PHDOS.nc -nb                     => Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb          => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                       => Compare multiple SIGRES files.
   abicomp.py mdf *_MDF.nc                             => Compare macroscopic dielectric functions.
   abicomp.py gs_scf run1.abo run2.abo                 => Compare the SCF cycles in two output files.
@@ -415,8 +417,16 @@ Usage example:
   abicomp.py.py time [OUT_FILES]                      => Parse timing data in files and plot results
   abicomp.py.py time . --ext=abo                      => Scan directory tree from `.`, look for files with extension `abo`
                                                          parse timing data and plot results.
+
+  The gsr, ddb, sigres, mdf commands uses robots to analyze data.
+  In this case, one can provide list of files and/or directories on the command-line interface e.g.:
+
+      abicomp.py ddb dir1 out_DDB dir2
+
+  Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
+  `abicompy.py mdf .` will find all MDF.nc files inside the current directory including sub-directories (if any).
+  Use --no-walk to ignore sub-directories.
 """
-  #abicomp.py phbands out1_PHBST.nc out2_PHBST.nc      => Plot electron bands on a grid.
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -441,7 +451,7 @@ Usage example:
 
     # Parent parser for robot commands
     robot_parser = argparse.ArgumentParser(add_help=False)
-    robot_parser.add_argument('--walk', default=True, action="store_true", help='Walk directory tree.')
+    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)

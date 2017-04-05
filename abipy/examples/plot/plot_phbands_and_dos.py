@@ -5,7 +5,7 @@ See tutorial/lesson_rf2.html
 """
 
 # FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.
-from abipy.abilab import abiopen 
+from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Open the PHBST file produced by anaddb and get the phonon bands.
@@ -18,3 +18,6 @@ with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as ncfile:
 
 # plot phonon bands and DOS.
 phbands.plot_with_phdos(phdos, title="AlAs Phonon bands and DOS")
+
+# Plot the phonon band structure with different color for each line.
+phbands.plot_colored_matched(title="AlAs with different color for each line.")

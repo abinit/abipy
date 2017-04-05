@@ -43,7 +43,7 @@ class PhononBandsTest(AbipyTest):
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
         df = phbands.to_dataframe()
-        assert "freq" in df and "nu" in df
+        assert "freq" in df and "mode" in df
         self.assert_almost_equal(df["freq"].values.min(), 0)
 
         # Test convertion to eigenvectors. Verify that they are orthonormal

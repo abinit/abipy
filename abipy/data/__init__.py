@@ -92,7 +92,7 @@ def var_file(filename):
 def find_ncfiles(top, verbose=0):
     """
     Find all netcdf files starting from the top-level directory `top`.
-    Filenames must be unique. Directories whose start with "tmp_" are
+    Filenames must be unique. Directories starting with "tmp_" are
     excluded from the search.
 
     Returns:
