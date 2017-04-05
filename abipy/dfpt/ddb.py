@@ -858,11 +858,10 @@ class DielectricTensorGenerator(Has_Structure):
         Generates the object from the files that contain the phonon frequencies, oscillator strength and
         static dielectric tensor, i.e. the PHBST and anaddb netcdf files, respectively.
         """
-        reader_phbst = ETSF_Reader(phbst_filepath)
-        reader_anaddbnc = ETSF_Reader(anaddbnc_filepath)
 
-        qpts = reader_phbst.read_value("qpoints")
-        full_phfreqs = reader_phbst.read_value("phfreqs")
+        with ETSF_Reader(phbst_filepath) as reader_phbst:
+            qpts = reader_phbst.read_value("qpoints")
+            full_phfreqs = reader_phbst.read_value("phfreqs")
 
         for i, q in enumerate(qpts):
             if np.array_equal(q, [0, 0, 0]):
@@ -872,18 +871,19 @@ class DielectricTensorGenerator(Has_Structure):
 
         phfreqs = full_phfreqs[i] * eV_to_Ha
 
-        emacro = reader_anaddbnc.read_value("emacro_cart")
+        with ETSF_Reader(anaddbnc_filepath) as reader_anaddbnc:
+            emacro = reader_anaddbnc.read_value("emacro_cart")
 
-        try:
-            oscillator_strength = reader_anaddbnc.read_value("oscillator_strength", cmode="c")
-        except Exception as exc:
-            import traceback
-            msg = traceback.format_exc()
-            msg += ("Error while trying to read from file.\n"
-                    "Verify that dieflag == 1, 3 or 4 in anaddb\n")
-            raise ValueError(msg)
+            try:
+                oscillator_strength = reader_anaddbnc.read_value("oscillator_strength", cmode="c")
+            except Exception as exc:
+                import traceback
+                msg = traceback.format_exc()
+                msg += ("Error while trying to read from file.\n"
+                        "Verify that dieflag == 1, 3 or 4 in anaddb\n")
+                raise ValueError(msg)
 
-        structure = reader_anaddbnc.read_structure()
+            structure = reader_anaddbnc.read_structure()
 
         return cls(phfreqs, oscillator_strength, emacro, structure)
 

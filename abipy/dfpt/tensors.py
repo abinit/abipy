@@ -21,16 +21,15 @@ class NLOpticalSusceptibilityTensor(Tensor):
         Creates the tensor from a anaddb.nc netcdf file that contains the dchide.
         This requires to run anaddb with tnlflag > 0
         """
-        reader = ETSF_Reader(filepath)
-
-        try:
-            return cls(reader.read_value("dchide"))
-        except Exception as exc:
-            import traceback
-            msg = traceback.format_exc()
-            msg += ("Error while trying to read from file.\n"
-                    "Verify that nlflag > 0 in anaddb\n")
-            raise ValueError(msg)
+        with ETSF_Reader(filepath) as reader:
+            try:
+                return cls(reader.read_value("dchide"))
+            except Exception as exc:
+                import traceback
+                msg = traceback.format_exc()
+                msg += ("Error while trying to read from file.\n"
+                        "Verify that nlflag > 0 in anaddb\n")
+                raise ValueError(msg)
 
 
 class DielectricTensor(SquareTensor):
