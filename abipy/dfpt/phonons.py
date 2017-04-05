@@ -9,18 +9,20 @@ import pickle
 import os
 import six
 import json
+import tempfile
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.dev import deprecated
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro, Ha_cmm1
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
@@ -1299,6 +1301,65 @@ class PhononBands(object):
         fig = plt.gcf()
         return fig
 
+    def to_dataframe(self):
+        """
+        Return a pandas DataFrame with the following columns:
+
+          ['qidx', 'band', 'freq', 'qpoint']
+
+        where:
+
+        ==============  ==========================
+        Column          Meaning
+        ==============  ==========================
+        qidx            q-point index.
+        nu              phonon branch index.
+        freq            Phonon frequency in eV.
+        qpoint          :class:`Kpoint` object
+        ==============  ==========================
+
+        Args:
+        """
+        import pandas as pd
+        rows = []
+        for iq, qpoint in enumerate(self.qpoints):
+            for nu in self.branches:
+                freq = self.phfreqs[iq, nu]
+                rows.append(OrderedDict([
+                           ("qidx", iq),
+                           ("nu", nu),
+                           ("freq", freq),
+                           ("qpoint", self.qpoints[iq]),
+                        ]))
+
+        frame = pd.DataFrame(rows, columns=list(rows[0].keys()))
+        return frame
+
+    @add_fig_kwargs
+    def boxplot(self, ax=None, nurange=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            nurange: Only modes such as `nurange[0] <= mode_index < nurange[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keyword arguments passed to seaborn boxplot.
+        """
+        # Get the dataframe and select bands
+        frame = self.to_dataframe()
+        if nurange is not None: frame = frame[nurange[0] <= frame["nu"] < nurange[1]]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        import seaborn.apionly as sns
+        hue = None
+        ax = sns.boxplot(x="nu", y="freq", data=frame, hue=hue, ax=ax, **kwargs)
+        if swarm:
+            sns.swarmplot(x="nu", y="freq", data=frame, hue=hue, color=".25", ax=ax)
+        return fig
+
     def to_pymatgen(self, qlabels= None):
         r"""
         Creates a pymatgen PhononBandStructureSymmLine object.
@@ -1944,6 +2005,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
+# FIXME: Remove. Use PhononBandsPlotter API.
 @add_fig_kwargs
 def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, **kwargs):
     """
@@ -2018,7 +2080,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
-class PhononBandsPlotter(object):
+class PhononBandsPlotter(NotebookWriter):
     """
     Class for plotting phonon band structure and DOSes.
     Supports plots on the same graph or separated plots.
@@ -2028,9 +2090,9 @@ class PhononBandsPlotter(object):
     .. code-block:: python
 
         plotter = PhononBandsPlotter()
-        plotter.add_phbands_from_file("foo.nc", label="foo bands")
-        plotter.add_phbands_from_file("bar.nc", label="bar bands")
-        plotter.plot()
+        plotter.add_phbands("foo bands", "foo_PHBST.nc")
+        plotter.add_phbands("bar bands", "bar_PHBST.nc")
+        plotter.gridplot()
     """
     _LINE_COLORS = ["b", "r", "k", "g"]
     _LINE_STYLES = ["-",":","--","-.",]
@@ -2041,10 +2103,33 @@ class PhononBandsPlotter(object):
         self._phdoses_dict = OrderedDict()
         self._markers = OrderedDict()
 
+    def __repr__(self):
+        """Invoked by repr"""
+        lines = []
+        app = lines.append
+        for i, (label, phbands) in enumerate(self.phbands_dict.items()):
+            app("[%d] %s --> %s" % (i, label, repr(phbands)))
+
+        if self.phdoses_dict:
+            for i, (label, phdos) in enumerate(self.phdoses_dict.items()):
+                app("[%d] %s --> %s" % (i, label, repr(phdos)))
+
+        return "\n".join(lines)
+
+    # TODO
+    #def get_ebands_frame(self, with_spglib=True):
+    #    """
+    #    Build a pandas dataframe with the most important results available in the band structures."""
+    #    return frame_from_ebands(list(self.ebands_dict.values()),
+    #                             index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
+
     @property
-    def bands_dict(self):
+    def phbands_dict(self):
         """Dictionary with the mapping label --> phbands."""
         return self._bands_dict
+
+    # TODO: Just an alias. To be removed in 0.4
+    bands_dict = phbands_dict
 
     @property
     def phdoses_dict(self):
@@ -2070,6 +2155,7 @@ class PhononBandsPlotter(object):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    @deprecated(message="add_phbands_from_file method of PhononBandsPlotter has been replaced by add_phbands. It will be removed in 0.4")
     def add_phbands_from_file(self, filepath, label=None):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
@@ -2151,9 +2237,10 @@ class PhononBandsPlotter(object):
             self._markers[key] = Marker(*xys)
 
     @add_fig_kwargs
-    def plot(self, qlabels=None, units='eV', **kwargs):
+    def combiplot(self, qlabels=None, units='eV', **kwargs):
         r"""
-        Plot the band structure and the DOS.
+        Plot the band structure and the DOS on the same figure.
+        Use `gridplot` to plot band structures on different figures.
 
         Args:
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
@@ -2237,33 +2324,174 @@ class PhononBandsPlotter(object):
 
         return fig
 
+    @deprecated(message="plot method of PhononBandsPlotter has been replaced by combiplot. It will removed in 0.4")
+    def plot(self, *args, **kwargs):
+        return self.combiplot(*args, **kwargs)
 
-class PhononDosPlotter(object):
+    # TODO: units
+    @add_fig_kwargs
+    def gridplot(self, with_dos=True, **kwargs):
+        """
+        Plot multiple electron bandstructures and optionally DOSes on a grid.
+
+        Args:
+            with_dos: True if DOS should be printed.
+
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self._bands_dict.keys())
+        phb_objects = list(self._bands_dict.values())
+        phdos_objects = None
+        if self.phdoses_dict and with_dos:
+            phdos_objects = list(self.phdoses_dict.values())
+
+        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, show=False)
+
+    @add_fig_kwargs
+    def boxplot(self, brange=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Band structures are drawn on different subplots.
+
+        Args:
+            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keywork arguments passed to seaborn boxplot.
+        """
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.phbands_dict), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        import matplotlib.pyplot as plt
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for (label, phbands), ax in zip(self.phbands_dict.items(), ax_list):
+            phbands.boxplot(ax=ax, show=False)
+            ax.set_title(label)
+
+        return fig
+
+    @add_fig_kwargs
+    def combiboxplot(self, nurange=None, swarm=False, ax=None, **kwargs):
+        """
+        Use seaborn to draw a box plot comparing the distributions of the frequencies.
+        Phonon Band structures are drawn on the same plot.
+
+        Args:
+            nurange: Only bands such as `nurange[0] <= nu_index < nurange[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: Keyword arguments passed to seaborn boxplot.
+        """
+        frames = []
+        for label, phbands in self.phbands_dict.items():
+            # Get the dataframe, select bands and add column with label
+            frame = phbands.to_dataframe()
+            if nurange is not None: frame = frame[nurange[0] <= frame["nu"] < nurange[1]]
+            frame["label"] = label
+            frames.append(frame)
+
+        # Merge frames ignoring index (not meaningful)
+        import pandas as pd
+        data = pd.concat(frames, ignore_index=True)
+
+        import matplotlib.pyplot as plt
+        import seaborn.apionly as sns
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+        sns.boxplot(x="nu", y="freq", data=data, hue="label", ax=ax, **kwargs)
+        if swarm:
+            sns.swarmplot(x="nu", y="freq", data=data, hue="label", color=".25", ax=ax)
+
+        return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence. The notebook will reconstruct
+        # the phbands and the phdoses from this file by calling as_phbands, as_phdos
+        #key_phbands = []
+        #for label, phbands in self.phbands_dict.items():
+        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        #    with open(tmpfile, "wb") as fh:
+        #        pickle.dump(phbands, fh)
+        #        key_phbands.append((label, tmpfile))
+
+        #key_phdos = []
+        #for label, phdos in self.phdoses_dict.items():
+        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        #    with open(tmpfile, "wb") as fh:
+        #        pickle.dump(phdos, fh)
+        #        key_phdos.append((label, tmpfile))
+
+        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        self.pickle_dump(tmpfile)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("plotter = abilab.PhononBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
+            #    (str(key_phbands), str(key_phdos))),
+            nbv.new_code_cell("plotter = abilab.PhononBandsPlotter.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("print(plotter)"),
+            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            #nbv.new_code_cell("ylims = (None, None)"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("fig = plotter.boxplot()"),
+            nbv.new_code_cell("fig = plotter.combiboxplot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class PhononDosPlotter(NotebookWriter):
     """
     Class for plotting multiple phonon DOSes.
+
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = PhononDosPlotter()
+        plotter.add_phdos("foo dos", "foo.nc")
+        plotter.add_phdos("bar dos", "bar.nc")
+        fig = plotter.gridplot()
     """
     def __init__(self, *args):
         self._phdoses_dict = OrderedDict()
         for label, phdos in args:
             self.add_dos(label, phdos)
 
-    def add_phdos(self, label, phdos):
+    def add_phdos(self, label, phdos, phdos_kwargs=None):
         """
         Adds a DOS for plotting.
 
         Args:
             label: label for the phonon DOS. Must be unique.
             phdos: :class:`PhononDos` object.
+            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+                Used when phdos is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
         if label in self._phdoses_dict:
             raise ValueError("label %s is already in %s" % (label, list(self._phdoses_dict.keys())))
 
-        self._phdoses_dict[label] = phdos
+        self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     @add_fig_kwargs
-    def plot(self, ax=None, *args, **kwargs):
+    def combiplot(self, ax=None, *args, **kwargs):
         """
-        Get a matplotlib plot showing the DOSes.
+        Plot the the DOSes on the same figure.
+        Use `gridplot` to plot DOSes on different figures.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -2298,6 +2526,81 @@ class PhononDosPlotter(object):
         ax.legend(lines, legends, loc='best', shadow=True)
 
         return fig
+
+    @deprecated(message="plot method of PhononDos has been replaced by combiplot. It will removed in 0.4")
+    def plot(self, *args, **kwargs):
+        return self.combiplot(*args, **kwargs)
+
+    @add_fig_kwargs
+    def gridplot(self, xlims=None, **kwargs):
+        """
+        Plot multiple DOSes on a grid.
+
+        Args:
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self._phdoses_dict.keys())
+        phdos_list = list(self._phdoses_dict.values())
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = 1, 1
+        numeb = len(phdos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        # Build Grid
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        axes = axes.ravel()
+        # don't show the last ax if numeb is odd.
+        if numeb % ncols != 0: axes[-1].axis("off")
+
+        for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+            ax = axes[i]
+            phdos.plot_ax(ax)
+            ax.set_title(label)
+            set_axlims(ax, xlims, "x")
+            if i % ncols != 0:
+                ax.set_ylabel("")
+
+        return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence. The notebook will reconstruct
+        # the ebands and the edoses from this file by calling as_ebands, as_edos
+        #key_edos = []
+        #for label, edos in self.edoses_dict.items():
+        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        #    with open(tmpfile, "wb") as fh:
+        #        pickle.dump(edos, fh)
+        #        key_edos.append((label, tmpfile))
+
+        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        self.pickle_dump(tmpfile)
+
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
+            #    (str(key_edos))),
+            nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("print(plotter)"),
+            #nbv.new_code_cell("xlims = (None, None)"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.plot_harmonic_thermo()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,

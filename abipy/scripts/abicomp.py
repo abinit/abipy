@@ -125,10 +125,6 @@ def abicomp_edos(options):
         plotter.make_and_open_notebook(foreground=options.foreground)
 
     else:
-        # Print pandas Dataframe.
-        #frame = plotter.get_ebands_frame()
-        #abilab.print_frame(frame)
-
         # Optionally, print info on gaps and their location
         if not options.verbose:
             print("\nUse --verbose for more information")
@@ -144,6 +140,78 @@ def abicomp_edos(options):
             plotfunc(e0=e0)
 
     return 0
+
+
+#TODO: To be tested
+def abicomp_phbands(options):
+    """
+    Plot phonon bands on a grid.
+    """
+    paths = options.paths
+    plotter = abilab.PhononBandsPlotter(key_phbands=[(os.path.relpath(p), p) for p in paths])
+
+    if options.ipython:
+        import IPython
+        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+                      plotter=plotter)
+
+    elif options.notebook:
+        plotter.make_and_open_notebook(foreground=options.foreground)
+
+    else:
+        # Print pandas Dataframe.
+        frame = plotter.get_phbands_frame()
+        abilab.print_frame(frame)
+
+        # Optionally, print info on gaps and their location
+        if not options.verbose:
+            print("\nUse --verbose for more information")
+        else:
+            for phbands in plotter.phbands_list:
+                print(phbands)
+
+        # Here I select the plot method to call.
+        if options.plot_mode != "None":
+            plotfunc = getattr(plotter, options.plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
+            plotfunc()
+
+    return 0
+
+
+def abicomp_phdos(options):
+    """
+    Plot phonon DOSes on a grid.
+    """
+    paths = options.paths
+    plotter = abilab.PhononDosPlotter(key_phdos=[(os.path.relpath(p), p) for p in paths])
+
+    if options.ipython:
+        import IPython
+        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+                      plotter=plotter)
+
+    elif options.notebook:
+        plotter.make_and_open_notebook(foreground=options.foreground)
+
+    else:
+        # Optionally, print info on gaps and their location
+        if not options.verbose:
+            print("\nUse --verbose for more information")
+        else:
+            for phdos in plotter.phdos_list:
+                print(edos)
+
+        # Here I select the plot method to call.
+        if options.plot_mode != "None":
+            plotfunc = getattr(plotter, options.plot_mode, None)
+            if plotfunc is None:
+                raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
+            plotfunc()
+
+    return 0
+
 
 ##################
 # Robot commands #
@@ -189,17 +257,6 @@ def abicomp_mdf(options):
     Compare macroscopic dielectric functions stored in multiple MDF files.
     """
     return _invoke_robot(options)
-
-
-def abicomp_phbands(options):
-    """
-    Plot phonon bands on a grid.
-    """
-    paths = options.paths
-    phb_objects = paths
-    titles = paths
-    abilab.phbands_gridplot(phb_objects, titles=titles, phdos_objects=None, phdos_kwargs=None)
-    return 0
 
 
 #def abicomp_pseudos(options):
@@ -259,6 +316,9 @@ def _invoke_robot(options):
     else:
         # Assume file list.
         robot = robot_cls.from_files(paths)
+
+    if len(robot) == 0:
+        cprint("Warning: robot is empty. No found loaded", "red")
 
     if options.ipython:
         import IPython
@@ -427,6 +487,11 @@ Usage example:
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
                         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
 
+    # Subparser for phbands command.
+    #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+
+    #p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
+
     # Subparser robot commads
     robot_parents = [copts_parser, ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -435,9 +500,6 @@ Usage example:
     #p_phbdos = subparsers.add_parser('phbsr', parents=robot_parents, help=abicomp_phdos.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
-
-    # Subparser for phbands command.
-    #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
 
     # Subparser for pseudos command.
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)

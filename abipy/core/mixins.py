@@ -7,6 +7,7 @@ import os
 import six
 import collections
 import tempfile
+import pickle
 
 from time import ctime
 from monty.os.path import which
@@ -475,3 +476,20 @@ from abipy import abilab""")
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
             return nbpath
+
+    @classmethod
+    def pickle_load(cls, filepath):
+        """
+        Loads the object from a pickle file
+        """
+        with open(filepath, "rb") as fh:
+            new = pickle.load(fh)
+            assert cls is new.__class__
+            return new
+
+    def pickle_dump(self, filepath):
+        """
+        Save the status of the object in pickle format.
+        """
+        with open(filepath, "wb") as fh:
+            pickle.dump(self, fh)

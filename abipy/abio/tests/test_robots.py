@@ -30,21 +30,33 @@ class RobotTest(AbipyTest):
         robot = Robot.for_ext("GSR")()
         robot.add_file("gsr0", gsr_path)
         assert len(robot.ncfiles) == 1
+        assert robot.EXT == "GSR"
         repr(robot)
         str(robot)
+
+	# Cannot have same label
         with self.assertRaises(ValueError):
             robot.add_file("gsr0", gsr_path)
 
-        assert robot.EXT == "GSR"
         assert len(robot) == 1 and not robot.exceptions
+
+        robot.add_file("gsr1", abilab.abiopen(gsr_path))
+        assert len(robot) == 2
         robot.show_files()
 
-        plotter = robot.get_ebands_plotter()
-        if self.has_matplotlib():
-            plotter.gridplot()
+        ebands_plotter = robot.get_ebands_plotter()
+        edos_plotter = robot.get_edos_plotter()
 
+        if self.has_matplotlib():
+            ebands_plotter.gridplot(show=False)
+            edos_plotter.gridplot(show=False)
+
+	# Get pandas dataframe.
         df = robot.get_dataframe()
-        assert df is not None
+        assert "energy" in df
+        self.assert_equal(df["ecut"].values, 6.0)
+        self.assert_almost_equal(df["energy"].values, -241.2364683)
+
         # FIXME
         #eos = robot.eos_fit()
         if self.has_nbformat():

@@ -9,6 +9,7 @@ import pandas as pd
 
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
+from monty.termcolor import cprint
 #from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -369,25 +370,6 @@ class Robot(object):
                 self._exceptions.append(str(exc))
         return d
 
-    #def pairplot(self, data=None, getter="get_dataframe", map_kws=None, show=True, **kwargs):
-    #    # TODO: Remove
-    #    import matplotlib.pyplot as plt
-    #    import seaborn.apionly as sns
-    #    if data is None:
-    #        data = getattr(self, getter)()
-
-    #    #grid = sns.PairGrid(data, x_vars="nkpt", y_vars=["a", "volume"]) #, hue="tsmear")
-    #    grid = sns.PairGrid(data, **kwargs)
-    #    if map_kws is None:
-    #        grid.map(plt.plot, marker="o")
-    #    else:
-    #        func = map_kws.pop("func", plt.plot)
-    #        grid.map(func, **map_kws)
-
-    #    grid.add_legend()
-    #    if show: plt.show()
-    #    return grid
-
 
 class GsrRobot(Robot, NotebookWriter):
     """
@@ -457,6 +439,26 @@ class GsrRobot(Robot, NotebookWriter):
 
         return plotter
 
+    def get_edos_plotter(self, cls=None, **kwargs):
+        """
+        Build and return an instance of `ElectronDosPlotter` or a subclass is cls is not None.
+
+        Args:
+            cls: subclass of `ElectronDosPlotter`
+            kwargs: Arguments passed to ebands.get_edos
+        """
+        from abipy.electrons.ebands import ElectronDosPlotter
+        plotter = ElectronDosPlotter() if cls is None else cls()
+
+        for label, gsr in self:
+            if not gsr.ebands.kpoints.is_ibz:
+                cprint("Skipping %s because kpoint sampling not IBZ" % gsr.filepath, "violet")
+                continue
+            plotter.add_edos(label, gsr.ebands.get_edos(**kwargs))
+
+        return plotter
+
+    # FIXME: EOS has been changed in pymatgen.
     def eos_fit(self, eos_name="murnaghan"):
         """
         Fit E(V)
@@ -495,13 +497,19 @@ class GsrRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
-            nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
-            nbv.new_code_cell("fig = plotter.gridplot()"),
+
+            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("fig = ebands_plotter.gridplot()"),
+            nbv.new_code_cell("fig = ebands_plotter.combiplot()"),
+            nbv.new_code_cell("fig = ebands_plotter.boxplot()"),
+            nbv.new_code_cell("fig = ebands_plotter.combiboxplot()"),
+            nbv.new_code_cell("#anim = ebands_plotter.animate()"),
+
+            nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
             nbv.new_code_cell("fig = plotter.combiplot()"),
-            nbv.new_code_cell("fig = plotter.boxplot()"),
-            nbv.new_code_cell("fig = plotter.combiboxplot()"),
-            nbv.new_code_cell("anim = plotter.animate()"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -528,14 +536,18 @@ class SigresRobot(Robot, NotebookWriter):
         Return a pandas DataFrame with the most important results for the given (spin, kpoint).
 
         Args:
+            spin: Spin index.
+            kpoint
             with_geo: True if structure info should be added to the dataframe
         """
         # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
+        # TODO: In principle the SIGRES might have different k-points
         if spin is None: spin = 0
         if kpoint is None: kpoint = 0
 
         attrs = [
-            "nsppol", #"nspinor", "nspden", #"ecut", "pawecutdg",
+            "nsppol",
+            #"nspinor", "nspden", #"ecut", "pawecutdg",
             #"tsmear", "nkibz",
         ] + kwargs.pop("attrs", [])
 
@@ -545,7 +557,9 @@ class SigresRobot(Robot, NotebookWriter):
             d = OrderedDict()
             for aname in attrs:
                 d[aname] = getattr(sigres, aname, None)
-            d.update({"qpgap": sigres.get_qpgap(spin, kpoint)})
+
+            qpgap = sigres.get_qpgap(spin, kpoint)
+            d.update({"qpgap": qpgap})
 
             # Add convergence parameters
             d.update(sigres.params)
@@ -702,8 +716,7 @@ class DdbRobot(Robot, NotebookWriter):
 
     #    return np.array(qpoints)
 
-    #@property
-    #def qpoints_intersection(self):
+    #def get_qpoints_intersection(self):
     #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
     #    qpoints = []
     #    for label, ddb in enumerate(self):
@@ -730,7 +743,6 @@ class DdbRobot(Robot, NotebookWriter):
                 raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
 
             qpoint = self[0].qpoints[0]
-
             if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
                 raise ValueError("All the q-points in the DDB files must be equal")
 
@@ -781,34 +793,35 @@ class DdbRobot(Robot, NotebookWriter):
         grid.add_legend()
         plt.show()
 
-    # TODO
-    #def get_phbands_plotter(self, with_phdos=True, cls=None, **kwargs):
-    #    if "workdir" in kwargs:
-    #        raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+    # TODO Test
+    def get_phbands_plotter(self, with_phdos=True, cls=None, **kwargs):
+        if "workdir" in kwargs:
+            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-    #    from abipy.dfpt.phonons import PhononBandsPlotter
-    #    plotter = PhononBandsPlotter() if cls is None else cls()
-    #    for label, ddb in self:
-    #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
-    #        plotter.add_phbands(label, phbst_file, phdos=phdos_file)
-    #        phbst_file.close()
-    #        phdos_file.close()
+        from abipy.dfpt.phonons import PhononBandsPlotter
+        plotter = PhononBandsPlotter() if cls is None else cls()
+        for label, ddb in self:
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+            plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phbst_file.close()
+            phdos_file.close()
 
-    #    return plotter
+        return plotter
 
-    #def get_phdos_plotter(self, cls=None, **kwargs):
-    #    if "workdir" in kwargs:
-    #        raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+    # TODO Test
+    def get_phdos_plotter(self, cls=None, **kwargs):
+        if "workdir" in kwargs:
+            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-    #    from abipy.dfpt.phonons import PhononDosPlotter
-    #    plotter = PhononDosPlotter() if cls is None else cls()
-    #    for label, ddb in self:
-    #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
-    #        plotter.add_phdos(label, phdos=phdos_file.phdos)
-    #        phbst_file.close()
-    #        phdos_file.close()
+        from abipy.dfpt.phonons import PhononDosPlotter
+        plotter = PhononDosPlotter() if cls is None else cls()
+        for label, ddb in self:
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+            plotter.add_phdos(label, phdos=phdos_file.phdos)
+            phbst_file.close()
+            phdos_file.close()
 
-    #    return plotter
+        return plotter
 
     def write_notebook(self, nbpath=None):
         """
@@ -821,9 +834,12 @@ class DdbRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nprint(robot)" % str(args)),
-            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
-            #nbv.new_code_cell("fig = plotter.gridplot()"),
-            #nbv.new_code_cell("fig = plotter.combiboxplot()"),
+            #nbv.new_code_cell("phbands_plotter = robot.get_phbands_plotter()"),
+            #nbv.new_code_cell("fig = phbands_plotter.gridplot()"),
+            #nbv.new_code_cell("fig = phbands_plotter.combiboxplot()"),
+            #nbv.new_code_cell("phdos_plotter = robot.get_phdos_plotter()"),
+            #nbv.new_code_cell("fig = phdos_plotter.gridplot()"),
+            #nbv.new_code_cell("fig = phdos_plotter.plot_harmonic_thermo()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

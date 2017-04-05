@@ -242,6 +242,12 @@ class ElectronBandsPlotterTest(AbipyTest):
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
 
+        pickle_path = self.get_tmpname(text=True)
+        plotter.pickle_dump(pickle_path)
+        same = ElectronBandsPlotter.pickle_load(pickle_path)
+        assert len(same.ebands_dict) == len(plotter.ebands_dict)
+        assert list(same.ebands_dict.keys()) == list(plotter.ebands_dict.keys())
+
 
 class ElectronDosPlotterTest(AbipyTest):
 

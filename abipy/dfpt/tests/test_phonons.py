@@ -6,9 +6,10 @@ import os
 import numpy as np
 import abipy.data as abidata
 
-from abipy.dfpt.phonons import PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot
+from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
+        PhononBandsPlotter, PhononDosPlotter)
 from abipy.dfpt.ddb import DdbFile
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
@@ -19,7 +20,8 @@ class PhononBandsTest(AbipyTest):
         """Base tests for PhononBands"""
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         phbands = PhononBands.from_file(filename)
-        print(phbands)
+        repr(phbands)
+        str(phbands)
         assert PhononBands.as_phbands(phbands) is phbands
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
@@ -40,6 +42,10 @@ class PhononBandsTest(AbipyTest):
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
+        df = phbands.to_dataframe()
+        assert "freq" in df and "nu" in df
+        self.assert_almost_equal(df["freq"].values.min(), 0)
+
         # Test convertion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
         eig = phbands.dyn_mat_eigenvect
@@ -49,6 +55,7 @@ class PhononBandsTest(AbipyTest):
             phbands.plot(show=False)
             phbands.plot_fatbands(show=False)
             phbands.plot_colored_matched(show=False)
+            phbands.boxplot(show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -62,9 +69,6 @@ class PlotterTest(AbipyTest):
 
     def test_plot_functions(self):
         """Testing plotting tools for phonons."""
-        if not self.has_matplotlib():
-            raise unittest.SkipTest("matplotlib missing")
-
         phbst_filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         from abipy import abilab
         with abilab.abiopen(phbst_filename) as nc:
@@ -82,9 +86,11 @@ class PlotterTest(AbipyTest):
             phdos_filename,
         ]
 
-        fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
+        if self.has_matplotlib():
+            fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
                                phdos_objects=phdos_objects, show=False)
-        assert fig is not None
+            assert fig is not None
+
         phdos.close()
 
 
@@ -120,12 +126,38 @@ class PhbstFileTest(AbipyTest):
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
+class PhononBandsPlotterTest(AbipyTest):
+
+    def test_phbands_plotter(self):
+        phbst_paths = 2 * [abidata.ref_file("trf2_5.out_PHBST.nc")]
+        phdos_paths = 2 * [abidata.ref_file("trf2_5.out_PHDOS.nc")]
+
+        plotter = PhononBandsPlotter()
+        plotter.add_phbands("AlAs", phbst_paths[0], phdos=phdos_paths[0])
+        plotter.add_phbands("Same-AlAs", phbst_paths[1], phdos=phdos_paths[1])
+        repr(plotter)
+        str(plotter)
+
+        assert len(plotter.phbands_list) == 2
+        assert len(plotter.phdoses_list) == 2
+        assert not plotter.markers
+
+        if self.has_matplotlib():
+            plotter.combiplot(show=True)
+            plotter.gridplot(show=True)
+            plotter.boxplot(show=True)
+            plotter.combiboxplot(show=True)
+
+        if self.has_nbformat():
+            plotter.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
 class PhononDosTest(AbipyTest):
 
     def test_api(self):
         """Testing PhononDos API with fake data."""
         dos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
-        assert dos.mesh.tolist() == [1,2,3] and dos.h == 1 and dos.values.tolist() == [4,5,6]
+        assert dos.mesh.tolist() == [1, 2, 3] and dos.h == 1 and dos.values.tolist() == [4, 5, 6]
         print(dos)
         dos.idos
         assert PhononDos.as_phdos(dos, {}) is dos
@@ -159,24 +191,46 @@ class PhononDosTest(AbipyTest):
 
         ncfile.close()
 
+class PhononDosPlotterTest(AbipyTest):
+
+    def test_phdos_plotter(self):
+        phdos_paths = 2 * [abidata.ref_file("trf2_5.out_PHDOS.nc")]
+
+        plotter = PhononDosPlotter()
+        plotter.add_phdos("AlAs", phdos_paths[0])
+        plotter.add_phdos("Same-AlAs", phdos_paths[1])
+        repr(plotter)
+        str(plotter)
+
+        assert len(plotter._phdoses_dict) == 2
+
+        if self.has_matplotlib():
+            plotter.combiplot(show=True)
+            plotter.gridplot(show=True)
+            plotter.plot_harmonic_thermo()
+
+        if self.has_nbformat():
+            plotter.write_notebook(nbpath=self.get_tmpname(text=True))
+
 
 class InteratomicForceConstantsTest(AbipyTest):
 
     @classmethod
     def setUpClass(cls):
         cls.ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
-        cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4,4,4], verbose=1)
+        cls.ifc = cls.ddb.anaget_ifc(ifcout=40, ngqpt=[4, 4, 4], verbose=1)
 
     @classmethod
     def tearDownClass(cls):
         cls.ddb.close()
 
     def test_filtering(self):
+        """Testing IFC filtering."""
 
         self.ifc.ifc_local_coord_ewald
         self.ifc.ifc_local_coord_short_range
 
-        dist, data = self.ifc.get_ifc_cartesian(atom_indices=[0,1])
+        dist, data = self.ifc.get_ifc_cartesian(atom_indices=[0, 1])
         self.assert_equal(np.shape(data), (80, 3, 3))
 
         dist, data = self.ifc.get_ifc_local(atom_element="Al")
@@ -186,6 +240,7 @@ class InteratomicForceConstantsTest(AbipyTest):
         self.assert_equal(np.shape(data), (56, 3, 3))
 
     def test_plot(self):
+        """Test IFC plot."""
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib missing")
 
@@ -197,10 +252,8 @@ class InteratomicForceConstantsTest(AbipyTest):
 class NonAnalyticalPhTest(AbipyTest):
 
     def test_read_from_file(self):
+        """Test non-analytical."""
         # no becs, so no splitting. The test only checks the parsing
-        ddb = DdbFile(os.path.join(test_dir, "ZnO_gamma_becs_DDB"))
-
-        phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
-
-        phbands.non_anal_phfreqs
-        ddb.close()
+        with DdbFile(os.path.join(test_dir, "ZnO_gamma_becs_DDB")) as ddb:
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
+            phbands.non_anal_phfreqs
