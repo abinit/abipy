@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import tempfile
 import copy
 import itertools
 import json
@@ -2023,7 +2022,7 @@ def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
     Build a pandas dataframe with the most important results available in a list of band structures.
 
     Args:
-        struct_objects: List of objects that can be converted to structure.
+        ebands_objects: List of objects that can be converted to structure.
             Support netcdf filenames or :class:`ElectronBands` objects
             See `ElectronBands.as_ebands` for the complete list.
         index: Index of the dataframe.
@@ -2065,13 +2064,14 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         Args:
             key_ebands: List of (label, ebands) tuples.
-                ebands is any object that can be converted into  :class:`ElectronBands` e.g. ncfile, path.
+                ebands is any object that can be converted into :class:`ElectronBands` e.g. ncfile, path.
             key_edos: List of (label, edos) tuples.
-                edos is any object that can be converted into :class:`ElectronDoc`
+                edos is any object that can be converted into :class:`ElectronDos`
         """
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
         self.ebands_dict = OrderedDict(key_ebands)
+
         if key_edos is None: key_edos = []
         key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
         self.edoses_dict = OrderedDict(key_edos)
@@ -2503,24 +2503,8 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the ebands and the edoses from this file by calling as_ebands, as_edos
-        #key_ebands = []
-        #for label, ebands in self.ebands_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(ebands, fh)
-        #        key_ebands.append((label, tmpfile))
-
-        #key_edos = []
-        #for label, edos in self.edoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(edos, fh)
-        #        key_edos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
@@ -3072,17 +3056,8 @@ class ElectronDosPlotter(NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the ebands and the edoses from this file by calling as_ebands, as_edos
-        #key_edos = []
-        #for label, edos in self.edoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(edos, fh)
-        #        key_edos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
 
         nb.cells.extend([
             nbv.new_markdown_cell("# This is a markdown cell"),
@@ -3099,6 +3074,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     #def animate(self, **kwargs):
     #    animator = Animator()
+    #    import tempfile
     #    tmpdir = tempfile.mkdtemp()
     #    for (label, dos) in self.edoses_dict.items():
     #        savefig = os.path.join(tmpdir, label + ".png")

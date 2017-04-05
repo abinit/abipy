@@ -142,7 +142,6 @@ def abicomp_edos(options):
     return 0
 
 
-#TODO: To be tested
 def abicomp_phbands(options):
     """
     Plot phonon bands on a grid.
@@ -182,7 +181,7 @@ def abicomp_phbands(options):
 
 def abicomp_phdos(options):
     """
-    Plot phonon DOSes on a grid.
+    Compare multiple PHDOS files.
     """
     paths = options.paths
     plotter = abilab.PhononDosPlotter(key_phdos=[(os.path.relpath(p), p) for p in paths])
@@ -201,7 +200,7 @@ def abicomp_phdos(options):
             print("\nUse --verbose for more information")
         else:
             for phdos in plotter.phdos_list:
-                print(edos)
+                print(phdos)
 
         # Here I select the plot method to call.
         if options.plot_mode != "None":
@@ -227,20 +226,6 @@ def abicomp_gsr(options):
 def abicomp_ddb(options):
     """
     Compare multiple DDB files.
-    """
-    return _invoke_robot(options)
-
-
-def abicomp_phbst(options):
-    """
-    Compare multiple PHBST files.
-    """
-    return _invoke_robot(options)
-
-
-def abicomp_phdos(options):
-    """
-    Compare multiple PHDOS files.
     """
     return _invoke_robot(options)
 
@@ -297,7 +282,6 @@ def _invoke_robot(options):
     # To define an Help action
     #http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
-    #print(paths)
 
     if os.path.isdir(paths[0]):
         # Assume directory.
@@ -488,16 +472,20 @@ Usage example:
                         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
 
     # Subparser for phbands command.
-    #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+    p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
+                           choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+                           help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`")
 
-    #p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
+    p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
+    p_phdos.add_argument("-p", "--plot-mode", default="gridplot",
+                         choices=["gridplot", "combiplot", "None"],
+                         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
 
     # Subparser robot commads
     robot_parents = [copts_parser, ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
-    #p_phbst = subparsers.add_parser('phbsr', parents=robot_parents, help=abicomp_phbst.__doc__)
-    #p_phbdos = subparsers.add_parser('phbsr', parents=robot_parents, help=abicomp_phdos.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
 

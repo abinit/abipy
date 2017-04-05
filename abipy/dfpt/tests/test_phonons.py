@@ -7,7 +7,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
-        PhononBandsPlotter, PhononDosPlotter)
+        PhononBandsPlotter, PhononDosPlotter, frame_from_phbands)
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
 
@@ -142,6 +142,12 @@ class PhononBandsPlotterTest(AbipyTest):
         assert len(plotter.phdoses_list) == 2
         assert not plotter.markers
 
+        df = frame_from_phbands(plotter.phbands_list)
+        assert "nqpt" in df
+
+        df = plotter.get_phbands_frame()
+        assert df is not None
+
         if self.has_matplotlib():
             plotter.combiplot(show=True)
             plotter.gridplot(show=True)
@@ -201,8 +207,7 @@ class PhononDosPlotterTest(AbipyTest):
         plotter.add_phdos("Same-AlAs", phdos_paths[1])
         repr(plotter)
         str(plotter)
-
-        assert len(plotter._phdoses_dict) == 2
+        assert len(plotter.phdos_list) == 2
 
         if self.has_matplotlib():
             plotter.combiplot(show=True)
@@ -226,7 +231,6 @@ class InteratomicForceConstantsTest(AbipyTest):
 
     def test_filtering(self):
         """Testing IFC filtering."""
-
         self.ifc.ifc_local_coord_ewald
         self.ifc.ifc_local_coord_short_range
 

@@ -9,7 +9,6 @@ import pickle
 import os
 import six
 import json
-import tempfile
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings
@@ -28,6 +27,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 
 __all__ = [
+    "frame_from_phbands",
     "PhononBands",
     "PhononBandsPlotter",
     "PhbstFile",
@@ -145,6 +145,7 @@ class PhononBands(object):
         """
         if isinstance(obj, cls):
             return obj
+
         elif is_string(obj):
             # path?
             if obj.endswith(".pickle"):
@@ -154,6 +155,7 @@ class PhononBands(object):
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.phbands
+
         elif hasattr(obj, "phbands"):
             # object with phbands
             return obj.phbands
@@ -527,6 +529,30 @@ class PhononBands(object):
     #    """
     #    qindex, qpoint = self.qindex_qpoint(qpoint)
 
+    def get_dict4frame(self, with_spglib=True):
+        """
+        Return a :class:`OrderedDict` with the most important parameters:
+
+            - Chemical formula and number of atoms.
+            - Lattice lengths, angles and volume.
+            - The spacegroup number computed by Abinit (set to None if not available).
+            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+
+        Useful to construct pandas DataFrames
+
+        Args:
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        """
+        odict = OrderedDict([
+            ("nqpt", self.num_qpoints), ("nbranches", self.num_branches),
+            ("minfreq", self.minfreq), ("maxfreq", self.maxfreq),
+            #("meanfreq", self.meanfreq), ("stdfreq", self.stdfreq)
+
+        ])
+        odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
+
+        return odict
+
     def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
         """
         Compute the phonon DOS on a linear mesh.
@@ -549,10 +575,8 @@ class PhononBands(object):
         # Compute the linear mesh for the DOS
         w_min = self.minfreq
         w_min -= 0.1 * abs(w_min)
-
         w_max = self.maxfreq
         w_max += 0.1 * abs(w_max)
-
         nw = 1 + (w_max - w_min) / step
 
         mesh, step = np.linspace(w_min, w_max, num=nw, endpoint=True, retstep=True)
@@ -2080,6 +2104,29 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
+def frame_from_phbands(phbands_objects, index=None, with_spglib=True):
+    """
+    Build a pandas dataframe with the most important results available in a list of band structures.
+
+    Args:
+        phbands_objects: List of objects that can be converted to structure.
+            Support netcdf filenames or :class:`PhononBands` objects
+            See `PhononBands.as_ebands` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+
+    Return:
+        pandas :class:`DataFrame`
+    """
+    phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(phbands.get_dict4frame(with_spglib=with_spglib)) for phbands in phbands_list]
+
+    import pandas as pd
+    return pd.DataFrame(odict_list, index=index,
+                        columns=list(odict_list[0].keys()) if odict_list else None)
+
+
 class PhononBandsPlotter(NotebookWriter):
     """
     Class for plotting phonon band structure and DOSes.
@@ -2098,9 +2145,27 @@ class PhononBandsPlotter(NotebookWriter):
     _LINE_STYLES = ["-",":","--","-.",]
     _LINE_WIDTHS = [2,]
 
-    def __init__(self):
-        self._bands_dict = OrderedDict()
-        self._phdoses_dict = OrderedDict()
+    def __init__(self, key_phbands=None, key_phdos=None, phdos_kwargs=None):
+        """
+        Args:
+            key_phbands: List of (label, ebands) tuples.
+                phbands is any object that can be converted into :class:`PhononBands` e.g. ncfile, path.
+            key_phdos: List of (label, phdos) tuples.
+                phdos is any object that can be converted into :class:`PhononDos`
+        """
+        if key_phbands is None: key_phbands = []
+        key_phbands = [(k, PhononBands.as_phbands(v)) for k, v in key_phbands]
+        self._bands_dict = OrderedDict(key_phbands)
+
+        if key_phdos is None: key_phdos = []
+        key_phdos = [(k, PhononDos.as_phdos(v, phdos_kwargs)) for k, v in key_phdos]
+        self._phdoses_dict = OrderedDict(key_phdos)
+        if key_phdos:
+            if not key_phbands:
+                raise ValueError("key_phbands must be specifed when key_dos is not None")
+            if len(key_phbands) != len(key_phdos):
+                raise ValueError("key_phbands and key_phdos must have the same number of elements.")
+
         self._markers = OrderedDict()
 
     def __repr__(self):
@@ -2116,12 +2181,12 @@ class PhononBandsPlotter(NotebookWriter):
 
         return "\n".join(lines)
 
-    # TODO
-    #def get_ebands_frame(self, with_spglib=True):
-    #    """
-    #    Build a pandas dataframe with the most important results available in the band structures."""
-    #    return frame_from_ebands(list(self.ebands_dict.values()),
-    #                             index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
+    def get_phbands_frame(self, with_spglib=True):
+        """
+        Build a pandas dataframe with the most important results available in the band structures.
+        """
+        return frame_from_phbands(list(self.phbands_dict.values()),
+                                 index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
 
     @property
     def phbands_dict(self):
@@ -2418,32 +2483,14 @@ class PhononBandsPlotter(NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the phbands and the phdoses from this file by calling as_phbands, as_phdos
-        #key_phbands = []
-        #for label, phbands in self.phbands_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(phbands, fh)
-        #        key_phbands.append((label, tmpfile))
-
-        #key_phdos = []
-        #for label, phdos in self.phdoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(phdos, fh)
-        #        key_phdos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.PhononBandsPlotter(\nkey_ebands=%s,\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_phbands), str(key_phdos))),
             nbv.new_code_cell("plotter = abilab.PhononBandsPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
-            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("frame = plotter.get_phbands_frame()\ndisplay(frame)"),
             #nbv.new_code_cell("ylims = (None, None)"),
             nbv.new_code_cell("fig = plotter.gridplot()"),
             nbv.new_code_cell("fig = plotter.combiplot()"),
@@ -2467,10 +2514,16 @@ class PhononDosPlotter(NotebookWriter):
         plotter.add_phdos("bar dos", "bar.nc")
         fig = plotter.gridplot()
     """
-    def __init__(self, *args):
+    def __init__(self, key_phdos=None, phdos_kwargs=None):
         self._phdoses_dict = OrderedDict()
-        for label, phdos in args:
-            self.add_dos(label, phdos)
+        if key_phdos is None: key_phdos = []
+        for label, phdos in key_phdos:
+            self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
+
+    @property
+    def phdos_list(self):
+        """List of phonon DOSes"""
+        return list(self._phdoses_dict.values())
 
     def add_phdos(self, label, phdos, phdos_kwargs=None):
         """
@@ -2563,44 +2616,12 @@ class PhononDosPlotter(NotebookWriter):
             ax = axes[i]
             phdos.plot_ax(ax)
             ax.set_title(label)
+            ax.grid(True)
             set_axlims(ax, xlims, "x")
             if i % ncols != 0:
                 ax.set_ylabel("")
 
         return fig
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        # Use pickle files for data persistence. The notebook will reconstruct
-        # the ebands and the edoses from this file by calling as_ebands, as_edos
-        #key_edos = []
-        #for label, edos in self.edoses_dict.items():
-        #    _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        #    with open(tmpfile, "wb") as fh:
-        #        pickle.dump(edos, fh)
-        #        key_edos.append((label, tmpfile))
-
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
-        self.pickle_dump(tmpfile)
-
-        nb.cells.extend([
-            nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
-            #    (str(key_edos))),
-            nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
-            nbv.new_code_cell("print(plotter)"),
-            #nbv.new_code_cell("xlims = (None, None)"),
-            nbv.new_code_cell("fig = plotter.combiplot()"),
-            nbv.new_code_cell("fig = plotter.gridplot()"),
-            nbv.new_code_cell("fig = plotter.plot_harmonic_thermo()"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
@@ -2656,6 +2677,30 @@ class PhononDosPlotter(NotebookWriter):
 
         fig.tight_layout()
         return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
+
+        nb.cells.extend([
+            nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("plotter = abilab.ElectronDosPlotter(\nkey_edos=%s,\nedos_kwargs=None)" %
+            #    (str(key_edos))),
+            nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("print(plotter)"),
+            #nbv.new_code_cell("xlims = (None, None)"),
+            nbv.new_code_cell("fig = plotter.combiplot()"),
+            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("fig = plotter.plot_harmonic_thermo()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class NonAnalyticalPh(Has_Structure):
