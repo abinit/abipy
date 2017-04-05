@@ -873,11 +873,11 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
             input as the phonons. This will allow to determine the BECs.
             Automatically sets with_ddk=True and with_dde=False.
         ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
-            its value. Default from AbinitInput.make_ph_inputs_qpoint: {"tolvrs": 1.0e-10}.
+            its value. Default: {"tolvrs": 1.0e-10}.
         ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
-            its value. Default from AbinitInput.make_ddk_inputs: {"tolwfr": 1.0e-22}.
+            its value. Default: {"tolwfr": 1.0e-22}.
         dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
-            its value. Default from AbinitInput.make_dde_inputs: {"tolvrs": 1.0e-10}.
+            its value. Default: {"tolvrs": 1.0e-10}.
         wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
             the WFQ and its value. Default {"tolwfr": 1.0e-22}.
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
@@ -1314,13 +1314,81 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     if smearing is None:
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
-        nband = int(nval // 2 + nbdbuf)
+        nband = int(round(nval / 2) + nbdbuf)
         abiinput.set_vars(nband=nband)
 
     # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
     abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
+
+
+def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None, dte_tol=None,
+                     skip_dte_permutations=False):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform calculations of non-linear properties, based on
+    a ground state AbinitInput.
+
+    The inputs have the following tags, according to their function: "ddk", "dde", "ph_q_pert" and "dte".
+    All of them have the tag "dfpt".
+
+    Args:
+        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.
+        use_phonons: determine wether the phonon perturbations at gamma should be included or not
+        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+            its value. Default: {"tolvrs": 1.0e-22}.
+        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+            its value. Default: {"tolwfr": 1.0e-22}.
+        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+            its value. Default: {"tolvrs": 1.0e-22}.
+        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and
+            its value. Default: {"tolwfr": 1.0e-20}.
+        skip_dte_permutations:
+    """
+    gs_inp = gs_inp.deepcopy()
+    gs_inp.pop_irdvars()
+
+    if ph_tol is None:
+        ph_tol = {"tolvrs": 1.0e-22}
+
+    if ddk_tol is None:
+        ddk_tol = {"tolwfr": 1.0e-22}
+
+    if dde_tol is None:
+        dde_tol = {"tolvrs": 1.0e-22}
+
+    if dte_tol is None:
+        dte_tol = {"tolwfr": 1.0e-20}
+
+    multi = []
+
+    multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+    multi_ddk.add_tags(DDK)
+    multi.extend(multi_ddk)
+    multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False)
+    multi_dde.add_tags(DDE)
+    multi.extend(multi_dde)
+
+    if use_phonons:
+        multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol)
+        multi_ph.add_tags(PH_Q_PERT)
+        multi.extend(multi_ph)
+
+    # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+    # Do this as last, so not to intrfere with the the generation of the other steps.
+    nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+    nval -= gs_inp['charge']
+    nband = int(round(nval / 2))
+    gs_inp.set_vars(nband=nband)
+    gs_inp.pop('nbdbuf', None)
+    multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations)
+    multi_dte.add_tags(DTE)
+    multi.extend(multi_dte)
+
+    multi = MultiDataset.from_inputs(multi)
+    multi.add_tags(DFPT)
+
+    return multi
 
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
