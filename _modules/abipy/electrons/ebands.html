@@ -73,7 +73,6 @@
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -920,7 +919,7 @@
 
         <span class="n">stream</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ElectronBands.to_pdframe"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.to_pdframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_pdframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.to_dataframe"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a pandas DataFrame with the following columns:</span>
 
@@ -966,6 +965,10 @@
         <span class="n">frame</span><span class="o">.</span><span class="n">fermie</span> <span class="o">=</span> <span class="n">e0</span>
         <span class="k">return</span> <span class="n">frame</span></div>
 
+    <span class="c1"># Alias to maintain compatibility</span>
+    <span class="c1"># TODO: Remove it in 0.4</span>
+    <span class="n">to_pdframe</span> <span class="o">=</span> <span class="n">to_dataframe</span>
+
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="ElectronBands.boxplot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.boxplot">[docs]</a>    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">brange</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -979,10 +982,10 @@
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            brange: Only bands such as `brange[0] &lt;= band_index &lt; brange[1]` are included in the plot.</span>
 <span class="sd">            swarm: True to show the datapoints on top of the boxes</span>
-<span class="sd">            kwargs: Keywork arguments passed to seaborn boxplot.</span>
+<span class="sd">            kwargs: Keyword arguments passed to seaborn boxplot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get the dataframe and select bands</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_pdframe</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">brange</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">brange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">frame</span><span class="p">[</span><span class="s2">&quot;band&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">brange</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
 
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
@@ -2034,7 +2037,7 @@
         <span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">knames</span> <span class="o">=</span> <span class="n">kpath</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">kpath</span><span class="o">.</span><span class="n">names</span>
 
         <span class="c1"># Interpolate energies.</span>
-        <span class="n">eigens_kpath</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">eval_all</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">)</span>
+        <span class="n">eigens_kpath</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
 
         <span class="c1"># Build new ebands object.</span>
         <span class="n">kpts_kpath</span> <span class="o">=</span> <span class="n">Kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">knames</span><span class="p">)</span>
@@ -2046,7 +2049,7 @@
         <span class="k">if</span> <span class="n">kmesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Get kpts and weights in IBZ.</span>
             <span class="n">kdos</span> <span class="o">=</span> <span class="n">Ktables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kmesh</span><span class="p">,</span> <span class="n">is_shift</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">)</span>
-            <span class="n">eigens_kmesh</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">eval_all</span><span class="p">(</span><span class="n">kdos</span><span class="o">.</span><span class="n">ibz</span><span class="p">)</span>
+            <span class="n">eigens_kmesh</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts</span><span class="p">(</span><span class="n">kdos</span><span class="o">.</span><span class="n">ibz</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
 
             <span class="c1"># Build new ebands object with k-mesh</span>
             <span class="c1">#kptopt = kptopt_from_timrev()</span>
@@ -2088,7 +2091,7 @@
 <span class="sd">    Build a pandas dataframe with the most important results available in a list of band structures.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        struct_objects: List of objects that can be converted to structure.</span>
+<span class="sd">        ebands_objects: List of objects that can be converted to structure.</span>
 <span class="sd">            Support netcdf filenames or :class:`ElectronBands` objects</span>
 <span class="sd">            See `ElectronBands.as_ebands` for the complete list.</span>
 <span class="sd">        index: Index of the dataframe.</span>
@@ -2116,8 +2119,8 @@
 <span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        plotter = ElectronBandsPlotter()</span>
-<span class="sd">        plotter.add_ebands(&quot;foo bands&quot;, &quot;foo.nc&quot;)</span>
-<span class="sd">        plotter.add_ebands(&quot;bar bands&quot;, &quot;bar.nc&quot;)</span>
+<span class="sd">        plotter.add_ebands(&quot;foo-label&quot;, &quot;foo_GSR.nc&quot;)</span>
+<span class="sd">        plotter.add_ebands(&quot;bar-label&quot;, &quot;bar_WFK.nc&quot;)</span>
 <span class="sd">        fig = plotter.gridplot()</span>
 
 <span class="sd">    Dictionary with the mapping label --&gt; edos.</span>
@@ -2130,13 +2133,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            key_ebands: List of (label, ebands) tuples.</span>
-<span class="sd">                ebands is any object that can be converted into  :class:`ElectronBands` e.g. ncfile, path.</span>
+<span class="sd">                ebands is any object that can be converted into :class:`ElectronBands` e.g. ncfile, path.</span>
 <span class="sd">            key_edos: List of (label, edos) tuples.</span>
-<span class="sd">                edos is any object that can be converted into :class:`ElectronDoc`</span>
+<span class="sd">                edos is any object that can be converted into :class:`ElectronDos`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">key_ebands</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">key_ebands</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">key_ebands</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">key_ebands</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">key_ebands</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">key_edos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">key_edos</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">key_edos</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">ElectronDos</span><span class="o">.</span><span class="n">as_edos</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">key_edos</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">key_edos</span><span class="p">)</span>
@@ -2180,7 +2184,7 @@
         <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_WIDTHS</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_STYLES</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_COLORS</span><span class="p">):</span>
             <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span></div>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands.&quot;</span><span class="p">)</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will be removed in 0.4&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">add_ebands_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a band structure for plotting. Reads data from a Netcdfile</span>
@@ -2313,7 +2317,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;plot method of ElectronBandsPlotter has been replaced by combiplot.&quot;</span><span class="p">)</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;plot method of ElectronBandsPlotter has been replaced by combiplot. It will be removed in 0.4&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;align&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;xlim&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;ylim&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;align|xlim|ylim options are not supported anymore.&quot;</span><span class="p">)</span>
@@ -2343,6 +2347,7 @@
 <span class="sd">                   Available only if edos_objects is not None</span>
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">            with_dos: True if DOS should be printed.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 
@@ -2411,7 +2416,7 @@
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            brange: Only bands such as `brange[0] &lt;= band_index &lt; brange[1]` are included in the plot.</span>
 <span class="sd">            swarm: True to show the datapoints on top of the boxes</span>
-<span class="sd">            kwargs: Keywork arguments passed to seaborn boxplot.</span>
+<span class="sd">            kwargs: Keyword arguments passed to seaborn boxplot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build grid of plots.</span>
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
@@ -2451,7 +2456,7 @@
         <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ebands</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1"># Get the dataframe, select bands and add column with label</span>
-            <span class="n">frame</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">to_pdframe</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">)</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">brange</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">brange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">frame</span><span class="p">[</span><span class="s2">&quot;band&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">brange</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
             <span class="n">frame</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label</span>
             <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
@@ -2562,32 +2567,17 @@
 
 <div class="viewcode-block" id="ElectronBandsPlotter.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-        <span class="c1"># Use pickle files for data persistence. The notebook will reconstruct</span>
-        <span class="c1"># the ebands and the edoses from this file by calling as_ebands, as_edos</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">key_ebands</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ebands</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">ebands</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-                <span class="n">key_ebands</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">))</span>
-
-        <span class="n">key_edos</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">edos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-                <span class="n">key_edos</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">))</span>
+        <span class="c1"># Use pickle files for data persistence.</span>
+        <span class="n">tmpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pickle_dump</span><span class="p">()</span>
 
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = abilab.ElectronBandsPlotter(</span><span class="se">\n</span><span class="s2">key_ebands=</span><span class="si">%s</span><span class="s2">,</span><span class="se">\n</span><span class="s2">key_edos=</span><span class="si">%s</span><span class="s2">,</span><span class="se">\n</span><span class="s2">edos_kwargs=None)&quot;</span> <span class="o">%</span>
-                <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key_ebands</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">key_edos</span><span class="p">))),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = abilab.ElectronBandsPlotter.pickle_load(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="n">tmpfile</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(plotter)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;frame = plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(frame)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ylims = (None, None)&quot;</span><span class="p">),</span>
@@ -2599,6 +2589,15 @@
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+    <span class="c1">#def _can_use_basenames_as_labels(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Return True if all labels represent valid files and the basenames are unique</span>
+    <span class="c1">#    In this case one can use the file basename instead of the full path in the plots.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    if not all(os.path.exists(l) for l in self.ebands_dict): return False</span>
+    <span class="c1">#    labels = [os.path.basename(l) for l in self.ebands_dict]</span>
+    <span class="c1">#    return len(set(labels)) == len(labels)</span>
 
 
 <span class="k">class</span> <span class="nc">ElectronsReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">KpointsReaderMixin</span><span class="p">):</span>
@@ -3002,7 +3001,7 @@
         <span class="sd">&quot;&quot;&quot;List of DOSes&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos.&quot;</span><span class="p">)</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will be removed in 0.4&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">add_edos_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a dos for plotting. Reads data from a Netcdf file</span>
@@ -3046,9 +3045,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
 
+        <span class="n">can_use_basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_use_basenames_as_labels</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">dos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="c1"># Use relative paths if label is a file.</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">label</span><span class="p">):</span> <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">can_use_basename</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Use relative paths if label is a file.</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">label</span><span class="p">):</span> <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">dos</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -3059,7 +3063,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;plot method of ElectronDos has been replaced by combiplot.&quot;</span><span class="p">)</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;plot method of ElectronDos has been replaced by combiplot. It will be removed in 0.4&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -3114,41 +3118,43 @@
 
 <div class="viewcode-block" id="ElectronDosPlotter.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-        <span class="c1"># Use pickle files for data persistence. The notebook will reconstruct</span>
-        <span class="c1"># the ebands and the edoses from this file by calling as_ebands, as_edos</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">key_edos</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">edos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-                <span class="n">key_edos</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">))</span>
+        <span class="c1"># Use pickle files for data persistence.</span>
+        <span class="n">tmpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pickle_dump</span><span class="p">()</span>
 
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;# This is a markdown cell&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = abilab.ElectronDosPlotter(</span><span class="se">\n</span><span class="s2">key_edos=</span><span class="si">%s</span><span class="s2">,</span><span class="se">\n</span><span class="s2">edos_kwargs=None)&quot;</span> <span class="o">%</span>
-                <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key_edos</span><span class="p">))),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = abilab.ElectronDosPlotter.pickle_load(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="n">tmpfile</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(plotter)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;xlims = (None, None)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = plotter.combiplot(xlims=xlims)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = plotter.gridplot(xlims=xlims)&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div>
 
     <span class="c1">#def animate(self, **kwargs):</span>
     <span class="c1">#    animator = Animator()</span>
+    <span class="c1">#    import tempfile</span>
     <span class="c1">#    tmpdir = tempfile.mkdtemp()</span>
     <span class="c1">#    for (label, dos) in self.edoses_dict.items():</span>
     <span class="c1">#        savefig = os.path.join(tmpdir, label + &quot;.png&quot;)</span>
     <span class="c1">#        dos.plot(show=False, savefig=savefig)</span>
     <span class="c1">#        animator.add_figure(label, savefig)</span>
     <span class="c1">#    return animator.animate(**kwargs)</span>
+
+    <span class="k">def</span> <span class="nf">_can_use_basenames_as_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if all labels represent valid files and the basenames are unique</span>
+<span class="sd">        In this case one can use the file basename instead of the full path in the plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -3160,7 +3166,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

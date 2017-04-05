@@ -88,7 +88,7 @@ ABINIT input files. The syntax is similar to the one used
 in ABINIT with small differences.</p>
 <dl class="class">
 <dt id="abipy.htc.input.AbiInput">
-<em class="property">class </em><code class="descclassname">abipy.htc.input.</code><code class="descname">AbiInput</code><span class="sig-paren">(</span><em>pseudos</em>, <em>pseudo_dir=u''</em>, <em>structure=None</em>, <em>ndtset=1</em>, <em>comment=u''</em>, <em>decorators=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#AbiInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.AbiInput" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">abipy.htc.input.</code><code class="descname">AbiInput</code><span class="sig-paren">(</span><em>pseudos</em>, <em>pseudo_dir=''</em>, <em>structure=None</em>, <em>ndtset=1</em>, <em>comment=''</em>, <em>decorators=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#AbiInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.AbiInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.htc.input.Input</span></code>, <a class="reference internal" href="../core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object represents an ABINIT input file. It supports multi-datasets a
 and provides an easy-to-use interface for defining the variables of the calculation.</p>
@@ -135,7 +135,7 @@ step size is 1.  If <cite>step</cite> is specified, <cite>start</cite> must also
 
 <dl class="method">
 <dt id="abipy.htc.input.AbiInput.as_dict">
-<code class="descname">as_dict</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#AbiInput.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.AbiInput.as_dict" title="Permalink to this definition">¶</a></dt>
+<code class="descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#AbiInput.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.AbiInput.as_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -521,7 +521,7 @@ U value of 5 eV applied on the nickel atoms:</p>
 </div>
 <dl class="method">
 <dt id="abipy.htc.input.LdauParams.luj_for_symbol">
-<code class="descname">luj_for_symbol</code><span class="sig-paren">(</span><em>symbol</em>, <em>l</em>, <em>u</em>, <em>j</em>, <em>unit=u'eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#LdauParams.luj_for_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.LdauParams.luj_for_symbol" title="Permalink to this definition">¶</a></dt>
+<code class="descname">luj_for_symbol</code><span class="sig-paren">(</span><em>symbol</em>, <em>l</em>, <em>u</em>, <em>j</em>, <em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/abipy/htc/input.html#LdauParams.luj_for_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.htc.input.LdauParams.luj_for_symbol" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -642,7 +642,7 @@ new inputs by replacing the variables specified in kwargs.</p>
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

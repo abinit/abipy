@@ -261,10 +261,10 @@
 </li>
       <li><a href="api/waves_api.html#module-abipy.waves">abipy.waves (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/waves_api.html#module-abipy.waves.pwwave">abipy.waves.pwwave (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/waves_api.html#module-abipy.waves.wfkfile">abipy.waves.wfkfile (module)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyFileTest">AbipyFileTest (class in abipy.core.testing)</a>
@@ -317,13 +317,15 @@
       </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfPlotter.add_mdf">add_mdf() (abipy.electrons.bse.MdfPlotter method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfPlotter.add_mdf_from_file">add_mdf_from_file() (abipy.electrons.bse.MdfPlotter method)</a>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.add_mdf_file">add_mdf_file() (abipy.electrons.bse.MultipleMdfPlotter method)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.add_periodic_replicas">add_periodic_replicas() (in module abipy.tools.numtools)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.add_phbands">add_phbands() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.add_phbands_from_file">add_phbands_from_file() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.add_phdos">add_phdos() (abipy.dfpt.phonons.PhononDosPlotter method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.add_tags">add_tags() (abipy.abio.inputs.AbinitInput method)</a>
 
@@ -425,6 +427,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.assert_equal">assert_equal() (abipy.core.testing.AbipyTest static method)</a>
 </li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.assert_input_equality">assert_input_equality() (abipy.core.testing.AbipyTest static method)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyFileTest.assertContains">assertContains() (abipy.core.testing.AbipyFileTest method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyFileTest.assertContainsNot">assertContainsNot() (abipy.core.testing.AbipyFileTest method)</a>
@@ -463,15 +467,19 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.bma">bma (abipy.core.func1d.Function1D attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.boxed_atom">boxed_atom() (abipy.core.structure.Structure class method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.boxed_molecule">boxed_molecule() (abipy.core.structure.Structure class method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.boxplot">boxplot() (abipy.electrons.ebands.ElectronBands method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.boxplot">boxplot() (abipy.dfpt.phonons.PhononBands method)</a>
 
       <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.boxplot">(abipy.dfpt.phonons.PhononBandsPlotter method)</a>
+</li>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.boxplot">(abipy.electrons.ebands.ElectronBands method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.boxplot">(abipy.electrons.ebands.ElectronBandsPlotter method)</a>
 </li>
       </ul></li>
@@ -501,8 +509,6 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.calc_shiftk">calc_shiftk() (abipy.core.structure.Structure method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.calc_type">calc_type (abipy.electrons.bse.DielectricFunction attribute)</a>
-</li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.cart_coords">cart_coords (abipy.core.kpoints.Kpoint attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.cart_forces">cart_forces (abipy.electrons.gsr.GsrFile attribute)</a>
@@ -525,6 +531,12 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.class_for_ext">class_for_ext() (abipy.abio.robots.Robot class method)</a>
 </li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.class_handles_filename">class_handles_filename() (abipy.abio.robots.DdbRobot class method)</a>
+
+      <ul>
+        <li><a href="api/abio_api.html#abipy.abio.robots.Robot.class_handles_filename">(abipy.abio.robots.Robot class method)</a>
+</li>
+      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.abivars.AbinitInputFile.close">close() (abipy.abio.abivars.AbinitInputFile method)</a>
 
       <ul>
@@ -569,11 +581,19 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsFile.color_der">color_der (abipy.electrons.psps.PspsFile attribute)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiboxplot">combiboxplot() (abipy.electrons.ebands.ElectronBandsPlotter method)</a>
-</li>
-      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiplot">combiplot() (abipy.electrons.ebands.ElectronBandsPlotter method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiboxplot">combiboxplot() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
 
       <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiboxplot">(abipy.electrons.ebands.ElectronBandsPlotter method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">combiplot() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.combiplot">(abipy.dfpt.phonons.PhononDosPlotter method)</a>
+</li>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiplot">(abipy.electrons.ebands.ElectronBandsPlotter method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.combiplot">(abipy.electrons.ebands.ElectronDosPlotter method)</a>
 </li>
       </ul></li>
@@ -584,8 +604,6 @@
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_d2de_scf_cycles">compare_d2de_scf_cycles() (abipy.abio.outputs.AbinitOutputFile method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_gs_scf_cycles">compare_gs_scf_cycles() (abipy.abio.outputs.AbinitOutputFile method)</a>
-</li>
-      <li><a href="api/electrons_api.html#abipy.electrons.psps.compare_pseudos">compare_pseudos() (in module abipy.electrons.psps)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.compute_star">compute_star() (abipy.core.kpoints.Kpoint method)</a>
 </li>
@@ -981,6 +999,8 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.frame_from_ebands">frame_from_ebands() (in module abipy.electrons.ebands)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.frame_from_phbands">frame_from_phbands() (in module abipy.dfpt.phonons)</a>
+</li>
       <li><a href="api/core_api.html#abipy.core.structure.frames_from_structures">frames_from_structures() (in module abipy.core.structure)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.from_abivars">from_abivars() (abipy.core.structure.Structure class method)</a>
@@ -988,6 +1008,8 @@
       <li><a href="api/core_api.html#abipy.core.structure.Structure.from_ase_atoms">from_ase_atoms() (abipy.core.structure.Structure class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.tensor.Tensor.from_cartesian_tensor">from_cartesian_tensor() (abipy.core.tensor.Tensor class method)</a>
+</li>
+      <li><a href="api/core_api.html#abipy.core.fields.Density.from_chgcar_poscar">from_chgcar_poscar() (abipy.core.fields.Density class method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.from_constant">from_constant() (abipy.core.func1d.Function1D class method)</a>
 </li>
@@ -1156,6 +1178,8 @@
       <li><a href="api/core_api.html#abipy.core.structure.Structure.get_dict4frame">get_dict4frame() (abipy.core.structure.Structure method)</a>
 
       <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_dict4frame">(abipy.dfpt.phonons.PhononBands method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_dict4frame">(abipy.electrons.ebands.ElectronBands method)</a>
 </li>
       </ul></li>
@@ -1172,6 +1196,8 @@
       <li><a href="api/abio_api.html#abipy.abio.robots.GsrRobot.get_ebands_plotter">get_ebands_plotter() (abipy.abio.robots.GsrRobot method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_edos">get_edos() (abipy.electrons.ebands.ElectronBands method)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.GsrRobot.get_edos_plotter">get_edos_plotter() (abipy.abio.robots.GsrRobot method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_ejdos">get_ejdos() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
@@ -1203,19 +1229,27 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.get_mdf">get_mdf() (abipy.electrons.bse.MdfFile method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/abio_api.html#abipy.abio.robots.MdfRobot.get_mdf_plotter">get_mdf_plotter() (abipy.abio.robots.MdfRobot method)</a>
-</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_minfreq_mode">get_minfreq_mode() (abipy.dfpt.phonons.PhononBands method)</a>
 </li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">get_mock_module() (abipy.core.testing.AbipyTest static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.get_momentum">get_momentum() (abipy.dfpt.eph.EliashbergFunction method)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.MdfRobot.get_multimdf_plotter">get_multimdf_plotter() (abipy.abio.robots.MdfRobot method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb">get_nbformat_nbv_nb() (abipy.core.mixins.NotebookWriter method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.get_nelect">get_nelect() (abipy.core.fields.Density method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">get_phbands_frame() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.get_phbands_plotter">get_phbands_plotter() (abipy.abio.robots.DdbRobot method)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_phdos">get_phdos() (abipy.dfpt.phonons.PhononBands method)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.get_phdos_plotter">get_phdos_plotter() (abipy.abio.robots.DdbRobot method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.get_phframe">get_phframe() (abipy.dfpt.phonons.PhbstFile method)</a>
 </li>
@@ -1230,8 +1264,6 @@
       <li><a href="api/abio_api.html#abipy.abio.robots.SigresRobot.get_qpgaps_dataframe">get_qpgaps_dataframe() (abipy.abio.robots.SigresRobot method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.get_qplist">get_qplist() (abipy.electrons.gw.SigresFile method)</a>
-</li>
-      <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.get_qpoints_union">get_qpoints_union() (abipy.abio.robots.DdbRobot method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.get_sigmaw">get_sigmaw() (abipy.electrons.gw.SigresFile method)</a>
 </li>
@@ -1269,9 +1301,13 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.grid">grid (abipy.core.kpoints.Ktables attribute)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.gridplot">gridplot() (abipy.electrons.ebands.ElectronBandsPlotter method)</a>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.gridplot">gridplot() (abipy.dfpt.phonons.PhononBandsPlotter method)</a>
 
       <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.gridplot">(abipy.dfpt.phonons.PhononDosPlotter method)</a>
+</li>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.gridplot">(abipy.electrons.ebands.ElectronBandsPlotter method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.gridplot">(abipy.electrons.ebands.ElectronDosPlotter method)</a>
 </li>
       </ul></li>
@@ -1318,8 +1354,6 @@
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.has_bzpath">has_bzpath (abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands">Has_ElectronBands (class in abipy.core.mixins)</a>
-</li>
-      <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.has_lfe">has_lfe (abipy.electrons.bse.DielectricFunction attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.has_matplotlib">has_matplotlib() (abipy.core.testing.AbipyTest static method)</a>
 </li>
@@ -1514,6 +1548,10 @@
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.json_dumps_varnames">json_dumps_varnames() (abipy.abio.abivars_db.VariableDatabase method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.json_read_abinit_input">json_read_abinit_input() (abipy.core.testing.AbipyTest static method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="K">K</h2>
@@ -1665,6 +1703,10 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.mband">mband (abipy.core.mixins.Has_ElectronBands attribute)</a>
 </li>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.MDF_TYPECPLX2TEX">MDF_TYPECPLX2TEX (abipy.electrons.bse.MultipleMdfPlotter attribute)</a>
+</li>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.MDF_TYPES">MDF_TYPES (abipy.electrons.bse.MultipleMdfPlotter attribute)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile">MdfFile (class in abipy.electrons.bse)</a>
 </li>
   </ul></td>
@@ -1695,6 +1737,8 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.minloc">minloc() (in module abipy.tools.numtools)</a>
 </li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.mkdtemp">mkdtemp() (abipy.core.testing.AbipyTest static method)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.mklabel">mklabel() (in module abipy.electrons.psps)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.mnemonics">mnemonics (abipy.abio.inputs.AbinitInput attribute)</a>
@@ -1710,6 +1754,8 @@
       <li><a href="api/core_api.html#abipy.core.wyckoff.WyckoffPositions.mult">mult (abipy.core.wyckoff.WyckoffPositions attribute)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset">MultiDataset (class in abipy.abio.inputs)</a>
+</li>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter">MultipleMdfPlotter (class in abipy.electrons.bse)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.MultipleValue">MultipleValue (class in abipy.abio.abivars_db)</a>
 </li>
@@ -1879,8 +1925,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.pad_fermie">pad_fermie (abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
-      <li><a href="api/abio_api.html#abipy.abio.robots.Robot.pairplot">pairplot() (abipy.abio.robots.Robot method)</a>
-</li>
       <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.param_name">param_name (abipy.electrons.gsr.GsrPlotter attribute)</a>
 
       <ul>
@@ -1909,6 +1953,8 @@
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">phbands_and_dos() (abipy.abio.inputs.AnaddbInput class method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.phbands_dict">phbands_dict (abipy.dfpt.phonons.PhononBandsPlotter attribute)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.phbands_list">phbands_list (abipy.dfpt.phonons.PhononBandsPlotter attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile">PhbstFile (class in abipy.dfpt.phonons)</a>
@@ -1916,6 +1962,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.phdispl_cart">phdispl_cart (abipy.dfpt.phonons.PhononBands attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.phdos">phdos (abipy.dfpt.phonons.PhdosFile attribute)</a>
+</li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.phdos_list">phdos_list (abipy.dfpt.phonons.PhononDosPlotter attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.phdoses_dict">phdoses_dict (abipy.dfpt.phonons.PhononBandsPlotter attribute)</a>
 </li>
@@ -1933,12 +1981,22 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos">PhononDos (class in abipy.dfpt.phonons)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter">PhononDosPlotter (class in abipy.dfpt.phonons)</a>
+</li>
       <li><a href="api/abio_api.html#abipy.abio.factories.phonons_from_gsinput">phonons_from_gsinput() (in module abipy.abio.factories)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.pickle_dump">pickle_dump() (abipy.electrons.scissors.ScissorsBuilder method)</a>
+      <li><a href="api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_dump">pickle_dump() (abipy.core.mixins.NotebookWriter method)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.pickle_dump">(abipy.electrons.scissors.ScissorsBuilder method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.pickle_load">pickle_load() (abipy.electrons.scissors.ScissorsBuilder class method)</a>
+      </ul></li>
+      <li><a href="api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_load">pickle_load() (abipy.core.mixins.NotebookWriter class method)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.pickle_load">(abipy.electrons.scissors.ScissorsBuilder class method)</a>
 </li>
+      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.piezo_elastic">piezo_elastic() (abipy.abio.inputs.AnaddbInput class method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.factories.piezo_elastic_inputs_from_gsinput">piezo_elastic_inputs_from_gsinput() (in module abipy.abio.factories)</a>
@@ -1964,6 +2022,8 @@
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot">(abipy.dfpt.phonons.PhononDos method)</a>
 </li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.plot">(abipy.dfpt.phonons.PhononDosPlotter method)</a>
+</li>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot">(abipy.dynamics.hist.HistFile method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.plot">(abipy.electrons.bse.DielectricFunction method)</a>
@@ -1971,6 +2031,8 @@
         <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.plot">(abipy.electrons.bse.DielectricTensor method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfPlotter.plot">(abipy.electrons.bse.MdfPlotter method)</a>
+</li>
+        <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.plot">(abipy.electrons.bse.MultipleMdfPlotter method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot">(abipy.electrons.ebands.ElectronBands method)</a>
 </li>
@@ -1988,8 +2050,6 @@
       <ul>
         <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_ax">(abipy.dfpt.phonons.PhononBands method)</a>
 </li>
-        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot_ax">(abipy.dfpt.phonons.PhononDos method)</a>
-</li>
         <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.plot_ax">(abipy.electrons.bse.DielectricFunction method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.plot_ax">(abipy.electrons.bse.DielectricTensor method)</a>
@@ -2000,8 +2060,6 @@
 </li>
       </ul></li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_colored_matched">plot_colored_matched() (abipy.dfpt.phonons.PhononBands method)</a>
-</li>
-      <li><a href="api/abio_api.html#abipy.abio.robots.MdfRobot.plot_conv_mdf">plot_conv_mdf() (abipy.abio.robots.MdfRobot method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint">plot_conv_phfreqs_qpoint() (abipy.abio.robots.DdbRobot method)</a>
 </li>
@@ -2019,10 +2077,10 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_emacro_lf">plot_emacro_lf() (abipy.electrons.scr.ScrFile method)</a>
 </li>
-      <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot_energies">plot_energies() (abipy.dynamics.hist.HistFile method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot_energies">plot_energies() (abipy.dynamics.hist.HistFile method)</a>
+</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_fatbands">plot_fatbands() (abipy.dfpt.phonons.PhononBands method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">plot_fatbands_lview() (abipy.electrons.fatbands.FatBandsFile method)</a>
@@ -2046,7 +2104,11 @@
       <li><a href="api/electrons_api.html#abipy.electrons.scr.GodbyNeeds.plot_ggparams">plot_ggparams() (abipy.electrons.scr.GodbyNeeds method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">plot_harmonic_thermo() (abipy.dfpt.phonons.PhononDos method)</a>
+
+      <ul>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo">(abipy.dfpt.phonons.PhononDosPlotter method)</a>
 </li>
+      </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.plot_ksbands_with_qpmarkers">plot_ksbands_with_qpmarkers() (abipy.electrons.gw.SigresFile method)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_marker_ax">plot_marker_ax() (abipy.dfpt.phonons.PhononBands method)</a>
@@ -2056,6 +2118,8 @@
 </li>
       </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.plot_mdfs">plot_mdfs() (abipy.electrons.bse.MdfFile method)</a>
+</li>
+      <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.plot_mdftype_cplx">plot_mdftype_cplx() (abipy.electrons.bse.MultipleMdfPlotter method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pawdos_terms">plot_pawdos_terms() (abipy.electrons.fatbands.FatBandsFile method)</a>
 </li>
@@ -2112,6 +2176,8 @@
       <li><a href="api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction.plot_with_ppmodels">plot_with_ppmodels() (abipy.electrons.scr.InverseDielectricFunction method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.Polarizability">Polarizability (class in abipy.electrons.scr)</a>
+</li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.Robot.pop">pop() (abipy.abio.robots.Robot method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.pop_irdvars">pop_irdvars() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
@@ -2347,6 +2413,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.ScalarField">ScalarField (class in abipy.core.fields)</a>
 </li>
+      <li><a href="api/abio_api.html#abipy.abio.robots.Robot.scan_dir">scan_dir() (abipy.abio.robots.Robot method)</a>
+</li>
       <li><a href="api/abio_api.html#abipy.abio.factories.scf_phonons_inputs">scf_phonons_inputs() (in module abipy.abio.factories)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.factories.scf_piezo_elastic_inputs">scf_piezo_elastic_inputs() (in module abipy.abio.factories)</a>
@@ -2433,6 +2501,12 @@
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_qpath">set_qpath() (abipy.abio.inputs.AnaddbInput method)</a>
 </li>
+      <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_spell_check">set_spell_check() (abipy.abio.inputs.AbinitInput method)</a>
+
+      <ul>
+        <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_spell_check">(abipy.abio.inputs.AnaddbInput method)</a>
+</li>
+      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_spin_mode">set_spin_mode() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_structure">set_structure() (abipy.abio.inputs.AbinitInput method)</a>
@@ -2487,8 +2561,6 @@
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.show_files">show_files() (abipy.abio.robots.Robot method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.show_info">show_info() (abipy.electrons.bse.DielectricFunction method)</a>
-</li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.VnlProjector.sign_sqrtekb">sign_sqrtekb (abipy.electrons.psps.VnlProjector attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile">SigresFile (class in abipy.electrons.gw)</a>
@@ -2497,11 +2569,13 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.robots.SigresRobot">SigresRobot (class in abipy.abio.robots)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.gw.QPState.skb">skb (abipy.electrons.gw.QPState attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.skb_iter">skb_iter() (abipy.electrons.ebands.ElectronBands method)</a>
+</li>
+      <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_phonopy">skip_if_not_phonopy() (abipy.core.testing.AbipyTest static method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.decorators.SmearingDecorator">SmearingDecorator (class in abipy.abio.decorators)</a>
 </li>
@@ -2509,6 +2583,12 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.spacing">spacing() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
+      <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.spell_check">spell_check (abipy.abio.inputs.AbinitInput attribute)</a>
+
+      <ul>
+        <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.spell_check">(abipy.abio.inputs.AnaddbInput attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.spglib_summary">spglib_summary() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.spin2tex">spin2tex (abipy.electrons.fatbands.FatBandsFile attribute)</a>
@@ -2667,6 +2747,12 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.to_chgcar">to_chgcar() (abipy.core.fields.Density method)</a>
 </li>
+      <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.to_dataframe">to_dataframe() (abipy.dfpt.phonons.PhononBands method)</a>
+
+      <ul>
+        <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.to_dataframe">(abipy.electrons.ebands.ElectronBands method)</a>
+</li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.to_file">to_file() (abipy.core.func1d.Function1D method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.to_func1d">to_func1d() (abipy.electrons.bse.DielectricTensor method)</a>
@@ -2696,6 +2782,8 @@
 </li>
         <li><a href="api/abio_api.html#abipy.abio.inputs.OpticInput.to_string">(abipy.abio.inputs.OpticInput method)</a>
 </li>
+        <li><a href="api/abio_api.html#abipy.abio.robots.Robot.to_string">(abipy.abio.robots.Robot method)</a>
+</li>
         <li><a href="api/core_api.html#abipy.core.fields.ScalarField.to_string">(abipy.core.fields.ScalarField method)</a>
 </li>
         <li><a href="api/core_api.html#abipy.core.kpoints.IrredZone.to_string">(abipy.core.kpoints.IrredZone method)</a>
@@ -2716,7 +2804,11 @@
 </li>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_string">(abipy.dynamics.hist.HistFile method)</a>
 </li>
+        <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricFunction.to_string">(abipy.electrons.bse.DielectricFunction method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.to_string">(abipy.electrons.bse.MdfFile method)</a>
+</li>
+        <li><a href="api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.to_string">(abipy.electrons.bse.MultipleMdfPlotter method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.to_string">(abipy.electrons.denpot.DensityNcFile method)</a>
 </li>
@@ -2771,8 +2863,6 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/abio_api.html#abipy.abio.inputs.OpticInput.v">v (abipy.abio.inputs.OpticInput attribute)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.valence_electrons_per_atom">valence_electrons_per_atom (abipy.abio.inputs.AbinitInput attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.valence_electrons_per_atom">valence_electrons_per_atom() (abipy.core.structure.Structure method)</a>
@@ -2911,8 +3001,6 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_cube">write_cube() (abipy.electrons.denpot.DensityNcFile method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.abivars.AbinitInputFile.write_notebook">write_notebook() (abipy.abio.abivars.AbinitInputFile method)</a>
 
       <ul>
@@ -2920,7 +3008,13 @@
 </li>
         <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.write_notebook">(abipy.abio.outputs.AbinitOutputFile method)</a>
 </li>
+        <li><a href="api/abio_api.html#abipy.abio.robots.DdbRobot.write_notebook">(abipy.abio.robots.DdbRobot method)</a>
+</li>
         <li><a href="api/abio_api.html#abipy.abio.robots.GsrRobot.write_notebook">(abipy.abio.robots.GsrRobot method)</a>
+</li>
+        <li><a href="api/abio_api.html#abipy.abio.robots.MdfRobot.write_notebook">(abipy.abio.robots.MdfRobot method)</a>
+</li>
+        <li><a href="api/abio_api.html#abipy.abio.robots.SigresRobot.write_notebook">(abipy.abio.robots.SigresRobot method)</a>
 </li>
         <li><a href="api/abio_api.html#abipy.abio.timer.AbinitTimerParser.write_notebook">(abipy.abio.timer.AbinitTimerParser method)</a>
 </li>
@@ -2935,6 +3029,10 @@
         <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.write_notebook">(abipy.dfpt.phonons.PhbstFile method)</a>
 </li>
         <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.write_notebook">(abipy.dfpt.phonons.PhdosFile method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.write_notebook">(abipy.dfpt.phonons.PhononBandsPlotter method)</a>
+</li>
+        <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.write_notebook">(abipy.dfpt.phonons.PhononDosPlotter method)</a>
 </li>
         <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.write_notebook">(abipy.dynamics.hist.HistFile method)</a>
 </li>
@@ -2957,6 +3055,8 @@
         <li><a href="api/waves_api.html#abipy.waves.wfkfile.WfkFile.write_notebook">(abipy.waves.wfkfile.WfkFile method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.write_structure">write_structure() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.write_vib_file">write_vib_file() (abipy.core.structure.Structure method)</a>
@@ -3043,7 +3143,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

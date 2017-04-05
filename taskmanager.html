@@ -129,7 +129,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal"><span class="pre">quadapters</span></code>.
-At the time of writing (Mar 27, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Apr 05, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -226,26 +226,26 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 8.3.1
+    Abinit version: 8.3.2
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 13777
-Scheduler options: {&#39;seconds&#39;: 10, &#39;hours&#39;: 0, &#39;weeks&#39;: 0, &#39;minutes&#39;: 0, &#39;days&#39;: 0}
+PyFlowScheduler, Pid: 10626
+Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 10}
 
 Installed packages:
 Package         Version
 --------------  ----------------------
 system          Darwin
-python_version  2.7.12
-numpy           1.12.0
+python_version  3.6.1
+numpy           1.12.1
 scipy           0.19.0
 netCDF4         1.2.7
 apscheduler     2.1.0
 pydispatch      2.0.5
 yaml            3.12
-pymatgen        4.7.1
+pymatgen        4.7.2
 matplotlib      2.0.0 (backend: TkAgg)
 
 
@@ -591,7 +591,7 @@ limits:
     max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
-qtype supported: [u&#39;bluegene&#39;, u&#39;moab&#39;, u&#39;pbspro&#39;, u&#39;sge&#39;, u&#39;shell&#39;, u&#39;slurm&#39;, u&#39;torque&#39;]
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
@@ -894,7 +894,7 @@ limits:
     max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
-qtype supported: [u&#39;bluegene&#39;, u&#39;moab&#39;, u&#39;pbspro&#39;, u&#39;sge&#39;, u&#39;shell&#39;, u&#39;slurm&#39;, u&#39;torque&#39;]
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 
 QPARAMS for slurm
@@ -1126,10 +1126,10 @@ optional arguments:
                         last workflow, --wslice::2 for even indices.
   -S TASK_STATUS, --task-status TASK_STATUS
                         Select only the tasks with the given status. Default:
-                        None i.e. ignored. Possible values: [u&#39;Initialized&#39;,
-                        u&#39;Locked&#39;, u&#39;Ready&#39;, u&#39;Submitted&#39;, u&#39;Running&#39;,
-                        u&#39;Done&#39;, u&#39;AbiCritical&#39;, u&#39;QCritical&#39;, u&#39;Unconverged&#39;,
-                        u&#39;Error&#39;, u&#39;Completed&#39;].
+                        None i.e. ignored. Possible values: [&#39;Initialized&#39;,
+                        &#39;Locked&#39;, &#39;Ready&#39;, &#39;Submitted&#39;, &#39;Running&#39;, &#39;Done&#39;,
+                        &#39;AbiCritical&#39;, &#39;QCritical&#39;, &#39;Unconverged&#39;, &#39;Error&#39;,
+                        &#39;Completed&#39;].
 </pre></div>
 </div>
 <p>To get information on the Abinit executable called by AbiPy, use:</p>
@@ -1154,7 +1154,7 @@ optional arguments:
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

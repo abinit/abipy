@@ -843,6 +843,7 @@
 <div class="viewcode-block" id="scf_phonons_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.scf_phonons_inputs">[docs]</a><span class="k">def</span> <span class="nf">scf_phonons_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span>
                        <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                        <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># TODO: Please check the unused variables in the function</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of input files for performing phonon calculations.</span>
 <span class="sd">    GS input + the input files for the phonon calculation.</span>
@@ -896,6 +897,7 @@
             <span class="c1">#kptopt   2      # Automatic generation of k points, taking</span>
 
         <span class="n">irred_perts</span> <span class="o">=</span> <span class="n">ph_inp</span><span class="o">.</span><span class="n">abiget_irred_phperts</span><span class="p">()</span>
+        <span class="c1"># TODO irred_perts is not used ??</span>
 
         <span class="c1">#for pert in irred_perts:</span>
         <span class="c1">#    #print(pert)</span>
@@ -1482,7 +1484,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

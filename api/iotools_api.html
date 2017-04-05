@@ -93,8 +93,8 @@
 <h2><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-abipy.iotools"></span><dl class="class">
 <dt id="abipy.iotools.ETSF_Reader">
-<em class="property">class </em><code class="descclassname">abipy.iotools.</code><code class="descname">ETSF_Reader</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v4.7.2)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
+<em class="property">class </em><code class="descclassname">abipy.iotools.</code><code class="descname">ETSF_Reader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v4.7.3)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
 <p>Overrides the read_structure method so that we always return
 an instance of our Structure object</p>
 <dl class="method">
@@ -235,7 +235,7 @@ Possible choices are (case-insensitive):</p>
 
 <dl class="function">
 <dt id="abipy.iotools.xsf.bxsf_write">
-<code class="descclassname">abipy.iotools.xsf.</code><code class="descname">bxsf_write</code><span class="sig-paren">(</span><em>file</em>, <em>structure</em>, <em>nsppol</em>, <em>nband</em>, <em>ndivs</em>, <em>emesh_sbk</em>, <em>fermie</em>, <em>unit=u'eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#bxsf_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.bxsf_write" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.iotools.xsf.</code><code class="descname">bxsf_write</code><span class="sig-paren">(</span><em>file</em>, <em>structure</em>, <em>nsppol</em>, <em>nband</em>, <em>ndivs</em>, <em>emesh_sbk</em>, <em>fermie</em>, <em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#bxsf_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.bxsf_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write band structure data in the Xcrysden format (XSF)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -279,7 +279,7 @@ Possible choices are (case-insensitive):</p>
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

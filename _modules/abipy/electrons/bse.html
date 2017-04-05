@@ -72,19 +72,21 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.tensor</span> <span class="k">import</span> <span class="n">SymmetricTensor</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -93,6 +95,7 @@
     <span class="s2">&quot;MdfFile&quot;</span><span class="p">,</span>
     <span class="s2">&quot;MdfReader&quot;</span><span class="p">,</span>
     <span class="s2">&quot;MdfPlotter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MultipleMdfPlotter&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -178,7 +181,7 @@
         <span class="c1">#    kwargs = {&quot;color&quot;: &quot;black&quot;, &quot;linewidth&quot;: 2.0}</span>
 
         <span class="c1"># Plot the 6 independent components</span>
-        <span class="k">for</span> <span class="n">icomponent</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">icomponent</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">icomponent</span><span class="p">,</span> <span class="n">red_coords</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
@@ -221,6 +224,7 @@
 <span class="sd">    computed for different q-directions in reciprocal space.</span>
 
 <span class="sd">    .. note:</span>
+
 <span class="sd">        Frequencies are in eV</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -254,7 +258,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">emacro_avg</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">em_avg</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DielectricFunction.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.DielectricFunction.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_info</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="c1">#app(&quot;calc_type: %s, has_lfe: %s, num_qpoints: %d&quot; % (self.calc_type, self.has_lfe, self.num_qpoints))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;num_qpoints: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Iterate over (q, em_q).&quot;&quot;&quot;</span>
@@ -269,21 +285,21 @@
         <span class="sd">&quot;&quot;&quot;The fractional coordinates of the q-points as a ndarray.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">frac_coords</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_lfe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if MDF includes local field effects.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;lfe&quot;</span><span class="p">])</span>
+    <span class="c1">#@property</span>
+    <span class="c1">#def has_lfe(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;True if MDF includes local field effects.&quot;&quot;&quot;</span>
+    <span class="c1">#    return bool(self.info[&quot;lfe&quot;])</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">calc_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String with the type of calculation.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;calc_type&quot;</span><span class="p">]</span>
+    <span class="c1">#@property</span>
+    <span class="c1">#def calc_type(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;String with the type of calculation.&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.info[&quot;calc_type&quot;]</span>
 
-<div class="viewcode-block" id="DielectricFunction.show_info"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.DielectricFunction.show_info">[docs]</a>    <span class="k">def</span> <span class="nf">show_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pretty print of the info.&quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">pprint</span>
-        <span class="n">printer</span> <span class="o">=</span> <span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
-        <span class="n">printer</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">)</span></div>
+    <span class="c1">#def show_info(self, stream=sys.stdout):</span>
+    <span class="c1">#    &quot;&quot;&quot;Pretty print of the info.&quot;&quot;&quot;</span>
+    <span class="c1">#    import pprint</span>
+    <span class="c1">#    printer = pprint.PrettyPrinter(self, width=80, depth=None, stream=stream)</span>
+    <span class="c1">#    printer.pprint(self.info)</span>
 
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="DielectricFunction.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.DielectricFunction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -329,7 +345,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: plot axis.</span>
-<span class="sd">            qpoint: index of the q-point or Kpoint object or None) to plot emacro_avg.</span>
+<span class="sd">            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.</span>
 <span class="sd">            kwargs: Keyword arguments passed to matplotlib. Accepts also:</span>
 
 <span class="sd">                cplx_mode:</span>
@@ -440,15 +456,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_params</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="MdfFile.get_mdf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfFile.get_mdf">[docs]</a>    <span class="k">def</span> <span class="nf">get_mdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;exc&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;&quot;Returns the macroscopic dielectric function.&quot;&quot;&quot;</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;exc&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">exc_mdf</span><span class="p">,</span>
-             <span class="s2">&quot;rpa&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rpanlf_mdf</span><span class="p">,</span>
-             <span class="s2">&quot;gwrpa&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwnlf_mdf</span><span class="p">}</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">mdf_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for mdf_type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mdf_type</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Returns the macroscopic dielectric function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;exc&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">exc_mdf</span><span class="p">,</span>
+                <span class="s2">&quot;rpa&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rpanlf_mdf</span><span class="p">,</span>
+                <span class="s2">&quot;gwrpa&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwnlf_mdf</span><span class="p">}[</span><span class="n">mdf_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span></div>
 
 <div class="viewcode-block" id="MdfFile.plot_mdfs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfFile.plot_mdfs">[docs]</a>    <span class="k">def</span> <span class="nf">plot_mdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -469,9 +482,9 @@
 <span class="sd">                Select the type of macroscopic dielectric function.</span>
 <span class="sd">                Possible choices are</span>
 
-<span class="sd">                    - &quot;exc&quot; for the excitonic MDF.</span>
-<span class="sd">                    - &quot;rpa&quot; for RPA MDF.</span>
-<span class="sd">                    - &quot;gwrpa&quot; for GW-RPA MDF</span>
+<span class="sd">                    - &quot;exc&quot; for the MDF with excitonic effects.</span>
+<span class="sd">                    - &quot;rpa&quot; for RPA with KS energies.</span>
+<span class="sd">                    - &quot;gwrpa&quot; for RPA with GW (or KS-corrected) results</span>
 <span class="sd">                    - &quot;all&quot; if all types are wanted.</span>
 
 <span class="sd">                Options can be concated with &quot;-&quot;.</span>
@@ -508,7 +521,7 @@
 
 <div class="viewcode-block" id="MdfFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -556,7 +569,7 @@
 
 <div class="viewcode-block" id="MdfReader.read_params"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfReader.read_params">[docs]</a>    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dictionary with the parameters of the run.&quot;&quot;&quot;</span>
-        <span class="c1"># TODO</span>
+        <span class="c1"># TODO: Add more info.</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="s2">&quot;ecutwfn&quot;</span><span class="p">,</span> <span class="s2">&quot;ecuteps&quot;</span><span class="p">,</span>
             <span class="s2">&quot;eps_inf&quot;</span><span class="p">,</span> <span class="s2">&quot;soenergy&quot;</span><span class="p">,</span> <span class="s2">&quot;broad&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz_interp&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz_interp&quot;</span><span class="p">,</span>
@@ -589,15 +602,15 @@
 
 <div class="viewcode-block" id="MdfPlotter"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfPlotter">[docs]</a><span class="k">class</span> <span class="nc">MdfPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class for plotting multiple MDFs.</span>
+<span class="sd">    Class for plotting Macroscopic dielectric functions.</span>
 
 <span class="sd">    Usage example:</span>
 
 <span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        plotter = MdfPlotter()</span>
-<span class="sd">        plotter.add_mdf_from_file(&quot;foo_MDF.nc&quot;, label=&quot;foo mdf&quot;)</span>
-<span class="sd">        plotter.add_mdf_from_file(&quot;bar_MDF.nc&quot;, label=&quot;bar mdf&quot;)</span>
+<span class="sd">        plotter.add_mdf(&quot;EXC&quot;, exc_mdf)</span>
+<span class="sd">        plotter.add_mdf(&quot;KS-RPA&quot;, rpanlf_mdf)</span>
 <span class="sd">        plotter.plot()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -612,28 +625,12 @@
 <span class="sd">            mdf: :class:`DielectricFunction` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;name </span><span class="si">%s</span><span class="s2"> is already in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;label: </span><span class="si">%s</span><span class="s2"> is already in: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdf</span></div>
 
-<div class="viewcode-block" id="MdfPlotter.add_mdf_from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfPlotter.add_mdf_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_mdf_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;exc&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a mdf for plotting. Reads data from file filepaths.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            mdf_type: String defining the type of mdf.</span>
-<span class="sd">            name: Optional string used to name the plot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
-        <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
-            <span class="n">mdf</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">get_mdf</span><span class="p">(</span><span class="n">mdf_type</span><span class="o">=</span><span class="n">mdf_type</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">mdf_type</span> <span class="o">+</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_mdf</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">mdf</span><span class="p">)</span></div>
-
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="MdfPlotter.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfPlotter.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="MdfPlotter.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfPlotter.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a matplotlib plot showing the MDFs.</span>
 
@@ -643,22 +640,12 @@
 <span class="sd">                Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.</span>
 <span class="sd">                Options can be concated with &quot;-&quot;.</span>
 <span class="sd">            qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.</span>
-
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        kwargs          Meaning</span>
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        xlim            x-axis limits. None (Default) for automatic determination.</span>
-<span class="sd">        ylim            y-axis limits. None (Default) for automatic determination.</span>
-<span class="sd">        ==============  ==============================================================</span>
+<span class="sd">            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                  or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylim: Same meaning as `ylim` but for the y-axis</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">xlim</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlim&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">xlim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
-
-        <span class="n">ylim</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylim&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ylim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [eV]&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Macroscopic DF&#39;</span><span class="p">)</span>
@@ -668,20 +655,282 @@
 
         <span class="n">lines</span><span class="p">,</span> <span class="n">legends</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">mdf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="c1"># Plot the q-points</span>
-            <span class="c1">#for (iq, qpoint) in enumerate(self.qpoints):</span>
-            <span class="c1">#    self.plot_ax(ax, iq, **kwargs)</span>
-
             <span class="k">for</span> <span class="n">cmode</span> <span class="ow">in</span> <span class="n">cmodes</span><span class="p">:</span>
                 <span class="c1"># Plot the average value</span>
                 <span class="n">l</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="n">cmode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
-                <span class="n">legends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> $\,</span><span class="se">\\</span><span class="s2">varepsilon$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmode</span><span class="p">,</span> <span class="n">qtag</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+                <span class="n">legends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> $\varepsilon$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmode</span><span class="p">,</span> <span class="n">qtag</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
 
         <span class="c1"># Set legends.</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">legends</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">fig</span></div></div>
 
+
+<div class="viewcode-block" id="MultipleMdfPlotter"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter">[docs]</a><span class="k">class</span> <span class="nc">MultipleMdfPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for plotting multipe macroscopic dielectric functions</span>
+<span class="sd">    extracted from several MDF.nc files</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        plotter = MultipleMdfPlotter()</span>
+<span class="sd">        plotter.add_mdf_file(&quot;file1&quot;, mdf_file1)</span>
+<span class="sd">        plotter.add_mdf_file(&quot;file2&quot;, mdf_file2)</span>
+<span class="sd">        plotter.plot()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># By default the plotter will extracts these MDF types.</span>
+    <span class="n">MDF_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;exc&quot;</span><span class="p">,</span> <span class="s2">&quot;rpa&quot;</span><span class="p">,</span> <span class="s2">&quot;gwrpa&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Mapping mdf_type --&gt; color used in plots.</span>
+    <span class="c1">#MDF_TYPE2COLOR = {&quot;exc&quot;: &quot;red&quot;, &quot;rpa&quot;: &quot;blue&quot;, &quot;gwrpa&quot;: &quot;yellow&quot;}</span>
+
+    <span class="c1">#MDF_TYPE2LINESTYLE = {&quot;exc&quot;: &quot;red&quot;, &quot;rpa&quot;: &quot;blue&quot;, &quot;gwrpa&quot;: &quot;yellow&quot;}</span>
+
+    <span class="c1"># Mapping [mdf_type][cplx_mode] --&gt; ylable used in plots.</span>
+    <span class="n">MDF_TYPECPLX2TEX</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;exc&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">re</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Re(\varepsilon_</span><span class="si">{exc}</span><span class="s2">)$&quot;</span><span class="p">,</span> <span class="n">im</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Im(\varepsilon_</span><span class="si">{exc}</span><span class="s2">$)&quot;</span><span class="p">,</span> <span class="nb">abs</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$|\varepsilon_</span><span class="si">{exc}</span><span class="s2">|$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;rpa&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">re</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Re(\varepsilon_</span><span class="si">{rpa}</span><span class="s2">)$&quot;</span><span class="p">,</span> <span class="n">im</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Im(\varepsilon_</span><span class="si">{rpa}</span><span class="s2">)$&quot;</span><span class="p">,</span> <span class="nb">abs</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$|\varepsilon_</span><span class="si">{rpa}</span><span class="s2">|$&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;gwrpa&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">re</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Re(\varepsilon_{gw-rpa})$&quot;</span><span class="p">,</span> <span class="n">im</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Im(\varepsilon_{gw-rpa})$&quot;</span><span class="p">,</span> <span class="nb">abs</span><span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$|\varepsilon_{gw-rpa}|$&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="c1">#alpha = 0.6</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># [label][mdf_type] --&gt; DielectricFunction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MultipleMdfPlotter.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">mdf_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">mdf_type</span><span class="p">,</span> <span class="n">mdf</span> <span class="ow">in</span> <span class="n">mdf_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mdf_type</span><span class="p">,</span> <span class="n">mdf</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultipleMdfPlotter.add_mdf_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.add_mdf_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_mdf_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract dielectric functions from `obj`, store data for plotting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            label: label associated to the MDF file. Must be unique.</span>
+<span class="sd">            mdf: filepath or :class:`MdfFile` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;label: </span><span class="si">%s</span><span class="s2"> already in: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="c1"># Open the file.</span>
+            <span class="k">with</span> <span class="n">MdfFile</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">as</span> <span class="n">mdf_file</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">mdf_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">MDF_TYPES</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">mdf_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdf_file</span><span class="o">.</span><span class="n">get_mdf</span><span class="p">(</span><span class="n">mdf_type</span><span class="o">=</span><span class="n">mdf_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Extract data from `MdfFile` object</span>
+            <span class="k">for</span> <span class="n">mdf_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">MDF_TYPES</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">mdf_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get_mdf</span><span class="p">(</span><span class="n">mdf_type</span><span class="o">=</span><span class="n">mdf_type</span><span class="p">)</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="MultipleMdfPlotter.plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;exc&quot;</span><span class="p">,</span> <span class="n">qview</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot all macroscopic dielectric functions (MDF) stored in the plotter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mdf_type: Selects the type of dielectric function.</span>
+<span class="sd">                &quot;exc&quot; for the MDF with excitonic effects.</span>
+<span class="sd">                &quot;rpa&quot; for RPA with KS energies.</span>
+<span class="sd">                &quot;gwrpa&quot; for RPA with GW (or KS-corrected) results.</span>
+<span class="sd">            qview: &quot;avg&quot; to plot the results averaged over q-points. &quot;all&quot; to plot q-point dependence.</span>
+<span class="sd">            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                  or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylim: Same meaning as `ylim` but for the y-axis</span>
+
+<span class="sd">        Return: matplotlib figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build plot grid.</span>
+        <span class="k">if</span> <span class="n">qview</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+            <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">qview</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">qpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qpoints</span><span class="p">()</span>
+            <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value of qview: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">qview</span><span class="p">))</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">qview</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+            <span class="c1"># Plot averaged values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdftype_cplx</span><span class="p">(</span><span class="n">mdf_type</span><span class="p">,</span> <span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span><span class="p">,</span>
+                                   <span class="n">with_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdftype_cplx</span><span class="p">(</span><span class="n">mdf_type</span><span class="p">,</span> <span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span><span class="p">,</span>
+                                   <span class="n">with_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">qview</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="c1"># Plot MDF(q)</span>
+            <span class="n">nqpt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">iq</span><span class="p">,</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qpoints</span><span class="p">):</span>
+                <span class="n">islast</span> <span class="o">=</span> <span class="p">(</span><span class="n">iq</span> <span class="o">==</span> <span class="n">nqpt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdftype_cplx</span><span class="p">(</span><span class="n">mdf_type</span><span class="p">,</span> <span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axmat</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span><span class="p">,</span>
+                                       <span class="n">with_legend</span><span class="o">=</span><span class="p">(</span><span class="n">iq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">),</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">with_ylabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdftype_cplx</span><span class="p">(</span><span class="n">mdf_type</span><span class="p">,</span> <span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axmat</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span><span class="p">,</span>
+                                       <span class="n">with_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">with_ylabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value of qview: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">qview</span><span class="p">))</span>
+
+        <span class="c1">#axmat[0, 0].legend(loc=&quot;best&quot;)</span>
+        <span class="c1">#fig.tight_layout()</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    <span class="c1">#@add_fig_kwargs</span>
+    <span class="c1">#def plot_mdftypes(self, qview=&quot;avg&quot;, xlim=None, ylim=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        qview:</span>
+    <span class="c1">#        xlim</span>
+    <span class="c1">#        ylim</span>
+
+    <span class="c1">#    Return: matplotlib figure</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    # Build plot grid.</span>
+    <span class="c1">#    if qview == &quot;avg&quot;:</span>
+    <span class="c1">#        ncols, nrows = 2, 1</span>
+    <span class="c1">#    elif qview == &quot;all&quot;:</span>
+    <span class="c1">#        qpoints = self._get_qpoints()</span>
+    <span class="c1">#        ncols, nrows = 2, len(qpoints)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise ValueError(&quot;Invalid value of qview: %s&quot; % str(qview))</span>
+
+    <span class="c1">#    import matplotlib.pyplot as plt</span>
+    <span class="c1">#    fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)</span>
+
+    <span class="c1">#    if qview == &quot;avg&quot;:</span>
+    <span class="c1">#        # Plot averaged values</span>
+    <span class="c1">#        for mdf_type in self.MDF_TYPES:</span>
+    <span class="c1">#            self.plot_mdftype_cplx(mdf_type, &quot;Re&quot;, ax=axmat[0, 0], xlim=xlim, ylim=ylim,</span>
+    <span class="c1">#                                   with_legend=True, show=False)</span>
+    <span class="c1">#            self.plot_mdftype_cplx(mdf_type, &quot;Im&quot;, ax=axmat[0, 1], xlim=xlim, ylim=ylim,</span>
+    <span class="c1">#                                   with_legend=False, show=False)</span>
+    <span class="c1">#    elif qview == &quot;all&quot;:</span>
+    <span class="c1">#        # Plot MDF(q)</span>
+    <span class="c1">#        nqpt = len(qpoints)</span>
+    <span class="c1">#        for iq, qpt in enumerate(qpoints):</span>
+    <span class="c1">#            islast = (iq == nqpt - 1)</span>
+    <span class="c1">#            for mdf_type in self.MDF_TYPES:</span>
+    <span class="c1">#                self.plot_mdftype_cplx(mdf_type, &quot;Re&quot;, qpoint=qpt, ax=axmat[iq, 0], xlim=xlim, ylim=ylim,</span>
+    <span class="c1">#                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)</span>
+    <span class="c1">#                self.plot_mdftype_cplx(mdf_type, &quot;Im&quot;, qpoint=qpt, ax=axmat[iq, 1], xlim=xlim, ylim=ylim,</span>
+    <span class="c1">#                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)</span>
+
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise ValueError(&quot;Invalid value of qview: %s&quot; % str(qview))</span>
+
+    <span class="c1">#    #axmat[0, 0].legend(loc=&quot;best&quot;)</span>
+    <span class="c1">#    #fig.tight_layout()</span>
+
+    <span class="c1">#    return fig</span>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="MultipleMdfPlotter.plot_mdftype_cplx"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.plot_mdftype_cplx">[docs]</a>    <span class="k">def</span> <span class="nf">plot_mdftype_cplx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdf_type</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_ylabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">            mdf_type:</span>
+<span class="sd">            cplx_mode: string defining the data to print (case-insensitive).</span>
+<span class="sd">                Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.</span>
+<span class="sd">            qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.</span>
+<span class="sd">            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                  or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylim: Same meaning as `ylim` but for the y-axis</span>
+<span class="sd">            with_legend: True if legend should be added</span>
+<span class="sd">            with_xlabel:</span>
+<span class="sd">            with_ylabel:</span>
+
+<span class="sd">        Return: matplotlib figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\omega [eV]$&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_ylabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MDF_TYPECPLX2TEX</span><span class="p">[</span><span class="n">mdf_type</span><span class="p">][</span><span class="n">cplx_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()])</span>
+
+        <span class="n">can_use_basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_use_basenames_as_labels</span><span class="p">()</span>
+        <span class="n">qtag</span> <span class="o">=</span> <span class="s2">&quot;avg&quot;</span> <span class="k">if</span> <span class="n">qpoint</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">repr</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="p">,</span> <span class="n">legends</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">mdf_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">mdf</span> <span class="o">=</span> <span class="n">mdf_dict</span><span class="p">[</span><span class="n">mdf_type</span><span class="p">]</span>
+            <span class="c1"># Plot the average value</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">can_use_basename</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Use relative paths if label is a file.</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">label</span><span class="p">):</span> <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+            <span class="n">legends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> $\varepsilon$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">qtag</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set legends.</span>
+        <span class="k">if</span> <span class="n">with_legend</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">legends</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_qpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function is called when we have to plot quantities as function of q-points.</span>
+<span class="sd">        It checks that all dielectric functions stored in the plotter have the same list of</span>
+<span class="sd">        q-points and returns the q-points of the first dielectric function.</span>
+
+<span class="sd">        Raises: ValueError if the q-points cannot be compared.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qpoints</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">eapp</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">mdf</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">MDF_TYPES</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">qpoints</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">qpoints</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">qpoints</span> <span class="o">!=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">qpoints</span><span class="p">:</span>
+                    <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;List of q-points for MDF index </span><span class="si">%i</span><span class="s2"> does not agree with first set:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">qpoints</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                             <span class="s2">&quot;Your MDF files have been computed with a different set of q-points</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                             <span class="s2">&quot;Cannot compare dielectric functions as as function of q, use average value&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">qpoints</span>
+
+    <span class="k">def</span> <span class="nf">_can_use_basenames_as_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if all labels represent valid files and the basenames are unique</span>
+<span class="sd">        In this case one can use the file basename instead of the full path in the plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdfs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -693,7 +942,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

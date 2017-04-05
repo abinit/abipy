@@ -529,7 +529,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">wmesh</span> <span class="o">*</span> <span class="n">kk_values</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Function1D.plot_ax"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.plot_ax">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Function1D.plot_ax"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.plot_ax">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xfactor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">yfactor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function to plot self on axis ax.</span>
 
@@ -538,6 +538,7 @@
 <span class="sd">            exchange_xy: True to exchange the axis in the plot</span>
 <span class="sd">            args: Positional arguments passed to ax.plot</span>
 <span class="sd">            kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:</span>
+<span class="sd">            xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.</span>
 
 <span class="sd">        ==============  ===============================================================</span>
 <span class="sd">        kwargs          Meaning</span>
@@ -557,12 +558,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cplx_mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;cplx_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;re&quot;</span><span class="p">)</span>
 
-
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cplx_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
             <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">data_from_cplx_mode</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">xfactor</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span> <span class="n">xx</span> <span class="o">=</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">xfactor</span>
+            <span class="k">if</span> <span class="n">yfactor</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span> <span class="o">*</span> <span class="n">yfactor</span>
+
             <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span>
                 <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span><span class="p">,</span> <span class="n">xx</span>
+
             <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">lines</span></div>
@@ -602,7 +606,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

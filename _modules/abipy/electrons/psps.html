@@ -73,7 +73,6 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">find_gt</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span>
@@ -84,25 +83,25 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="compare_pseudos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.compare_pseudos">[docs]</a><span class="k">def</span> <span class="nf">compare_pseudos</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This function receives a list of pseudopotential files, call</span>
-<span class="sd">    Abinit to produced the PSPS.nc files and produces matplotlib plots</span>
-<span class="sd">    comparing the behaviour of the pseudos in real and in reciprocal space.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        filepaths: List of file names.</span>
-<span class="sd">        ecut: Cutoff energy in Ha for the wavefunctions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pseudos</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pseudo</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">filepaths</span><span class="p">]</span>
-
-    <span class="n">psps_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">open_pspsfile</span><span class="p">(</span><span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">]</span>
-
-    <span class="n">p0</span> <span class="o">=</span> <span class="n">psps_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">p0</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">psps_files</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-
-    <span class="k">for</span> <span class="n">pfile</span> <span class="ow">in</span> <span class="n">psps_files</span><span class="p">:</span>
-        <span class="n">pfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+<span class="c1">#def compare_pseudos(filepaths, ecut=30):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    This function receives a list of pseudopotential files, call</span>
+<span class="c1">#    Abinit to produced the PSPS.nc files and produces matplotlib plots</span>
+<span class="c1">#    comparing the behaviour of the pseudos in real and in reciprocal space.</span>
+<span class="c1">#</span>
+<span class="c1">#    Args:</span>
+<span class="c1">#        filepaths: List of file names.</span>
+<span class="c1">#        ecut: Cutoff energy in Ha for the wavefunctions.</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    pseudos = [Pseudo.from_file(path) for path in filepaths]</span>
+<span class="c1">#</span>
+<span class="c1">#    psps_files = [p.open_pspsfile(ecut=ecut) for p in pseudos]</span>
+<span class="c1">#</span>
+<span class="c1">#    p0 = psps_files[0]</span>
+<span class="c1">#    p0.compare(psps_files[1:])</span>
+<span class="c1">#</span>
+<span class="c1">#    for pfile in psps_files:</span>
+<span class="c1">#        pfile.close()</span>
 
 
 <div class="viewcode-block" id="mklabel"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.psps.mklabel">[docs]</a><span class="k">def</span> <span class="nf">mklabel</span><span class="p">(</span><span class="n">fsym</span><span class="p">,</span> <span class="n">der</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
@@ -594,7 +593,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

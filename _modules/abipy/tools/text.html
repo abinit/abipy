@@ -79,7 +79,7 @@
     <span class="c1"># Duck test.</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">stnum</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">)</span>  <span class="c1"># D-01 is not recognized by python: Replace it with E.</span>
-        <span class="n">stnum</span> <span class="o">=</span> <span class="n">strip_punct</span><span class="p">(</span><span class="n">stnum</span><span class="p">)</span>           <span class="c1"># Remove punctuation chars.</span>
+        <span class="c1"># stnum = strip_punct(stnum)           # Remove punctuation chars.</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">stnum</span><span class="p">)</span>                  <span class="c1"># Try to convert.</span>
 
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -115,7 +115,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

@@ -86,7 +86,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
-<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyEncoder</span><span class="p">,</span> <span class="n">MontyDecoder</span><span class="p">,</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span><span class="p">,</span> <span class="n">MSONable</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Energy</span>
 <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
@@ -344,6 +344,8 @@
 <span class="sd">            abi_kwargs: Dictionary with the initial set of variables. Default: Empty</span>
 <span class="sd">            tags: list/set of tags describing the input</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="kc">True</span>
+
         <span class="c1"># Internal dict with variables. we use an ordered dict so that</span>
         <span class="c1"># variables will be likely grouped by `topics` when we fill the input.</span>
         <span class="n">abi_args</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">abi_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">abi_args</span>
@@ -460,15 +462,17 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbinitInput</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_abivar</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid ABINIT variable.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">key</span> <span class="o">+</span>
-                             <span class="s2">&quot;If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;and rerun the code. If the problems persists, contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;or add the variable to ~abipy/data/variables/abinit_vars.json</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_GEOVARS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;You cannot set the value of a variable associated to the structure.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;Use Structure objects to prepare the input file.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_abivar</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid ABINIT variable.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">key</span> <span class="o">+</span>
+                             <span class="s2">&quot;If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;and rerun the code. If the problems persists, contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;or add the variable to ~abipy/data/variables/abinit_vars.json</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1">#def __eq__(self, other)</span>
     <span class="c1">#def __ne__(self, other)</span>
@@ -546,10 +550,11 @@
         <span class="k">elif</span> <span class="n">optdriver</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">runlevel</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">MANY_BODY</span><span class="p">,</span> <span class="n">SCREENING</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">optdriver</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="n">runlevel</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">MANY_BODY</span><span class="p">,</span> <span class="n">SIGMA</span><span class="p">])</span>
             <span class="n">gwcalctyp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gwcalctyp&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gwcalctyp</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">gwcalctyp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
                 <span class="n">runlevel</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">HYBRID</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">runlevel</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">MANY_BODY</span><span class="p">,</span> <span class="n">SIGMA</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">optdriver</span> <span class="o">==</span> <span class="mi">99</span><span class="p">:</span>
             <span class="n">runlevel</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">MANY_BODY</span><span class="p">,</span> <span class="n">BSE</span><span class="p">])</span>
 
@@ -573,6 +578,18 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mnemonics</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="AbinitInput.set_spell_check"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_spell_check">[docs]</a>    <span class="k">def</span> <span class="nf">set_spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">false_or_true</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activate/Deactivate spell-checking&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">false_or_true</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if spell checking is activated.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># This is to maintain compatibility with pickle</span>
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="AbinitInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -601,6 +618,11 @@
 
         <span class="n">mnemonics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnemonics</span>
         <span class="k">if</span> <span class="n">with_mnemonics</span><span class="p">:</span> <span class="n">mnemonics</span> <span class="o">=</span> <span class="n">with_mnemonics</span>
+
+        <span class="c1"># If spell checking is deactivates, we cannot use mmemonics or sormode == &quot;section&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
+            <span class="n">mnemonics</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">sortmode</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span>
 
         <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">or</span> <span class="n">sortmode</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
             <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
@@ -965,11 +987,13 @@
             <span class="n">scdims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">scdims</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting 3 int in scdims but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scdims</span><span class="p">))</span>
+
             <span class="n">numcells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="n">numcells</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
-                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Number of atoms in input structure should be </span><span class="si">%d</span><span class="s2"> * </span><span class="si">%d</span><span class="s2"> but found&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Number of atoms in input structure should be </span><span class="si">%d</span><span class="s2"> * </span><span class="si">%d</span><span class="s2"> but found </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">numcells</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">numcells</span> <span class="o">*</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">],</span>
                                   <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]):</span>
                 <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Wrong supercell&quot;</span>
@@ -990,8 +1014,9 @@
             <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">var</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">isarray</span> <span class="ow">and</span> <span class="s2">&quot;natom&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">):</span> <span class="c1"># This test is not very robust and can fail.</span>
-                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Found variable </span><span class="si">%d</span><span class="s2"> with natom in dimensions </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)))</span>
+                <span class="c1"># This test is not very robust and can fail.</span>
+                <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">isarray</span> <span class="ow">and</span> <span class="s2">&quot;natom&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">):</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Found variable </span><span class="si">%s</span><span class="s2"> with natom in dimensions </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)))</span>
 
             <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
                 <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">+</span>
@@ -1007,6 +1032,8 @@
             <span class="k">if</span> <span class="s2">&quot;ngkpt&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">scdims</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new new:&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span>
+
+            <span class="c1"># TODO</span>
             <span class="c1">#elif &quot;kptrlatt&quot; in new:</span>
             <span class="c1">#   new[&quot;kptrlatt&quot;] = (np.rint(np.array(new[&quot;kptrlatt&quot;]) / iscale)).astype(int)</span>
             <span class="c1">#else:</span>
@@ -2022,6 +2049,7 @@
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
 
@@ -2042,10 +2070,23 @@
     <span class="k">def</span> <span class="nf">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span>
 
+<div class="viewcode-block" id="AnaddbInput.set_spell_check"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_spell_check">[docs]</a>    <span class="k">def</span> <span class="nf">set_spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">false_or_true</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activate/Deactivate spell-checking&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">false_or_true</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if spell checking is activated.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># This is to maintain compatibility with pickle</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_anaddb_var</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_anaddb_var</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a registered Anaddb variable</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;If you are sure the name is correct, please contact the abipy developers</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;or modify the JSON file abipy/data/variables/anaddb_vars.json&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
@@ -2854,7 +2895,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

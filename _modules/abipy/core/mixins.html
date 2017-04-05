@@ -76,6 +76,7 @@
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">ctime</span>
 <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
@@ -174,6 +175,7 @@
     <span class="c1">#        self.close()</span>
     <span class="c1">#    finally:</span>
     <span class="c1">#        super(_File, self).__close__(self)</span>
+
 
 <span class="k">class</span> <span class="nc">TextFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
 
@@ -542,7 +544,32 @@
         <span class="kn">import</span> <span class="nn">nbformat</span>
         <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">nbpath</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">nbformat</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">nbpath</span></div>
+            <span class="k">return</span> <span class="n">nbpath</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="NotebookWriter.pickle_load"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_load">[docs]</a>    <span class="k">def</span> <span class="nf">pickle_load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the object from a pickle file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="c1">#assert cls is new.__class__</span>
+            <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="NotebookWriter.pickle_dump"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_dump">[docs]</a>    <span class="k">def</span> <span class="nf">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the status of the object in pickle format.</span>
+<span class="sd">        If filepath is None, a temporary file is created.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            name of the pickle file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pickle&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">filepath</span></div></div>
 </pre></div>
 
           </div>
@@ -554,7 +581,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

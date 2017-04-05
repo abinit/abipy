@@ -319,9 +319,13 @@
         <span class="n">pickle_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;HOME&quot;</span><span class="p">),</span> <span class="s2">&quot;.abinit&quot;</span><span class="p">,</span> <span class="s2">&quot;abipy&quot;</span><span class="p">,</span> <span class="s2">&quot;abinit_vars.pickle&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">):</span>
-            <span class="c1">#print(&quot;Reading from pickle&quot;)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error while trying to read variables from pickle file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pickle_file</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please remove the file and rerun.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">exc</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Make directory and file if not present.</span>
@@ -424,12 +428,13 @@
 <span class="sd">        List of :class:`Variable` with the specified characteristic.</span>
 <span class="sd">        chars can be a string or a list of strings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">chars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_strings</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;[[&quot;</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="s2">&quot;]]&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">chars</span><span class="p">)]</span>
         <span class="n">varlist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="c1">#if v.characteristic: print(v.characteristic)</span>
-            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">characteristic</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">characteristics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">characteristics</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">):</span>
                 <span class="n">varlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">varlist</span></div>
 
 <div class="viewcode-block" id="VariableDatabase.json_dumps_varnames"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.json_dumps_varnames">[docs]</a>    <span class="k">def</span> <span class="nf">json_dumps_varnames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -476,7 +481,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

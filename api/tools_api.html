@@ -132,7 +132,7 @@ are available in <cite>arr</cite>.</p>
 <span id="devtools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">devtools</span></code> Module<a class="headerlink" href="#module-abipy.tools.devtools" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="abipy.tools.devtools.NumPyArangeEncoder">
-<em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">NumPyArangeEncoder</code><span class="sig-paren">(</span><em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>encoding='utf-8'</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#NumPyArangeEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.NumPyArangeEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">NumPyArangeEncoder</code><span class="sig-paren">(</span><em>*</em>, <em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#NumPyArangeEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.NumPyArangeEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">json.encoder.JSONEncoder</span></code></p>
 <dl class="method">
 <dt id="abipy.tools.devtools.NumPyArangeEncoder.default">
@@ -144,7 +144,7 @@ are available in <cite>arr</cite>.</p>
 <dl class="function">
 <dt id="abipy.tools.devtools.profile">
 <code class="descclassname">abipy.tools.devtools.</code><code class="descname">profile</code><span class="sig-paren">(</span><em>statement</em>, <em>global_vars</em>, <em>local_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run statement under profiler, supplying your own globals and locals,</p>
+<dd><p>Run statement under profiler, supplying your own globals and locals</p>
 </dd></dl>
 
 </div>
@@ -157,7 +157,7 @@ are available in <cite>arr</cite>.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="attribute">
 <dt id="abipy.tools.iotools.Editor.DEFAULT_EDITOR">
-<code class="descname">DEFAULT_EDITOR</code><em class="property"> = u'vi'</em><a class="headerlink" href="#abipy.tools.iotools.Editor.DEFAULT_EDITOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DEFAULT_EDITOR</code><em class="property"> = 'vi'</em><a class="headerlink" href="#abipy.tools.iotools.Editor.DEFAULT_EDITOR" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -181,7 +181,7 @@ are available in <cite>arr</cite>.</p>
 <dl class="exception">
 <dt id="abipy.tools.iotools.EditorError">
 <em class="property">exception </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">EditorError</code><a class="reference internal" href="../_modules/abipy/tools/iotools.html#EditorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.EditorError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
 <p>Base class for exceptions raised by <cite>Editor</cite></p>
 </dd></dl>
 
@@ -207,7 +207,7 @@ exception is raised to prevent infinite loops.</p>
 <p>Tools for ipython notebooks.</p>
 <dl class="function">
 <dt id="abipy.tools.notebooks.ipw_listdir">
-<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">ipw_listdir</code><span class="sig-paren">(</span><em>top=u'.'</em>, <em>recurse=True</em>, <em>widget_type=u'dropdown'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#ipw_listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.ipw_listdir" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">ipw_listdir</code><span class="sig-paren">(</span><em>top='.'</em>, <em>recurse=True</em>, <em>widget_type='dropdown'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#ipw_listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.ipw_listdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an ipython widget listing all the files located within the directory <cite>top</cite>
 that can be inspected with <cite>abiopen</cite>. The user can select the file in the widget
 and print info on the corresponding file inside the notebook.</p>
@@ -237,10 +237,9 @@ and print info on the corresponding file inside the notebook.</p>
 <dt id="abipy.tools.notebooks.print_source_in_module">
 <code class="descclassname">abipy.tools.notebooks.</code><code class="descname">print_source_in_module</code><span class="sig-paren">(</span><em>function</em>, <em>module</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#print_source_in_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.print_source_in_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>For use inside an IPython notebook: given a module and a function, print the source code.</p>
-<dl class="docutils">
-<dt>Based on:</dt>
-<dd><a class="reference external" href="http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook">http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook</a></dd>
-</dl>
+<p>Based on:</p>
+<blockquote>
+<div><a class="reference external" href="http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook">http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook</a></div></blockquote>
 </dd></dl>
 
 </div>
@@ -311,7 +310,7 @@ and print info on the corresponding file inside the notebook.</p>
 
 <dl class="function">
 <dt id="abipy.tools.numtools.find_convindex">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">find_convindex</code><span class="sig-paren">(</span><em>values</em>, <em>tol</em>, <em>min_numpts=1</em>, <em>mode=u'abs'</em>, <em>vinf=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#find_convindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.find_convindex" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">find_convindex</code><span class="sig-paren">(</span><em>values</em>, <em>tol</em>, <em>min_numpts=1</em>, <em>mode='abs'</em>, <em>vinf=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#find_convindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.find_convindex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of values and a tolerance tol, returns the leftmost index for which</p>
 <blockquote>
 <div>abs(value[i] - vinf) &lt; tol if mode == &#8220;abs&#8221;</div></blockquote>
@@ -365,7 +364,7 @@ By default, vinf = values[-1]</li>
 
 <dl class="function">
 <dt id="abipy.tools.numtools.integrator_linspace">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">integrator_linspace</code><span class="sig-paren">(</span><em>y</em>, <em>dx=1</em>, <em>method=u'simps'</em>, <em>axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#integrator_linspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.integrator_linspace" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">integrator_linspace</code><span class="sig-paren">(</span><em>y</em>, <em>dx=1</em>, <em>method='simps'</em>, <em>axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#integrator_linspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.integrator_linspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Integrate y using samples along the given axis with spacing dx.
 method is in [&#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;]. Note that romb requires len(y) = 2**k + 1.</p>
 <p>Example:
@@ -406,7 +405,7 @@ method is in [&#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;]. Not
 
 <dl class="function">
 <dt id="abipy.tools.numtools.smooth">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>x</em>, <em>window_len=11</em>, <em>window=u'hanning'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.smooth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>x</em>, <em>window_len=11</em>, <em>window='hanning'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.smooth" title="Permalink to this definition">¶</a></dt>
 <dd><p>smooth the data using a window with requested size.</p>
 <p>This method is based on the convolution of a scaled window with the signal.
 The signal is prepared by introducing reflected copies of the signal
@@ -479,7 +478,7 @@ Taken from <a class="reference external" href="http://www.scipy.org/Cookbook/Sig
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

@@ -278,7 +278,8 @@ Use <code class="docutils literal"><span class="pre">--ipython</span></code> to 
 </div>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
 usage: abicomp.py [-h] [-V] [--loglevel LOGLEVEL]
-                  {structure,ebands,edos,time,gs_scf,dfpt2_scf} ...
+                  {structure,ebands,edos,phbands,phdos,gsr,ddb,sigres,mdf,time,gs_scf,dfpt2_scf}
+                  ...
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -289,11 +290,18 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {structure,ebands,edos,time,gs_scf,dfpt2_scf}
+  {structure,ebands,edos,phbands,phdos,gsr,ddb,sigres,mdf,time,gs_scf,dfpt2_scf}
                         sub-command help
     structure           Compare crystalline structures.
     ebands              Plot electron bands on a grid.
     edos                Plot electron DOSes on a grid.
+    phbands             Plot phonon bands on a grid.
+    phdos               Compare multiple PHDOS files.
+    gsr                 Compare multiple GSR files.
+    ddb                 Compare multiple DDB files.
+    sigres              Compare multiple SIGRES files.
+    mdf                 Compare macroscopic dielectric functions stored in
+                        multiple MDF files.
     time                Analyze/plot the timing data of single or multiple
                         runs.
     gs_scf              Compare ground-state SCF cycles.
@@ -301,16 +309,30 @@ subcommands:
 
 Usage example:
 
-  abicomp.py structure */*/outdata/out_GSR.nc         =&gt; Compare structures in multiple files.
-  abicomp.py ebands out1_GSR.nc out2_GSR.nc           =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
-  abicomp.py ebands *_GSR.nc -ipy                     =&gt; Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                      =&gt; Interact with the plotter via the jupyter notebook.
-  abicomp.py edos *_WFK.nc -nb                        =&gt; Compare electron DOS in the jupyter notebook.
-  abicomp.py gs_scf run1.abo run2.abo                 =&gt; Compare the SCF cycles in two output files.
-  abicomp.py dfpt2_scf run1.abo run2.abo              =&gt; Compare the DFPT SCF cycles in two output files.
-  abicomp.py.py time [OUT_FILES]                      =&gt; Parse timing data in files and plot results
-  abicomp.py.py time . --ext=abo                      =&gt; Scan directory tree from `.`, look for files with extension `abo`
-                                                         parse timing data and plot results.
+  abicomp.py structure */*/outdata/out_GSR.nc     =&gt; Compare structures in multiple files.
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc       =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                 =&gt; Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                  =&gt; Interact with the plotter via the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                    =&gt; Compare electron DOS in the jupyter notebook.
+  abicomp.py phbands *_PHBST.nc -nb               =&gt; Compare phonon bands in the jupyter notebook.
+  abicomp.py phdos *_PHDOS.nc -nb                 =&gt; Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb      =&gt; Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+  abicomp.py sigres *_SIGRES.nc                   =&gt; Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc                         =&gt; Compare macroscopic dielectric functions.
+  abicomp.py gs_scf run1.abo run2.abo             =&gt; Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo          =&gt; Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                  =&gt; Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                  =&gt; Scan directory tree from `.`, look for files with extension `abo`
+                                                     parse timing data and plot results.
+
+  NOTE: The gsr, ddb, sigres, mdf commands use robots to analyze files.
+  In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
+
+      abicomp.py ddb dir1 out_DDB dir2
+
+  Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
+  `abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
+  Use --no-walk to ignore sub-directories when robots are used.
 </pre></div>
 </div>
 </div>
@@ -364,32 +386,34 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 8.3.1
+    Abinit version: 8.3.2
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 13777
-Scheduler options: {&#39;seconds&#39;: 10, &#39;hours&#39;: 0, &#39;weeks&#39;: 0, &#39;minutes&#39;: 0, &#39;days&#39;: 0}
+PyFlowScheduler, Pid: 10626
+Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 10}
 
 Installed packages:
 Package         Version
 --------------  ----------------------
 system          Darwin
-python_version  2.7.12
-numpy           1.12.0
+python_version  3.6.1
+numpy           1.12.1
 scipy           0.19.0
 netCDF4         1.2.7
 apscheduler     2.1.0
 pydispatch      2.0.5
 yaml            3.12
-pymatgen        4.7.1
+pymatgen        4.7.2
 matplotlib      2.0.0 (backend: TkAgg)
 
 
 Abipy requirements are properly configured
 </pre></div>
 </div>
+<p>The command <code class="docutils literal"><span class="pre">abicheck.py</span> <span class="pre">--with-flow</span></code> can be used to run a small AbiPy flow in order to
+check the interface with the Abinit executables.</p>
 </div>
 <div class="section" id="abirun-py">
 <span id="abirun"></span><h2><code class="docutils literal"><span class="pre">abirun.py</span></code><a class="headerlink" href="#abirun-py" title="Permalink to this headline">¶</a></h2>
@@ -634,11 +658,11 @@ limits:
     max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
-qtype supported: [u&#39;bluegene&#39;, u&#39;moab&#39;, u&#39;pbspro&#39;, u&#39;sge&#39;, u&#39;shell&#39;, u&#39;slurm&#39;, u&#39;torque&#39;]
+qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Mar 27, 2017), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Apr 05, 2017), AbiPy supports the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -667,7 +691,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

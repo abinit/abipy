@@ -1320,11 +1320,11 @@
 
         <span class="k">if</span> <span class="n">ks_ebands_kpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Interpolate QP energies.</span>
-            <span class="n">eigens_kpath</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">eval_all</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">)</span>
+            <span class="n">eigens_kpath</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Interpolate QP energies corrections and add them to KS.</span>
             <span class="n">ref_eigens</span> <span class="o">=</span> <span class="n">ks_ebands_kpath</span><span class="o">.</span><span class="n">eigens</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">bstart</span><span class="p">:</span><span class="n">bstop</span><span class="p">]</span>
-            <span class="n">qp_corrs</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">eval_all_and_enforce_degs</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">ref_eigens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">ks_degatol</span><span class="p">)</span>
+            <span class="n">qp_corrs</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts_and_enforce_degs</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">ref_eigens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">ks_degatol</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
             <span class="n">eigens_kpath</span> <span class="o">=</span> <span class="n">qp_corrs</span> <span class="k">if</span> <span class="n">only_corrections</span> <span class="k">else</span> <span class="n">ref_eigens</span> <span class="o">+</span> <span class="n">qp_corrs</span>
 
         <span class="c1"># Build new ebands object with k-path.</span>
@@ -1359,7 +1359,7 @@
 
             <span class="c1"># Interpolate QP corrections from bstart to bstop</span>
             <span class="n">ref_eigens</span> <span class="o">=</span> <span class="n">ks_ebands_kmesh</span><span class="o">.</span><span class="n">eigens</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">bstart</span><span class="p">:</span><span class="n">bstop</span><span class="p">]</span>
-            <span class="n">qp_corrs</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">eval_all_and_enforce_degs</span><span class="p">(</span><span class="n">dos_kcoords</span><span class="p">,</span> <span class="n">ref_eigens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">ks_degatol</span><span class="p">)</span>
+            <span class="n">qp_corrs</span> <span class="o">=</span> <span class="n">skw</span><span class="o">.</span><span class="n">interp_kpts_and_enforce_degs</span><span class="p">(</span><span class="n">dos_kcoords</span><span class="p">,</span> <span class="n">ref_eigens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">ks_degatol</span><span class="p">)</span><span class="o">.</span><span class="n">eigens</span>
             <span class="n">eigens_kmesh</span> <span class="o">=</span> <span class="n">qp_corrs</span> <span class="k">if</span> <span class="n">only_corrections</span> <span class="k">else</span> <span class="n">ref_eigens</span> <span class="o">+</span> <span class="n">qp_corrs</span>
 
             <span class="c1"># Build new ebands object with k-mesh</span>
@@ -1379,7 +1379,7 @@
 
 <div class="viewcode-block" id="SigresFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -1841,7 +1841,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

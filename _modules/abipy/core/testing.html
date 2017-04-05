@@ -77,18 +77,22 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
 <span class="kn">import</span> <span class="nn">numpy.testing.utils</span> <span class="k">as</span> <span class="nn">nptu</span>
 
 <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">pymatgen.util.testing</span> <span class="k">import</span> <span class="n">PymatgenTest</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
+<span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;AbipyTest&quot;</span><span class="p">,</span>
@@ -141,7 +145,7 @@
 <span class="sd">    If version is None, the result of matplotlib.__version__ `op` version is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c1">#have_display = &quot;DISPLAY&quot; in os.environ</span>
+        <span class="c1"># have_display = &quot;DISPLAY&quot; in os.environ</span>
         <span class="kn">import</span> <span class="nn">matplotlib</span>
         <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>  <span class="c1"># Use non-graphical display backend during test.</span>
 
@@ -166,6 +170,38 @@
         <span class="k">return</span> <span class="kc">False</span>
 
 
+<span class="k">def</span> <span class="nf">has_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    True if phonopy is installed.</span>
+<span class="sd">    If version is None, the result of phonopy.__version__ `op` version is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">phonopy</span>
+
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping phonopy test&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">phonopy</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_mock_module</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># py &gt; 3.3</span>
+        <span class="kn">from</span> <span class="nn">unittest</span> <span class="k">import</span> <span class="n">mock</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">mock</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mock module required for unit tests&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Use py &gt; 3.3 or install it with `pip install mock` if py2.7&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="k">return</span> <span class="n">mock</span>
+
+
 <span class="k">def</span> <span class="nf">has_fireworks</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;True if fireworks is installed.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
@@ -187,10 +223,116 @@
     <span class="k">except</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+
+<span class="k">def</span> <span class="nf">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">json_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a json file from the absolute path `json_path`, return AbinitInput instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span>
+    <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="c1"># Convert pseudo paths: extract basename and build path in abipy/data/pseudos.</span>
+    <span class="k">for</span> <span class="n">pdict</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pseudos&quot;</span><span class="p">]:</span>
+        <span class="n">pdict</span><span class="p">[</span><span class="s2">&quot;filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;pseudos&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdict</span><span class="p">[</span><span class="s2">&quot;filepath&quot;</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">AbinitInput</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">straceback</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Returns a string with the traceback.&quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">traceback</span>
     <span class="k">return</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">input_equality_check</span><span class="p">(</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">input2</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to compare two inputs</span>
+<span class="sd">    ref_file takes the path to reference input in json: json.dump(input.as_dict(), fp, indent=2)</span>
+<span class="sd">    input2 takes an AbinintInput object</span>
+<span class="sd">    tol relative tolerance for floats</span>
+<span class="sd">    we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)</span>
+<span class="sd">    or almost equal (floats)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_int</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span>
+
+    <span class="k">def</span> <span class="nf">check_float</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="n">equal_nan</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">check_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">t</span>
+
+    <span class="k">def</span> <span class="nf">check_var</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="n">_error</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">_error</span> <span class="o">=</span> <span class="n">check_int</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">_error</span> <span class="o">=</span> <span class="n">check_float</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+            <span class="n">_error</span> <span class="o">=</span> <span class="n">check_str</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_error</span>
+
+    <span class="k">def</span> <span class="nf">flatten_var</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">tree_types</span><span class="o">=</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+        <span class="n">flat_var</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">tree_types</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">o</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">sub_value</span> <span class="ow">in</span> <span class="n">flatten_var</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">tree_types</span><span class="p">):</span>
+                    <span class="n">flat_var</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flat_var</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flat_var</span>
+
+    <span class="n">input_ref</span> <span class="o">=</span> <span class="n">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;test_files&#39;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">))</span>
+
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">diff_in_ref</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">input_ref</span><span class="o">.</span><span class="n">vars</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input2</span><span class="o">.</span><span class="n">vars</span><span class="p">]</span>
+    <span class="n">diff_in_actual</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">input2</span><span class="o">.</span><span class="n">vars</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_ref</span><span class="o">.</span><span class="n">vars</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff_in_ref</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff_in_actual</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">error_description</span> <span class="o">=</span> <span class="s1">&#39;not the same input parameters:</span><span class="se">\n</span><span class="s1">&#39;</span> \
+                            <span class="s1">&#39;     </span><span class="si">%s</span><span class="s1"> were found in ref but not in actual</span><span class="se">\n</span><span class="s1">&#39;</span> \
+                            <span class="s1">&#39;     </span><span class="si">%s</span><span class="s1"> were found in actual but not in ref</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> \
+                            <span class="p">(</span><span class="n">diff_in_ref</span><span class="p">,</span> <span class="n">diff_in_actual</span><span class="p">)</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_description</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">val_r</span> <span class="ow">in</span> <span class="n">input_ref</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val_t</span> <span class="o">=</span> <span class="n">input2</span><span class="o">.</span><span class="n">vars</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;variable </span><span class="si">%s</span><span class="s1"> from the reference is not in the actual input</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">val_list_t</span> <span class="o">=</span> <span class="n">flatten_var</span><span class="p">(</span><span class="n">val_t</span><span class="p">)</span>
+        <span class="n">val_list_r</span> <span class="o">=</span> <span class="n">flatten_var</span><span class="p">(</span><span class="n">val_r</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">var_item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="n">error</span> <span class="ow">or</span> <span class="n">check_var</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">val_list_r</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val_list_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;two value lists were not flattened in the same way, try to add the collection&#39;</span>
+                                   <span class="s1">&#39;type to the tree_types tuple in flatten_var&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">error_description</span> <span class="o">=</span> <span class="s1">&#39;var </span><span class="si">%s</span><span class="s1"> differs: </span><span class="si">%s</span><span class="s1"> (reference) != </span><span class="si">%s</span><span class="s1"> (actual)&#39;</span> <span class="o">%</span> \
+                                <span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">val_r</span><span class="p">,</span> <span class="n">val_t</span><span class="p">)</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_description</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">input2</span><span class="o">.</span><span class="n">structure</span> <span class="o">!=</span> <span class="n">input_ref</span><span class="o">.</span><span class="n">structure</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Structures are not the same.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">input2</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">input_ref</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Two inputs were found to be not equal:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;   &#39;</span> <span class="o">+</span> <span class="n">err</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AbipyTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyTest</span><span class="p">(</span><span class="n">PymatgenTest</span><span class="p">):</span>
@@ -204,7 +346,7 @@
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.has_abinit"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_abinit">[docs]</a>    <span class="k">def</span> <span class="nf">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return True if abinit is in $PATH and version is op min_version.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.has_matplotlib"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_matplotlib">[docs]</a>    <span class="k">def</span> <span class="nf">has_matplotlib</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
@@ -237,6 +379,11 @@
         <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="n">basename</span><span class="p">))</span></div>
 
     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.mkdtemp"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.mkdtemp">[docs]</a>    <span class="k">def</span> <span class="nf">mkdtemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Invoke mkdtep with kwargs, return the name of a temporary directory.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.get_tmpname"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_tmpname">[docs]</a>    <span class="k">def</span> <span class="nf">get_tmpname</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoke mkstep with kwargs, return the name of a temporary file.&quot;&quot;&quot;</span>
         <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -266,9 +413,50 @@
         <span class="k">return</span> <span class="n">nptu</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">desired</span><span class="p">,</span> <span class="n">err_msg</span><span class="o">=</span><span class="n">err_msg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.json_read_abinit_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.json_read_abinit_input">[docs]</a>    <span class="k">def</span> <span class="nf">json_read_abinit_input</span><span class="p">(</span><span class="n">json_basename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an AbinitInput from the basename of the file in abipy/data/test_files.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;test_files&#39;</span><span class="p">,</span> <span class="n">json_basename</span><span class="p">))</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.assert_input_equality"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.assert_input_equality">[docs]</a>    <span class="k">def</span> <span class="nf">assert_input_equality</span><span class="p">(</span><span class="n">ref_basename</span><span class="p">,</span> <span class="n">input_to_test</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check equality between an input and a reference in test_files.</span>
+<span class="sd">        only input variables and structure are compared.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ref_basename: base name of the reference file to test against in test_files</span>
+<span class="sd">            input_to_test: AbinitInput object to test</span>
+<span class="sd">            rtol: passed to numpy.isclose for float comparison</span>
+<span class="sd">            atol: passed to numpy.isclose for float comparison</span>
+<span class="sd">            equal_nan: passed to numpy.isclose for float comparison</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            raises an assertion error if the two inputs are not the same</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ref_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;test_files&#39;</span><span class="p">,</span> <span class="n">ref_basename</span><span class="p">)</span>
+        <span class="n">input_equality_check</span><span class="p">(</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">input_to_test</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="n">equal_nan</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.straceback"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.straceback">[docs]</a>    <span class="k">def</span> <span class="nf">straceback</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Returns a string with the traceback.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">straceback</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="n">straceback</span><span class="p">()</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.skip_if_not_phonopy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_phonopy">[docs]</a>    <span class="k">def</span> <span class="nf">skip_if_not_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise SkipTest if phonopy is not installed.</span>
+<span class="sd">        Use `version` and `op` to ask for a specific version</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires phonopy&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires phonopy version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.get_mock_module"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">[docs]</a>    <span class="k">def</span> <span class="nf">get_mock_module</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_mock_module</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>
@@ -335,6 +523,7 @@
 <span class="n">CONF_FILE</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">BKP_FILE</span> <span class="o">=</span> <span class="kc">None</span>
 
+
 <span class="k">def</span> <span class="nf">change_matplotlib_backend</span><span class="p">(</span><span class="n">new_backend</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Change the backend by modifying the matplotlib configuration file.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CONF_FILE</span><span class="p">,</span> <span class="n">BKP_FILE</span>
@@ -362,8 +551,9 @@
 
 
 <span class="k">def</span> <span class="nf">revert_matplotlib_backend</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Revert matplotlib backend to the previous value.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">CONF_FILE</span><span class="p">,</span> <span class="n">BKP_FILE</span>
-    <span class="c1">#print(&quot;reverting: BKP_FILE %s --&gt; CONF %s&quot; % (BKP_FILE, CONF_FILE))</span>
+    <span class="c1"># print(&quot;reverting: BKP_FILE %s --&gt; CONF %s&quot; % (BKP_FILE, CONF_FILE))</span>
     <span class="k">if</span> <span class="n">BKP_FILE</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">BKP_FILE</span><span class="p">,</span> <span class="n">CONF_FILE</span><span class="p">)</span>
 </pre></div>
@@ -377,7 +567,7 @@
       &copy;2017, The AbiPy group.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
