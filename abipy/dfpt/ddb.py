@@ -26,6 +26,7 @@ from abipy.dfpt.tensors import DielectricTensor
 from abipy.core.abinit_units import Ha_cmm1
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 
 
 import logging
@@ -837,10 +838,10 @@ class DielectricTensorGenerator(Has_Structure):
     def __init__(self, phfreqs, oscillator_strength, emacro, structure):
         """
         Args:
-             phfreqs: a numpy array containing the 3*(num atoms) phonon frequencies at gamma in atomic units
+             phfreqs: a numpy array containing the 3*(num atoms) phonon frequencies at gamma
              oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
              emacro: a numpy array containing the dielectric tensor without frequency dependence
-                (at infinite frequency) in atomic units
+                (at infinite frequency)
              structure: a pymatgen Structure of the system considered
         """
         self.phfreqs = phfreqs
@@ -869,7 +870,7 @@ class DielectricTensorGenerator(Has_Structure):
         else:
             raise ValueError('The PHBST does not containg the frequencies at gamma')
 
-        phfreqs = full_phfreqs[i] * eV_to_Ha
+        phfreqs = full_phfreqs[i]
 
         with ETSF_Reader(anaddbnc_filepath) as reader_anaddbnc:
             emacro = reader_anaddbnc.read_value("emacro_cart")
@@ -895,28 +896,28 @@ class DielectricTensorGenerator(Has_Structure):
         """
         gamma_index = phbands.qindex([0, 0, 0])
 
-        phfreqs = phbands.phfreqs[gamma_index] * eV_to_Ha
+        phfreqs = phbands.phfreqs[gamma_index]
 
         emacro = anaddbnc.emacro.cartesian_tensor
         oscillator_strength = anaddbnc.oscillator_strength
 
         return cls(phfreqs, oscillator_strength, emacro, anaddbnc.structure)
 
-    def tensor_at_frequency(self, w, units='Ha'):
+    def tensor_at_frequency(self, w, units='eV'):
         """
         Returns a DielectricTensor object representing
         the dielectric tensor in atomic units at the specified frequency w.
         Args:
             w: frequency
-            units: string specifying the units used for the frequency. Accepted values are Ha (default), eV, cm-1
+            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
         """
 
-        if units == 'Ha':
+        if units == 'eV':
             pass
-        elif units == 'eV':
-            w = w * eV_to_Ha
+        elif units == 'Ha':
+            w = w / eV_to_Ha
         elif units == 'cm-1':
-            w = w / Ha_cmm1
+            w = w / Ha_cmm1 / eV_to_Ha
         else:
             raise ValueError('Unknown units {}'.format(units))
 
@@ -925,8 +926,64 @@ class DielectricTensorGenerator(Has_Structure):
             t += self.oscillator_strength[i].real/(self.phfreqs[i]**2 - w**2)
 
         vol = self.structure.volume / bohr_to_angstrom ** 3
-        t = 4*np.pi*t/vol
+        t = 4*np.pi*t/vol/eV_to_Ha**2
 
         t += self.emacro
 
         return DielectricTensor(t)
+
+    @add_fig_kwargs
+    def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, **kwargs):
+        """
+        Plots the selected components of the dielectric tensor as a function of the frequency
+        Args:
+            w_min: minimum frequency
+            w_max: maximum frequqncy
+            num: number of values of the frequencies between w_min and w_max
+            component: determine which components of the tensor will be displayed. Can be a list/tuple of two
+                elements, indicating the indices [i, j] of the desired component or a string among
+                'diag': plots the elements on diagonal
+                'all': plots all the components
+                'diag_av': plots the average of the components on the diagonal
+            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
+        """
+
+        w_range = np.linspace(w_min, w_max, num, endpoint=True)
+
+        t = np.zeros((num,3,3))
+        for i, w in enumerate(w_range):
+            t[i] = self.tensor_at_frequency(w, units=units)
+
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        if 'linewidth' not in kwargs:
+            kwargs['linewidth'] = 2
+
+        if units == 'eV':
+            ax.set_xlabel('Energy [eV]')
+        elif units == 'Ha':
+            ax.set_xlabel('Energy [Ha]')
+        elif units == 'cm-1':
+            ax.set_xlabel(r'Frequency [cm$^{-1}$]')
+
+        ax.set_ylabel(r'$\varepsilon$')
+
+        if isinstance(component, (list, tuple)):
+            ax.plot(w_range, t[:,component[0], component[1]], label='[{},{}]'.format(*component), **kwargs)
+        elif component == 'diag':
+            for i in range(3):
+                ax.plot(w_range, t[:, i, i], label='[{},{}]'.format(i,i), **kwargs)
+        elif component == 'all':
+            for i in range(3):
+                for j in range(3):
+                    ax.plot(w_range, t[:, i, j], label='[{},{}]'.format(i, j), **kwargs)
+        elif component == 'diag_av':
+            for i in range(3):
+                ax.plot(w_range, np.trace(t, axis1=1, axis2=2)/3, label='[{},{}]'.format(i, i), **kwargs)
+        else:
+            ValueError('Unkwnown component {}'.format(component))
+
+        ax.legend(loc="best")
+
+        return fig
+
