@@ -383,8 +383,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                     ngqpt=None, workdir=None, manager=None, verbose=0, lo_to_splitting=False,
-                                     qptbounds=None, anaddb_kwargs=None):
+                                     lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+                                     workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -395,14 +395,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
-            workdir: Working directory. If None, a temporary directory is created.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-            verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
 
         Returns:
             :class:`PhbstFile` with the phonon band structure.

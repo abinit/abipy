@@ -3,6 +3,7 @@
 from __future__ import unicode_literals, division, print_function
 
 import sys
+import os
 import abipy.data as abidata
 import abipy.abilab as abilab
 
@@ -75,6 +76,12 @@ class RobotTest(AbipyTest):
         assert len(filepaths) == 3
 
         with SigresRobot.from_files(filepaths) as robot:
+	    assert robot.start is None
+	    start = robot.trim_paths(start=None)
+	    assert robot.start == start
+	    for p, _ in robot:
+		assert p == os.path.relpath(p, start=start)
+
             assert robot.EXT == "SIGRES"
             repr(robot)
             str(robot)
@@ -86,7 +93,7 @@ class RobotTest(AbipyTest):
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
-            robot.pop(filepaths[0])
+            robot.pop(os.path.relpath(filepaths[0], start=start))
             assert len(robot) == 2
             robot.pop("foobar")
 

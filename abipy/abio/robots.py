@@ -10,6 +10,7 @@ import pandas as pd
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
+from monty.collections import dict2namedtuple
 #from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -65,9 +66,13 @@ class Robot(object):
     # 2) should __iter__  return (label, ncfile) or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
     # 3) replace ncfiles with files just to be consistent since we have DdbRobot!
 
+    # filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths
+    start = None
+
     def __init__(self, *args):
         """
-        args is a list of tuples (label, filepath)
+        Args:
+            args is a list of tuples (label, filepath)
         """
         self._ncfiles, self._do_close = OrderedDict(), OrderedDict()
         self._exceptions = deque(maxlen=100)
@@ -106,7 +111,6 @@ class Robot(object):
     @classmethod
     def _open_files_in_dir(cls, top, walk):
         """Open files in directory tree starting from `top`. Return list of Abinit files."""
-        top = os.path.abspath(top)
         from abipy.abilab import abiopen
         items = []
         if walk:
@@ -130,9 +134,7 @@ class Robot(object):
 
     @classmethod
     def from_files(cls, filenames):
-        """
-        Build a Robot from a list of files.
-        """
+        """Build a Robot from a list of `filenames`."""
         filenames = list_strings(filenames)
         from abipy.abilab import abiopen
         filenames = [f for f in filenames if cls.class_handles_filename(f)]
@@ -211,7 +213,7 @@ class Robot(object):
 
     def scan_dir(self, top, walk=True):
         """
-        Scan directory tree starting from top. Add files to the robot.
+        Scan directory tree starting from `top`. Add files to the robot instance.
 
         Args:
             top (str): Root directory
@@ -239,6 +241,7 @@ class Robot(object):
         if is_string(ncfile):
             from abipy.abilab import abiopen
             ncfile = abiopen(ncfile)
+            # Open file here --> have to close it.
             self._do_close[ncfile.filepath] = True
 
         if label in self._ncfiles:
@@ -257,6 +260,22 @@ class Robot(object):
                     print("Exception while closing: ", ncfile.filepath)
                     print(exc)
                     #raise
+
+    def trim_paths(self, start=None):
+        """
+        Replace absolute filepaths in the robot with relative paths wrt to `start` directory.
+        If start is None, os.getcwd() is used. Set `self.start` attribute, return self.start.
+        """
+        self.start = os.getcwd() if start is None else start
+        old_paths = list(self._ncfiles.keys())
+        old_new_paths = [(p, os.path.relpath(os.path.abspath(p), start=self.start)) for p in old_paths]
+
+        old_ncfiles = self._ncfiles
+        self._ncfiles = OrderedDict()
+        for old, new in old_new_paths:
+            self._ncfiles[new] = old_ncfiles[old]
+
+        return self.start
 
     @property
     def exceptions(self):
@@ -332,7 +351,7 @@ class Robot(object):
     def open(cls, obj, nids=None, **kwargs):
         """
         Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
-        nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
+        `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
         """
         has_dirpath = False
         if is_string(obj):
@@ -497,7 +516,7 @@ class GsrRobot(Robot, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
 
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
 
@@ -600,7 +619,7 @@ class SigresRobot(Robot, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
             #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
             #nbv.new_code_cell("fig = plotter.gridplot()"),
             #nbv.new_code_cell("fig = plotter.combiboxplot()"),
@@ -686,7 +705,7 @@ class MdfRobot(Robot, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
             nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
             nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
             nbv.new_code_cell('fig = plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None)'),
@@ -795,50 +814,50 @@ class DdbRobot(Robot, NotebookWriter):
         plt.show()
 
     # TODO Test
-    def get_phbands_plotter(self, with_phdos=True, cls=None, **kwargs):
+    def get_phonon_plotters(self, **kwargs):
         """
         Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
         Collect results and return `PhononBandsPlotter` object.
 
         Args:
-            with_phdos: True to compute phonon DOS
-            cls:
         """
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-        from abipy.dfpt.phonons import PhononBandsPlotter
-        plotter = PhononBandsPlotter() if cls is None else cls()
+        from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
+        phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
         for label, ddb in self:
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
-            plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
             phbst_file.close()
             phdos_file.close()
 
-        return plotter
+        #return phbands_plotter, phdos_plotter
+        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 
     # TODO Test
-    def get_phdos_plotter(self, cls=None, **kwargs):
-        """
-        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
-        Collect results and return `PhononDosPlotter` object.
+    #def get_phdos_plotter(self, cls=None, **kwargs):
+    #    """
+    #    Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+    #    Collect results and return `PhononDosPlotter` object.
 
-        Args:
-            cls:
+    #    Args:
+    #        cls:
 
-        """
-        if "workdir" in kwargs:
-            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+    #    """
+    #    if "workdir" in kwargs:
+    #        raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-        from abipy.dfpt.phonons import PhononDosPlotter
-        plotter = PhononDosPlotter() if cls is None else cls()
-        for label, ddb in self:
-            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
-            plotter.add_phdos(label, phdos=phdos_file.phdos)
-            phbst_file.close()
-            phdos_file.close()
+    #    from abipy.dfpt.phonons import PhononDosPlotter
+    #    plotter = PhononDosPlotter() if cls is None else cls()
+    #    for label, ddb in self:
+    #        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+    #        plotter.add_phdos(label, phdos=phdos_file.phdos)
+    #        phbst_file.close()
+    #        phdos_file.close()
 
-        return plotter
+    #    return plotter
 
     def write_notebook(self, nbpath=None):
         """
@@ -847,16 +866,31 @@ class DdbRobot(Robot, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        get_phonon_plotters_kwargs = ( "\n"
+            '\tnqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",\n'
+            '\tlo_to_splitting=False, ngqpt=None, qptbounds=None,\n'
+            '\tanaddb_kwargs=None, verbose=0')
+
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nprint(robot)" % str(args)),
-            nbv.new_code_cell("phbands_plotter = robot.get_phbands_plotter()"),
-            nbv.new_code_cell("fig = phbands_plotter.gridplot()"),
-            nbv.new_code_cell("fig = phbands_plotter.combiboxplot()"),
-            nbv.new_code_cell("phdos_plotter = robot.get_phdos_plotter()"),
-            nbv.new_code_cell("fig = phdos_plotter.gridplot()"),
-            nbv.new_code_cell("fig = phdos_plotter.plot_harmonic_thermo()"),
+            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("units = 'eV'"),
+
+            nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
+
+            nbv.new_code_cell("r = robot.get_phonon_plotters(%s)" % get_phonon_plotters_kwargs),
+            nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
+            nbv.new_code_cell("fig = r.phbands_plotter.combiplot(units=units)"),
+            nbv.new_code_cell("fig = r.phbands_plotter.gridplot(units=units)"),
+            nbv.new_code_cell("fig = r.phbands_plotter.boxplot(units=units)"),
+            nbv.new_code_cell("fig = r.phbands_plotter.combiboxplot(units=units)"),
+
+            #nbv.new_code_cell("phdos_plotter = robot.get_phdos_plotter(%s)\nprint(phdos_plotter)" %
+            #    get_phdos_plotter_kwargs),
+            nbv.new_code_cell("fig = r.phdos_plotter.combiplot(units=units)"),
+            nbv.new_code_cell("fig = r.phdos_plotter.gridplot(units=units)"),
+            nbv.new_code_cell("fig = r.phdos_plotter.plot_harmonic_thermo()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

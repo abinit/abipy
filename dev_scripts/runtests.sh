@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ev  # exit on first error, print each command
 
-abicheck.py
+abicheck.py --with-flow
 
 nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO
 #nosetests abipy -v --with-coverage --cover-package=abipy --logging-level=INFO

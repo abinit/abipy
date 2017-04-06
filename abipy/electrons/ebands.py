@@ -354,6 +354,7 @@ class ElectronBands(object):
         """
         if isinstance(obj, cls):
             return obj
+
         elif is_string(obj):
             # path?
             if obj.endswith(".pickle"):
@@ -363,6 +364,7 @@ class ElectronBands(object):
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.ebands
+
         elif hasattr(obj, "ebands"):
             # object with ebands
             return obj.ebands
