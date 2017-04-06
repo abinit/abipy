@@ -385,6 +385,19 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest(msg)
 
     @staticmethod
+    def skip_if_not_abinit(version=None, op=">="):
+        """
+        Raise SkipTest if the specified version of abinit is not installed.
+        Use `version` and `op` to ask for a specific version
+        """
+        if not has_abinit(version=version, op=op):
+            if version is None:
+                msg = "This test requires abinit"
+            else:
+                msg = "This test requires abinit version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    @staticmethod
     def get_mock_module():
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()

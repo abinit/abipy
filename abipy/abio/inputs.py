@@ -1180,27 +1180,37 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_dte_inputs(self, tolerance=None):
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False):
         """
-        Return inputs for the DDK calculation.
-        This functions should be called with an input the represents a GS run.
+        Return inputs for the DTE calculation.
+        This functions should be called with an input that represents a GS run.
+        Args:
+            phonon_pert: is True also the phonon perturbations will be considered. Default False.
+            skip_permutations: Since the current version of abinit always performs all the permutations
+                of the perturbations, even if only one is asked, if True avoids the creation of inputs that
+                will produce duplicacte outputs.
         """
-        if tolerance is None:
-            tolerance = {"tolwfr": 1.0e-20}
-
-        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
-
-        if "tolvrs" in tolerance:
-            raise self.Error("tolvrs should not be used in a DDK calculation")
 
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_dteperts()
+        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert)
+
+        if skip_permutations:
+            perts_to_skip = []
+            reduced_perts = []
+            for pert in perts:
+                p = ((pert.i1pert, pert.i1dir), (pert.i2pert, pert.i2dir), (pert.i3pert, pert.i3dir))
+                if p not in perts_to_skip:
+                    reduced_perts.append(pert)
+                    perts_to_skip.extend(itertools.permutations(p))
+
+            perts = reduced_perts
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
         # See tutorespfn/Input/tnlo_2.in
+
+        na = len(self.structure)
 
         for pert, inp in zip(perts, multi):
             rfdir1 = 3 * [0]
@@ -1210,13 +1220,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             rfdir3 = 3 * [0]
             rfdir3[pert.i3dir - 1] = 1
 
+            # atpol if needed. Since there can be only one spatial perturbation
+            m = min(pert.i1pert, pert.i2pert, pert.i3pert)
+            atpol = [m, m] if m <= na else None
+
             inp.set_vars(
-                d3e_pert1_elfd=1,  # Activate the calculation of the electric field perturbation
-                d3e_pert2_elfd=1,
-                d3e_pert3_elfd=1,
+                d3e_pert1_elfd=1 if pert.i1pert == na+2 else 0,  # Activate the calculation of the electric field perturbation
+                d3e_pert2_elfd=1 if pert.i2pert == na+2 else 0,
+                d3e_pert3_elfd=1 if pert.i3pert == na+2 else 0,
                 d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
                 d3e_pert2_dir=rfdir2,
                 d3e_pert3_dir=rfdir3,
+                d3e_pert1_phon = 1 if pert.i1pert <= na else 0,
+                d3e_pert2_phon = 1 if pert.i2pert <= na else 0,
+                d3e_pert3_phon = 1 if pert.i3pert <= na else 0,
+                d3e_pert1_atpol = atpol,
                 nqpt=1,  # One wavevector is to be considered
                 qpt=(0, 0, 0),  # q-wavevector.
                 optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
@@ -1224,7 +1242,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             )
 
             inp.pop_tolerances()
-            inp.set_vars(tolerance)
 
         return multi
 
@@ -1517,7 +1534,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+                              phonon_pert=False):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1528,6 +1546,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            phonon_pert: if True also the phonon perturbations will be considered. Default False.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -1537,9 +1556,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                  {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
 
         """
-        dteperts_vars = dict(d3e_pert1_phon=0,           # No phonon-type perturbation
+        dteperts_vars = dict(d3e_pert1_phon=1 if phonon_pert else 0,           # phonon-type perturbation
                              d3e_pert2_phon=0,
                              d3e_pert3_phon=0,
+                             d3e_pert1_atpol=[1, len(self.structure)] if phonon_pert else None,
                              d3e_pert1_elfd=1,           # Electric field perturbation
                              d3e_pert2_elfd=1,
                              d3e_pert3_elfd=1,

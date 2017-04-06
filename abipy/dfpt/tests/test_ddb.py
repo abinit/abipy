@@ -5,7 +5,10 @@ import os
 import numpy as np
 
 from abipy.core.testing import *
-from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.ddb import DdbFile, DielectricTensorGenerator
+from abipy.dfpt.anaddbnc import AnaddbNcFile
+from abipy.dfpt.phonons import PhononBands
+import abipy.data as abidata
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
@@ -121,3 +124,23 @@ class DdbTest(AbipyTest):
             ifc.plot_longitudinal_ifc_ewald(show=False)
 
         ddb.close()
+
+
+class DielectricTensorGeneratorTest(AbipyTest):
+
+    def test_base(self):
+        """Base tests for DielectricTensor"""
+        anaddbnc_fname = abidata.ref_file("AlAs_nl_dte_anaddb.nc")
+        phbstnc_fname = abidata.ref_file("AlAs_nl_dte_PHBST.nc")
+
+        d = DielectricTensorGenerator.from_files(phbstnc_fname, anaddbnc_fname)
+
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
+
+        d = DielectricTensorGenerator.from_objects(PhononBands.from_file(phbstnc_fname),
+                                                   AnaddbNcFile.from_file(anaddbnc_fname))
+
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
+
+        if self.has_matplotlib():
+            d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)

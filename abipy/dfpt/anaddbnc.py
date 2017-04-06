@@ -11,7 +11,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
-
+from abipy.dfpt.tensors import NLOpticalSusceptibilityTensor
 
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
@@ -60,9 +60,21 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return Tensor.from_cartesian_tensor(self.reader.read_value("emacro_cart"),
-                                                self.structure.lattice, space="r"),
+                                                self.structure.lattice, space="r")
         except Exception as exc:
             print(exc, "Returning None", sep="\n")
+            return None
+
+    @lazy_property
+    def emacro_rlx(self):
+        """
+        Relaxed ion Macroscopic dielectric tensor. None if the file does not contain this information.
+        """
+        try:
+            return Tensor.from_cartesian_tensor(self.reader.read_value("emacro_cart_rlx"),
+                                                self.structure.lattice, space="r")
+        except Exception as exc:
+            print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -89,6 +101,55 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         except Exception as exc:
             print(exc)
             cprint("Interatomic force constants have not been calculated. Returning None", "red")
+            return None
+
+    @lazy_property
+    def dchide(self):
+        """
+        Non-linear optical susceptibility tensor.
+        Returns a NLOpticalSusceptibilityTensor or None if the file does not contain this information.
+        """
+        try:
+            return NLOpticalSusceptibilityTensor(self.reader.read_value("dchide"))
+        except Exception as exc:
+            print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
+            return None
+
+    @lazy_property
+    def dchidt(self):
+        """
+        First-order change in the linear dielectric susceptibility.
+        Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).
+        The [i][j] element of the list contains the Tensor representing the change due to the
+         displacement of the ith atom in the jth direction.
+        None if the file does not contain this information.
+        """
+        try:
+            a = self.reader.read_value("dchidt").T
+            dchidt = []
+            for i in a:
+                d = []
+                for j in i:
+                    d.append(Tensor.from_cartesian_tensor(j, self.structure.lattice, space="r"))
+                dchidt.append(d)
+
+            return dchidt
+        except Exception as exc:
+            print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
+            return None
+
+    @lazy_property
+    def oscillator_strength(self):
+        """
+        A complex numpy array containing the oscillator strengths with shape (number of phonon modes, 3, 3),
+        in a.u. (1 a.u.=253.2638413 m3/s2).
+        None if the file does not contain this information.
+        """
+        try:
+            return self.reader.read_value("oscillator_strength", cmode="c")
+        except Exception as exc:
+            print(exc, "Requires dieflag == 1, 3 or 4", "Returning None", sep="\n")
+            raise
             return None
 
     def write_notebook(self, nbpath=None):

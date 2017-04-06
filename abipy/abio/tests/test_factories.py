@@ -259,6 +259,28 @@ class FactoryTest(AbipyTest):
                                      with_bec=False, ph_tol=None, ddk_tol=None, dde_tol=None)
         self.validate_multi(multi)
 
+        from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT
+        inp_ddk = multi.filter_by_tags(DDK)[0]
+        inp_dde = multi.filter_by_tags(DDE)[0]
+        inp_ph_q_pert_1 = multi.filter_by_tags(PH_Q_PERT)[0]
+        inp_ph_q_pert_2 = multi.filter_by_tags(PH_Q_PERT)[10]
+
+        if False:
+            with open('phonons_from_gsinput_ddk.json', mode='w') as fp:
+                json.dump(inp_ddk.as_dict(), fp, indent=2)
+            with open('phonons_from_gsinput_dde.json', mode='w') as fp:
+                json.dump(inp_dde.as_dict(), fp, indent=2)
+            with open('phonons_from_gsinput_ph_q_pert_1.json', mode='w') as fp:
+                json.dump(inp_ph_q_pert_1.as_dict(), fp, indent=2)
+            with open('phonons_from_gsinput_ph_q_pert_2.json', mode='w') as fp:
+                json.dump(inp_ph_q_pert_2.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('phonons_from_gsinput_ddk.json', inp_ddk)
+        self.assert_input_equality('phonons_from_gsinput_dde.json', inp_dde)
+        self.assert_input_equality('phonons_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1)
+        self.assert_input_equality('phonons_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
+
+
     def test_elastic_inputs_from_gsinput(self):
         """Testing elastic_inputs_from_gsinput."""
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
@@ -316,3 +338,33 @@ class FactoryTest(AbipyTest):
         from abipy.abio.factories import scf_for_phonons
         scf_inp = scf_for_phonons(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
         scf_inp.abivalidate()
+
+        if False:
+            with open('scf_for_phonons.json', mode='w') as fp:
+                json.dump(scf_inp.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('scf_for_phonons.json', scf_inp)
+
+
+    def test_dte_from_gsinput(self):
+        """Testing for dte_from_gsinput"""
+        self.skip_if_not_abinit('8.3.2')
+        from abipy.abio.factories import dte_from_gsinput
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized", smearing=None)
+        # dte calculations only work with selected values of ixc
+        gs_inp['ixc'] = 7
+        multi = dte_from_gsinput(gs_inp, use_phonons=True, skip_dte_permutations=True)
+        self.validate_multi(multi)
+
+        inp1 = multi[0]
+        inp2 = multi[5]
+
+        if False:
+            with open('dte_from_gsinput_1.json', mode='w') as fp:
+                json.dump(inp1.as_dict(), fp, indent=2)
+            with open('dte_from_gsinput_2.json', mode='w') as fp:
+                json.dump(inp2.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('dte_from_gsinput_1.json', inp1)
+        self.assert_input_equality('dte_from_gsinput_2.json', inp2)
+
