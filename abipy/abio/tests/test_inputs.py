@@ -7,7 +7,7 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy import abilab
-from abipy.core.testing import AbipyTest
+from abipy.core.testing import AbipyTest, has_abinit
 from abipy.abio.inputs import *
 from abipy.abio.input_tags import *
 
@@ -291,16 +291,17 @@ class TestAbinitInput(AbipyTest):
         ################
         # Non-linear methods
         ################
-        dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True)
-        print("dte inputs\n", dte_inputs)
-        assert len(dte_inputs) == 8
-        assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
-        assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
-        assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
+        if has_abinit('8.3.2'):
+            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True)
+            print("dte inputs\n", dte_inputs)
+            assert len(dte_inputs) == 8
+            assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
+            assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
+            assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
 
-        # Validate
-        vs = dte_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
+            # Validate
+            vs = dte_inputs.abivalidate()
+            assert all(v.retcode == 0 for v in vs)
 
     def TestInputCheckSum(self):
         """Testing the hash method of AbinitInput"""
