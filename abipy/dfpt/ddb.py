@@ -85,14 +85,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if read_blocks:
             self.blocks = self._read_blocks()
 
-    def close(self):
-        """Needed for the `AbinitFile` abstract interface."""
+    #def close(self):
+    #    """Needed for the `AbinitFile` abstract interface."""
 
     def __str__(self):
         """String representation."""
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
+        """String representation."""
         lines = []
         app, extend = lines.append, lines.extend
         #extend(super(DdbFile, self).__str__().splitlines())

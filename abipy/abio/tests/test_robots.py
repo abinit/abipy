@@ -76,11 +76,11 @@ class RobotTest(AbipyTest):
         assert len(filepaths) == 3
 
         with SigresRobot.from_files(filepaths) as robot:
-	    assert robot.start is None
-	    start = robot.trim_paths(start=None)
-	    assert robot.start == start
-	    for p, _ in robot:
-		assert p == os.path.relpath(p, start=start)
+            assert robot.start is None
+            start = robot.trim_paths(start=None)
+            assert robot.start == start
+            for p, _ in robot:
+                assert p == os.path.relpath(p, start=start)
 
             assert robot.EXT == "SIGRES"
             repr(robot)
