@@ -93,9 +93,9 @@ class RobotTest(AbipyTest):
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
-            robot.pop(os.path.relpath(filepaths[0], start=start))
+            robot.pop_label(os.path.relpath(filepaths[0], start=start))
             assert len(robot) == 2
-            robot.pop("foobar")
+            robot.pop_label("foobar")
 
     def test_mdf_robot(self):
         """Testing MDF robot."""

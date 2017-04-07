@@ -1713,7 +1713,7 @@ class PhononDos(Function1D):
         """
         opts = [c.lower() for c in what]
         lines = []
-        #print(list(kwargs.keys()))
+
         for c in opts:
             f = {"d": self, "i": self.idos}[c]
             xfactor = _factor_ev2units(units)
@@ -2518,6 +2518,20 @@ class PhononBandsPlotter(NotebookWriter):
 
         return fig
 
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, units):
+            return getattr(self, plot_type)(units=units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot"],
+                units=["eV", "cm-1", "Ha"],
+            )
+
     def write_notebook(self, nbpath=None):
         """
         Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -2650,7 +2664,7 @@ class PhononDosPlotter(NotebookWriter):
             nrows = numeb // ncols + numeb % ncols
 
         # Build Grid
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
         axes = axes.ravel()
         # don't show the last ax if numeb is odd.
         if numeb % ncols != 0: axes[-1].axis("off")
@@ -2658,6 +2672,9 @@ class PhononDosPlotter(NotebookWriter):
         for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
             ax = axes[i]
             phdos._plot_dos_idos(ax, units=units)
+
+            ax.set_xlabel('Energy %s' % _energy_label_from_units(units))
+            ax.set_ylabel("DOS %s" % _dos_label_from_units(units))
             ax.set_title(label)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
@@ -2667,8 +2684,8 @@ class PhononDosPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                             quantities=None, **kwargs):
+    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", **kwargs):
         """
         Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
 
@@ -2682,12 +2699,11 @@ class PhononDosPlotter(NotebookWriter):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
-                None means all.
 
         Returns:
             matplotlib figure.
         """
-        quantities = list_strings(quantities) if quantities is not None else \
+        quantities = list_strings(quantities) if quantities != "all" else \
             ["internal_energy", "free_energy", "entropy", "cv"]
 
         # Build grid of plots.
@@ -2708,7 +2724,7 @@ class PhononDosPlotter(NotebookWriter):
                 # Compute thermodinamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
                 ys = f1d.values
-                if formula_units is not None: ys /= formula_units
+                if formula_units != 1: ys /= formula_units
                 if units == "Jmol": ys = ys * e_Cb * Avogadro
                 ax.plot(f1d.mesh, ys, label=label)
 
@@ -2720,6 +2736,34 @@ class PhononDosPlotter(NotebookWriter):
 
         fig.tight_layout()
         return fig
+
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, units):
+            return getattr(self, plot_type)(units=units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot"],
+                units=["eV", "cm-1", "Ha"],
+            )
+
+    def ipw_harmonic_thermo(self):
+        """
+        Return an ipython widget with controllers to plot thermodinamic properties
+        from the phonon DOS within the harmonic approximation.
+        """
+        def plot_callback(tstart, tstop, num, units, formula_units):
+            return self.plot_harmonic_thermo(tstart=tstart, tstop=tstop, num=num,
+                                             units=units, formula_units=formula_units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                tstart=5, tstop=300, num=50, units=["eV", "Jmol"], formula_units=1)
 
     def write_notebook(self, nbpath=None):
         """

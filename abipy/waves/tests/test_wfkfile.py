@@ -1,9 +1,10 @@
+"""Tests for Wfkfile module."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import abipy.data as abidata
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.waves import WfkFile
 
 
@@ -16,19 +17,24 @@ class TestWFKFile(AbipyTest):
 
         for i, path in enumerate(abidata.WFK_NCFILES):
             wfk = WfkFile(path)
-            print(wfk)
+            repr(wfk)
+            str(wfk)
 
             spin, kpoint, band = (0, 0, 0)
             structure = wfk.structure
             wave = wfk.get_wave(spin, kpoint, band)
+            repr(wave)
+            str(wave)
+            assert wave.shape == (wave.nspinor, wave.npw)
+
             other_wave = wfk.get_wave(spin, kpoint, band+1)
 
             assert wave == wave
             assert wave != other_wave
 
             for ig, (g, u_g) in enumerate(wave):
-                self.assertTrue(np.all(g == wave.gvecs[ig]))
-                self.assertTrue(np.all(u_g == wave.ug[:,ig]))
+                assert np.all(g == wave.gvecs[ig])
+                assert np.all(u_g == wave.ug[:,ig])
                 if ig == 5: break
 
             #print(wave[0:1])
@@ -41,10 +47,13 @@ class TestWFKFile(AbipyTest):
 
             # Test bracket with the same wave.
             for space in ["g", "gsphere", "r"]:
-                print(space)
+                #print(space)
                 norm2 = wave.braket(wave, space=space)
                 if space == "r": norm2 = norm2 / structure.volume
                 self.assert_almost_equal(norm2, 1.0)
+
+            visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu_name="vesta")
+            assert callable(visu)
 
             # FFT and FFT^{-1} on the BOX.
             ug_mesh = wave.mesh.fft_r2g(wave.ur)

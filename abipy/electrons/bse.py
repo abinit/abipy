@@ -854,6 +854,20 @@ class MultipleMdfPlotter(object):
 
         return qpoints
 
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(mdf_type, qview):
+            return self.plot(mdf_type=mdf_type, qview=qview)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                mdf_type=["exc", "rpa", "gwrpa"],
+                qview=["avg", "all"],
+            )
+
     def _can_use_basenames_as_labels(self):
         """
         Return True if all labels represent valid files and the basenames are unique

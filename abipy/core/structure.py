@@ -982,6 +982,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 else:
                     low += z
             return np.arange(low, high+1)
+
         arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
         brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
         crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
@@ -1353,7 +1354,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
                     # BCC
                     shiftk = [0.25,  0.25,  0.25,
                              -0.25, -0.25, -0.25]
-
                     #shiftk = [0.5, 0.5, 05])
 
             elif lattice_type == "hexagonal":
@@ -1380,7 +1380,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # Use default value.
             shiftk = [0.5, 0.5, 0.5]
 
-        return np.reshape(shiftk, (-1,3))
+        return np.reshape(shiftk, (-1, 3))
 
     def num_valence_electrons(self, pseudos):
         """

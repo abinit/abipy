@@ -330,6 +330,15 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
+    def has_ipywidgets():
+        """Return True if ipywidgets is available."""
+        try:
+            import ipywidgets as ipw
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
     def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
         """
         Alternative naming for assertArrayAlmostEqual.

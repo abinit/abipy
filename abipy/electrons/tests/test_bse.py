@@ -68,6 +68,7 @@ class MultipleMdfPlotterTest(AbipyTest):
         plotter = MultipleMdfPlotter()
         for f in mdf_paths:
             plotter.add_mdf_file(f, f)
+        repr(plotter)
         str(plotter)
         assert plotter._can_use_basenames_as_labels()
         assert len(plotter._get_qpoints()) == 6
@@ -76,6 +77,8 @@ class MultipleMdfPlotterTest(AbipyTest):
             xlim, ylim = (2, 3), (1, None)
             plotter.plot(mdf_type="exc", qview="avg", xlim=xlim, ylim=ylim, show=False)
             plotter.plot(mdf_type="exc", qview="all", show=False)
-
             #plotter.plot_mdftypes(qview="avg", xlim=xlim, ylim=ylim, show=False)
             #plotter.plot_mdftypes(qview="all", xlim=xlim, ylim=ylim, show=False)
+
+        if self.has_ipywidgets():
+            assert plotter.ipw_select_plot() is not None

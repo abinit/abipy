@@ -157,6 +157,9 @@ class PhononBandsPlotterTest(AbipyTest):
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
 
+        if self.has_ipywidgets():
+            assert plotter.ipw_select_plot() is not None
+
 
 class PhononDosTest(AbipyTest):
 
@@ -215,6 +218,10 @@ class PhononDosPlotterTest(AbipyTest):
             plotter.combiplot(show=True)
             plotter.gridplot(show=True)
             plotter.plot_harmonic_thermo()
+
+        if self.has_ipywidgets():
+            assert plotter.ipw_select_plot() is not None
+            assert plotter.ipw_harmonic_thermo() is not None
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))

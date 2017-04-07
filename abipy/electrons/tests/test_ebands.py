@@ -61,8 +61,8 @@ class ElectronBandsTest(AbipyTest):
             ElectronBands.from_dict(ebands.as_dict())
             self.assertMSONable(ebands, test_if_subclass=False)
 
-    def test_dos(self):
-        """Test DOS methods."""
+    def test_edos(self):
+        """Test electron DOS methods."""
         gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         assert not gs_bands.has_metallic_scheme
 
@@ -97,6 +97,11 @@ class ElectronBandsTest(AbipyTest):
             edos.plot_up_minus_down(show=False)
             gs_bands.plot_with_edos(dos=edos, show=False)
             if self.has_seaborn(): gs_bands.boxplot(show=False)
+
+        if self.has_ipywidgets():
+            assert gs_bands.ipw_edos_widget() is not None
+        else:
+            raise RuntimeError()
 
     def test_jdos(self):
         """Test JDOS methods."""
@@ -202,16 +207,16 @@ class ElectronBandsTest(AbipyTest):
 class FrameFromEbandsTest(AbipyTest):
 
     def test_frame_from_ebands(self):
-            """Testing frame_from_ebands."""
-            gsr_scf_path = abidata.ref_file("si_scf_GSR.nc")
-            gs_ebands = ElectronBands.as_ebands(gsr_scf_path)
-            gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
-            index = ["foo", "bar", "hello"]
-            df = frame_from_ebands([gsr_scf_path, gs_ebands, gsr_nscf_path], index=index, with_spglib=True)
-            #print(df)
-            assert all(f == "Si2" for f in df["formula"])
-            assert all(num == 227 for num in df["abispg_num"])
-            assert all(df["spglib_num"] == df["abispg_num"])
+        """Testing frame_from_ebands."""
+        gsr_scf_path = abidata.ref_file("si_scf_GSR.nc")
+        gs_ebands = ElectronBands.as_ebands(gsr_scf_path)
+        gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
+        index = ["foo", "bar", "hello"]
+        df = frame_from_ebands([gsr_scf_path, gs_ebands, gsr_nscf_path], index=index, with_spglib=True)
+        #print(df)
+        assert all(f == "Si2" for f in df["formula"])
+        assert all(num == 227 for num in df["abispg_num"])
+        assert all(df["spglib_num"] == df["abispg_num"])
 
 
 class ElectronBandsPlotterTest(AbipyTest):
@@ -220,7 +225,8 @@ class ElectronBandsPlotterTest(AbipyTest):
         """Test ElelectronBandsPlotter API."""
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
-        print(repr(plotter))
+        str(plotter)
+        repr(plotter)
 
         assert len(plotter.ebands_list) == 2
         assert len(plotter.edoses_list) == 0
@@ -238,6 +244,9 @@ class ElectronBandsPlotterTest(AbipyTest):
             plotter.gridplot(title="Silicon band structure", show=False)
             plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
             plotter.animate(show=False)
+
+        if self.has_ipywidgets():
+            assert plotter.ipw_select_plot() is not None
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -266,6 +275,9 @@ class ElectronDosPlotterTest(AbipyTest):
         if self.has_matplotlib():
             plotter.combiplot(show=False)
             plotter.gridplot(show=False)
+
+        if self.has_ipywidgets():
+            assert plotter.ipw_select_plot() is not None
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))

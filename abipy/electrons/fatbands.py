@@ -652,8 +652,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None,
-                               ylims=None, blist=None, **kwargs):
+    def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None, ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type.
 
@@ -1427,10 +1426,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
                           e0="fermie", method="gaussian", step=0.1, width=0.2,
                           blist=None,
-                         #stacked=True,
-                         ax=None, exchange_xy=False, xlims=None,
-                         #with_info=True,
-                         **kwargs):
+                          #stacked=True,
+                          ax=None, exchange_xy=False, xlims=None,
+                          #with_info=True,
+                          **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
@@ -1444,7 +1443,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             stacked: True if DOS curves
-            ax:
+            ax: matplotlib axis, if None a new figure is generated.
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used

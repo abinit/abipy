@@ -276,7 +276,7 @@ def _invoke_robot(options):
         robot = robot_cls.from_dir(top=paths[0], walk=not options.no_walk)
     else:
         # Assume file.
-        robot = robot_cls.from_files([paths])
+        robot = robot_cls.from_files([paths[0]])
 
     if len(paths) > 1:
         # Handle multiple arguments. Could be either other directories or files.
@@ -399,7 +399,7 @@ Usage example:
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
-  abicomp.py mdf *_MDF.nc                         => Compare macroscopic dielectric functions.
+  abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
   abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
   abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
@@ -425,10 +425,10 @@ Usage example:
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('paths', nargs="+", help="List of files to compare")
+    copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='Verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings")
+                              help='Verbose, can be supplied multiple times to increase verbosity.')
+    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
 
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
@@ -445,7 +445,7 @@ Usage example:
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -457,29 +457,29 @@ Usage example:
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
                           choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-                          help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`")
+                          help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
-                          help="Option used to define the zero of energy in the band structure plot. Default is `fermie`")
+                          help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
 
     # Subparser for edos command.
     p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser], help=abicomp_edos.__doc__)
     p_edos.add_argument("-p", "--plot-mode", default="gridplot",
                         choices=["gridplot", "combiplot", "None"],
-                        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
+                        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
-                        help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
+                        help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
                            choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-                           help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`")
+                           help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
     p_phdos.add_argument("-p", "--plot-mode", default="gridplot",
                          choices=["gridplot", "combiplot", "None"],
-                         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`")
+                         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
     # Subparser for robot commands
     robot_parents = [copts_parser, ipy_parser, robot_parser]

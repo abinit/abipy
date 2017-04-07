@@ -1188,22 +1188,20 @@ class ElectronBands(object):
                           max=ediff.max(axis=axis)
                           )
 
-    def ipw_dos(self):
+    def ipw_edos_widget(self):
         """
         Return an ipython widget with controllers to compute the electron DOS.
         """
-        import ipywidgets as ipw
-
         def plot_dos(method, step, width):
             edos = self.get_edos(method=method, step=step, width=width)
             edos.plot()
 
-        return ipw.interactive(
+        import ipywidgets as ipw
+        return ipw.interact_manual(
                 plot_dos,
                 method=["gaussian", "tetra"],
                 step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh [eV]"),
                 width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
-                __manual=True,
             )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
@@ -2498,6 +2496,20 @@ class ElectronBandsPlotter(NotebookWriter):
         if show: plt.show()
         return anim
 
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, e0):
+            return getattr(self, plot_type)(e0=e0)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot"],
+                e0=["fermie", "0.0"],
+            )
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -2746,13 +2758,18 @@ class ElectronDos(object):
         """
         if e0 is None:
             return 0.0
+
         elif is_string(e0):
+
             if e0 == "fermie":
                 return self.fermie
             elif e0 == "None":
                 return 0.0
             else:
-                raise ValueError("Wrong value for e0: %s" % e0)
+                try:
+                    return float(e0)
+                except:
+                    raise ValueError("Wrong value for e0: %s" % str(e0))
         else:
             # Assume number
             return float(e0)
@@ -3048,6 +3065,20 @@ class ElectronDosPlotter(NotebookWriter):
                 ax.set_ylabel("")
 
         return fig
+
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, e0):
+            return getattr(self, plot_type)(e0=e0)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot"],
+                e0=["fermie", "0.0"],
+            )
 
     def write_notebook(self, nbpath=None):
         """
