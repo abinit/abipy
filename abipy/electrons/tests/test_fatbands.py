@@ -12,6 +12,7 @@ class TestElectronFatbands(AbipyTest):
     def test_MgB2_fatbands(self):
         """Test MgB2 fatbands with prtdos 3."""
         fbnc_kpath = FatBandsFile(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
+        repr(fbnc_kpath)
         str(fbnc_kpath)
         assert fbnc_kpath.ebands.kpoints.is_path
         assert not fbnc_kpath.ebands.kpoints.is_ibz
@@ -27,21 +28,24 @@ class TestElectronFatbands(AbipyTest):
         assert not fbnc_kpath.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
-            fbnc_kpath.plot_fatbands_typeview(tight_layout=True, show=False)
-            fbnc_kpath.plot_fatbands_lview(tight_layout=True, show=False)
+            assert fbnc_kpath.plot_fatbands_typeview(tight_layout=True, show=False)
+            assert fbnc_kpath.plot_fatbands_lview(tight_layout=True, show=False)
+            assert fbnc_kpath.plot_fatbands_siteview(e0=None, view="inequivalent",
+                                                     fact=2.0, bdist=[1,2,3], show=False)
 
         if self.has_nbformat():
             fbnc_kpath.write_notebook(nbpath=self.get_tmpname(text=True))
 
         fbnc_kmesh = FatBandsFile(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
-        print(fbnc_kmesh)
+        repr(fbnc_kmesh)
+        str(fbnc_kmesh)
         assert fbnc_kmesh.ebands.kpoints.is_ibz
         assert fbnc_kmesh.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
-            fbnc_kmesh.plot_pjdos_typeview(tight_layout=True, show=False)
-            fbnc_kmesh.plot_pjdos_lview(tight_layout=True, show=False)
-            fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", tight_layout=True, show=False)
+            assert fbnc_kmesh.plot_pjdos_typeview(tight_layout=True, show=False)
+            assert fbnc_kmesh.plot_pjdos_lview(tight_layout=True, show=False)
+            assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", tight_layout=True, show=False)
 
             # These calls should return None
             assert fbnc_kpath.plot_fatbands_spinor() is None

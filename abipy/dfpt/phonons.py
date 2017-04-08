@@ -1298,8 +1298,7 @@ class PhononBands(object):
                            ("qpoint", self.qpoints[iq]),
                         ]))
 
-        frame = pd.DataFrame(rows, columns=list(rows[0].keys()))
-        return frame
+        return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
     def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
