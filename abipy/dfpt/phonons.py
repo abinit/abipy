@@ -42,11 +42,8 @@ def _factor_ev2units(units):
     Return conversion factor eV --> units (case-insensitive)
     """
     eV_to_cm1 = 8065.5440044136285
-    d = {"ev": 1, "electronvolt": 1,
-         "mev": 1000,
-         "ha": eV_to_Ha, 'hartree': eV_to_Ha,
-         "cm-1": eV_to_cm1, 'cm^-1': eV_to_cm1,
-         "thz": abu.eV_to_THz,
+    d = {"ev": 1, "mev": 1000, "ha": eV_to_Ha,
+         "cm-1": eV_to_cm1, 'cm^-1': eV_to_cm1, "thz": abu.eV_to_THz,
          }
     try:
         return d[units.lower()]
@@ -55,11 +52,8 @@ def _factor_ev2units(units):
 
 
 def _unit_tag(units):
-    d = {"ev": "[eV]", "electronvolt": "[eV]",
-         "mev": "[meV]",
-         "ha": '[Ha]', 'hartree': "[Ha]",
-         "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]",
-         "thz": '[Thz]',
+    d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
+         "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
          }
     try:
         return d[units.lower()]
@@ -68,9 +62,7 @@ def _unit_tag(units):
 
 
 def _dos_label_from_units(units):
-    d = {"ev": "[states/eV]", "electronvolt": "[states/eV]",
-         "mev": "[states/meV]",
-         "ha": '[states/Ha]', 'hartree': "[states/Ha]",
+    d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
          "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
          "thz": '[states/Thz]',
          }
@@ -851,15 +843,15 @@ class PhononBands(object):
         # Handle conversion factor.
         # TODO: Encapsulate this part.
         units = units.lower()
-        if units in ('ev', 'electronvolt'):
+        if units == 'ev':
             ax.set_ylabel('Energy [eV]')
-        elif units in ('mev',):
+        elif units == 'mev':
             ax.set_ylabel('Energy [meV]')
-        elif units in ('ha', 'hartree'):
+        elif units == 'ha':
             ax.set_ylabel('Energy [Ha]')
         elif units in ('cm-1', 'cm^-1'):
             ax.set_ylabel(r'Frequency [cm$^{-1}$]')
-        elif units in ('thz',):
+        elif units == 'thz':
             ax.set_ylabel(r'Frequency [Thz]')
         else:
             raise ValueError('Value for units `{}` unknown'.format(units))
