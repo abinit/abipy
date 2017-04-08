@@ -940,7 +940,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            stacked: True if DOS curves
+            stacked: True if DOS partial contributions should be stacked on top of each other.
             combined_spins: Define how up/down DOS components should be plotted when nsppol==2.
                 If True, up/down DOSes are plotted on the same figure (positive values for up,
                 negative values for down component)
@@ -1096,7 +1096,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            stacked: True if DOS curves
+            stacked: True if DOS partial contributions should be stacked on top of each other.
             combined_spins: Define how up/down DOS components should be plotted when nsppol==2.
                 If True, up/down DOSes are plotted on the same figure (positive values for up,
                 negative values for down component)

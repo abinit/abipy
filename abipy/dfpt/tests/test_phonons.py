@@ -59,11 +59,11 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            phbands.plot(units="Thz", show=False)
-            phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
-            phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
-            phbands.plot_colored_matched(units="cm^-1", show=False)
-            phbands.boxplot(units="ev", show=False)
+            assert phbands.plot(units="Thz", show=False)
+            assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
+            assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
+            assert phbands.plot_colored_matched(units="cm^-1", show=False)
+            assert phbands.boxplot(units="ev", show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -95,9 +95,8 @@ class PlotterTest(AbipyTest):
         ]
 
         if self.has_matplotlib():
-            fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
-                               phdos_objects=phdos_objects, units="meV", show=False)
-            assert fig is not None
+            assert phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
+                                    phdos_objects=phdos_objects, units="meV", show=False)
 
         phdos.close()
 
@@ -157,10 +156,10 @@ class PhononBandsPlotterTest(AbipyTest):
         assert df is not None
 
         if self.has_matplotlib():
-            plotter.combiplot(units="eV", show=True)
-            plotter.gridplot(units="meV", show=True)
-            plotter.boxplot(units="cm-1", show=True)
-            plotter.combiboxplot(units="Thz", show=True)
+            assert plotter.combiplot(units="eV", show=True)
+            assert plotter.gridplot(units="meV", show=True)
+            assert plotter.boxplot(units="cm-1", show=True)
+            assert plotter.combiboxplot(units="Thz", show=True)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -175,15 +174,18 @@ class PhononDosTest(AbipyTest):
         """Testing PhononDos API with fake data."""
         dos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert dos.mesh.tolist() == [1, 2, 3] and dos.h == 1 and dos.values.tolist() == [4, 5, 6]
-        print(dos)
+        repr(dos)
+        str(dos)
         dos.idos
         assert PhononDos.as_phdos(dos, {}) is dos
         assert dos.iw0 == 0
 
     def test_from_phdosfile(self):
+        """Test PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
+        repr(ncfile)
+        str(ncfile)
         assert hasattr(ncfile, "structure")
-
         phdos = ncfile.phdos
 
         # Thermodinamics in the Harmonic approximation
@@ -198,11 +200,14 @@ class PhononDosTest(AbipyTest):
         #self.assert_almost_equal(cv.values, )
 
         if self.has_matplotlib():
-            ncfile.plot_pjdos_type(show=False)
-            phdos.plot(units="cm-1", show=False)
-            phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1)
+            assert ncfile.plot_pjdos_type(show=False)
+            assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
+            assert ncfile.plot_pjdos_redirs_type(units="Thz", stacked=True, show=False)
+            assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
+            assert phdos.plot(units="cm-1", show=False)
+            assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)
             # FIXME
-            #phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=1)
+            #phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=1, show=False)
 
         # Test notebook
         if self.has_nbformat():
@@ -223,9 +228,9 @@ class PhononDosPlotterTest(AbipyTest):
         assert len(plotter.phdos_list) == 2
 
         if self.has_matplotlib():
-            plotter.combiplot(show=True)
-            plotter.gridplot(show=True)
-            plotter.plot_harmonic_thermo()
+            assert plotter.combiplot(show=True)
+            assert plotter.gridplot(show=True)
+            assert plotter.plot_harmonic_thermo()
 
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
@@ -265,9 +270,9 @@ class InteratomicForceConstantsTest(AbipyTest):
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib missing")
 
-        self.ifc.plot_longitudinal_ifc(show=False)
-        self.ifc.plot_longitudinal_ifc_short_range(show=False)
-        self.ifc.plot_longitudinal_ifc_ewald(show=False)
+        assert self.ifc.plot_longitudinal_ifc(show=False)
+        assert self.ifc.plot_longitudinal_ifc_short_range(show=False)
+        assert self.ifc.plot_longitudinal_ifc_ewald(show=False)
 
 
 class NonAnalyticalPhTest(AbipyTest):

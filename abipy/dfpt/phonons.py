@@ -1254,7 +1254,7 @@ class PhononBands(object):
         Returns:
             `matplotlib` figure.
         """
-        lw = 2
+        lw = kwargs.pop("lw", 2)
         factor = _factor_ev2units(units)
         ntypat = self.structure.ntypesp
 
@@ -1360,7 +1360,7 @@ class PhononBands(object):
         Plot the phonon band structure with the phonon DOS.
 
         Args:
-            phdos: An instance of :class:`PhononDos`.
+            phdos: An instance of :class:`PhononDos` or netcdf file providing a PhononDos object.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
@@ -1370,6 +1370,8 @@ class PhononBands(object):
         Returns:
             `matplotlib` figure.
         """
+        phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
+
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -1963,29 +1965,29 @@ class PhdosReader(ETSF_Reader):
             Frequencies are in eV, DOSes are in states/eV.
     """
     @lazy_property
+    def structure(self):
+        """The crystalline structure."""
+        return self.read_structure()
+
+    @lazy_property
     def wmesh(self):
-        """The frequency mesh in eV."""
+        """The frequency mesh for the PH-DOS in eV."""
         return self.read_value("wmesh")
 
     @lazy_property
     def pjdos_type(self):
-        """DOS projected over atom types e.g. pjdos_type(ntypat, nomega)."""
+        """[ntypat, nomega] array with PH-DOS projected over atom types."""
         return self.read_value("pjdos_type")
 
     @lazy_property
-    def pjdos_rc_type(self):
-        """DOS projected over atom types and reduced directions e.g. pjdos_type(3,ntypat,nomega)."""
+    def pjdos_type_rc(self):
+        """[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions"""
         return self.read_value("pjdos_rc_type")
 
     @lazy_property
     def pjdos(self):
-        """DOS projected over atoms and reduced directions pjdos(natom,3,nomega)."""
+        """[natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
         return self.read_value("pjdos")
-
-    @lazy_property
-    def structure(self):
-        """The crystalline structure."""
-        return self.read_structure()
 
     def read_phdos(self):
         """Return the :class:`PhononDOS`."""
@@ -2011,6 +2013,8 @@ class PhdosReader(ETSF_Reader):
     #     decomposed along the three reduced directions.
     #     """
     #     return self.read_value("phonon_frequencies")
+
+    #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
 
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -2049,18 +2053,18 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         pjdos_type_dict = OrderedDict()
         for symbol in self.reader.chemical_symbols:
-            #print(symbol, ncdata.typeidx_from_symbol(symbol))
             pjdos_type_dict[symbol] = self.reader.read_pjdos_type(symbol)
 
         return pjdos_type_dict
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, ax=None, units="eV", colormap="jet", alpha=0.7, **kwargs):
+    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
         """
-        Stacked Plot of the projected DOS (projection is for atom types)
+        Plot of the type-projected phonon DOS
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
@@ -2070,31 +2074,103 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Returns:
             matplotlib figure.
         """
-        lw = 2
-        ax, fig, plt = get_ax_fig_plt(ax)
-        ax.grid(True)
+        lw = kwargs.pop("lw", 2)
+        factor = _factor_ev2units(units)
 
+        ax, fig, plt = get_ax_fig_plt(ax)
+        cmap = plt.get_cmap(colormap)
+
+        ax.grid(True)
         set_axlims(ax, kwargs.pop("xlim", None), "x")
         set_axlims(ax, kwargs.pop("ylim", None), "y")
-
-        factor = _factor_ev2units(units)
         ax.set_xlabel('Frequency %s' % _unit_tag(units))
         ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_type_dict)
         cumulative = np.zeros(len(self.wmesh))
+
         for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
             x, y = pjdos.mesh * factor, pjdos.values / factor
-            color = plt.get_cmap(colormap)(float(i) / (num_plots - 1))
-            ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
-            ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
-            cumulative += y
+            color = cmap(float(i) / (num_plots - 1))
+            if not stacked:
+                ax.plot(x, y, lw=lw, label=symbol, color=color)
+            else:
+                ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
+                ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
+                cumulative += y
 
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
         ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
         ax.legend(loc="best")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, axlist=None, **kwargs):
+        """
+        Plot type-projected phonon DOS decomposed along the three reduced directions.
+        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            colormap: Have a look at the colormaps
+                `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
+                and decide which one you'd like:
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            matplotlib figure.
+        """
+        lw = kwargs.pop("lw", 2)
+        ntypat = self.structure.ntypesp
+        factor = _factor_ev2units(units)
+
+        # Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
+        import matplotlib.pyplot as plt
+        nrows, ncols = 3, 1
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=True)
+        else:
+            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+
+        cmap = plt.get_cmap(colormap)
+        xlim, ylim = None, None
+        #double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)
+        pjdos_type_rc = self.reader.pjdos_type_rc
+
+        xx = self.phdos.mesh * factor
+        for idir, ax in enumerate(axlist):
+            ax.grid(True)
+            set_axlims(ax, xlim, "x")
+            set_axlims(ax, ylim, "y")
+
+            if idir in (0, 2):
+                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+                if idir == 2:
+                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+
+            # Plot Type projected DOSes along reduced direction idir
+            #for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
+            cumulative = np.zeros(len(self.wmesh))
+            for itype in range(ntypat):
+                symbol = str(itype)
+                color = cmap(float(itype) / (ntypat - 1))
+                yy = pjdos_type_rc[itype, idir] / factor
+
+                if not stacked:
+                    ax.plot(xx, yy, label=symbol, color=color)
+                else:
+                    ax.plot(xx, cumulative + yy, lw=lw, label=symbol, color=color)
+                    ax.fill_between(xx, cumulative, cumulative + yy, facecolor=color, alpha=alpha)
+                    cumulative += yy
+
+            # Add Total PHDOS
+            ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
+            ax.legend(loc="best")
 
         return fig
 
@@ -2109,7 +2185,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("fig = ncfile.phdos.plot()"),
-            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+            nbv.new_code_cell("fig = ncfile.plot_pjdos_type()"),
+            nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_type()"),
+            #nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_site()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -2264,6 +2342,7 @@ class PhononBandsPlotter(NotebookWriter):
         return self.to_string(func=str)
 
     def to_string(self, func=str, verbose=0):
+        """String representation."""
         lines = []
         app = lines.append
         for i, (label, phbands) in enumerate(self.phbands_dict.items()):
@@ -2321,8 +2400,7 @@ class PhononBandsPlotter(NotebookWriter):
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
-            if label is None:
-                label = ncfile.filepath
+            if label is None: label = ncfile.filepath
             self.add_phbands(label, ncfile.phbands)
 
     def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
