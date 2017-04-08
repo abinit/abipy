@@ -823,7 +823,6 @@ class ElasticComplianceTensor(Has_Structure):
         """
         Converts to a pymatgen ElasticTensor object.
         """
-
         return ElasticTensor.from_voigt(self.elastic_tensor)
 
 
@@ -889,7 +888,6 @@ class DielectricTensorGenerator(Has_Structure):
 
         return cls(phfreqs, oscillator_strength, emacro, structure)
 
-
     @classmethod
     def from_objects(cls, phbands, anaddbnc):
         """
@@ -937,6 +935,7 @@ class DielectricTensorGenerator(Has_Structure):
     def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of the frequency
+
         Args:
             w_min: minimum frequency
             w_max: maximum frequqncy
@@ -987,4 +986,3 @@ class DielectricTensorGenerator(Has_Structure):
         ax.legend(loc="best")
 
         return fig
-

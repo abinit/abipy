@@ -47,7 +47,6 @@ class TestWFKFile(AbipyTest):
 
             # Test bracket with the same wave.
             for space in ["g", "gsphere", "r"]:
-                #print(space)
                 norm2 = wave.braket(wave, space=space)
                 if space == "r": norm2 = norm2 / structure.volume
                 self.assert_almost_equal(norm2, 1.0)

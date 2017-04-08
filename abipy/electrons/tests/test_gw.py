@@ -8,13 +8,15 @@ import abipy.data as abidata
 from abipy.abilab import abiopen
 from abipy.electrons.gw import *
 from abipy.electrons.gw import SigresReader, SigresPlotter
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestQPList(AbipyTest):
 
     def setUp(self):
         self.sigres = sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+        repr(self.sigres)
+        str(self.sigres)
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
 
     def tearDown(self):
@@ -26,9 +28,10 @@ class TestQPList(AbipyTest):
         assert isinstance(qplist, collections.Iterable)
         self.serialize_with_pickle(qplist, protocols=[-1])
 
-        print(qplist)
+        repr(qplist)
+        str(qplist)
         qplist_copy = qplist.copy()
-        self.assertTrue(qplist_copy == qplist)
+        assert qplist_copy == qplist
 
         qpl_e0sort = qplist.sort_by_e0()
         qpl_e0sort.get_e0mesh()
@@ -50,7 +53,7 @@ class TestQPList(AbipyTest):
 
         # Test QPState object.
         qp = qplist[0]
-        print(qp)
+        str(qp)
         print(qp.tips)
 
         self.assertAlmostEqual(qp.e0, -5.04619941555265, places=5)
@@ -64,7 +67,9 @@ class TestSigresFile(AbipyTest):
     def test_readall(self):
         for path in abidata.SIGRES_NCFILES:
             with abiopen(path) as sigres:
-                print(sigres)
+                repr(sigres)
+                str(sigres)
+                assert len(sigres.structure)
 
     def test_base(self):
         """Test SIGRES File."""
@@ -166,14 +171,15 @@ class TestSigresPlotter(AbipyTest):
         ]
         filepaths = [abidata.ref_file(fname) for fname in filenames]
 
-        plotter = SigresPlotter()
-        plotter.add_files(filepaths)
-        print(plotter)
-        assert len(plotter) == len(filepaths)
+        with SigresPlotter() as plotter:
+            plotter.add_files(filepaths)
+            repr(plotter)
+            str(plotter)
+            assert len(plotter) == len(filepaths)
 
-        if self.has_matplotlib():
-            plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
-            plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
-            plotter.plot_qps_vs_e0(show=False)
+            if self.has_matplotlib():
+                plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
+                plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
+                plotter.plot_qps_vs_e0(show=False)
 
-        plotter.close()
+            plotter.close()

@@ -44,8 +44,8 @@ plotter.add_ebands("LDA", ks_ebands_kpath, dos=ks_edos)
 plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
 # Get pandas dataframe with band structure parameters.
-df = plotter.get_ebands_frame()
-print(df)
+#df = plotter.get_ebands_frame()
+#print(df)
 
 # By default, the two band energies are shifted wrt to *their* fermi level.
 # Use e=0 if you don't want to shift the eigenvalus

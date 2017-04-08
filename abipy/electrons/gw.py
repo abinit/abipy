@@ -15,14 +15,13 @@ from monty.dev import deprecated
 from monty.bisect import find_le, find_ge
 from prettytable import PrettyTable
 from six.moves import cStringIO
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
-from abipy.tools.plotting import ArrayPlotter, plot_array
+from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,6 +52,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         ze0: Renormalization factor computed at e=e0.
 
     .. note::
+
         Energies are in eV.
     """
     @property
@@ -66,6 +66,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         return self.spin, self.kpoint, self.band
 
     def copy(self):
+        """Shallow copy."""
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
         return QPState(**d)
 
@@ -437,7 +438,9 @@ class QPList(list):
 
 
 class Sigmaw(object):
-    """This object stores the values of the self-energy as function of frequency"""
+    """
+    This object stores the values of the self-energy as function of frequency
+    """
 
     def __init__(self, spin, kpoint, band, wmesh, sigmaxc_values, spfunc_values):
         self.spin, self.kpoint, self.band = spin, kpoint, band
@@ -551,6 +554,7 @@ class SigresPlotter(Iterable):
 
         nsppol:
             Number of spins (must be the same in each file)
+
         computed_gwkpoints:
             List of k-points where the QP energies have been evaluated.
             (must be the same in each file)
@@ -592,6 +596,7 @@ class SigresPlotter(Iterable):
         self.close()
 
     def close(self):
+        """Close files."""
         for sigres in self:
             try:
                 sigres.close()
@@ -750,22 +755,22 @@ class SigresPlotter(Iterable):
         """
         qpgaps = []
         for sigres in self:
-            k = sigres.ibz.index(kpoint)
-            qpgaps.append(sigres.qpgaps[spin, k])
+            ik = sigres.ibz.index(kpoint)
+            qpgaps.append(sigres.qpgaps[spin, ik])
 
         return np.array(qpgaps)
 
     def extract_qpenes(self, spin, kpoint, band):
         """
-        Returns a `ndarray` with the QP energies for the given spin, kpoint.
+        Returns a complex array with the QP energies for the given spin, kpoint.
         Values are ordered with the list of SIGRES files in self.
         """
         qpenes = []
         for sigres in self:
-            k = sigres.ibz.index(kpoint)
-            qpenes.append(sigres.qpenes[spin,k,band])
+            ik = sigres.ibz.index(kpoint)
+            qpenes.append(sigres.qpenes[spin, ik, band])
 
-        return np.array(qpenes)
+        return np.array(qpenes, dtype=np.complex)
 
     @add_fig_kwargs
     def plot_qpgaps(self, ax=None, spin=None, kpoint=None, hspan=0.01, **kwargs):
@@ -841,7 +846,7 @@ class SigresPlotter(Iterable):
         fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
         axlist = axlist.ravel()
 
-        if (num_plots % ncols) != 0:
+        if num_plots % ncols != 0:
             axlist[-1].axis('off')
 
         xx = self.xvalues
@@ -850,12 +855,12 @@ class SigresPlotter(Iterable):
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
-                    qpenes = self.extract_qpenes(spin, kpoint, band)
+                    qpenes = self.extract_qpenes(spin, kpoint, band).real
                     ax.plot(xx, qpenes, "o-", label=label, **kwargs)
 
                     if hspan is not None:
                         last = qpenes[-1]
-                        ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
+                        ax.axhspan(last - hspan, last + hspan, facecolor='0.5', alpha=0.5)
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
@@ -989,7 +994,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @property
     def ebands(self):
-        """`ElectronBands` with the KS energies."""
+        """`ElectronBands with the KS energies."""
         return self._ebands
 
     @lazy_property
@@ -998,6 +1003,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.reader.read_allqps()
 
     def get_qplist(self, spin, kpoint):
+        """Return :class`QPList` for the given (spin, kpoint)"""
         qplist = self.reader.read_qplist_sk(spin, kpoint)
         return qplist
 
@@ -1011,27 +1017,36 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.reader.read_qpgaps()
 
     def get_qpgap(self, spin, kpoint):
+        """Return the QP gap in eV at the given (spin, kpoint)"""
         k = self.reader.kpt2fileindex(kpoint)
         return self.qpgaps[spin, k]
 
     def get_sigmaw(self, spin, kpoint, band):
+        """"
+        Read self-energy(w) for (spin, kpoint, band)
+        Return :class:`Function1D` object
+        """
         wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
 
         return Sigmaw(spin, kpoint, band, wmesh, sigxc_values, spf_values)
 
     def get_spfunc(self, spin, kpoint, band):
+        """"
+        Read spectral function for (spin, kpoint, band)
+        Return :class:`Function1D` object
+        """
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
         return Function1D(wmesh, spf_values)
 
-    @deprecated(message="print_qps is deprecated and will be removed in the next version")
+    @deprecated(message="print_qps is deprecated and will be removed in version 0.4")
     def print_qps(self, **kwargs):
         self.reader.print_qps(**kwargs)
 
     @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
         """
-        Plot QP data as function of the KS energy.
+        Plot QP result as function of the KS energy.
 
         Args:
             with_fields: The names of the qp attributes to plot as function of e0.
@@ -1067,6 +1082,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if not isinstance(bands, Iterable): bands = [bands]
 
         ax, fig, plt = get_ax_fig_plt(ax)
+        ax.grid(True)
 
         errlines = []
         for band in bands:
@@ -1639,7 +1655,7 @@ class SigresReader(ETSF_Reader):
         )
 
     def read_qpgaps(self):
-        """Read the QP gaps. Returns ndarray with shape [nsppol, nkibz] in eV"""
+        """Read the QP gaps. Returns [nsppol, nkibz] array with QP gaps in eV"""
         return self.read_value("egwgap")
 
     def read_e0(self, spin, kfile, band):
@@ -1692,13 +1708,8 @@ class SigresReader(ETSF_Reader):
         Returns :class:`AttrDict` instance with the value of the parameters.
         """
         param_names = [
-            "ecutwfn",
-            "ecuteps",
-            "ecutsigx",
-            "scr_nband",
-            "sigma_nband",
-            "gwcalctyp",
-            "scissor_ene",
+            "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
+            "gwcalctyp", "scissor_ene",
         ]
 
         params = AttrDict()
