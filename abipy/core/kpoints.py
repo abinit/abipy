@@ -671,10 +671,13 @@ class KpointList(collections.Sequence):
         return self._reciprocal_lattice
 
     def __repr__(self):
-        return "\n".join("%d) %s" % (i, repr(kpoint)) for i, kpoint in enumerate(self))
+        return self.to_string(func=repr)
 
     def __str__(self):
-        return "\n".join("%d) %s" % (i, str(kpoint)) for i, kpoint in enumerate(self))
+        return self.to_string(func=str)
+
+    def to_string(self, func=str, verbose=0):
+        return "\n".join("%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self))
 
     # Sequence protocol.
     def __len__(self):

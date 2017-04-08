@@ -112,6 +112,8 @@ class TestKpointList(AbipyTest):
         weights = [0.1, 0.2, 0.7]
 
         klist = KpointList(lattice, frac_coords, weights=weights)
+        repr(klist)
+        str(klist)
 
         self.serialize_with_pickle(klist, protocols=[-1])
         self.assertMSONable(klist, test_if_subclass=False)
@@ -149,9 +151,9 @@ class TestKpointList(AbipyTest):
 
         # Remove duplicated k-points.
         add_klist = add_klist.remove_duplicated()
-        self.assertTrue(add_klist.count([0,0,0]) == 1)
-        self.assertTrue(len(add_klist) == 4)
-        self.assertTrue(add_klist == add_klist.remove_duplicated())
+        assert add_klist.count([0,0,0]) == 1
+        assert len(add_klist) == 4
+        assert add_klist == add_klist.remove_duplicated()
 
 #class TestIrredZone(AbipyTest):
 #class TestKpath(AbipyTest):

@@ -456,9 +456,7 @@ class ElectronBands(object):
     #    """String representation (short version)"""
 
     def __str__(self):
-        """
-        String representation
-        """
+        """String representation"""
         return self.to_string()
 
     # Handy variables used to loop
@@ -1106,20 +1104,22 @@ class ElectronBands(object):
 
         return dirgaps
 
-    def to_string(self, title=None, with_structure=True, with_kpoints=True, **kwargs):
+    def to_string(self, title=None, with_structure=True, with_kpoints=False, verbose=0):
         """
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
         Args:
             with_structure: False if structural info shoud not be displayed.
             with_kpoints: False if k-point info shoud not be displayed.
+            verbose: Verbosity level.
         """
+        tos = str if verbose else repr
         lines = []; app = lines.append
         if title is not None:
             app(marquee(title, mark="="))
 
         if with_structure:
-            app(str(self.structure))
+            app(tos(self.structure))
             app("")
 
         app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
@@ -1145,7 +1145,7 @@ class ElectronBands(object):
 
         if with_kpoints:
             app(marquee("K-points", mark="="))
-            app(str(self.kpoints))
+            app(tos(self.kpoints))
             app("")
 
         return "\n".join(lines)

@@ -22,6 +22,7 @@ class PhononBandsTest(AbipyTest):
         phbands = PhononBands.from_file(filename)
         repr(phbands)
         str(phbands)
+        assert phbands.to_string(title="Title", with_structure=False, with_qpoints=True, verbose=1)
         assert PhononBands.as_phbands(phbands) is phbands
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
@@ -147,7 +148,6 @@ class PhononBandsPlotterTest(AbipyTest):
 
         assert len(plotter.phbands_list) == 2
         assert len(plotter.phdoses_list) == 2
-        assert not plotter.markers
 
         df = frame_from_phbands(plotter.phbands_list)
         assert "nqpt" in df

@@ -12,9 +12,10 @@ import json
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from monty.string import is_string, list_strings
+from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
@@ -22,7 +23,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, Note
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 
@@ -154,11 +155,13 @@ class PhononBands(object):
                                  weights=r.read_qweights(),
                                  names=None)
 
+            # Read amu
             amu_list = r.read_amu()
             if amu_list is not None:
                 atom_species = r.read_value("atomic_numbers")
                 amu = {at: a for at, a in zip(atom_species, amu_list)}
             else:
+                cprint("Warning: file does not contain atomic_numbers. Some methods need them!")
                 amu = None
 
             return cls(structure=structure,
@@ -203,28 +206,21 @@ class PhononBands(object):
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None, non_anal_ph=None,
-                 amu=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None):
         """
         Args:
             structure: :class:`Structure` object.
             qpoints: :class:`KpointList` instance.
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: Displacement in Cartesian coordinates.
-            markers: Optional dictionary containing markers labelled by a string.
-                Each marker is a list of tuple(x, y, s) where x,and y are the position
-                in the graph and s is the size of the marker.
-                Used for plotting purpose e.g. QP data, energy derivatives...
-            widths: Optional dictionary containing data used for the so-called fatbands
-                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
-                of the band at that particular point. Used for plotting purpose e.g. fatbands.
-            non_anal_ph: :class: NonAnalyticalPh containing the information of the non analytical contribution
+            non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
+                None if contribution is not present
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation
         """
         self.structure = structure
 
-        # :class:`KpointList` with the q-points
+        # `KpointList` with the q-points
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
@@ -241,30 +237,41 @@ class PhononBands(object):
         self.num_branches = 3 * self.num_atoms
         self.branches = range(self.num_branches)
 
-        if markers is not None:
-            for key, xys in markers.items():
-                self.set_marker(key, xys)
-
-        if widths is not None:
-            for key, width in widths.items():
-                self.set_width(key, width)
-
         self.non_anal_ph = non_anal_ph
         self.amu = amu
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, prtvol=0):
-        """String representation."""
-        lines = []
-        app = lines.append
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
+        """
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
-        for key, value in self.__dict__.items():
-            if key.startswith("_"): continue
-            if prtvol == 0 and isinstance(value, np.ndarray):
-                continue
-            app("%s = %s" % (key, value))
+        Args:
+            with_structure: False if structural info shoud not be displayed.
+            with_qpoints: False if q-point info shoud not be displayed.
+            verbose: Verbosity level.
+        """
+        tos = str if verbose else repr
+        lines = []; app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
+
+        if with_structure:
+            app(tos(self.structure))
+            app("")
+
+        app("Number of q-points: %d" % self.num_qpoints)
+        app("Atomic mass units: %s" % str(self.amu))
+        has_dipdip = self.non_anal_ph is not None
+        app("Has non-analytical contribution for q --> 0: %s" % has_dipdip)
+        if verbose and has_dipdip:
+            app(str(self.non_anal_ph))
+
+        if with_qpoints:
+            app(marquee("Q-points", mark="="))
+            app(tos(self.qpoints))
+            app("")
 
         return "\n".join(lines)
 
@@ -363,103 +370,6 @@ class PhononBands(object):
             return self.non_anal_ph.dyn_mat_eigenvect
         else:
             return None
-
-    @property
-    def markers(self):
-        try:
-            return self._markers
-        except AttributeError:
-            return {}
-
-    def del_marker(self, key):
-        """
-        Delete the entry in self.markers with the specied key.
-        All markers are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._markers[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._markers
-            except AttributeError:
-                pass
-
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                positions of the i-th markers in the plot and
-                s[i] is the size of the marker.
-            extend:
-                True if the values xys should be added to a pre-existing marker.
-        """
-        if not hasattr(self, "_markers"):
-            self._markers = OrderedDict()
-
-        if extend:
-            if key not in self.markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-        else:
-            if key in self.markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
-
-    @property
-    def widths(self):
-        try:
-            return self._widths
-        except AttributeError:
-            return {}
-
-    def del_width(self, key):
-        """
-        Delete the entry in self.widths with the specified key.
-        All keys are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._widths[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._widths
-            except AttributeError:
-                pass
-
-    def set_width(self, key, width):
-        """
-        Set an entry in the widths dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            width: array-like of positive numbers, shape is [nqpt, num_modes].
-        """
-        width = np.reshape(width, self.shape)
-
-        if not hasattr(self, "_widths"):
-            self._widths = OrderedDict()
-
-        if key in self.widths:
-            raise ValueError("Cannot overwrite key %s in data" % key)
-
-        if np.any(np.iscomplex(width)):
-            raise ValueError("Found ambiguous complex entry %s" % str(width))
-
-        if np.any(width < 0.0):
-            raise ValueError("Found negative entry in width array %s" % str(width))
-
-        self._widths[key] = width
 
     def to_xmgrace(self, filepath, units="meV"):
         """
@@ -561,6 +471,7 @@ class PhononBands(object):
 
         return sorted(umodes)
 
+    # TODO
     #def find_irreps(self, qpoint, tolerance):
     #    """
     #    Find the irreducible representation at this q-point
@@ -754,7 +665,7 @@ class PhononBands(object):
             h = []
             if np.array_equal(qpts[0], [0, 0, 0]):
                 h.append((0, "\\Gamma"))
-            for i in range(1,len(qpts)-1):
+            for i in range(1, len(qpts)-1):
                 if np.array_equal(qpts[i], [0,0,0]):
                     h.append((i, "\\Gamma"))
                 elif np.array_equal(qpts[i], qpts[i+1]):
@@ -868,8 +779,7 @@ class PhononBands(object):
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     @add_fig_kwargs
-    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None,
-             marker=None, width=None, match_bands=False, **kwargs):
+    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, **kwargs):
         r"""
         Plot the phonon band structure.
 
@@ -879,10 +789,6 @@ class PhononBands(object):
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
-            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used
-                to scale the marker size.
-            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used
-                to scale the stripe size.
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
 
         Returns:
@@ -907,27 +813,6 @@ class PhononBands(object):
 
         # Plot the phonon branches.
         self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
-
-        # Add markers to the plot.
-        if marker is not None:
-            try:
-                key, fact = marker.split(":")
-            except ValueError:
-                key = marker
-                fact = 1
-            fact = float(fact)
-
-            self.plot_marker_ax(ax, key, fact=fact)
-
-        # Plot fatbands.
-        if width is not None:
-            try:
-                key, fact = width.split(":")
-            except ValueError:
-                key = width
-                fact = 1
-
-            self.plot_width_ax(ax, key, fact=fact)
 
         return fig
 
@@ -1184,29 +1069,6 @@ class PhononBands(object):
                 return self.non_anal_phdispl_cart[i]
 
         raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
-
-    def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
-        """Helper function to plot fatbands for given branch on the axis ax."""
-        branch_range = range(self.num_branches) if branch is None else [branch]
-
-        facecolor = kwargs.pop("facecolor", "blue")
-        alpha = kwargs.pop("alpha", 0.7)
-
-        x, width = range(self.num_qpoints), fact * self.widths[key]
-
-        for branch in branch_range:
-           y, w = self.phfreq[:, branch], width[:,branch] * fact
-           ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
-
-    def plot_marker_ax(self, ax, key, fact=1.0):
-        """Helper function to plot the markers for (spin,band) on the axis ax."""
-        pos, neg = self.markers[key].posneg_marker()
-
-        if pos:
-            ax.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-        if neg:
-            ax.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
@@ -2326,8 +2188,6 @@ class PhononBandsPlotter(NotebookWriter):
             if len(key_phbands) != len(key_phdos):
                 raise ValueError("key_phbands and key_phdos must have the same number of elements.")
 
-        self._markers = OrderedDict()
-
     def __repr__(self):
         """Invoked by repr"""
         return self.to_string(func=repr)
@@ -2378,10 +2238,6 @@ class PhononBandsPlotter(NotebookWriter):
     def phdoses_list(self):
         """"List of :class:`PhononDos`."""
         return list(self._phdoses_dict.values())
-
-    @property
-    def markers(self):
-        return self._markers
 
     def iter_lineopt(self):
         """Generates style options for lines."""
@@ -2444,29 +2300,6 @@ class PhononBandsPlotter(NotebookWriter):
             text.append(str(stat))
 
         return "\n\n".join(text)
-
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                 positions of the i-th markers in the plot and s[i] is the size of the marker.
-            extend: True if the values xys should be added to a pre-existing marker.
-        """
-        if extend:
-            if key not in self._markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-
-        else:
-            if key in self._markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
 
     @add_fig_kwargs
     def combiplot(self, qlabels=None, units='eV', **kwargs):
@@ -2534,18 +2367,6 @@ class PhononBandsPlotter(NotebookWriter):
             # Set ticks and labels, legends.
             if i == 0:
                 bands.decorate_ax(ax1, qlabels=qlabels, units=units)
-
-        if self.markers:
-            for key, markers in self.markers.items():
-                pos, neg = markers.posneg_marker()
-                # Use different symbols depending on the value of s.
-                # Cannot use negative s.
-                fact = 1
-                if pos:
-                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-                if neg:
-                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
         ax1.legend(lines, legends, loc='best', shadow=True)
 

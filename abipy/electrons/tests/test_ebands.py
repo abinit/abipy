@@ -65,6 +65,9 @@ class ElectronBandsTest(AbipyTest):
         """Test electron DOS methods."""
         gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         assert not gs_bands.has_metallic_scheme
+        repr(gs_bands)
+        str(gs_bands)
+        assert gs_bands.to_string(title="Title", with_structure=False, with_kpoints=True, verbose=1)
 
         # Test get_e0
         assert gs_bands.get_e0("fermie") == gs_bands.fermie
@@ -120,6 +123,7 @@ class ElectronBandsTest(AbipyTest):
         nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
         diffs = nscf_bands.statdiff(nscf_bands)
+        assert diffs is not None
         print(diffs)
 
         # Test the detection of denerate states.
