@@ -575,6 +575,10 @@ class SigresPlotter(Iterable):
         return iter(self._sigres_files.values())
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
         s = ""
         for sigres in self:
             s += str(sigres) + "\n"

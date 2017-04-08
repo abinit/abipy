@@ -21,4 +21,3 @@ phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
 # Plot the phonon frequencies. Note that the labels for the q-points
 # are found automatically by searching in an internal database.
 phbands.plot(title="ZnSe with LO-TO splitting")
-

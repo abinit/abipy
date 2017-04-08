@@ -32,13 +32,10 @@ class PhononBandsTest(AbipyTest):
 
         # Test XYZ vib
         phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])
-
         # Test ascii file
         phbands.create_ascii_vib(iqpts=0, filename=self.get_tmpname(text=True), pre_factor=1)
-
         # Test phononwebsite file
         phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name='test')
-
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
@@ -51,9 +48,20 @@ class PhononBandsTest(AbipyTest):
         eig = phbands.dyn_mat_eigenvect
         assert np.allclose(np.dot(eig[0], eig[0].T), np.eye(len(eig[0]), dtype=np.complex), atol=1e-5, rtol=1e-3)
 
+        # Mapping reduced coordinates -> labels
+        qlabels = {
+            (0,0,0): "$\Gamma$",
+            (0.375, 0.375, 0.75): "K",
+            (0.5, 0.5, 1.0): "X",
+            (0.5, 0.5, 0.5): "L",
+            (0.5, 0.0, 0.5): "X",
+            (0.5, 0.25, 0.75): "W",
+        }
+
         if self.has_matplotlib():
-            phbands.plot(units="cm-1", show=False)
-            phbands.plot_fatbands(units="ha", show=False)
+            phbands.plot(units="Thz", show=False)
+            phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
+            phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             phbands.plot_colored_matched(units="cm^-1", show=False)
             phbands.boxplot(units="ev", show=False)
 
@@ -88,7 +96,7 @@ class PlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             fig = phbands_gridplot(phb_objects, titles=["phonons1", "phonons2"],
-                               phdos_objects=phdos_objects, units="cm-1", show=False)
+                               phdos_objects=phdos_objects, units="meV", show=False)
             assert fig is not None
 
         phdos.close()
@@ -150,9 +158,9 @@ class PhononBandsPlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             plotter.combiplot(units="eV", show=True)
-            plotter.gridplot(units="Ha", show=True)
+            plotter.gridplot(units="meV", show=True)
             plotter.boxplot(units="cm-1", show=True)
-            plotter.combiboxplot(units="cm^-1", show=True)
+            plotter.combiboxplot(units="Thz", show=True)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))

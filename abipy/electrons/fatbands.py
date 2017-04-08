@@ -283,6 +283,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     def __str__(self):
         """String representation"""
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))

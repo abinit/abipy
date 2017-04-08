@@ -1,5 +1,5 @@
 """Tests for electrons.bse module"""
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import abipy.data as abidata
@@ -28,13 +28,18 @@ class TestMDF_Reader(AbipyTest):
             plotter.add_mdf("EXC", exc_mdf)
             plotter.add_mdf("KS-RPA", rpanlf_mdf)
             plotter.add_mdf("GW-RPA", gwnlf_mdf)
+
             if self.has_matplotlib():
                 plotter.plot(show=False)
+
+            #if self.has_ipywidgets():
+            #    assert plotter.ipw_plot() is not None
 
     def test_mdf_api(self):
         """Test MdfFile API"""
         with MdfFile(abidata.ref_file("tbs_4o_DS2_MDF.nc")) as mdf_file:
-            print(mdf_file)
+            repr(mdf_file)
+            str(mdf_file)
             assert len(mdf_file.structure) == 2
 
             exc_tsr = mdf_file.get_tensor("exc")
@@ -42,6 +47,7 @@ class TestMDF_Reader(AbipyTest):
             gw_tsr = mdf_file.get_tensor("gwrpa")
 
             rpa = mdf_file.get_mdf("rpa")
+            repr(rpa)
             str(rpa)
             rpa.to_string(with_info=True)
             assert rpa.num_qpoints == 6

@@ -599,6 +599,22 @@ class MdfPlotter(object):
 
         return fig
 
+    #def ipw_plot(self)
+    #    """
+    #    Return an ipython widget with controllers to select the plot.
+    #    """
+    #    def plot_callback(plot_type, qpoint):
+    #        if qpoint == "None": qpoint = None
+    #        return self.plot(cplx_type=cplx_type, qpoint=qpoint)
+
+    #    import ipywidgets as ipw
+    #    return ipw.interact_manual(
+    #            plot_callback,
+    #            cplx_type=["re", "im", "abs"],
+    #            qpoint=["None"] + list(range(self.,
+    #        )
+
+
 
 class MultipleMdfPlotter(object):
     """

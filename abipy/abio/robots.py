@@ -166,7 +166,7 @@ class Robot(object):
             `Robot` subclass.
         """
         robot = cls()
-        all_opts = ["flow", "work", "task"]
+        all_opts = ("flow", "work", "task")
 
         if outdirs == "all":
             tokens = all_opts
@@ -318,6 +318,7 @@ class Robot(object):
         return iter(self._ncfiles.items())
 
     def __getitem__(self, key):
+        # self[key]
         return self.ncfiles.__getitem__(key)
 
     def __enter__(self):
@@ -336,24 +337,19 @@ class Robot(object):
 
     def __repr__(self):
         """Invoked by repr(obj)"""
-        lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
-        for i, f in enumerate(self.ncfiles):
-            path = f.relpath if len(f.relpath) < len(f.filepath) else f.filepath
-            lines.append("  [%d] %s" % (i, path))
-
-        return "\n".join(lines)
+        return self.to_string(func=repr)
 
     def __str__(self):
-        """String representation."""
-        return self.to_string()
+        """Invoked by str."""
+        return self.to_string(func=str)
 
-    def to_string(self, verbose=0):
+    def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
         app = lines.append
         for i, f in enumerate(self.ncfiles):
             app(" ")
-            app(str(f))
+            app(func(f))
             app(" ")
 
         return "\n".join(lines)
@@ -432,14 +428,14 @@ class Robot(object):
 
     #def get_structure_dataframe(self):
     #    from abipy.core.structure import frames_from_structures
-    #    for abifile in self.ncfiles:
-    #    df = frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False)
+    #    index = list(self.keys())
+    #    frames_from_structures(self.ncfiles, index=None, with_spglib=True, cart_coords=False)
 
     #def get_ebands_dataframe(self):
     #    from abipy.electrons.ebands import frames_from_ebands
     #    for abifile in self.ncfiles:
-    #    df = frame_from_ebands(ebands_objects, index=None, with_spglib=True)
-    #
+    #    index = list(self.keys())
+    #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
 
 
 class GsrRobot(Robot, NotebookWriter):
@@ -570,18 +566,14 @@ class GsrRobot(Robot, NotebookWriter):
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
 
-            nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("df = plotter.get_ebands_frame()\ndisplay(df)"),
 
             nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-            nbv.new_code_cell("fig = ebands_plotter.gridplot()"),
-            nbv.new_code_cell("fig = ebands_plotter.combiplot()"),
-            nbv.new_code_cell("fig = ebands_plotter.boxplot()"),
-            nbv.new_code_cell("fig = ebands_plotter.combiboxplot()"),
+            nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
             nbv.new_code_cell("#anim = ebands_plotter.animate()"),
 
             nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
-            nbv.new_code_cell("fig = plotter.combiplot()"),
-            nbv.new_code_cell("fig = plotter.gridplot()"),
+            nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -916,24 +908,17 @@ class DdbRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
-            nbv.new_code_cell("units = 'eV'"),
 
             nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
 
             nbv.new_code_cell("r = robot.get_phonon_plotters(%s)" % get_phonon_plotters_kwargs),
 
             nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
+            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),
-            #nbv.new_code_cell("fig = r.phbands_plotter.combiplot(units=units)"),
-            #nbv.new_code_cell("fig = r.phbands_plotter.gridplot(units=units)"),
-            #nbv.new_code_cell("fig = r.phbands_plotter.boxplot(units=units)"),
-            #nbv.new_code_cell("fig = r.phbands_plotter.combiboxplot(units=units)"),
 
             nbv.new_code_cell("r.phdos_plotter.ipw_select_plot()"),
             nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
-            #nbv.new_code_cell("fig = r.phdos_plotter.combiplot(units=units)"),
-            #nbv.new_code_cell("fig = r.phdos_plotter.gridplot(units=units)"),
-            #nbv.new_code_cell("fig = r.phdos_plotter.plot_harmonic_thermo()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
