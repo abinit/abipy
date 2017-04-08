@@ -906,7 +906,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
-        sigres.plot_ksbands_with_qpmarkers()
     """
     @classmethod
     def from_file(cls, filepath):
@@ -971,7 +970,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 
@@ -1323,7 +1322,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("sigres = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(sigres)"),
             nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
-            nbv.new_code_cell("fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=1000)"),
             nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
             nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
             nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),

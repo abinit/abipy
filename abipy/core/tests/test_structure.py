@@ -47,6 +47,13 @@ class TestStructure(AbipyTest):
         assert si.formula == "Si2"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
 
+        e = si.spget_equivalent_atoms(printout=True)
+        assert len(e.irred_pos) == 1
+        self.assert_equal(e.eqmap[0], [0, 1])
+        for irr_pos in e.irred_pos:
+            assert len(e.eqmap[irr_pos]) > 0
+        assert "equivalent_atoms" in e.spgdata
+
         if self.has_matplotlib():
             si.show_bz(show=False)
 

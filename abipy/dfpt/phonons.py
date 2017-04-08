@@ -161,7 +161,8 @@ class PhononBands(object):
                 atom_species = r.read_value("atomic_numbers")
                 amu = {at: a for at, a in zip(atom_species, amu_list)}
             else:
-                cprint("Warning: file does not contain atomic_numbers. Some methods need them!")
+                cprint("Warning: file %s does not contain atomic_numbers.\nParticular methods need them!" %
+                        filepath, "red")
                 amu = None
 
             return cls(structure=structure,
@@ -281,7 +282,7 @@ class PhononBands(object):
         # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
         #raise NotImplementedError("")
         displ_specie = []
-        for (i, site) in enumerate(self.structure):
+        for i, site in enumerate(self.structure):
             if site.specie == specie:
                 displ_specie.append(self.phdispl_cart[:, :, i, :])
 
@@ -533,7 +534,7 @@ class PhononBands(object):
 
         values = np.zeros(nw)
         if method == "gaussian":
-            for (q, qpoint) in enumerate(self.qpoints):
+            for q, qpoint in enumerate(self.qpoints):
                 weight = qpoint.weight
                 for nu in self.branches:
                     w = self.phfreqs[q, nu]
@@ -1937,8 +1938,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         cmap = plt.get_cmap(colormap)
 
         ax.grid(True)
-        set_axlims(ax, kwargs.pop("xlim", None), "x")
-        set_axlims(ax, kwargs.pop("ylim", None), "y")
+        set_axlims(ax, kwargs.pop("xlims", None), "x")
+        set_axlims(ax, kwargs.pop("ylims", None), "y")
         ax.set_xlabel('Frequency %s' % _unit_tag(units))
         ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
 
@@ -1985,7 +1986,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ntypat = self.structure.ntypesp
         factor = _factor_ev2units(units)
 
-        # Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
+        # Three rows for each reduced direction.
+        # Each row shows the contribution of each atomic type + Total PH DOS.
         import matplotlib.pyplot as plt
         nrows, ncols = 3, 1
         if axlist is None:
@@ -1994,15 +1996,15 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
         cmap = plt.get_cmap(colormap)
-        xlim, ylim = None, None
+        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("xlims", None)
         #double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)
         pjdos_type_rc = self.reader.pjdos_type_rc
 
         xx = self.phdos.mesh * factor
         for idir, ax in enumerate(axlist):
             ax.grid(True)
-            set_axlims(ax, xlim, "x")
-            set_axlims(ax, ylim, "y")
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
 
             if idir in (0, 2):
                 ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
@@ -2016,6 +2018,87 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 symbol = str(itype)
                 color = cmap(float(itype) / (ntypat - 1))
                 yy = pjdos_type_rc[itype, idir] / factor
+
+                if not stacked:
+                    ax.plot(xx, yy, label=symbol, color=color)
+                else:
+                    ax.plot(xx, cumulative + yy, lw=lw, label=symbol, color=color)
+                    ax.fill_between(xx, cumulative, cumulative + yy, facecolor=color, alpha=alpha)
+                    cumulative += yy
+
+            # Add Total PHDOS
+            ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
+            ax.legend(loc="best")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
+                               ylims=None, axlist=None, **kwargs):
+        """
+        Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
+
+        Args:
+            view: "inequivalent", "all"
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            colormap: matplotlib colormap
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
+        """
+        # Define num_plots and ax2atom depending on view.
+        factor = _factor_ev2units(units)
+        natom, ntypat = len(self.structure), self.structure.ntypesp
+        lw = kwargs.pop("lw", 2)
+        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
+
+        if view == "all" or natom == 1:
+            iatom_list = np.arange(natom)
+
+        elif view == "inequivalent":
+            print("Calling spglib to find inequivalent sites.")
+            print("Note that `symafm` magnetic symmetries (if any) are not taken into account.")
+            ea = self.structure.spget_equivalent_atoms(printout=True)
+            iatom_list = ea.irred_pos
+        else:
+            raise ValueError("Wrong value for view: %s" % str(view))
+
+        # Three rows for each reduced direction.
+        # Each row shows the contribution of each site + Total PH DOS.
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(colormap)
+        nrows, ncols = 3, 1
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
+        else:
+            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+
+        # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        pjdos = self.reader.pjdos
+
+        xx = self.phdos.mesh * factor
+        for idir, ax in enumerate(axlist):
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+
+            if idir in (0, 2):
+                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+                if idir == 2:
+                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+
+            # Plot Type projected DOSes along reduced direction idir
+            cumulative = np.zeros(len(self.wmesh))
+            for iatom in iatom_list:
+                site = self.structure[iatom]
+                symbol = str(site)
+                color = cmap(float(iatom) / (len(iatom_list) - 1))
+                yy = pjdos[iatom, idir] / factor
 
                 if not stacked:
                     ax.plot(xx, yy, label=symbol, color=color)
@@ -2314,8 +2397,8 @@ class PhononBandsPlotter(NotebookWriter):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits. None (default) for automatic determination.
+        xlims            x-axis limits. None (default) for automatic determination.
+        ylims            y-axis limits. None (default) for automatic determination.
         ==============  ==============================================================
 
         Returns:
@@ -2341,9 +2424,9 @@ class PhononBandsPlotter(NotebookWriter):
         for ax in ax_list:
             ax.grid(True)
 
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None:
-            [ax.set_ylim(ylim) for ax in ax_list]
+        ylims = kwargs.pop("ylims", None)
+        if ylims is not None:
+            [ax.set_ylim(ylims) for ax in ax_list]
 
         # Plot bands.
         lines, legends = [], []
@@ -2548,8 +2631,7 @@ class PhononDosPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiplot(self, ax=None, units="eV", **kwargs):
         """
-        Plot the the DOSes on the same figure.
-        Use `gridplot` to plot DOSes on different figures.
+        Plot the the DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -2558,15 +2640,15 @@ class PhononDosPlotter(NotebookWriter):
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits.  None (default) for automatic determination.
+        xlims           x-axis limits. None (default) for automatic determination.
+        ylims           y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
         ax.grid(True)
-        set_axlims(ax, kwargs.pop("xlim", None), "x")
-        set_axlims(ax, kwargs.pop("ylim", None), "y")
+        set_axlims(ax, kwargs.pop("xlims", None), "x")
+        set_axlims(ax, kwargs.pop("ylims", None), "y")
         ax.set_xlabel('Energy %s' % _unit_tag(units))
         ax.set_ylabel('DOS %s' % _dos_label_from_units(units))
 
@@ -2724,7 +2806,6 @@ class PhononDosPlotter(NotebookWriter):
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
-            #nbv.new_code_cell("xlims = (None, None)"),
             nbv.new_code_cell("plotter.ipw_select_plot()"),
             nbv.new_code_cell("plotter.ipw_harmonic_thermo()"),
         ])

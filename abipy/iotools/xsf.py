@@ -101,8 +101,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
         else:
             raise ValueError("Wrong value for cplx_mode: %s" % cplx_mode)
 
-    shape = data.shape
-    ndim = data.ndim
+    shape, ndim = data.shape, data.ndim
 
     if ndim == 3:
         ngrids = 1

@@ -486,6 +486,51 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % str(space))
 
+    def spget_equivalent_atoms(self, printout=False):
+        """
+        Call spglib to find the inequivalent atoms and build symmetry tables.
+
+        Args:
+            printout: True to print symmetry tables.
+
+        Returns:
+            namedtuple with the following attributes: irred_pos, eqmap, spgdata
+
+            irred_pos: array giving the position of the i-th irred atom in the structure.
+                The number of irred atoms is len(irred_pos)
+            eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+            spgdata: spglib dataset with additional data reported by spglib.
+
+        .. example::
+
+            for irr_pos in irred_pos:
+                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
+        """
+        spgan = SpacegroupAnalyzer(self)
+        spgdata = spgan.get_symmetry_dataset()
+        equivalent_atoms = spgdata["equivalent_atoms"]
+        irred_pos = []
+        eqmap = collections.defaultdict(list)
+        for pos, eqpos in enumerate(equivalent_atoms):
+            eqmap[eqpos].append(pos)
+            # Add it to irred_pos if it's irreducible.
+            if pos == eqpos: irred_pos.append(pos)
+
+        # Convert to numpy arrays
+        irred_pos = np.array(irred_pos)
+        for eqpos in eqmap:
+            eqmap[eqpos] = np.array(eqmap[eqpos], dtype=np.int)
+
+        if printout:
+            print("Found %d inequivalent position(s)." % len(irred_pos))
+            for i, irr_pos in enumerate(sorted(eqmap.keys())):
+                print("Irred_Site: %s" % str(self[irr_pos]))
+                for eqind in eqmap[irr_pos]:
+                    if eqind == irr_pos: continue
+                    print("\tSymEq: %s" % str(self[eqind]))
+
+        return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, spgdata=spgdata)
+
     def spglib_summary(self, verbose=0):
         """
         Return string with full information about crystalline structure i.e.

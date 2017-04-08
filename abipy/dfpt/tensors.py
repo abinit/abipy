@@ -52,4 +52,3 @@ class DielectricTensor(SquareTensor):
         d = np.sqrt(d)
 
         return np.abs((1-d)/(1+d))**2
-

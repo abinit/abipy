@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import numpy as np
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.dfpt.tensors import DielectricTensor, NLOpticalSusceptibilityTensor
 import abipy.data as abidata
 

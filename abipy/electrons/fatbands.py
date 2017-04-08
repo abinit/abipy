@@ -439,24 +439,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         elif view == "inequivalent":
             print("Calling spglib to find inequivalent sites.")
-            print("Note that magnetic symmetries are not taken into account")
-            from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-            spgan = SpacegroupAnalyzer(self.structure)
-            spgdata = spgan.get_symmetry_dataset()
-            equivalent_atoms = spgdata["equivalent_atoms"]
-            ax2iatom = []
-            eqmap = defaultdict(list)
-            for pos, eqpos in enumerate(equivalent_atoms):
-                if pos == eqpos: ax2iatom.append(pos)
-                eqmap[eqpos].append(pos)
-            ax2iatom = np.array(ax2iatom)
-            num_plots = len(ax2iatom)
-            print("Found %d inequivalent position(s)." % num_plots)
-            for i, irr_pos in enumerate(sorted(eqmap.keys())):
-                print("Irred_Site: %s" % str(self.structure[irr_pos]))
-                for eqind in eqmap[irr_pos]:
-                    if eqind == irr_pos: continue
-                    print("\tSymEq: %s" % str(self.structure[eqind]))
+            print("Note that `symafm` magnetic symmetries (if any) are not taken into account.")
+            ea = self.structure.spget_equivalent_atoms(printout=True)
+            num_plots = len(ea.irred_pos)
+            ax2iatom = ea.irred_pos
         else:
             raise ValueError("Wrong value for view: %s" % str(view))
 
@@ -698,7 +684,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 if itype != 0:
                     ax.set_ylabel("")
 
-                # Plot fatbands for give (symbol, spin) and all angular momenta.
+                # Plot fatbands for given (symbol, spin) and all angular momenta.
                 for band in mybands:
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup

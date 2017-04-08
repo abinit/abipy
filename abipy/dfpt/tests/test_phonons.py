@@ -204,6 +204,9 @@ class PhononDosTest(AbipyTest):
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
             assert ncfile.plot_pjdos_redirs_type(units="Thz", stacked=True, show=False)
             assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=False, alpha=0.5, show=False)
+
             assert phdos.plot(units="cm-1", show=False)
             assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)
             # FIXME
