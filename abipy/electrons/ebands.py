@@ -27,7 +27,7 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
 from abipy.tools import gaussian
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, Marker
+from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt #, Marker
 
 
 import logging
@@ -323,7 +323,6 @@ class ElectronBands(object):
         return cls(Structure.from_dict(d["structure"]), kpoints,
                    d["eigens"], d["fermie"], d["occfacts"], d["nelect"], d["nspinor"], d["nspden"],
                    nband_sk=d["nband_sk"], smearing=d["smearing"],
-                   #markers=None, widths=None
                    )
 
     @pmg_serialize
@@ -378,7 +377,7 @@ class ElectronBands(object):
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect, nspinor, nspden,
-                 nband_sk=None, smearing=None, markers=None, widths=None):
+                 nband_sk=None, smearing=None):
         """
         Args:
             structure: pymatgen structure.
@@ -393,14 +392,6 @@ class ElectronBands(object):
             smearing: :class:`Smearing` object storing information on the smearing technique.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
-            markers: Optional dictionary containing markers labelled by a string.
-                     Each marker is a list of tuple(x, y, s) where x,and y are the position
-                     in the graph and s is the size of the marker.
-                     Used for plotting purpose e.g. QP data, energy derivatives...
-            widths: Optional dictionary containing data used for the so-called fatbands
-                    Each entry is an array of shape [nsppol, nkpt, mband] giving the width
-                    of the band at that particular point.
-                    Used for plotting purpose e.g. L-projections.
         """
         self.structure = structure
 
@@ -429,14 +420,6 @@ class ElectronBands(object):
         # bands are computed on a BZ mesh with a NSCF run.
         #if self.kpoints.is_ibz: # and iscf < 0
         #    self.recalc_fermie()
-
-        if markers is not None:
-            for key, xys in markers.items():
-                self.set_marker(key, xys)
-
-        if widths is not None:
-            for key, width in widths.items():
-                self.set_width(key, width)
 
     @lazy_property
     def _auto_klabels(self):
@@ -555,102 +538,6 @@ class ElectronBands(object):
                 odict["dirgap_spin%d" % spin] = direct_gaps[spin].energy
 
         return odict
-
-    @property
-    def markers(self):
-        try:
-            return self._markers
-        except AttributeError:
-            return {}
-
-    def del_marker(self, key):
-        """
-        Delete the entry in self.markers with the specied key. All markers are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._markers[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._markers
-            except AttributeError:
-                pass
-
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                 positions of the i-th markers in the plot and s[i] is the size of the marker.
-            extend: True if the values xys should be added to a pre-existing marker.
-        """
-        if not hasattr(self, "_markers"):
-            self._markers = OrderedDict()
-
-        if extend:
-            if key not in self.markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-
-        else:
-            if key in self.markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
-
-    @property
-    def widths(self):
-        """Widths dictionary"""
-        try:
-            return self._widths
-        except AttributeError:
-            return {}
-
-    def del_width(self, key):
-        """
-        Delete the entry in self.widths with the specified key. All keys are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._widths[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._widths
-            except AttributeError:
-                pass
-
-    def set_width(self, key, width, overwrite=True):
-        """
-        Set an entry in the widths dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            width: array-like of positive numbers, shape is [nsppol, nkpt, mband].
-        """
-        width = np.reshape(width, self.shape)
-
-        if not hasattr(self, "_widths"):
-            self._widths = OrderedDict()
-
-        if not overwrite and key in self.widths:
-            if not np.allclose(width, self.widths[key]):
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-        if np.any(np.iscomplex(width)):
-            raise ValueError("Found ambiguous complex entry %s" % str(width))
-
-        if np.any(width < 0.0):
-            raise ValueError("Found negative entry in width array %s" % str(width))
-
-        self._widths[key] = width
 
     @property
     def has_bzmesh(self):
@@ -1431,11 +1318,10 @@ class ElectronBands(object):
 
         return self.__class__(
             self.structure, self.kpoints, qp_energies, fermie, self.occfacts, self.nelect, self.nspinor, self.nspden,
-            nband_sk=self.nband_sk, smearing=self.smearing, markers=self.markers)
+            nband_sk=self.nband_sk, smearing=self.smearing)
 
     @add_fig_kwargs
-    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie",
-             ylims=None, marker=None, width=None, **kwargs):
+    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie", ylims=None, **kwargs):
         r"""
         Plot the band structure.
 
@@ -1451,10 +1337,6 @@ class ElectronBands(object):
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-            marker: String defining the marker to plot. Accepts the syntax `markername:fact` where
-                fact is a float used to scale the marker size.
-            width: String defining the width to plot. Accepts the syntax widthname:fact where
-                fact is a float used to scale the stripe size.
 
         Returns:
             `matplotlib` figure
@@ -1480,27 +1362,6 @@ class ElectronBands(object):
 
             for band in band_range:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
-
-        # Add markers to the plot.
-        if marker is not None:
-            try:
-                key, fact = marker.split(":")
-            except ValueError:
-                key = marker
-                fact = 1
-            fact = float(fact)
-
-            self.plot_marker_ax(ax, key, e0, fact=fact)
-
-        # Plot fatbands.
-        if width is not None:
-            try:
-                key, fact = width.split(":")
-            except ValueError:
-                key = width
-                fact = 1
-
-            self.plot_width_ax(ax, key, e0, fact=fact)
 
         return fig
 
@@ -1577,44 +1438,6 @@ class ElectronBands(object):
                 lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
-
-    def plot_width_ax(self, ax, key, e0, spin=None, band=None, fact=1.0, **kwargs):
-        """
-        Helper function to plot fatbands for the given (spin,band) on the axis ax.
-
-        Args:
-            e0: Option used to define the zero of energy in the band structure plot.
-        """
-        spin_range = range(self.nsppol) if spin is None else [spin]
-        band_range = range(self.mband) if band is None else [band]
-
-        facecolor = kwargs.pop("facecolor", "blue")
-        alpha = kwargs.pop("alpha", 0.7)
-
-        x, width = range(self.nkpt), fact * self.widths[key]
-
-        e0 = self.get_e0(e0)
-        for spin in spin_range:
-            for band in band_range:
-                y, w = self.eigens[spin,:,band] - e0, width[spin,:,band] * fact
-                ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
-
-    def plot_marker_ax(self, ax, key, e0, fact=1.0):
-        """
-        Helper function to plot the markers on the axes ax.
-
-        Args:
-            e0: Option used to define the zero of energy in the band structure plot.
-        """
-        pos, neg = self.markers[key].posneg_marker()
-        e0 = self.get_e0(e0)
-
-        # Use different symbols depending on the value of s. Cannot use negative s.
-        if pos:
-            ax.scatter(pos.x, pos.y - e0, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-        if neg:
-            ax.scatter(neg.x, neg.y - e0, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
 
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
@@ -1800,7 +1623,7 @@ class ElectronBands(object):
         with open(filepath, "wt") as fh:
             bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs+1, emesh_sbk, self.fermie, unit="eV")
 
-    def derivatives(self, spin, band, order=1, acc=4, asmarker=None):
+    def derivatives(self, spin, band, order=1, acc=4):
         """
         Compute the derivative of the eigenvalues wrt to k.
 
@@ -1809,7 +1632,6 @@ class ElectronBands(object):
             band: Band index
             order:
             acc:
-            asmarker:
 
         Returns:
         """
@@ -1821,17 +1643,6 @@ class ElectronBands(object):
 
             # Compute derivatives by finite differences.
             ders_onlines = self.kpoints.finite_diff(branch, order=order, acc=acc)
-
-            if asmarker is not None:
-                x, y, s = [], [], []
-                for i, line in enumerate(self.kpoints.lines):
-                    #print(line)
-                    x.extend(line)
-                    y.extend(branch[line])
-                    s.extend(ders_onlines[i])
-                    assert len(x) == len(y) == len(s)
-                self.set_marker(asmarker, (x, y, s))
-
             return ders_onlines
 
         else:

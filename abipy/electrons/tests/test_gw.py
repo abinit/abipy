@@ -76,9 +76,6 @@ class TestSigresFile(AbipyTest):
         sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         assert sigres.nsppol == 1
 
-        # Markers are initialied in __init__
-        assert sigres.ebands.markers
-
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
         assert sigres.gwkpoints == sigres.ibz
@@ -103,12 +100,16 @@ class TestSigresFile(AbipyTest):
         same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
         assert np.all(df["qpe"] == same_df["qpe"])
 
+        marker = sigres.get_marker("qpeme0")
+        assert marker and len(marker.x)
+
         if self.has_matplotlib():
             sigres.plot_qps_vs_e0(show=False)
             with self.assertRaises(ValueError):
                 sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
             sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
             sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
+            sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
 
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))

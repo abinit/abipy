@@ -202,8 +202,12 @@ class ArrayPlotter(object):
 
 
 class Marker(collections.namedtuple("Marker", "x y s")):
-    """Stores the position and the size of the marker."""
-
+    """
+    Stores the position and the size of the marker.
+    A marker is a list of tuple(x, y, s) where x,and y are the position
+    in the graph and s is the size of the marker.
+    Used for plotting purpose e.g. QP data, energy derivatives...
+    """
     def __new__(cls, *xys):
         """Extends the base class adding consistency check."""
         assert len(xys) == 3
@@ -255,5 +259,5 @@ class Marker(collections.namedtuple("Marker", "x y s")):
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
-if __name__ == "__main__":
-    plot_array(np.random.rand(10, 10))
+#if __name__ == "__main__":
+#    plot_array(np.random.rand(10, 10))

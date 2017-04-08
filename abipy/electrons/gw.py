@@ -21,7 +21,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
-from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, Marker
 
 import logging
 logger = logging.getLogger(__name__)
@@ -942,26 +942,29 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         qplist_spin = self.qplist_spin
 
-        # Add QPState markers to the KS band structure.
-        # Each marker is a list of tuple(x,y,value)
-        for qpattr in QPState.get_fields(exclude=("spin", "band", "kpoint",)):
-            x, y, s = [], [], []
-
-            for spin in range(self.nsppol):
-                for qp in qplist_spin[spin]:
-                    ik = self.ebands.kpoints.index(qp.kpoint)
-                    x.append(ik)
-                    y.append(qp.e0)
-                    size = getattr(qp, qpattr)
-                    # Handle complex quantities
-                    if np.iscomplex(size): size = size.real
-                    s.append(size)
-
-            ebands.set_marker(qpattr, (x, y, s))
-
         # TODO handle the case in which nkptgw < nkibz
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
+
+    def get_marker(self, qpattr):
+        """
+        Return :class:`Marker` object associated to the QP attribute qpattr.
+        Used to prepare plots of KS bands with markers.
+        """
+        # Each marker is a list of tuple(x, y, value)
+        x, y, s = [], [], []
+
+        for spin in range(self.nsppol):
+            for qp in self.qplist_spin[spin]:
+                ik = self.ebands.kpoints.index(qp.kpoint)
+                x.append(ik)
+                y.append(qp.e0)
+                size = getattr(qp, qpattr)
+                # Handle complex quantities
+                if np.iscomplex(size): size = size.real
+                s.append(size)
+
+        return Marker(*(x, y, s))
 
     @lazy_property
     def params(self):
@@ -1100,6 +1103,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
+    @add_fig_kwargs
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
 
         if kpoint is None:
@@ -1108,22 +1112,45 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
                 plotter.add_array(str(kpoint), ksqp_arr)
 
-            fig = plotter.plot(**kwargs)
+            return plotter.plot(show=False, **kwargs)
 
         else:
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
-            fig = plot_array(ksqp_arr, **kwargs)
+            return plot_array(ksqp_arr, show=False, **kwargs)
 
-        return fig
+    @add_fig_kwargs
+    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1, ax=None, **kwargs):
+        """
+        Plot the KS energies as function of k-points and add markers whose size
+        is proportional to the QPState attribute `qpattr`
 
-    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
+        Args:
+            qpattr: Name of the QP attribute to plot. See :class:`QPState`.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            fact: Markers are multiplied by this factor.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
         """
-        Plot the KS energies as function an k and add markers
-        whose size is proportional to QPState attribute qpattr
-        """
-        with_marker = qpattr + ":" + str(fact)
-        gwband_range = (self.min_gwbstart, self.max_gwbstop)
-        fig = self.ebands.plot(marker=with_marker, band_range=gwband_range, **kwargs)
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        gwband_range = self.min_gwbstart, self.max_gwbstop
+        self.ebands.plot(band_range=gwband_range, e0=e0, ax=ax, show=False, **kwargs)
+
+        e0 = self.ebands.get_e0(e0)
+        marker = self.get_marker(qpattr)
+        pos, neg = marker.posneg_marker()
+
+        # Use different symbols depending on the value of s. Cannot use negative s.
+        if pos:
+            ax.scatter(pos.x, pos.y - e0, s=np.abs(pos.s) * fact, marker="^", label=qpattr + " >0")
+        if neg:
+            ax.scatter(neg.x, neg.y - e0, s=np.abs(neg.s) * fact, marker="v", label=qpattr + " <0")
+
         return fig
 
     def get_dataframe_sk(self, spin, kpoint, index=None):
@@ -1339,6 +1366,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("print(sigres)"),
             nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
             nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
+            nbv.new_code_cell("# fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=100)"),
             nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
             nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),
             nbv.new_code_cell("""
