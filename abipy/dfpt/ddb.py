@@ -72,7 +72,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """Needed for the `AbinitFile` abstract interface."""
         return cls(filepath)
 
-    def __init__(self, filepath, read_blocks=False):
+    def __init__(self, filepath):
         super(DdbFile, self).__init__(filepath)
 
         self._header = self._parse_header()
@@ -85,13 +85,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
-
-        self.blocks = []
-        if read_blocks:
-            self.blocks = self._read_blocks()
-
-    #def close(self):
-    #    """Needed for the `AbinitFile` abstract interface."""
 
     def __str__(self):
         """String representation."""
@@ -221,6 +214,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return np.reshape(qpoints, (-1,3))
 
+    @lazy_property
+    def blocks(self):
+        """
+        DDB blocks. List of dictionaries, Each dictionary contains "qpt"
+        with the reduced coordinates of the q-point and "data" that is a list of strings
+        with the entries of the dynamical matrix for this q-point.
+        """
+        return self._read_blocks()
+
     def _read_blocks(self):
         self.seek(0)
 
@@ -263,7 +265,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def qindex(self, qpoint):
         """
-        The index of the q-point in the internal list of k-points.
+        The index of the q-point in the internal list of q-points.
         Accepts: :class:`Kpoint` instance or integer.
         """
         if isinstance(qpoint, int):
@@ -598,9 +600,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
-        if not self.blocks:
-            raise ValueError("Blocks information are required to write the DDB file")
-
         lines = list(self.header.lines)
 
         lines.append(" **** Database of total energy derivatives ****")
@@ -623,10 +622,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_block_for_qpoint(self, qpt):
         """
-        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information
+        Extracts the block data for the selected qpoint.
+        Returns a list of lines containing the block information
         """
-        if not self.blocks:
-            raise ValueError("Blocks information are required to write the DDB file")
+        if hasattr(qpt, "frac_coords"): qpt = qpt.frac_coords
 
         for b in self.blocks:
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
@@ -634,16 +633,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def replace_block_for_qpoint(self, qpt, data):
         """
-        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information.
-        data should be a list of strings representing the whole data block.
+        Change the block data for the selected qpoint. Object is modified in-place.
+        Data should be a list of strings representing the whole data block.
         Note that the DDB file should be written and reopened in order to call methods that run anaddb.
+
+        Return:
+            True if qpt has been found and data has been replaced.
         """
-        if not self.blocks:
-            raise ValueError("Blocks information are required to write the DDB file")
+        if hasattr(qpt, "frac_coords"): qpt = qpt.frac_coords
 
         for b in self.blocks:
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
                 b["data"] = data
+                return True
+
+        return False
 
     def write_notebook(self, nbpath=None):
         """

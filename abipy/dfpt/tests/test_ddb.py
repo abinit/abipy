@@ -20,6 +20,7 @@ class DdbTest(AbipyTest):
         ddb_fname = os.path.join(test_dir, "AlAs_1qpt_DDB")
 
         with DdbFile(ddb_fname) as ddb:
+            repr(ddb)
             print(ddb)
             # Test qpoints.
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
@@ -64,10 +65,36 @@ class DdbTest(AbipyTest):
             if self.has_nbformat():
                 ddb.write_notebook(nbpath=self.get_tmpname(text=True))
 
+            # Test blocks parsing.
+            blocks = ddb._read_blocks()
+            assert len(blocks) == 1
+            assert blocks[0]["qpt"] == [0.25, 0, 0]
+
+            lines = blocks[0]["data"]
+            assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
+            assert lines[2].rstrip() ==  "   1   1   1   1  0.80977066582497D+01 -0.46347282336361D-16"
+            assert lines[-1].rstrip() == "   3   2   3   2  0.49482344898401D+01 -0.44885664256253D-17"
+
+            for qpt in ddb.qpoints:
+                assert ddb.get_block_for_qpoint(qpt)
+                assert ddb.get_block_for_qpoint(qpt.frac_coords)
+
+            assert ddb.replace_block_for_qpoint(ddb.qpoints[0], blocks[0]["data"])
+
+            # Write new DDB file.
+            tmp_file = nbpath=self.get_tmpname(text=True)
+            ddb.write(tmp_file)
+            with DdbFile(tmp_file) as new_ddb:
+                assert ddb.qpoints == new_ddb.qpoints
+                # Call anaddb to check if we can read new DDB
+                phbands = new_ddb.anaget_phmodes_at_qpoint(qpoint=new_ddb.qpoints[0], verbose=1)
+                assert phbands is not None and hasattr(phbands, "phfreqs")
+
     def test_alas_ddb_444_nobecs(self):
         """Testing DDB for AlAs on a 4x4x4x q-mesh without Born effective charges."""
         ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
-        print(ddb)
+        repr(ddb)
+        str(ddb)
         print(ddb.header)
 
         ref_qpoints = np.reshape([
@@ -102,7 +129,8 @@ class DdbTest(AbipyTest):
         emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
         assert np.all(becs.values == 0)
         assert np.all(becs.becs == 0)
-        print(becs)
+        repr(becs)
+        str(becs)
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()

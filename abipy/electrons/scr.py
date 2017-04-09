@@ -391,9 +391,6 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         return self.reader.wpoints
 
-    def get_em1(self, kpoint):
-        return self.reader.read_wggfunc(kpoint, InverseDielectricFunction)
-
     def get_emacro_nlf(self, kpoint=(0, 0, 0)):
         """
         Compute the macroscopic dielectric function *without* local field effects.
@@ -422,15 +419,18 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         emacro = 1 / em1.wggmat[:, 0, 0]
         return Function1D(em1.real_wpoints, emacro[:em1.nrew])
 
-    @add_fig_kwargs
-    def plot_emacro_lf(self, **kwargs):
-        """
-        Plot the macroscopic dielectric function with local-field effects.
+    def get_em1(self, kpoint):
+        return self.reader.read_wggfunc(kpoint, InverseDielectricFunction)
 
-        Returns:
-            matplotlib figure.
-        """
-        return self.get_emacro_lf().plot(**kwargs)
+    #@add_fig_kwargs
+    #def plot_emacro_lf(self, **kwargs):
+    #    """
+    #    Plot the macroscopic dielectric function with local-field effects.
+
+    #    Returns:
+    #        matplotlib figure.
+    #    """
+    #    return self.get_emacro_lf().plot(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
@@ -442,7 +442,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("scr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(scr)"),
-            nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
+            #nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
             #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
         ])
 

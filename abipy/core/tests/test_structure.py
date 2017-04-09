@@ -11,7 +11,6 @@ from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
 
 
-
 class TestStructure(AbipyTest):
     """Unit tests for Structure."""
 
@@ -21,7 +20,7 @@ class TestStructure(AbipyTest):
         for filename in abidata.WFK_NCFILES + abidata.GSR_NCFILES:
             print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
-            print(structure)
+            str(structure)
             assert structure.__class__ is Structure
 
             # All nc files produced by ABINIT should have info on the spacegroup.
@@ -34,8 +33,9 @@ class TestStructure(AbipyTest):
             assert geodict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
-            #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
+            structure.export(self.get_tmpname(text=True, suffix=".xsf"))
             #visu = structure.visualize("vesta")
+            #assert callable(visu)
 
             if self.has_ase():
                 assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
@@ -62,10 +62,15 @@ class TestStructure(AbipyTest):
         assert si == Structure.from_abivars(si.to_abivars())
         assert len(si.abi_string)
         assert si.reciprocal_lattice == si.lattice.reciprocal_lattice
-        #si.si_kptbounds()
-        #si.calc_ksampling(nksmall=10)
-        #si.calc_ngkpt(nksmall=10)
-        #si.calc_shiftk()
+
+        kptbounds = si.calc_kptbounds()
+        ksamp = si.calc_ksampling(nksmall=10)
+
+        shiftk = [[ 0.5,  0.5,  0.5], [ 0.5,  0. ,  0. ], [ 0. ,  0.5,  0. ], [ 0. ,  0. ,  0.5]]
+        self.assert_equal(si.calc_ngkpt(nksmall=2), [2, 2, 2])
+        self.assert_equal(si.calc_shiftk(), shiftk)
+        self.assert_equal(ksamp.ngkpt, [10, 10, 10])
+        self.assert_equal(ksamp.shiftk, shiftk)
 
         si = Structure.from_material_id("mp-149", api_key="8pkvwRLQSCVbW2Fe")
         assert si.formula == "Si2"
@@ -89,16 +94,22 @@ class TestStructure(AbipyTest):
         assert mgb2.valence_electrons_per_atom(pseudos) == [2, 3, 3]
         self.assert_equal(mgb2.calc_shiftk() , [[0.0, 0.0, 0.5]])
 
-        #bmol = Structure.boxed_molecule(pseudos, cart_coords=[[0, 0, 0], [5, 5, 5]])
-        #self.assert_almost_equal(bmol.volume, (10 * bohr_to_ang) ** 3)
-        #batom = Structure.boxed_atom(abidata.pseudo("12mg.pspnc"), cart_coords=[1, 2, 3], acell=(10, 20, 30))
-        #assert isinstance(batom, Structure)
-        #assert len(batom.cart_coords) == 1 and np.all(batom.cart_coords[0] == [1, 2, 3])
+        bmol = Structure.boxed_molecule(pseudos, cart_coords=[[0, 0, 0], [5, 5, 5]], acell=[10, 10, 10])
+        self.assert_almost_equal(bmol.volume, (10 * bohr_to_ang) ** 3)
 
-        #bcc = Structure.bcc(a=10, species, primitive)
-        #fcc = Structure.bcc(a=10, species, primitive)
-        #rock = Structure.rocksalt(a=10, species)
-        #perov = Structure.ABO3(a=10, species)
+        # FIXME This is buggy
+        #acell = np.array([10, 20, 30])
+        #batom = Structure.boxed_atom(abidata.pseudo("12mg.pspnc"), cart_coords=[1, 2, 3], acell=acell)
+        #assert isinstance(batom, Structure)
+        #assert len(batom.cart_coords) == 1
+        #self.assert_equal(batom.cart_coords[0], [1, 2, 3])
+
+        #bcc_prim = Structure.bcc(10, ["Si"], primitive=True)
+        #bcc_conv = Structure.bcc(10, ["Si"], primitive=False)
+        #fcc_prim = Structure.bcc(10, ["Si"], primitive=True)
+        #fcc_conv = Structure.bcc(10, ["Si"], primitive=False)
+        #rock = Structure.rocksalt(10, ["Na", "Cl"])
+        #perov = Structure.ABO3(10, ["A", "B", "O", "O", "O"])
 
         # Test notebook generation.
         if self.has_nbformat():
@@ -123,8 +134,7 @@ class TestStructure(AbipyTest):
         #rprimd = rprimd*6.7468
         rprimd = rprimd *10.60 * 0.529
         lattice = Lattice(rprimd)
-        structure = Structure(lattice, ["Ga", "As"],
-                                      [[0, 0, 0], [0.25, 0.25, 0.25]])
+        structure = Structure(lattice, ["Ga", "As"], [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
 
         print(old_structure.lattice._matrix)
@@ -132,23 +142,26 @@ class TestStructure(AbipyTest):
             print(structure.lattice.get_cartesian_coords(site.frac_coords))
 
         #qpoint = [1/2, 1/2,1/2]
-        qpoint = [0,0,0]
+        qpoint = [0, 0, 0]
         mx_sc = [2, 2, 2]
         scale_matrix = structure.get_smallest_supercell(qpoint, max_supercell=mx_sc)
-        scale_matrix = 2*np.eye(3)
+        scale_matrix = 2 * np.eye(3)
         #print("Scale_matrix = ", scale_matrix)
         #scale_matrix = 2*np.eye(3)
         natoms = int(np.round(2*np.linalg.det(scale_matrix)))
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [1,1,1]]), do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]), do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [1,1,1]]),
+                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
 
-        structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]), do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+
+        structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+                                do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
 
         print("Structure = ", structure)
 
         #print(structure.lattice._matrix)
         #for site in structure:
         #    print(structure.lattice.get_cartesian_coords(site.frac_coords))
-
         # We should add some checks here

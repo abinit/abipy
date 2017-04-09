@@ -82,10 +82,11 @@ class Mesh3D(object):
         for ix in range(self.nx):
             for iy in range(self.ny):
                 for iz in range(self.nz):
-                    yield ix*self.dvx + iy*self.dvy + iz*self.dvz
+                    yield ix * self.dvx + iy * self.dvy + iz * self.dvz
 
     def rpoint(self, ix, iy, iz):
-        return ix*self.dvx + iy*self.dvy + iz*self.dvz
+        """The vector corresponding to the (ix, iy, iz) indices"""
+        return ix * self.dvx + iy * self.dvy + iz * self.dvz
 
     def to_string(self, prtvol=0):
         s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
@@ -224,28 +225,28 @@ class Mesh3D(object):
 
         return fr * self.size
 
-    def fourier_interp(self, data, new_mesh, inspace="r"):
-        """
-        Fourier interpolation of data.
+    #def fourier_interp(self, data, new_mesh, inspace="r"):
+    #    """
+    #    Fourier interpolation of data.
 
-        Args:
+    #    Args:
 
-            data: Input array defined on this mesh
-            new_mesh: Mesh where data is interpolated
-            inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
+    #        data: Input array defined on this mesh
+    #        new_mesh: Mesh where data is interpolated
+    #        inspace: string specifying if data is given in real space "r" or in reciprocal space "g".
 
-        Return:
-            Numpy array in real space on the new_mesh
-        """
-        raise NotImplementedError("gtransfer is missing")
-        assert inspace in ("r", "g")
+    #    Return:
+    #        Numpy array in real space on the new_mesh
+    #    """
+    #    raise NotImplementedError("gtransfer is missing")
+    #    assert inspace in ("r", "g")
 
-        # Insert data in the FFT box of new mesh.
-        if inspace == "r": data = self.fft_r2g(data)
-        intp_datag = new_mesh.gtransfer_from(self, data)
+    #    # Insert data in the FFT box of new mesh.
+    #    if inspace == "r": data = self.fft_r2g(data)
+    #    intp_datag = new_mesh.gtransfer_from(self, data)
 
-        # FFT transform G --> R.
-        return new_mesh.fft_g2r(intp_datag)
+    #    # FFT transform G --> R.
+    #    return new_mesh.fft_g2r(intp_datag)
 
     def integrate(self, fr):
         """Integrate array(s) fr."""
@@ -348,7 +349,7 @@ class Mesh3D(object):
         fft2red = np.diag([1/nx, 1/ny, 1/nz])
 
         # For a fully compatible mesh, each mat in rotsm1_fft should be integer
-        rotsm1_fft, tnons_fft = np.empty((nsym,3,3)), np.empty((nsym,3))
+        rotsm1_fft, tnons_fft = np.empty((nsym, 3, 3)), np.empty((nsym, 3))
 
         for isym, symmop in enumerate(symmops):
             rotm1_r, tau = symmop.rotm1_r, symmop.tau

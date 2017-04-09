@@ -225,8 +225,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             pseudo: Pseudopotential object.
-            cart_coords: Cartesian coordinates
-            acell: Lengths of the box in *Bohr*
+            cart_coords: Cartesian coordinates in Angstrom
+            acell: Lengths of the box in *Bohr* (Abinit input variable)
         """
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 

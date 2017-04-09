@@ -23,10 +23,11 @@ class TestMesh3D(AbipyTest):
         mesh_444 = Mesh3D((4,4,4), rprimd)
 
         # Test __eq__
-        self.assertEqual(mesh_443, mesh_443)
-        self.assertNotEqual(mesh_443, mesh_444)
+        assert mesh_443 == mesh_443
+        assert mesh_443 != mesh_444
 
-        print(mesh_444)
+        repr(mesh_444)
+        str(mesh_444)
         mesh_444.gvecs
         mesh_444.rpoints
 
@@ -44,6 +45,14 @@ class TestMesh3D(AbipyTest):
 
         czeros = mesh_444.czeros()
         assert czeros.shape == mesh_444.shape and np.all(czeros == 0) and czeros.dtype == np.complex
+
+        # Iteration
+        # i = iz + iy * nz + ix * ny * nz
+        #for i, r in enumerate(mesh_443):
+        #    ix = i % (mesh_443.ny * mesh_443.nz)
+        #    iy = (i - ix * mesh_443.ny * mesh_443.nz) % mesh_443.nz
+        #    iz = i - iy * mesh_443.nz - ix * mesh_443.ny * mesh_443.nz
+        #    assert np.all(mesh_443.rpoint(ix, iy, iz) == r)
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""
@@ -67,7 +76,6 @@ class TestMesh3D(AbipyTest):
                 self.assert_almost_equal(int_r, int_g)
 
     #def test_trilinear_interp(self):
-    #    return
     #    rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
     #    rprimd.shape = (3,3)
     #    mesh = Mesh3D( (12,3,5), rprimd)
