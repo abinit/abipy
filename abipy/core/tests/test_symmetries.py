@@ -17,22 +17,25 @@ class TestSymmetries(AbipyTest):
     def test_silicon(self):
         """Test silicon space group."""
         structure = Structure.from_file(abidata.ref_file("si_scf_WFK.nc"))
+        #print(structure)
 
         assert structure.has_abi_spacegroup
         assert structure.abi_spacegroup.is_symmorphic
-
-        #print(structure)
-        print("composition:", structure.composition)
-        self.serialize_with_pickle(structure, test_eq=True)
-
         spgrp = structure.abi_spacegroup
-        #print("spgrp:\n", spgrp)
         repr(spgrp)
         str(spgrp)
+        self.serialize_with_pickle(spgrp, test_eq=True)
 
-        #print("mult_tables:\n", spgrp.mult_table)
         # Classes cover the entire group.
         assert sum(len(cls) for cls in spgrp.groupby_class()) == len(spgrp)
+
+        # Multiplication table.
+        mtable = spgrp.mult_table
+        for i, oi in enumerate(spgrp):
+            for j, oj in enumerate(spgrp):
+                ij = mtable[i, j]
+                assert ij is not None
+                assert oi * oj == spgrp[ij]
 
         # Operation in the same class have the same trace and determinant.
         for cls in spgrp.groupby_class():
@@ -73,7 +76,7 @@ class TestSymmetries(AbipyTest):
             assert spgrp[idx] != spgrp[idx+1]
 
         for fmop in spgrp.fm_symmops:
-            assert fmop.is_fm
+            assert fmop.is_fm and not fmop.is_afm
 
         ucell_coords = np.reshape([site.frac_coords for site in structure], (len(structure), 3))
 
@@ -131,6 +134,7 @@ class BilbaoPointGroupTest(AbipyTest):
         for sch_symbol in sch_symbols:
             #print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
+            repr(ptg)
             str(ptg)
             ptg.show_character_table()
             #for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)

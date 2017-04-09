@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "GsrFile",
-    "GsrPlotter",
 ]
 
 
@@ -179,40 +178,33 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def close(self):
         self.reader.close()
 
-    def get_computed_entry(self, inc_structure=False, parameters=None, data=None):
+    def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
         """
         Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.
         Same API as the one used in vasp_output.get_computed_entry.
 
         Args:
             inc_structure (bool): Set to True if you want
-                ComputedStructureEntries to be returned instead of
-                ComputedEntries.
+                ComputedStructureEntries to be returned instead of ComputedEntries.
             parameters (list): Input parameters to include. It has to be one of
                 the properties supported by the GSR object. If
-                parameters == None, a default set of parameters that are
+                parameters is None, a default set of parameters that are
                 necessary for typical post-processing will be set.
             data (list): Output data to include. Has to be one of the properties
                 supported by the GSR object.
 
         Returns:
+
             ComputedStructureEntry/ComputedEntry
         """
-        #raise NotImplementedError("")
         # TODO
         #param_names = {"is_hubbard", "hubbards", "potcar_symbols", "run_type"}
-        #if parameters:
-        #    param_names.update(parameters)
-        #params = {p: getattr(self, p) for p in param_names}
-        #data = {p: getattr(self, p) for p in data} if data is not None else {}
-        params, data = {}, {}
-
         if inc_structure:
             return ComputedStructureEntry(self.structure, self.energy,
-                                          parameters=params, data=data)
+                                          correction=0.0, parameters=parameters, data=data)
         else:
             return ComputedEntry(self.structure.composition, self.energy,
-                                 parameters=params, data=data)
+                                 parameters=parameters, data=data)
 
     def as_dict(self, **kwargs):
         # TODO: Add info depending on the run_type e.g. max_resid is NSCF
@@ -360,204 +352,3 @@ class GsrReader(ElectronsReader):
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
         d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
         return EnergyTerms(**d)
-
-
-# TODO: Remove and/or merge with robots.
-# TODO: Not tested
-class GsrPlotter(Iterable):
-    """
-    This object receives a list of `GsrFile` objects and provides
-    methods to inspect/analyze the results (useful for convergence studies)
-
-    Usage example:
-
-    .. code-block:: python
-
-        plotter = GsrPlotter()
-        plotter.add_file("foo_GSR.nc")
-        plotter.add_file("bar_GSR.nc")
-        plotter.plot_variables("ecut", "etotal")
-    """
-    def __init__(self, *files):
-        self._gsr_files = OrderedDict(*files)
-
-    def __len__(self):
-        return len(self._gsr_files)
-
-    def __iter__(self):
-        return iter(self._gsr_files.values())
-
-    def __str__(self):
-        return "\n".join(str(gsr) for gsr in self)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. It automatically closes the file."""
-        self.close()
-
-    def close(self):
-        for gsr in self:
-            try:
-                gsr.close()
-            except:
-                pass
-
-    def add_files(self, filepaths):
-        """Add a list of filenames to the plotter"""
-        for filepath in list_strings(filepaths):
-            self.add_file(filepath)
-
-    def add_file(self, filepath):
-        """Add a filename to the plotter"""
-        from abipy.abilab import abiopen
-        gsr = abiopen(filepath)
-        self._gsr_files[gsr.filepath] = gsr
-
-        # Initialize/check useful quantities.
-        #
-        # 1) Number of spins
-        if not hasattr(self, "nsppol"):  self.nsppol = gsr.nsppol
-        assert self.nsppol == gsr.nsppol
-
-    @property
-    def filepaths(self):
-        """Filepaths of the GSR files."""
-        return self._gsr_files.keys()
-
-    @property
-    def param_name(self):
-        """The name of the parameter whose value is checked for convergence."""
-        try:
-            return self._param_name
-
-        except AttributeError:
-            self.set_param_name(param_name=None)
-            return self.param_name
-
-    def _get_param_list(self):
-        """Return a dictionary with the values of the parameters extracted from the GSR files."""
-        param_list = defaultdict(list)
-
-        for gsr in self:
-            for pname in gsr.params.keys():
-                param_list[pname].append(gsr.params[pname])
-
-        return param_list
-
-    def set_param_name(self, param_name):
-        """
-        Set the name of the parameter whose value is checked for convergence.
-        if param_name is None, we try to find its name by inspecting
-        the values in the gsr.params dictionaries.
-        """
-        self._param_name = param_name
-
-    def prepare_plot(self):
-        """
-        This method must be called before plotting data.
-        It tries to figure the name of parameter we are converging
-        by looking at the set of parameters used to compute the different GSR files.
-        """
-        param_list = self._get_param_list()
-
-        param_name, problem = None, False
-        for key, value_list in param_list.items():
-            if any(v != value_list[0] for v in value_list):
-                if param_name is None:
-                    param_name = key
-                else:
-                    problem = True
-                    logger.warning("Cannot perform automatic detection of convergence parameter.\n" +
-                                   "Found multiple parameters with different values. Will use filepaths as plot labels.")
-
-        self.set_param_name(param_name if not problem else None)
-
-        if self.param_name is None:
-            # Could not figure the name of the parameter.
-            xvalues = range(len(self))
-        else:
-            xvalues = param_list[self.param_name]
-
-            # Sort xvalues and rearrange the files.
-            items = sorted([iv for iv in enumerate(xvalues)], key=lambda item: item[1])
-            indices = [item[0] for item in items]
-
-            files = self._gsr_files.values()
-
-            newd = OrderedDict()
-            for i in indices:
-                gsr = files[i]
-                newd[gsr.filepath] = gsr
-
-            self._gsr_files = newd
-
-            # Use sorted xvalues for the plot.
-            param_list = self._get_param_list()
-            xvalues = param_list[self.param_name]
-
-        self.set_xvalues(xvalues)
-
-    @property
-    def xvalues(self):
-        """The values used for the X-axis."""
-        return self._xvalues
-
-    def set_xvalues(self, xvalues):
-        """xvalues setter."""
-        assert len(xvalues) == len(self)
-        self._xvalues = xvalues
-
-    def decorate_ax(self, ax, **kwargs):
-        ax.grid(True)
-        if self.param_name is not None:
-            ax.set_xlabel(self.param_name)
-
-        ax.set_ylabel('Energy [eV]')
-        ax.legend(loc="best")
-
-        title = kwargs.pop("title", None)
-        if title is not None: ax.set_title(title)
-
-        # Set ticks and labels.
-        if self.param_name is None:
-            # Could not figure the name of the parameter ==> Use the basename of the files
-            ticks, labels = range(len(self)), [f.basename for f in self]
-        else:
-            ticks, labels = self.xvalues, [f.params[self.param_name] for f in self]
-
-        ax.set_xticks(ticks, minor=False)
-        ax.set_xticklabels(labels, fontdict=None, minor=False)
-
-    def plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):
-        """
-        Ex:
-            plot_variables("ecut", "etotal")
-        """
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-
-        # Read the value of varname from the files.
-        xx, yy = [], []
-        for filepath in self.filepaths:
-            with GsrReader(filepath) as r:
-                xx.append(r.read_value(varname_x))
-                yy.append(r.read_value(varname_y))
-
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-
-        ax.plot(xx, yy, "o-", **kwargs)
-
-        if hspan is not None:
-            last = yy[-1]
-            ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
-
-        if title is not None: fig.suptitle(title)
-        if show: plt.show()
-        if savefig is not None: fig.savefig(savefig)
-
-        return fig

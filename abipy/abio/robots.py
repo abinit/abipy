@@ -437,6 +437,38 @@ class Robot(object):
     #    index = list(self.keys())
     #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
 
+    #def ncread_and_plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):
+    #    """
+    #    Ex:
+    #        plot_variables("ecut", "etotal")
+    #    """
+    #    title = kwargs.pop("title", None)
+    #    show = kwargs.pop("show", True)
+    #    savefig = kwargs.pop("savefig", None)
+
+    #    # Read the value of varname from the files.
+    #    xx, yy = [], []
+    #    for filepath in self.filepaths:
+    #        with GsrReader(filepath) as r:
+    #            xx.append(r.read_value(varname_x))
+    #            yy.append(r.read_value(varname_y))
+
+    #    import matplotlib.pyplot as plt
+    #    fig = plt.figure()
+    #    ax = fig.add_subplot(1,1,1)
+
+    #    ax.plot(xx, yy, "o-", **kwargs)
+
+    #    if hspan is not None:
+    #        last = yy[-1]
+    #        ax.axhspan(last - hspan, last + hspan, facecolor='0.5', alpha=0.5)
+
+    #    if title is not None: fig.suptitle(title)
+    #    if show: plt.show()
+    #    if savefig is not None: fig.savefig(savefig)
+
+    #    return fig
+
 
 class GsrRobot(Robot, NotebookWriter):
     """

@@ -14,6 +14,7 @@ from six.moves import cStringIO
 from monty.string import is_string
 from monty.itertools import iuptri
 from monty.pprint import pprint_table
+from monty.functools import lazy_property
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek
@@ -174,7 +175,7 @@ class SymmOp(Operation, SlotPickleMixin):
         self.tau = np.asarray(tau)
 
         self.afm_sign, self.time_sign = afm_sign, time_sign
-        assert afm_sign in  [-1, 1] and time_sign in [-1, 1]
+        assert afm_sign in [-1, 1] and time_sign in [-1, 1]
 
         # Compute symmetry matrix in reciprocal space: S = R^{-1t}
         if rot_g is None:
@@ -187,7 +188,7 @@ class SymmOp(Operation, SlotPickleMixin):
     def __eq__(self, other):
         # Note the two fractional traslations are equivalent if they differ by a lattice vector.
         return (np.all(self.rot_r == other.rot_r) and
-                is_integer(self.tau-other.tau, atol=self._ATOL_TAU) and
+                is_integer(self.tau - other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
                 self.time_sign == other.time_sign
                 )
@@ -369,7 +370,7 @@ class OpSequence(collections.Sequence):
         """
         Equality test.
 
-        .. warning: :
+        .. warning::
 
             The order of the operations in self and  in other is not relevant.
         """
@@ -377,8 +378,8 @@ class OpSequence(collections.Sequence):
         if len(self) != len(other):
             return False
 
-        # Check if each operation in self is also present
-        # in other. The order is irrelevant.
+        # Check if each operation in self is also present in other.
+        # The order is irrelevant.
         founds = []
         for i, op in enumerate(self):
             if op not in other: return False
@@ -461,37 +462,30 @@ class OpSequence(collections.Sequence):
         Returns a dictionary where the keys are the symmetry operations and
         the values are the indices of the operations in the iterable.
         """
-        d = {op: idx for (idx, op) in enumerate(self)}
-        assert len(d) == len(self)
-        return d
+        return {op: idx for idx, op in enumerate(self)}
 
-    @property
+    @lazy_property
     def mult_table(self):
         """
         Given a set of nsym 3x3 operations which are supposed to form a group,
         this routine constructs the multiplication table of the group.
         mtable[i,j] gives the index of the product S_i * S_j.
         """
-        try:
-            return self._mult_table
+        mtable = np.empty((len(self), len(self)), dtype=np.int)
 
-        except AttributeError:
-            mtable = np.empty((len(self), len(self)), dtype=np.int)
+        d = self.asdict()
+        for i, op1 in enumerate(self):
+            for j, op2 in enumerate(self):
+                op12 = op1 * op2
+                # Save the index of op12 in self
+                try:
+                    index = d[op12]
+                except KeyError:
+                    index = None
 
-            d = self.asdict()
-            for (i, op1) in enumerate(self):
-                for (j, op2) in enumerate(self):
-                    op12 = op1 * op2
-                    # Save the index of op12 in self
-                    try:
-                        index = d[op12]
-                    except KeyError:
-                        index = None
+                mtable[i, j] = index
 
-                    mtable[i,j] = index
-
-            self._mult_table = mtable
-            return self._mult_table
+        return mtable
 
     @property
     def num_classes(self):
@@ -574,9 +568,6 @@ class AbinitSpaceGroup(OpSequence):
         self.spgid = spgid
         assert self.spgid in range(0, 233)
 
-        inord = inord.upper()
-        assert inord in ["C", "F"]
-
         # Time reversal symmetry.
         self._has_timerev = has_timerev
         self._time_signs = [+1, -1] if self.has_timerev else [+1]
@@ -585,6 +576,9 @@ class AbinitSpaceGroup(OpSequence):
 
         if len(self.symrel) != len(self.tnons) or len(self.symrel) != len(self.symafm):
             raise ValueError("symrel, tnons and symafm must have equal shape[0]")
+
+        inord = inord.upper()
+        assert inord in ["F", "C"]
 
         if inord == "F":
             # Fortran to C.
@@ -890,20 +884,20 @@ class LatticeRotation(Operation):
 
     .. note::
 
-        This object does not inherit from `ndarray` or from `np.matrix` because ....
+        This object is immutable and therefor we do not inherit from `ndarray` or from `np.matrix`
     """
     _E3D = np.identity(3,  np.int)
 
     def __init__(self, mat):
         self.mat = np.matrix(mat, np.int)
-        self.mat.shape = (3,3)
+        self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):
         """
         Returns the order of the rotation and if self is a root of the inverse.
         """
         order, root_inv = None, 0
-        for ior in range(1,7):
+        for ior in range(1, 7):
             rn = self ** ior
 
             if rn.isE:
@@ -943,7 +937,7 @@ class LatticeRotation(Operation):
         """
         return self.__class__(mati3inv(self.mat, trans=False))
 
-    @property
+    @lazy_property
     def isE(self):
         """True if it is the identity"""
         return np.allclose(self.mat, self._E3D)
