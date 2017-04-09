@@ -1,4 +1,5 @@
-from __future__ import division, print_function, unicode_literals
+"""Test for GSR module"""
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import numpy as np
@@ -6,7 +7,7 @@ import abipy.data as abidata
 import abipy.core
 
 from pprint import pprint
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.electrons.gsr import GsrReader, GsrFile
 
 

@@ -1414,10 +1414,39 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                            weights=r.read_value("kpoint_weights"))
 
         except Exception as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
+
+    def _handle_task_exception(self, task, prev_exc):
+        """
+        This method is called when we have executed a temporary task but we encounter
+        an exception when we try to extract data from the output results produced by Abinit
+        It tries to extract information about the error and finally raises self.Error.
+
+        .. example::
+
+            try:
+
+                do_something_with_the_output_files_produced_by_the_task
+
+            except Exception as exc:
+
+                self._handle_task_exception(task, exc)
+        """
+        # Check if there are errors in the log file.
+        report = task.get_event_report()
+        if report and report.errors:
+            raise self.Error(str(report))
+
+        # Weird condition. Possible explanations:
+        # 1) Abinit cannot be executed or runtime errors due e.g to libraries
+        # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
+        # Try to return as much iformation as possible to aid debugging
+        try:
+            # TODO: in principle task.debug() but I have to change pymatgen.io.abinit
+            task.flow.debug()
+        finally:
+            raise self.Error("Problem in temp Task executed in %s\n"
+                             "Previous exception %s" % (task.workdir, prev_exc))
 
     def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -1470,10 +1499,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         try:
             return yaml_read_irred_perts(task.log_file.path)
         except Exception as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
 
     def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -1642,10 +1668,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             pconfs = parser.parse(task.output_file.path)
             return pconfs
         except parser.Error as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
 
     def add_tags(self, tags):
         """

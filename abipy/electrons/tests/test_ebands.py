@@ -1,5 +1,5 @@
 """Tests for electrons.ebands module"""
-from __future__ import print_function, division, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import numpy as np
@@ -10,7 +10,7 @@ import pymatgen.core.units as units
 from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
     ElectronsReader, frame_from_ebands)
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class EbandsReaderTest(AbipyTest):
@@ -28,7 +28,7 @@ class EbandsReaderTest(AbipyTest):
             eigens = r.read_eigenvalues()
             occfacts = r.read_occupations()
             fermie = r.read_fermie()
-            self.assertTrue(r.read_nelect() == 8)
+            assert r.read_nelect() == 8
             #smearing = r.read_smearing()
 
 
