@@ -1,7 +1,6 @@
 """Tests for input  module"""
 from __future__ import print_function, division, unicode_literals
 
-import tempfile
 import os
 import numpy as np
 import abipy.data as abidata
@@ -76,8 +75,7 @@ class TestAbinitInput(AbipyTest):
         assert inp["ecut"] == 5
         assert inp.scf_tolvar == ("toldfe", inp["toldfe"])
 
-        _, tmp_file = tempfile.mkstemp()
-        inp.write(filepath=tmp_file)
+        inp.write(filepath=self.get_tmpname(text=True))
 
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
@@ -262,11 +260,29 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(phg_inputs)
 
+        ##############
+        # BEC methods
+        ##############
+        with self.assertRaises(gs_inp.Error):
+            gs_inp.make_bec_inputs(tolerance={"tolfoo": 1e10})
+
+        bec_inputs = gs_inp.make_bec_inputs(tolerance=None)
+        print("BEC inputs at Gamma\n", bec_inputs)
+        assert len(bec_inputs) == 2
+        assert np.all(bec_inputs[0]["rfatpol"] == [1, 1])
+        assert np.all(bec_inputs[1]["rfatpol"] == [2, 2])
+        assert all(np.all(inp["rfelfd"] == 3 for inp in bec_inputs))
+        assert all(np.all(inp["tolvrs"] == 1.0e-10 for inp in bec_inputs))
+        assert all(np.all(inp["kptopt"] == 2 for inp in bec_inputs))
+
+        # Validate with Abinit
+        self.abivalidate_multi(bec_inputs)
+
         #############
         # DDK methods
         #############
         with self.assertRaises(gs_inp.Error):
-            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolvrs": 1e10})
+            gs_inp.make_ddk_inputs(tolerance={"tolvrs": 1e10})
 
         ddk_inputs = gs_inp.make_ddk_inputs(tolerance=None)
         print("DDK inputs\n", ddk_inputs)
@@ -276,6 +292,29 @@ class TestAbinitInput(AbipyTest):
 
         # Validate with Abinit
         self.abivalidate_multi(ddk_inputs)
+
+        #############
+        # DDE methods
+        #############
+        with self.assertRaises(gs_inp.Error):
+            gs_inp.make_dde_inputs(tolerance={"tolfoo": 1e10})
+
+        dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=False)
+        assert len(dde_inputs) == 3
+        assert all(inp["prepanl"] == 1 for inp in dde_inputs)
+        for i, dde_rfdirs in enumerate([(1, 0, 0), (0, 1, 0), (0, 0, 1)]):
+            assert np.all(dde_inputs[i]["rfdir"] == dde_rfdirs)
+        self.abivalidate_multi(dde_inputs)
+
+        dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=True)
+        print("DDE inputs\n", dde_inputs)
+        assert len(dde_inputs) == 1
+        assert all(np.all(inp["tolvrs"] == 1.0e-22 for inp in dde_inputs))
+        assert all(inp["rfelfd"] == 3 for inp in dde_inputs)
+        assert all(inp["kptopt"] == 2 for inp in dde_inputs)
+
+        # Validate with Abinit
+        self.abivalidate_multi(dde_inputs)
 
         #################
         # Strain methods
@@ -287,9 +326,9 @@ class TestAbinitInput(AbipyTest):
         # Validate with Abinit
         self.abivalidate_multi(strain_inputs)
 
-        ################
+        #####################
         # Non-linear methods
-        ################
+        ####################
         if has_abinit('8.3.2'):
             dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True)
             print("dte inputs\n", dte_inputs)
@@ -348,12 +387,9 @@ class TestMultiDataset(AbipyTest):
 
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
+        str(multi)
 
-        print(multi)
-
-        tmp_dir = tempfile.mkdtemp()
-        tmp_file = os.path.join(tmp_dir, "run.abi")
-        inp.write(filepath=tmp_file)
+        inp.write(filepath=self.tmpfileindir("run.abi"))
 
         new_multi = MultiDataset.from_inputs([inp for inp in multi])
         assert new_multi.ndtset == multi.ndtset
@@ -471,6 +507,8 @@ class TestCut3DInput(AbipyTest):
 
     def test_dict_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        str(cut3d_input)
+        cut3d_input.write(self.get_tmpname(text=True))
         self.assertMSONable(cut3d_input)
 
     def test_generation_methods(self):
@@ -480,6 +518,10 @@ class TestCut3DInput(AbipyTest):
         cut3d_input = Cut3DInput.den_to_3d_formatted('/path/to/den', 'outfile_name')
         cut3d_input = Cut3DInput.den_to_tecplot('/path/to/den', 'outfile_name')
         cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
+
+        # TODO
+        #cut3d_input = Cut3DInput.hirshfeld(density_filepath, all_el_dens_paths)
+        #cut3d_input = Cut3DInput.hirshfeld_from_fhi_path(density_filepath, structure, fhi_all_el_path)
 
 
 class OpticInputTest(AbipyTest):

@@ -315,6 +315,14 @@ class AbipyTest(PymatgenTest):
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod
+    def tmpfileindir(basename, **kwargs):
+        """
+        Return the absolute path of a temporary file with basename `basename` created in a temporary directory.
+        """
+        tmpdir = tempfile.mkdtemp(**kwargs)
+        return os.path.join(tmpdir, basename)
+
+    @staticmethod
     def get_tmpname(**kwargs):
         """Invoke mkstep with kwargs, return the name of a temporary file."""
         fd, tmpname = tempfile.mkstemp(**kwargs)

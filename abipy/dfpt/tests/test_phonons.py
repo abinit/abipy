@@ -44,6 +44,9 @@ class PhononBandsTest(AbipyTest):
         assert "freq" in df and "mode" in df
         self.assert_almost_equal(df["freq"].values.min(), 0)
 
+        umodes = phbands.get_unstable_modes(below_mev=-1000)
+        assert len(umodes) == 0
+
         # Test convertion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
         eig = phbands.dyn_mat_eigenvect

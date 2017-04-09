@@ -276,17 +276,17 @@ class PhononBands(object):
 
         return "\n".join(lines)
 
-    def displ_of_specie(self, specie):
-        """Returns the displacement vectors for the given specie."""
-        # TODO recheck the ordering
-        # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
-        #raise NotImplementedError("")
-        displ_specie = []
-        for i, site in enumerate(self.structure):
-            if site.specie == specie:
-                displ_specie.append(self.phdispl_cart[:, :, i, :])
+    #def displ_of_specie(self, specie):
+    #    """Returns the displacement vectors for the given specie."""
+    #    # TODO recheck the ordering
+    #    # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
+    #    #raise NotImplementedError("")
+    #    displ_specie = []
+    #    for i, site in enumerate(self.structure):
+    #        if site.specie == specie:
+    #            displ_specie.append(self.phdispl_cart[:, :, i, :])
 
-        return displ_specie
+    #    return displ_specie
 
     @lazy_property
     def _auto_qlabels(self):
@@ -2370,26 +2370,26 @@ class PhononBandsPlotter(NotebookWriter):
         if phdos is not None:
             self.phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
-    def bands_statdiff(self, ref=0):
-        """
-        Compare the reference bands with index ref with the other bands stored in the plotter.
-        """
-        for i, label in enumerate(self._bands_dict.keys()):
-            if i == ref:
-                ref_label = label
-                break
-        else:
-            raise ValueError("ref index %s is > number of bands" % ref)
+    #def bands_statdiff(self, ref=0):
+    #    """
+    #    Compare the reference bands with index ref with the other bands stored in the plotter.
+    #    """
+    #    for i, label in enumerate(self._bands_dict.keys()):
+    #        if i == ref:
+    #            ref_label = label
+    #            break
+    #    else:
+    #        raise ValueError("ref index %s is > number of bands" % ref)
 
-        ref_bands = self._bands_dict[ref_label]
+    #    ref_bands = self._bands_dict[ref_label]
 
-        text = []
-        for label, bands in self._bands_dict.items():
-            if label == ref_label: continue
-            stat = ref_bands.statdiff(bands)
-            text.append(str(stat))
+    #    text = []
+    #    for label, bands in self._bands_dict.items():
+    #        if label == ref_label: continue
+    #        stat = ref_bands.statdiff(bands)
+    #        text.append(str(stat))
 
-        return "\n\n".join(text)
+    #    return "\n\n".join(text)
 
     @add_fig_kwargs
     def combiplot(self, qlabels=None, units='eV', **kwargs):

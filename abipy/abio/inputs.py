@@ -1164,14 +1164,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             for rfdir, inp in zip(dde_rfdirs, multi):
                 inp.set_vars(
                     rfdir=rfdir,  # Direction of the per ddk.
-                    prepanl=1,  # Prepare Non-linear RF calculations.
+                    prepanl=1,    # Prepare Non-linear RF calculations.
                 )
 
         multi.set_vars(
-            rfelfd=3,  # Activate the calculation of the electric field perturbation
-            nqpt=1,  # One wavevector is to be considered
+            rfelfd=3,       # Activate the calculation of the electric field perturbation
+            nqpt=1,         # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
-            kptopt=2,  # Take into account time-reversal symmetry.
+            kptopt=2,       # Take into account time-reversal symmetry.
         )
 
         multi.pop_tolerances()
@@ -1183,13 +1183,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         Return inputs for the DTE calculation.
         This functions should be called with an input that represents a GS run.
+
         Args:
             phonon_pert: is True also the phonon perturbations will be considered. Default False.
             skip_permutations: Since the current version of abinit always performs all the permutations
                 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
-                will produce duplicacte outputs.
+                will produce duplicated outputs.
         """
-
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert)
 
@@ -1335,20 +1335,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 inp.set_vars(nband=inp['nband']+nbdbuf, nbdbuf=nbdbuf)
 
         return multi
-
-    def pycheck(self):
-        errors = []
-        eapp = errors.append
-
-        m = self.structure.lattice.matrix
-        volume = np.dot(np.cross(m[0], m[1]), m[2])
-        if volume < 0:
-            eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
-
-        #if sel.ispaw and "pawecutdg not in self
-        #if errors: raise self.Error("\n".join(errors))
-
-        return dict2namedtuple(errors=errors, warnings=warnings)
 
     def abivalidate(self, workdir=None, manager=None):
         """
@@ -2710,7 +2696,7 @@ class Cut3DInput(MSONable, object):
         if self.infile_path is None or self.options is None:
             raise ValueError("Infile path and options should be provided")
 
-        with open(filepath, 'w') as f:
+        with open(filepath, 'wt') as f:
             f.write(self.to_string())
 
     @classmethod
@@ -2871,8 +2857,7 @@ class Cut3DInput(MSONable, object):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        d = dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options = self.options)
-        return d
+        return dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options=self.options)
 
     @classmethod
     def from_dict(cls, d):
