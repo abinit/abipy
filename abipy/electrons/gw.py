@@ -221,10 +221,10 @@ class QPList(list):
         """`ndarray` containing the values of field."""
         return np.array([getattr(qp, field) for qp in self])
 
-    def get_value(self, skb_tup, field):
+    def get_skb_field(self, skb, field):
         """Return the value of field for the given spin kp band tuple, None if not found"""
         for qp in self:
-            if qp.skb == skb_tup:
+            if qp.skb == skb:
                 return getattr(qp, field)
         return None
 

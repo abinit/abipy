@@ -3,11 +3,13 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import six
+import abc
 
-from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict
-from monty.functools import lazy_property
+#from collections import OrderedDict
+from monty.string import marquee # is_string, list_strings,
+#from monty.collections import AttrDict
+#from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from abipy.core.func1d import Function1D
@@ -21,26 +23,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class WGGFunction(object):
+class _AwggMat(object):
     r"""
-    Base class for two-point functions expressed in
-    reciprocal space i.e. a matrix $A_{G,G'}(q, \omega)$
+    Base class for two-point functions expressed in reciprocal space
+    i.e. a complex matrix $A_{G,G'}(\omega)$ where G, G' are reciprocal
+    lattice vectors defines inside the sphere `gsphere`.
+
+    This class is not supposed to be instanciated directly.
 
     .. attributes:
 
-        qpoint
-        wpts
+        qpoint:
+        wpts:
         gpshere:
-        nrew
-        nwim
+        nrew:
+        nwim:
     """
 
     def __init__(self, qpoint, wpts, gsphere, wggmat, inord="C"):
         """"
         Args:
-            qpoint: Q-point object
+            qpoint: Q-point object.
             wpts: Frequency points in Ha.
-            wggmat: numpy array of shape [nw, ng, ng]
+            wggmat: [nw, ng, ng] complex array.
             inord: storage order of wggmat. If inord == "F", wggmat in
                 in Fortran column-major order. Default: "C" i.e. C row-major order
         """
@@ -49,7 +54,7 @@ class WGGFunction(object):
         self.gsphere = gsphere
         self.wggmat = np.reshape(wggmat, (self.nw, self.ng, self.ng))
 
-        if inord == "F":
+        if inord.lower() == "f":
             # Fortran to C.
             for iw in range(len(wpts)):
                 self.wggmat[iw] = self.wggmat[iw].T
@@ -58,7 +63,7 @@ class WGGFunction(object):
             assert len(gsphere) == wggmat.shape[-i]
         assert len(self.wpts) == len(self.wggmat)
 
-        # Find number of real/imaginary frequencies
+        # Find number of real/imaginary frequencies.
         self.nrew = self.nw; self.nimw = 0
         for i, w in enumerate(self.wpts):
             if np.iscomplex(w):
@@ -71,6 +76,10 @@ class WGGFunction(object):
                 "followed by imaginary points but got: %s" % str(self.wpts))
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
         lines = []
         app = lines.append
 
@@ -97,14 +106,14 @@ class WGGFunction(object):
 
     @property
     def real_wpts(self):
-        """Real frequencies in Hartree"""
+        """Real frequencies in Hartree. Empty list if not available."""
         if self.nrew > 0:
             return np.real(self.wpts[:self.nrew])
         return []
 
     @property
     def imag_wpts(self):
-        """Imaginary frequencies in Hartree"""
+        """Imaginary frequencies in Hartree. Empty list if not available."""
         if self.nimw > 0:
             return self.wpts[self.nrew:]
         return []
@@ -150,7 +159,7 @@ class WGGFunction(object):
     @add_fig_kwargs
     def plot_w(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
         """
-        Plot the frequency dependence of W_{g1, g2}
+        Plot the frequency dependence of W_{g1, g2}(omega)
 
         Args:
             gvec1, gvec2:
@@ -199,15 +208,15 @@ class WGGFunction(object):
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
         ax.set_title("%s, qpoint: %s" % (self.etsf_name, self.qpoint))
-        #ax.legend(loc="best")
         ax.legend(loc="upper right")
+        #ax.legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
     def plot_ggmat(self, cplx_mode="abs", wpos=None, **kwargs):
         """
-        Use imshow for plotting W_GG'.
+        Use imshow to plot W_{GG'} matrix
 
         Args:
             cplx_mode:
@@ -243,17 +252,17 @@ class WGGFunction(object):
         return plotter.plot(**kwargs)
 
 
-class Polarizability(WGGFunction):
+class Polarizability(_AwggMat):
     etsf_name = "dielectric_function"
     latex_name = "\\tilde chi"
 
 
-class DielectricFunction(WGGFunction):
+class DielectricFunction(_AwggMat):
     etsf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
 
-class InverseDielectricFunction(WGGFunction):
+class InverseDielectricFunction(_AwggMat):
     etsf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 
@@ -314,8 +323,7 @@ class InverseDielectricFunction(WGGFunction):
 
 class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
-    Netcdf file with the tables used in Abinit to apply the
-    pseudopotential part of the KS Hamiltonian.
+    ScrFile produced by the Abinit GW code.
 
     Usage example:
 
@@ -347,7 +355,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -393,6 +401,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Return :class:`Function1D`
 
         .. warning:
+
             This function performs the inversion of e-1 to get e.
             that can be quite expensive and memory demanding for large matrices!
         """
@@ -483,7 +492,7 @@ class ScrReader(ETSF_Reader):
     def read_wggfunc(self, qpoint, cls):
         """
         Read data at the given q-point and return an instance
-        of `cls` where `cls` is a subclass of `WGGFunction`
+        of `cls` where `cls` is a subclass of `_AwggMat`
         """
         qpoint, iq = self.find_qpoint_fileindex(qpoint)
         # TODO: I don't remember how to slice in python-netcdf
@@ -499,9 +508,10 @@ class ScrReader(ETSF_Reader):
         return cls(qpoint, self.wpts, gsphere, wggmat, inord="F")
 
 
-import six
-import abc
 class PPModel(six.with_metaclass(abc.ABCMeta, object)):
+    """
+    Abstract base class for Plasmonpole models.
+    """
 
     #@abc.abstractmethod
     #def from_em1(cls, em1):

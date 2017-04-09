@@ -8,6 +8,7 @@ import warnings
 import collections
 import six
 import numpy as np
+import spglib
 
 from six.moves import cStringIO
 from monty.string import is_string
@@ -759,7 +760,10 @@ class AbinitSpaceGroup(OpSequence):
         Returns:
             :class:`LittleGroup` object.
         """
-        frac_coords = getattr(kpoint, "frac_coords", kpoint)
+        if hasattr(kpoint, "frac_coords"):
+            frac_coords = kpoint.frac_coords
+        else:
+            frac_coords = np.reshape(kpoint, (3))
 
         to_spgrp, g0vecs = [], []
 
@@ -803,6 +807,9 @@ class LittleGroup(OpSequence):
         return "Kpoint Group: %s, Kpoint: %s" % (self.kgroup, self.kpoint)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
         lines = [repr(self)]
 
         strio = cStringIO()
@@ -815,13 +822,12 @@ class LittleGroup(OpSequence):
 
         return "\n".join(lines)
 
-    def bilbao_character_table(self):
-        """Returns table, info"""
-        bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
-        table = bilbao_ptgrp.character_table
-
-        info = repr(self)
-        return table, info
+    #def bilbao_character_table(self):
+    #    """Returns table, info"""
+    #    bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
+    #    table = bilbao_ptgrp.character_table
+    #    info = repr(self)
+    #    return table, info
 
     #@property
     #def konborder_and_nonsymmorphic(self):
@@ -845,7 +851,6 @@ class LatticePointGroup(OpSequence):
 
         # Call spglib to get the Herm symbol.
         # Remove blanks from C string.
-        import spglib
         herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
         self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
@@ -987,7 +992,7 @@ class LatticeRotation(Operation):
     @property
     def trace(self):
         """The trace of the rotation matrix"""
-        return self.mat.trace()[0,0]
+        return self.mat.trace()[0, 0]
 
     @property
     def is_proper(self):

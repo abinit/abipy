@@ -93,7 +93,8 @@ class WaveFunction(object):
 
     def set_ug(self, ug):
         """Set the value of the u(nspinor, G) array."""
-        assert ug.shape == self.shape
+        if ug.shape != self.shape:
+            raise ValueError("Input ug shape %s differs from the one stored in self %s" % (ug.shape, self.shape))
         self._ug = ug
         self.delete_ur()
 

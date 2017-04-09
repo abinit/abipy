@@ -55,6 +55,8 @@ class TestWFKFile(AbipyTest):
             assert callable(visu)
 
             # FFT and FFT^{-1} on the BOX.
+            visu = wave.visualize_ur2(wfk.structure, "xcrysden")
+            assert callable(visu)
             ug_mesh = wave.mesh.fft_r2g(wave.ur)
             same_ur = wave.mesh.fft_g2r(ug_mesh)
 
@@ -63,6 +65,11 @@ class TestWFKFile(AbipyTest):
             # Back to the sphere
             same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
             self.assert_almost_equal(wave.ug, same_ug)
+
+            wave.set_ug(same_ug)
+            self.assert_equal(wave.ug, same_ug)
+            with self.assertRaises(ValueError):
+                wave.set_ug(np.empty(3))
 
             wave.export_ur2(".xsf", structure)
 

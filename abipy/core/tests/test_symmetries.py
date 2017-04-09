@@ -26,7 +26,9 @@ class TestSymmetries(AbipyTest):
         self.serialize_with_pickle(structure, test_eq=True)
 
         spgrp = structure.abi_spacegroup
-        print("spgrp:\n", spgrp)
+        #print("spgrp:\n", spgrp)
+        repr(spgrp)
+        str(spgrp)
 
         #print("mult_tables:\n", spgrp.mult_table)
         # Classes cover the entire group.
@@ -89,12 +91,14 @@ class TestSymmetries(AbipyTest):
 
                 assert not err_msg
 
-        # Test little group.
-        # TODO
-        #ltg_symmops, g0vecs, isyms = spgrp.find_little_group(kpoint=[0,0,0])
-        #assert len(ltg_symmops) == len(spgrp)
-        #for o1, o2 in zip(ltg_symmops, spgrp):
-        #    assert o1 == o2
+        # Test little group (first test wit Gamma point)
+        ltg = spgrp.find_little_group(kpoint=[0, 0, 0])
+        assert len(ltg) == len(spgrp)
+        repr(ltg)
+        str(ltg)
+        for o1, (o2, g0) in zip(spgrp, ltg.iter_symmop_g0()):
+            assert o1 == o2
+            assert np.all(g0 == 0)
 
 
 class LatticeRotationTest(AbipyTest):
@@ -122,6 +126,7 @@ class LatticeRotationTest(AbipyTest):
 class BilbaoPointGroupTest(AbipyTest):
 
     def test_database(self):
+        """Testing BilbaoPointGroup database."""
         from abipy.core.symmetries import bilbao_ptgroup, sch_symbols
         for sch_symbol in sch_symbols:
             #print(sch_symbol)

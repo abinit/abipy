@@ -34,7 +34,15 @@ class TestQPList(AbipyTest):
         assert qplist_copy == qplist
 
         qpl_e0sort = qplist.sort_by_e0()
-        qpl_e0sort.get_e0mesh()
+        assert qpl_e0sort.is_e0sorted
+        e0mesh = qpl_e0sort.get_e0mesh()
+        assert e0mesh[-1] > e0mesh[0]
+        values = qpl_e0sort.get_field("qpeme0")
+        assert len(values) == len(qpl_e0sort)
+
+        qp = qpl_e0sort[2]
+        value = qpl_e0sort.get_skb_field(qp.skb, "qpeme0")
+        assert qp.qpeme0 == value
 
         with self.assertRaises(ValueError):
             qplist.get_e0mesh()
@@ -124,6 +132,13 @@ class TestSigresFile(AbipyTest):
 
         # Interpolate QP corrections and apply them on top of the KS band structures.
         # QP band energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
+
+        # Just to test call without ks_ebands.
+        r = sigres.interpolate(lpratio=5,
+                               ks_ebands_kpath=None,
+                               ks_ebands_kmesh=None,
+                               verbose=0, filter_params=[1.0, 1.0], line_density=10)
+
         r = sigres.interpolate(lpratio=5,
                                ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
                                ks_ebands_kmesh=abidata.ref_file("si_scf_GSR.nc"),

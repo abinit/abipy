@@ -1441,12 +1441,24 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # 1) Abinit cannot be executed or runtime errors due e.g to libraries
         # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
         # Try to return as much iformation as possible to aid debugging
+        errors = ["Problem in temp Task executed in %s" %  task.workdir,
+                  "Previous exception %s" % prev_exc]
+
+        try:
+            errors.append("Last 50 line from %s:" % str(task.log_file.path))
+            log_lines = task.log_file.readlines()
+            i = len(log_lines) - 50 if len(log_lines) >= 50 else 0
+            errors.extend(s.strip() for s in lines[i:])
+        except Exception as exc:
+            errors.append(str(exc))
+
+        emsg = "\n".join(errors)
+
         try:
             # TODO: in principle task.debug() but I have to change pymatgen.io.abinit
             task.flow.debug()
         finally:
-            raise self.Error("Problem in temp Task executed in %s\n"
-                             "Previous exception %s" % (task.workdir, prev_exc))
+            raise self.Error(emsg)
 
     def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """

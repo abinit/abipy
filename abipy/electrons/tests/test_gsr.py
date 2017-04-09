@@ -85,12 +85,14 @@ class GSRFileTestCase(AbipyTest):
             almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
             # Test energy_terms
-            eterm = gsr.energy_terms
-            print(eterm)
-            almost_equal(eterm.e_xc.to("Ha"), -3.51815936301812)
-            almost_equal(eterm.e_nonlocalpsp.to("Ha"), 1.91660690901782)
-            almost_equal(eterm.e_kinetic.to("Ha"), 2.96421325671218)
-            almost_equal(eterm.e_fermie.to("Ha"), 0.205739364929368)
+            eterms = gsr.energy_terms
+            repr(eterms)
+            str(eterms)
+            assert eterms.to_string(with_doc=True)
+            almost_equal(eterms.e_xc.to("Ha"), -3.51815936301812)
+            almost_equal(eterms.e_nonlocalpsp.to("Ha"), 1.91660690901782)
+            almost_equal(eterms.e_kinetic.to("Ha"), 2.96421325671218)
+            almost_equal(eterms.e_fermie.to("Ha"), 0.205739364929368)
 
             # Forces and stress
             self.assert_almost_equal(gsr.cart_forces.to("Ha bohr^-1").flat,

@@ -363,6 +363,7 @@ class GsrReader(ElectronsReader):
 
 
 # TODO: Remove and/or merge with robots.
+# TODO: Not tested
 class GsrPlotter(Iterable):
     """
     This object receives a list of `GsrFile` objects and provides

@@ -15,10 +15,11 @@ class PspsFileTestCase(AbipyTest):
         pseudo = abidata.pseudo("Ga.oncvpsp")
 
         with pseudo.open_pspsfile(ecut=10) as psps:
+            repr(psps)
             print(psps)
             r = psps.reader
             assert r.usepaw == 0 and r.ntypat == 1
 
             if self.has_matplotlib():
-                psps.plot(what="all", show=False)
+                psps.plot(what="all", with_qn=True, show=False)
                 psps.compare(psps, show=False)
