@@ -411,6 +411,47 @@ class AbipyTest(PymatgenTest):
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()
 
+    def abivalidate_input(self, abinput, must_fail=False):
+        """
+        Invoke Abinit to test validity of an Input object
+        Print info to stdout if failuer before raising AssertionError.
+        """
+        v = abinput.abivalidate()
+        if must_fail:
+            assert v.retcode != 0 and v.log_file.read()
+        else:
+            if v.retcode != 0:
+                print(type(abinput))
+                print(abinput)
+                lines = v.log_file.readlines()
+                i = len(lines) - 50 if len(lines) >= 50 else 0
+                print("Last 50 line from logfile:")
+                print("".join(lines[i:]))
+
+            assert v.retcode == 0
+
+    def abivalidate_multi(self, multi):
+        """
+        Invoke Abinit to test validity of a `MultiDataset` or a list of input objects.
+        """
+        if hasattr(multi, "split_datasets"):
+            inputs = multi.split_datasets()
+        else:
+            inputs = multi
+
+        errors = []
+        for inp in inputs:
+            try:
+                self.abivalidate_input(inp)
+            except Exception as exc:
+                errors.append(str(exc))
+
+        if errors:
+            for e in errors:
+                print(e)
+
+        assert not errors
+
 
 class AbipyFileTest(AbipyTest):
     """

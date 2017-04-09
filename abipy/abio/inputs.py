@@ -1007,8 +1007,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Returns the tolerance variable and value relative to the scf convergence.
         If more than one is present raise an error
         """
-        tolvar = None
-        value = None
+        tolvar, value = None, None
         for t in _TOLVARS_SCF:
             if t in self and self[t]:
                 if tolvar:
@@ -1704,6 +1703,7 @@ class MultiDataset(object):
 
     @classmethod
     def from_inputs(cls, inputs):
+        """Build object from a list of :class:`AbinitInput` objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
@@ -1711,6 +1711,7 @@ class MultiDataset(object):
         # Build MultiDataset from input structures and pseudos and add inputs.
         multi = cls(structure=[inp.structure for inp in inputs], pseudos=inputs[0].pseudos, ndtset=len(inputs))
 
+        # Add variables, decorators and tags.
         for inp, new_inp in zip(inputs, multi):
             new_inp.set_vars(**inp)
             new_inp._decorators = inp.decorators
@@ -1782,6 +1783,7 @@ class MultiDataset(object):
 
     @property
     def pseudos(self):
+        """Pseudopotential objects."""
         return self[0].pseudos
 
     @property
@@ -1829,6 +1831,7 @@ class MultiDataset(object):
         return on_all
 
     def __add__(self, other):
+        """self + other"""
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs(self)
             new_mds.append(other)
@@ -1866,9 +1869,11 @@ class MultiDataset(object):
         self._inputs.extend(abinit_inputs)
 
     def addnew_from(self, dtindex):
+        """Add a new entry in the multidataset by copying the input with index `dtindex`."""
         self.append(self[dtindex].deepcopy())
 
     def split_datasets(self):
+        """Return list of AbinitInput files."""
         return self._inputs
 
     def deepcopy(self):
@@ -1917,6 +1922,7 @@ class MultiDataset(object):
         Args:
             tags: A single tag or list/tuple/set of tags
             exclude_tags: A single tag or list/tuple/set of tags that should be excluded
+
         Returns:
             A :class:`MultiDataset` containing the inputs containing all the requested tags
         """
@@ -1964,6 +1970,9 @@ class MultiDataset(object):
             self[i].remove_tags(tags)
 
     def filter_by_runlevel(self, runlevel):
+        """
+        Return new MultiDataset object in which only the inputs with the given runlevel are selected
+        """
         if isinstance(runlevel, (list, tuple, set)):
             runlevel = set(runlevel)
         elif not isinstance(runlevel, set):
@@ -2220,6 +2229,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
+        Note: This method is deprecated because now it's possible to compute Thermodynamical
+        properties from PhDos
 
         Args:
             structure: :class:`Structure` object

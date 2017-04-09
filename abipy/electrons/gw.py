@@ -1317,7 +1317,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #qp_fermie = 0.0
 
         qp_ebands_kpath = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
-                                         self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+                                        self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
 
         qp_ebands_kmesh = None
         if ks_ebands_kmesh is not None:

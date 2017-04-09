@@ -1,10 +1,11 @@
 # coding: utf-8
 """
-This modules providess tensors objects extracted from dfpt calculations.
+This modules provides tensors objects extracted from dfpt calculations.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+
 from pymatgen.analysis.elasticity.tensors import Tensor, SquareTensor
 from abipy.iotools import ETSF_Reader
 

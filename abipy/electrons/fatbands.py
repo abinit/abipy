@@ -488,7 +488,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
             set_axlims(ax, ylims, "y")
 
-        axmat[0,0].legend(loc="best")
+        axmat[0, 0].legend(loc="best")
 
         return fig
 
@@ -505,6 +505,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
             axmat: Matrix of axes, if None new figure is produce.
+            lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -572,6 +573,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -1590,7 +1592,7 @@ class _DosIntegrator(object):
                         weight = kpoint.weight
                         for band in range(ebands.nband_sk[spin, k]):
                             e = ebands.eigens[spin, k, band]
-                            for l in range(lmax+1):
+                            for l in range(lmax + 1):
                                 lso[l, spin] += wlsbk[l, spin, band, k] *\
                                                 weight * gaussian(self.mesh, self.width, center=e)
                 symbols_lso[symbol] = lso

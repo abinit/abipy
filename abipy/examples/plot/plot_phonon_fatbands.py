@@ -25,5 +25,5 @@ phbands.plot_fatbands(title="AlAs phonon fatbands without LO-TO splitting") #, q
 
 # Plot the phonon band structure + PJDOS
 phdos_path = abidata.ref_file("trf2_5.out_PHDOS.nc")
-phbands.plot_fatbands(units="Thz", phdos_file=phdos_path, 
+phbands.plot_fatbands(units="Thz", phdos_file=phdos_path,
                       title="AlAs phonon fatbands with PJDOS")

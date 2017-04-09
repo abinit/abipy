@@ -30,26 +30,10 @@ class FactoryTest(AbipyTest):
         self.si_structure = abidata.structure_from_cif("si.cif")
         self.si_pseudo = abidata.pseudos("14si.pspnc")
 
-    @staticmethod
-    def validate_multi(multi):
-        """Test validity of MultiDataset or a list of input objects."""
-        if hasattr(multi, "split_datasets"):
-            dtlist = multi.split_datasets()
-        else:
-            dtlist = multi
-
-        rcode = 0
-        for dtset in dtlist:
-            v = dtset.abivalidate()
-            if v.retcode != 0:
-                print("Validation error in %s" % str(v))
-            rcode += v.retcode
-        assert rcode == 0
-
     def test_gs_input(self):
         """Testing gs_input factory."""
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
-        inp.abivalidate()
+        self.abivalidate_input(inp)
 
         if False:  # write_inputs_to_json:
             with open('gs_input.json', mode='w') as fp:
@@ -73,7 +57,7 @@ class FactoryTest(AbipyTest):
         self.assertIn('bands', nscf_inp.runlevel)
         self.assertIn('nscf', nscf_inp.runlevel)
         self.assertIn('ground_state', nscf_inp.runlevel)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
         self.assert_input_equality('scf_input.json', scf_inp)
         self.assert_input_equality('nscf_input.json', nscf_inp)
 
@@ -98,7 +82,7 @@ class FactoryTest(AbipyTest):
         # pawecutdg=None, accuracy="normal", spin_mode="polarized",
         # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
 
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
         # ion_inp, ioncell_inp = multi.split_datasets()
 
     def test_g0w0_with_ppmodel_inputs(self):
@@ -112,12 +96,11 @@ class FactoryTest(AbipyTest):
 
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
 
-        scf_input.abivalidate()
-        nscf_input.abivalidate()
-        scr_input.abivalidate()
+        self.abivalidate_multi(multi)
+
         self.assertIn('many_body', scr_input.runlevel)
         self.assertIn('screening', scr_input.runlevel)
-        sigma_input.abivalidate()
+        self.abivalidate_input(sigma_input)
         self.assertIn('many_body', sigma_input.runlevel)
         self.assertIn('sigma', sigma_input.runlevel)
         self.assertNotIn('hybrid', sigma_input.runlevel)
@@ -170,11 +153,7 @@ class FactoryTest(AbipyTest):
             self.assert_input_equality(ref_file, inputs[int(t[0])][int(t[1])])
 
         for inp in [item for sublist in inputs for item in sublist]:
-            val = inp.abivalidate()
-            if val.retcode != 0:
-                print(inp)
-                print(val.log_file.read())
-                self.assertEqual(val.retcode, 0)
+            self.abivalidate_input(inp)
 
         self.assertEqual(inputs[3][0]['gwpara'], 2)
         self.assertEqual(inputs[3][0]['gwmem'], '10')
@@ -201,11 +180,7 @@ class FactoryTest(AbipyTest):
             # self.assert_input_equallity(ref_file, inp)
 
         for inp in [item for sublist in inputs for item in sublist]:
-            val = inp.abivalidate()
-            if val.retcode != 0:
-                print(inp)
-                print(val.log_file.read())
-                self.assertEqual(val.retcode, 0)
+            self.abivalidate_input(inp)
 
         # the rest is redundant now..
 
@@ -241,14 +216,14 @@ class FactoryTest(AbipyTest):
         self.assertIn('bse', bse_input.runlevel)
         self.assertNotIn('hybrid', bse_input.runlevel)
 
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
 
     def test_scf_phonons_inputs(self):
         """Testing scf_phonons_inputs."""
         scf_kppa, scf_nband, nscf_nband, dos_kppa = 10, 10, 10, 4
         ecut = 4
         multi = scf_phonons_inputs(self.si_structure, self.si_pseudo, scf_kppa, ecut=ecut)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
         self.assertIn('dfpt', multi[-1].runlevel)
         self.assertIn('ph_q_pert', multi[-1].runlevel)
 
@@ -257,7 +232,7 @@ class FactoryTest(AbipyTest):
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         multi = phonons_from_gsinput(gs_inp, ph_ngqpt=[4, 4, 4], with_ddk=True, with_dde=True,
                                      with_bec=False, ph_tol=None, ddk_tol=None, dde_tol=None)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
 
         from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT
         inp_ddk = multi.filter_by_tags(DDK)[0]
@@ -280,12 +255,11 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_1.json', inp_ph_q_pert_1)
         self.assert_input_equality('phonons_from_gsinput_ph_q_pert_2.json', inp_ph_q_pert_2)
 
-
     def test_elastic_inputs_from_gsinput(self):
         """Testing elastic_inputs_from_gsinput."""
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
 
     def test_scf_piezo_elastic_inputs(self):
         """Testing scf_piezo_elastic_inputs."""
@@ -294,7 +268,7 @@ class FactoryTest(AbipyTest):
                                          scf_nband=None, accuracy="normal", spin_mode="polarized",
                                          smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                                          ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
 
     def test_scf_input(self):
         """Testing scf_input"""
@@ -302,25 +276,29 @@ class FactoryTest(AbipyTest):
         inp = scf_input(self.si_structure, self.si_pseudo, kppa=None, ecut=None, pawecutdg=None, nband=None,
                         accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0,
                         scf_algorithm=None, shift_mode="Monkhorst-Pack")
-        inp.abivalidate()
+
+        with self.assertRaises(AssertionError):
+            self.abivalidate_input(inp)
+        inp["ecut"] = 2
+        self.abivalidate_input(inp)
 
     def test_ebands_dos_from_gsinput(self):
         """Testing ebands_from_gsinput and dos_from_gsinput"""
         from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
-        ebands_inp.abivalidate()
+        self.abivalidate_input(ebands_inp)
 
         dos_kppa = 3000
         edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal", pdos=False)
-        edos_inp.abivalidate()
+        self.abivalidate_input(edos_inp)
 
     def test_ioncell_relax_from_gsinput(self):
         """Testing ioncell_relax_from_gsinput"""
         from abipy.abio.factories import ioncell_relax_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=2, spin_mode="polarized")
         icrelax_input = ioncell_relax_from_gsinput(gs_inp)
-        icrelax_input.abivalidate()
+        self.abivalidate_input(icrelax_input)
 
     def test_hybrid_oneshot_input(self):
         """Testing hybrid_oneshot_input."""
@@ -329,7 +307,7 @@ class FactoryTest(AbipyTest):
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=100, ecut=ecut, spin_mode="polarized")
         hyb_inp = hybrid_oneshot_input(gs_inp, functional="hse06", ecutsigx=None, gw_qprange=1)
         assert "ecutsigx" in hyb_inp and hyb_inp["ecutsigx"] == ecut * 2
-        hyb_inp.abivalidate()
+        self.abivalidate_input(hyb_inp)
         self.assertIn('hybrid', hyb_inp.runlevel)
         self.assertNotIn('many_body', hyb_inp.runlevel)
 
@@ -337,14 +315,13 @@ class FactoryTest(AbipyTest):
         """Testing scf_for_phonons."""
         from abipy.abio.factories import scf_for_phonons
         scf_inp = scf_for_phonons(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
-        scf_inp.abivalidate()
+        self.abivalidate_input(scf_inp)
 
         if False:
             with open('scf_for_phonons.json', mode='w') as fp:
                 json.dump(scf_inp.as_dict(), fp, indent=2)
 
         self.assert_input_equality('scf_for_phonons.json', scf_inp)
-
 
     def test_dte_from_gsinput(self):
         """Testing for dte_from_gsinput"""
@@ -354,7 +331,7 @@ class FactoryTest(AbipyTest):
         # dte calculations only work with selected values of ixc
         gs_inp['ixc'] = 7
         multi = dte_from_gsinput(gs_inp, use_phonons=True, skip_dte_permutations=True)
-        self.validate_multi(multi)
+        self.abivalidate_multi(multi)
 
         inp1 = multi[0]
         inp2 = multi[5]

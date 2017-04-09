@@ -1089,10 +1089,10 @@ class PhononBands(object):
         # Return ticks, labels
         return list(d.keys()), list(d.values())
 
-    # TODO: Units and max_stripe_width_mev
     @add_fig_kwargs
     def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
-                      alpha=0.7, max_stripe_width_mev=3.0, qlabels=None, ylims=None,
+                      alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
+                      qlabels=None, ylims=None,
                       **kwargs):
                       #cart_dir=None
         r"""
@@ -1105,7 +1105,9 @@ class PhononBands(object):
             phdos_file: Used to activate fatbands + PJDOS plot.
                 Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-            max_stripe_width_mev: The maximum width of the stripe in meV.
+            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.
+            width_rations: Rations between the width of the fatbands plots and the DOS plots.
+                Used if `phdos_file` is not None
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
@@ -1132,7 +1134,7 @@ class PhononBands(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
         nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
-        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=[2, 1] if ncols == 2 else None,
+        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios if ncols == 2 else None,
                          wspace=0.05, hspace=0.1)
         fig = plt.gcf()
         cmap = plt.get_cmap(colormap)
@@ -1176,9 +1178,9 @@ class PhononBands(object):
                 for iq in range(self.num_qpoints):
                     d2_type[iq] = np.vdot(displ_type[iq], displ_type[iq]).real
 
-                # Normalize and scale by max_stripe_width_mev.
+                # Normalize and scale by max_stripe_width_mev taking into account units.
                 # The stripe is centered on the phonon branch hence the factor 2
-                d2_type = max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
+                d2_type = factor * max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
 
                 # Plot the phonon branch and the stripe.
                 if nu == 0:
@@ -1201,8 +1203,11 @@ class PhononBands(object):
                 color = cmap(float(ax_row) / (ntypat - 1))
                 ax = plt.subplot(gspec[ax_row, 1], sharex=ax01, sharey=ax00)
                 if ax_row == 0: ax01 = ax
+
+                # Get PJDOS
                 pjdos = pjdos_symbol[symbol]
                 x, y = pjdos.mesh * factor, pjdos.values / factor
+
                 ax.plot(y, x, lw=lw, color=color)
                 ax.grid(True)
                 ax.yaxis.set_ticks_position("right")
@@ -1653,6 +1658,7 @@ class PhononDos(Function1D):
         gspec = GridSpec(2, 1, height_ratios=[1, 2], wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
+        fig = plt.gcf()
 
         for ax in (ax1, ax2):
             ax.grid(True)
@@ -1664,7 +1670,6 @@ class PhononDos(Function1D):
         self.plot_dos_idos(ax1, what="i", units=units, **kwargs)
         self.plot_dos_idos(ax2, what="d", units=units, **kwargs)
 
-        fig = plt.gcf()
         return fig
 
     def get_internal_energy(self, tstart=5, tstop=300, num=50):
@@ -1726,17 +1731,18 @@ class PhononDos(Function1D):
         """
         uz = self.get_internal_energy(tstart=tstart, tstop=tstop, num=num)
         s = self.get_entropy(tstart=tstart, tstop=tstop, num=num)
+
         return Function1D(uz.mesh, uz.values - s.mesh * s.values)
 
-        tmesh = np.linspace(tstart, tstop, num=num)
-        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
-        vals = np.empty(len(tmesh))
-        for it, temp in enumerate(tmesh):
-            kt = abu.kb_eVK * temp
-            wd2kt = w / (2 * kt)
-            vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
+        #tmesh = np.linspace(tstart, tstop, num=num)
+        #w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        #vals = np.empty(len(tmesh))
+        #for it, temp in enumerate(tmesh):
+        #    kt = abu.kb_eVK * temp
+        #    wd2kt = w / (2 * kt)
+        #    vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
 
-        return Function1D(tmesh, vals + self.zero_point_energy)
+        #return Function1D(tmesh, vals + self.zero_point_energy)
 
     def get_cv(self, tstart=5, tstop=300, num=50):
         """
@@ -1819,6 +1825,7 @@ class PhdosReader(ETSF_Reader):
     This object reads data from the PHDOS.nc file produced by anaddb.
 
     .. note::
+
             Frequencies are in eV, DOSes are in states/eV.
     """
     @lazy_property
@@ -1871,6 +1878,7 @@ class PhdosReader(ETSF_Reader):
     #     """
     #     return self.read_value("phonon_frequencies")
 
+    # TODO
     #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
 
 
@@ -1917,7 +1925,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
         """
-        Plot of the type-projected phonon DOS
+        Plot of type-projected phonon DOS
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -1996,7 +2004,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
         cmap = plt.get_cmap(colormap)
-        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("xlims", None)
+        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
         #double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)
         pjdos_type_rc = self.reader.pjdos_type_rc
 
@@ -2042,7 +2050,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             view: "inequivalent", "all"
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             stacked: True if DOS partial contributions should be stacked on top of each other.
-            colormap: matplotlib colormap
+            colormap: matplotlib colormap.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -2928,8 +2936,8 @@ class InteratomicForceConstants(Has_Structure):
         with ETSF_Reader(filepath) as r:
             try:
                 structure = r.read_structure()
-                atoms_indices = r.read_value("ifc_atoms_indices")-1
-                neighbours_indices = r.read_value("ifc_neighbours_indices")-1
+                atoms_indices = r.read_value("ifc_atoms_indices") - 1
+                neighbours_indices = r.read_value("ifc_neighbours_indices") - 1
                 distances = r.read_value("ifc_distances")
                 ifc_cart_coord = r.read_value("ifc_matrix_cart_coord")
                 ifc_cart_coord_short_range = r.read_value("ifc_matrix_cart_coord_short_range", default=None)
