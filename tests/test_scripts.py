@@ -165,16 +165,16 @@ class TestAbicomp(ScriptTest):
 
         dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")
         args = [os.path.join(dirpath, p) for p in ("si_nscf_GSR.nc", "si_scf_WFK.nc")]
-        r = env.run(self.script, "ebands", *args, self.loglevel, self.verbose,
+        r = env.run(self.script, "ebands", args[0], args[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         args = [os.path.join(dirpath, p) for p in ("si_scf_GSR.nc", "si_scf_WFK.nc")]
-        r = env.run(self.script, "edos", *args, self.loglevel, self.verbose,
+        r = env.run(self.script, "edos", args[0], args[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
         args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_886.out_PHBST.nc", "ZnSe_hex_886.out_PHBST.nc")]
-        r = env.run(self.script, "phbands", *args, self.loglevel, self.verbose,
+        r = env.run(self.script, "phbands", args[0], args[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         #dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
@@ -190,11 +190,11 @@ class TestAbicomp(ScriptTest):
         args = abidata.ref_files("si_g0w0ppm_nband10_SIGRES.nc",
                                  "si_g0w0ppm_nband20_SIGRES.nc",
                                  "si_g0w0ppm_nband30_SIGRES.nc")
-        r = env.run(self.script, "sigres", *args, self.loglevel, self.verbose,
+        r = env.run(self.script, "sigres", args[0], args[1], args[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
-        r = env.run(self.script, "mdf", *args, self.loglevel, self.verbose,
+        r = env.run(self.script, "mdf", args[0], args[1], args[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
        # args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
