@@ -8,11 +8,14 @@ import sys
 import os
 import argparse
 
+from monty.string import marquee
 from monty.functools import prof_main
+from monty.termcolor import cprint
 from pprint import pprint
 from tabulate import tabulate
-from abipy import abilab
 from pymatgen.io.vasp.outputs import Xdatcar
+from abipy import abilab
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
 from abipy.core.kpoints import Ktables
@@ -24,24 +27,29 @@ def main():
     def str_examples():
         return """\
 Usage example:
-    abistruct.py spglib  filepath             => Read the structure from file and analyze it with spglib.
-    abistruct.py convert filepath cif         => Read the structure from file and print CIF file.
-    abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
-    abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and
-                                                 print the corresponding Abinit variables.
-    abistruct.py kpath filepath               => Read structure from filepath and print Abinit variables for k-path.
-    abistruct.py bz filepath                  => Read structure from filepath, plot BZ with matplotlib.
-    abistruct.py kmesh filepath -m 2 2 2      => Read structure from filepath, call spglib to sample the BZ with a 2,2,2 mesh,
-                                                 print points in IBZ with weights.
 
-    abistruct.py abisanitize FILE             => Read structure from FILE, call abisanitize, compare structures and save
-                                                 "abisanitized" structure to file.
-    abistruct.py conventional FILE            => Read structure from FILE, generate conventional structure
-                                                 following doi:10.1016/j.commatsci.2010.05.010
-    abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
-    abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
-    abistruct.py notebook filepath            => Read structure from filepath and generate jupyter notebook.
-    abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
+    abistruct.py spglib FILE                => Read structure from FILE and analyze it with spglib.
+    abistruct.py abispg FILE                => Read structure from FILE, extract ABINIT space-group info.
+    abistruct.py convert FILE cif           => Read the structure from FILE and print CIF file.
+    abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
+    abistruct.py convert out_HIST abivars   => Read the last structure from the HIST file and
+                                               print the corresponding ABINIT variables.
+    abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
+    abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
+    abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ with a 2,2,2 mesh,
+                                               print points in IBZ with weights.
+    abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
+                                               print Bilbao character table.
+    abistruct.py abisanitize FILE           => Read structure from FILE, call abisanitize, compare structures and save
+                                               "abisanitized" structure to file.
+    abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
+                                               following doi:10.1016/j.commatsci.2010.05.010
+    abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
+    abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
+    abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
+    abistruct.py pmgdata mp-149             => Get structure from pymatgen database and print its JSON representation.
+
+Use `abistruct.py COMMAND --help` for futher information.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -55,7 +63,7 @@ Usage example:
     path_selector.add_argument('filepath', nargs="?", help="File with the crystalline structure (netcdf, cif, input files ...)")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     spgopt_parser = argparse.ArgumentParser(add_help=False)
     spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
@@ -69,6 +77,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     Project) is often needed.""")
     spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
+    spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -81,8 +90,13 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
                                        description="Valid subcommands, use command --help for help")
 
+    # Subparser for spglib command.
     p_spglib = subparsers.add_parser('spglib', parents=[copts_parser, path_selector, spgopt_parser],
                                       help="Analyze structure with spglib.")
+
+    # Subparser for abispg command.
+    p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
+                                      help="Extract Abinit spacegroup info from fileb.")
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
@@ -90,11 +104,13 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_convert.add_argument('format', nargs="?", default="cif", type=str,
                            help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
+    # Subparser for abisanitize
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
                                       help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
     p_abisanitize.add_argument("--savefile", default="", type=str,
                                help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
 
+    # Subparser for conventional.
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser],
                                            help="Gives a structure with a conventional cell according to certain standards. "
                                                 "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
@@ -105,6 +121,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
                                       help="Open IPython shell for advanced operations on structure object.")
 
+    # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
                                        help="Read structure from file and generate jupyter notebook.")
     p_notebook.add_argument('--foreground', action='store_true', default=False,
@@ -118,6 +135,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
                                  help="Read structure from file, plot Brillouin zone with matplotlib.")
 
+    # Subparser for kmesh.
     p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
                                     help=("Read structure from filepath, call spglib to sample the BZ,"
                                            "print k-points in the IBZ with weights."))
@@ -128,13 +146,19 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
                                "Default: Unshited mesh."))
     p_kmesh.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
+    # Subparser for lgk.
+    p_lgk = subparsers.add_parser('lgk', parents=[copts_parser, path_selector, spgopt_parser],
+                                 help="Read structure from file, find little group of k-point, print Bilbao character table.")
+    p_lgk.add_argument("-k", "--kpoint", nargs="+", required=True, type=float,
+                       help="K-point in reduced coordinates e.g. 0.25 0 0")
+
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
                                         help="Visualize the structure with the specified visualizer")
     p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str, help=("Visualizer name. "
         "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
 
-    # Subparser for pmgid command.
+    # Subparser for pmgdata command.
     p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
@@ -164,6 +188,14 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spglib_summary(verbose=options.verbose))
+
+    elif options.command == "abispg":
+        structure = abilab.Structure.from_file(options.filepath)
+        spgrp = structure.abi_spacegroup
+        if spgrp is None:
+            cprint("Your file does not contain Abinit symmetry operations.", "red")
+            return 1
+        print(spgrp)
 
     elif options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
@@ -294,6 +326,27 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
             print("\nUse -v to obtain the BZ --> IBZ mapping.")
         else:
             k.print_bz2ibz()
+
+    elif options.command == "lgk":
+
+        structure = abilab.Structure.from_file(options.filepath)
+        spgrp = structure.abi_spacegroup
+
+        if spgrp is None:
+            cprint("Your file does not contain Abinit symmetry operations.", "yellow")
+            cprint("Will call spglib to obtain the spacegroup (assuming time-reversal: %s)" %
+                   (not options.no_time_reversal), "yellow")
+            spgrp = AbinitSpaceGroup.from_structure(structure, has_timerev=not options.no_time_reversal,
+                        symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+
+        print()
+        print(marquee("Structure", mark="="))
+        print(structure.spglib_summary(verbose=options.verbose))
+        print("\n")
+
+        print(marquee("Little Group", mark="="))
+        ltk = spgrp.find_little_group(kpoint=options.kpoint)
+        print(ltk.to_string(verbose=options.verbose))
 
     elif options.command == "pmgdata":
         # Get the Structure corresponding the a material_id.

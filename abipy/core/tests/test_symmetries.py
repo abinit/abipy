@@ -1,7 +1,6 @@
 """Tests for symmetries module"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 
-#import unittest
 import numpy as np
 import abipy.data as abidata
 
@@ -17,7 +16,6 @@ class TestSymmetries(AbipyTest):
     def test_silicon(self):
         """Test silicon space group."""
         structure = Structure.from_file(abidata.ref_file("si_scf_WFK.nc"))
-        #print(structure)
 
         assert structure.has_abi_spacegroup
         assert structure.abi_spacegroup.is_symmorphic
@@ -103,6 +101,12 @@ class TestSymmetries(AbipyTest):
             assert o1 == o2
             assert np.all(g0 == 0)
 
+        # This is just to test from_structure but one should always try to init from file.
+        other_spgroup = AbinitSpaceGroup.from_structure(structure, has_timerev=True)
+        assert other_spgroup.has_timerev
+        assert other_spgroup.spgid == 227
+        assert len(other_spgroup) == 48 * 2
+
 
 class LatticeRotationTest(AbipyTest):
 
@@ -143,7 +147,6 @@ class BilbaoPointGroupTest(AbipyTest):
 
 class LittleGroupTest(AbipyTest):
 
-    #@unittest.skipIf(True, "Temporarily disabled")
     def test_silicon_little_group(self):
         """Testing little group in Silicon."""
         with abiopen(abidata.ref_file("si_scf_WFK.nc")) as wfk_file:
@@ -158,9 +161,15 @@ class LittleGroupTest(AbipyTest):
                        [1/4,1/4,0],
                       ]
 
-            for kpoint in kpoints:
+            for ik, kpoint in enumerate(kpoints):
                 ltk = spgrp.find_little_group(kpoint)
+                repr(ltk)
                 str(ltk)
+                #if ik == 1:
+                #    assert ltk.onborder_and_nonsymmorphic
+                #else:
+                #    assert not ltk.onborder_and_nonsymmorphic
+
                 #wfk_file.classify_ebands(0, kpoint, bands_range=range(0,5))
 
 

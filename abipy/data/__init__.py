@@ -62,6 +62,11 @@ def cif_file(filename):
     return os.path.join(_CIF_DIRPATH, filename)
 
 
+def cif_files(*filenames):
+    """Returns the absolute path of the CIF files in tests/data/cifs."""
+    return list(map(cif_file, filenames))
+
+
 def structure_from_cif(filename):
     """
     Returnn an Abipy structure from the basename of the cif file in data/cifs.

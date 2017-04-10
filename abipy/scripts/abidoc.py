@@ -46,8 +46,7 @@ Usage example:
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
-
+    parser.add_argument('-V', '--version', action='version', version=__version__)
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)

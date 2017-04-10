@@ -95,7 +95,7 @@ File extensions supported:
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                     help='verbose, can be supplied multiple times to increase verbosity')

@@ -32,6 +32,7 @@ def wrap_in_ucell(x):
     """
     return x % 1
 
+
 def is_integer(x, atol=1e-08):
     """
     True if all x is integer within the absolute tolerance atol.
@@ -158,6 +159,7 @@ class SymmOp(Operation, SlotPickleMixin):
         "_trace",
     ]
 
+    # TODO: Add lattice
     def __init__(self, rot_r, tau, time_sign, afm_sign, rot_g=None):
         """
         This object represents a space group symmetry i.e. a symmetry of the crystal.
@@ -492,7 +494,7 @@ class OpSequence(collections.Sequence):
         """Number of classes."""
         return len(self.class_indices)
 
-    @property
+    @lazy_property
     def class_indices(self):
         """
         A class is defined as the set of distinct elements obtained by
@@ -503,31 +505,26 @@ class OpSequence(collections.Sequence):
             Nested list l = [cls0_indices, cls1_indices, ...] where each sublist
             contains the indices of the class. len(l) equals the number of classes.
         """
-        try:
-            return self._class_indices
+        found, class_indices = len(self) * [False], [[] for i in range(len(self))]
 
-        except AttributeError:
-            found, class_indices = len(self) * [False], [[] for i in range(len(self))]
+        num_classes = -1
+        for ii, op1 in enumerate(self):
+            if found[ii]: continue
+            num_classes += 1
 
-            num_classes = -1
-            for (ii, op1) in enumerate(self):
-                if found[ii]: continue
-                num_classes += 1
+            for jj, op2 in enumerate(self):
+                # Form conjugate and search it among the operations
+                # that have not been found yet.
+                op1_conj = op1.opconj(op2)
 
-                for (jj, op2) in enumerate(self):
-                    # Form conjugate and search it among the operations
-                    # that have not been found yet.
-                    op1_conj = op1.opconj(op2)
+                for kk, op3 in enumerate(self):
+                    if not found[kk] and op1_conj == op3:
+                        found[kk] = True
+                        class_indices[num_classes].append(kk)
 
-                    for (kk, op3) in enumerate(self):
-                        if not found[kk] and op1_conj == op3:
-                            found[kk] = True
-                            class_indices[num_classes].append(kk)
-
-            self._class_indices = class_indices[:num_classes+1]
-
-            assert sum(len(c) for c in self._class_indices) == len(self)
-            return self._class_indices
+        class_indices = class_indices[:num_classes+1]
+        assert sum(len(c) for c in class_indices) == len(self)
+        return class_indices
 
     def groupby_class(self, with_inds=False):
         """
@@ -601,19 +598,14 @@ class AbinitSpaceGroup(OpSequence):
         self._ops = tuple(all_syms)
 
     @classmethod
-    def from_file(cls, file, inord="F"):
+    def from_file(cls, ncfile, inord="F"):
         """Initialize the object from a Netcdf file."""
-        #is_ncfile = is_string(file) and file.endswith(".nc")
-        #if not is_ncfile
-        #structure = Structure.from_file(file):
-        #return cls.from_structure(cls, structure, has_timerev=True,  symprec=1e-5, angle_tolerance=5)
+        r, closeit = as_etsfreader(ncfile)
 
-        file, closeit = as_etsfreader(file)
-
-        new = cls(spgid=file.read_value("space_group"),
-                  symrel=file.read_value("reduced_symmetry_matrices"),
-                  tnons=file.read_value("reduced_symmetry_translations"),
-                  symafm=file.read_value("symafm"),
+        new = cls(spgid=r.read_value("space_group"),
+                  symrel=r.read_value("reduced_symmetry_matrices"),
+                  tnons=r.read_value("reduced_symmetry_translations"),
+                  symafm=r.read_value("symafm"),
                   has_timerev=True,  # FIXME not treated by ETSF-IO.
                   inord=inord)
 
@@ -640,9 +632,10 @@ class AbinitSpaceGroup(OpSequence):
         # Call spglib to get the list of symmetry operations.
         spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         data = spga.get_symmetry_dataset()
+        symrel = data["rotations"]
 
         return cls(spgid=data["number"],
-                   symrel=data["rotations"],
+                   symrel=symrel,
                    tnons=data["translations"],
                    symafm=len(symrel) * [1],
                    has_timerev=has_timerev,
@@ -777,6 +770,7 @@ SpaceGroup = AbinitSpaceGroup
 
 
 class LittleGroup(OpSequence):
+
     def __init__(self, kpoint, symmops, g0vecs):
         """
         k_symmops, g0vecs, indices
@@ -790,12 +784,10 @@ class LittleGroup(OpSequence):
         assert len(self.symmops) == len(self.g0vecs)
 
         # Find the point group of k so that we know how to access the Bilbao database.
-        # (note that operations are in reciprocal space, afm and time_reversalve are taken out
+        # (note that operations are in reciprocal space, afm and time_reversal are taken out
         krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
 
         self.kgroup = LatticePointGroup(krots)
-        #print(self.kgroup)
-        #kclasses = kgroup.classes
 
     def __repr__(self):
         return "Kpoint Group: %s, Kpoint: %s" % (self.kgroup, self.kpoint)
@@ -803,7 +795,7 @@ class LittleGroup(OpSequence):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         lines = [repr(self)]
 
         strio = cStringIO()
@@ -812,7 +804,7 @@ class LittleGroup(OpSequence):
         strio.seek(0)
         # TODO
         #lines += ["Irreducible representations, zone-border_and_nonsymmorphic %s" % self.kpoint.zoneborder_]
-        lines += [l.strip() for l in strio.readlines()]
+        lines.extend(l.strip() for l in strio.readlines())
 
         return "\n".join(lines)
 
@@ -823,9 +815,12 @@ class LittleGroup(OpSequence):
     #    info = repr(self)
     #    return table, info
 
-    #@property
-    #def konborder_and_nonsymmorphic(self):
-    #    return kpoint.on_border and any(not symmop.is_symmorphic for symmop in self)
+    #@lazy_property
+    #def onborder_and_nonsymmorphic(self):
+    #    """
+    #    True if the k-point is on the border of the BZ and we have non-symmorphic operations.
+    #    """
+    #    return self.kpoint.on_border and any(not op.is_symmorphic for op in self)
 
     @property
     def symmops(self):
@@ -1123,7 +1118,7 @@ class BilbaoPointGroup(object):
         # List of tuples, each tuple gives the start and stop index for the class.
         # e.g. [(0, 2), (2,4), (4,n)]
         self.class_range = class_range
-        self.class_len = [stop - start for (start, stop) in class_range]
+        self.class_len = [stop - start for start, stop in class_range]
 
         # The number of irreps must equal the number of classes.
         assert len(irreps) == self.nclass
@@ -1131,7 +1126,7 @@ class BilbaoPointGroup(object):
         for name, d in irreps.items():
             mats = d["matrices"]
             assert len(mats) == self.num_rots
-            irrep =Irrep(name, d["dim"], mats, class_range=self.class_range)
+            irrep = Irrep(name, d["dim"], mats, class_range=self.class_range)
             self.irreps.append(irrep)
             self.irreps_by_name[name] = irrep
 
@@ -1177,8 +1172,7 @@ class BilbaoPointGroup(object):
 
     def show_character_table(self, stream=sys.stdout):
         """Write a string with the character_table on the given stream."""
-        table = self.character_table
-        pprint_table(table, out=stream)
+        pprint_table(self.character_table, out=stream)
 
     #def show_irrep(self, irrep_name):
     #    """Show the mapping rotation --> irrep mat."""
@@ -1293,7 +1287,7 @@ _HERM2SCH = {t[1]: t[0] for t in _PTG_IDS}
 _SPGID2SCH = {t[2]: t[0] for t in _PTG_IDS}
 _SCH2SPGID = {t[0]: t[2] for t in _PTG_IDS}
 
-sch_symbols = _SCH2HERM.keys()
+sch_symbols = list(_SCH2HERM.keys())
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""
