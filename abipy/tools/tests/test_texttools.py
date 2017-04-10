@@ -1,22 +1,23 @@
-from __future__ import print_function, division
+# coding: utf-8
+"""Tests for textools module."""
+from __future__ import division, print_function, absolute_import, unicode_literals
 
 from abipy.tools.text import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestTools(AbipyTest):
     """Test texttools."""
+
     def test_tonumber(self):
-        stnum = '123'
-        self.assertEqual(tonumber(stnum), 123)
-        stnum = '1.23'
-        self.assertEqual(tonumber(stnum), 1.23)
-        stnum = '12D3'
-        self.assertEqual(tonumber(stnum), 12000)
-        stnum = '12E-3'
-        self.assertEqual(tonumber(stnum), 0.012)
+        """Testing tonumber"""
+        assert tonumber('123') == 123
+        assert tonumber('1.23') == 1.23
+        assert tonumber('12D3') == 12000
+        assert tonumber('12E-3') == 0.012
 
     def test_nums_and_text(self):
+        """Testing nums_and_test"""
         line = "   intxc =         0  ionmov =         0    iscf =         7 xclevel =         2"
         numbers = [0.0, 0.0, 7.0, 2.0]
         text = ' intxc = ionmov = iscf = xclevel ='

@@ -41,6 +41,7 @@ _ATOL_KDIFF = 1e-8
 _SPGLIB_SYMPREC = 1e-5
 _SPGLIB_ANGLE_TOLERANCE = -1.0
 
+
 def set_atol_kdiff(new_atol):
     """
     Change the value of the tolerance `_ATOL_KDIFF` used to compare k-points.
@@ -54,6 +55,7 @@ def set_atol_kdiff(new_atol):
     old_atol = _ATOL_KDIFF
     _ATOL_KDIFF = new_atol
     return old_atol
+
 
 def set_spglib_tols(symprec, angle_tolerance):
     """
@@ -653,17 +655,17 @@ class KpointList(collections.Sequence):
             name = None if names is None else names[i]
             self._points.append(Kpoint(rcs, self.reciprocal_lattice, weight=weights[i], name=name))
 
-    @classmethod
-    def from_file(cls, filepath):
-        """Initialize the object from file."""
-        if filepath.endswith(".nc"):
-            with KpointsReader(filepath) as r:
-                new = r.read_kpoints()
-        else:
-            raise NotImplementedError("Only netcdf files are supported.")
+    #@classmethod
+    #def from_file(cls, filepath):
+    #    """Initialize the object from file."""
+    #    if filepath.endswith(".nc"):
+    #        with KpointsReader(filepath) as r:
+    #            new = r.read_kpoints()
+    #    else:
+    #        raise NotImplementedError("Only netcdf files are supported.")
 
-        new.__class__ = cls
-        return new
+    #    new.__class__ = cls
+    #    return new
 
     @property
     def reciprocal_lattice(self):

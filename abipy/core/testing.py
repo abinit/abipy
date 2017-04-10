@@ -269,6 +269,8 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
 class AbipyTest(PymatgenTest):
     """Extends PymatgenTest with Abinit-specific methods """
 
+    SkipTest = unittest.SkipTest
+
     @staticmethod
     def which(program):
         """Returns full path to a executable. None if not found or not executable."""

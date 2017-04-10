@@ -225,7 +225,8 @@ def abicomp_gsr(options):
 
 def abicomp_ddb(options):
     """
-    Compare multiple DDB files.
+    Compare multiple DDB files. Assume DDB files with a list of q-points in the IBZ
+    corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.
     """
     return _invoke_robot(options)
 

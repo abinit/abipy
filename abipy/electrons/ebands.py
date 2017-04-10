@@ -27,7 +27,7 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
 from abipy.tools import gaussian
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt #, Marker
+from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
 
 
 import logging

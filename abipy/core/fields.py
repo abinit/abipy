@@ -574,43 +574,42 @@ class Density(ScalarField):
         fact = np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
         return self.magnetization * fact
 
-    def vhartree(self):
-        """
-        Solve the Poisson's equation in reciprocal space.
+    #def vhartree(self):
+    #    """
+    #    Solve the Poisson's equation in reciprocal space.
 
-        returns:
-            (vhr, vhg) Hartree potential in real, reciprocal space.
-        """
-        raise NotImplementedError("")
-        # Compute |G| for each G in the mesh and treat G=0.
-        gvecs = self.mesh.gvecs
-        gwork = self.mesh.zeros().ravel()
-        gnorm = self.structure.gnorm(gvec)
+    #    returns:
+    #        (vhr, vhg) Hartree potential in real, reciprocal space.
+    #    """
+    #    # Compute |G| for each G in the mesh and treat G=0.
+    #    gvecs = self.mesh.gvecs
+    #    gwork = self.mesh.zeros().ravel()
+    #    gnorm = self.structure.gnorm(gvec)
 
-        for idx, gg in enumerate(gvecs):
-            #gnorm = self.structure.gnorm(gg)
-            gnorm = 1.0  # self.structure.gnorm(gg)
+    #    for idx, gg in enumerate(gvecs):
+    #        #gnorm = self.structure.gnorm(gg)
+    #        gnorm = 1.0  # self.structure.gnorm(gg)
 
-            #gg = np.atleast_2d(gg)
-            #mv = np.dot(self.structure.gmet, gg.T)
-            #norm2 = 2*np.pi * np.dot(gg, mv)
-            #gnorm = np.sqrt(norm2)
+    #        #gg = np.atleast_2d(gg)
+    #        #mv = np.dot(self.structure.gmet, gg.T)
+    #        #norm2 = 2*np.pi * np.dot(gg, mv)
+    #        #gnorm = np.sqrt(norm2)
 
-            #print gg, gnorm
-            if idx != 0:
-                gwork[idx] = 4*np.pi/gnorm
-            else:
-                gwork[idx] = 0.0
+    #        #print gg, gnorm
+    #        if idx != 0:
+    #            gwork[idx] = 4*np.pi/gnorm
+    #        else:
+    #            gwork[idx] = 0.0
 
-        new_shape = self.mesh.ndivs
-        gwork = np.reshape(gwork, new_shape)
-        #gwork = self.mesh.reshape(gwork)
+    #    new_shape = self.mesh.ndivs
+    #    gwork = np.reshape(gwork, new_shape)
+    #    #gwork = self.mesh.reshape(gwork)
 
-        # FFT to obtain vh in real space.
-        vhg = self.total_rhog * gwork
-        vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
+    #    # FFT to obtain vh in real space.
+    #    vhg = self.total_rhog * gwork
+    #    vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
 
-        return vhr, vhg
+    #    return vhr, vhg
 
     def export_to_cube(self, filename, spin='total'):
         """

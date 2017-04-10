@@ -2,7 +2,7 @@
 """
 Utilities for generating matplotlib plots.
 
-.. note:
+.. note::
 
     Avoid importing matplotlib in the module namespace otherwise startup is very slow.
 """
@@ -16,6 +16,7 @@ from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
 
 __all__ = [
     "set_axlims",
+    "get_ax_fig_plt",
     "plot_array",
     "ArrayPlotter",
     "data_from_cplx_mode",
@@ -35,25 +36,36 @@ def set_axlims(ax, lims, axname):
     """
     left, right = None, None
     if lims is None: return (left, right)
-    if len(lims) == 2:
-        left, right = lims[0], lims[1]
-    elif len(lims) == 1:
-        left = lims[0]
-    else:
+
+    len_lims = None
+    try:
+        len_lims = len(lims)
+    except TypeError:
+        # Asumme Scalar
         left = float(lims)
+
+    if len_lims is not None:
+        if len(lims) == 2:
+            left, right = lims[0], lims[1]
+        elif len(lims) == 1:
+            left = lims[0]
 
     set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
     set_lim(left, right)
+
     return left, right
 
 
 def data_from_cplx_mode(cplx_mode, arr):
     """
     Extract the data from the numpy array `arr` depending on the values of `cplx_mode`.
-    cplx_mode in ("re", "im", "abs", "angle")
-    "re" for the real part, "im" for the imaginary part.
-    "abs" means that the absolute value of the complex number is shown.
-    "angle" will display the phase of the complex number in radians.
+
+    Args:
+        cplx_mode: Possible values in ("re", "im", "abs", "angle")
+            "re" for the real part,
+            "im" for the imaginary part.
+            "abs" means that the absolute value of the complex number is shown.
+            "angle" will display the phase of the complex number in radians.
     """
     if cplx_mode == "re": return arr.real
     if cplx_mode == "im": return arr.imag
@@ -77,8 +89,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
         array: Array-like object (1D or 2D).
         color_map: color map.
         cplx_mode:
-            Flag defining how to handle complex arrays. Possible values are in
-            ("re", "im", "abs", "angle")
+            Flag defining how to handle complex arrays. Possible values in ("re", "im", "abs", "angle")
             "re" for the real part, "im" for the imaginary part.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
@@ -99,7 +110,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
 
     img = plt.imshow(array, interpolation='nearest', cmap=color_map, origin='lower')
 
-    # make a color bar
+    # Make a color bar
     plt.colorbar(img, cmap=color_map)
 
     # Set grid
@@ -126,6 +137,9 @@ class ArrayPlotter(object):
 
     def __iter__(self):
         return self._arr_dict.__iter__()
+
+    def keys(self):
+        return self._arr_dict.keys()
 
     def items(self):
         return self._arr_dict.items()
@@ -204,13 +218,25 @@ class ArrayPlotter(object):
 class Marker(collections.namedtuple("Marker", "x y s")):
     """
     Stores the position and the size of the marker.
-    A marker is a list of tuple(x, y, s) where x,and y are the position
+    A marker is a list of tuple(x, y, s) where x, and y are the position
     in the graph and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
+
+    .. example::
+        x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
+        marker = Marker(x, y, s)
+        marker.extend((x, y, s))
+
     """
     def __new__(cls, *xys):
         """Extends the base class adding consistency check."""
-        assert len(xys) == 3
+        if not xys:
+            xys = ([], [], [])
+            return super(cls, Marker).__new__(cls, *xys)
+
+        if len(xys) != 3:
+            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
+
         x = np.asarray(xys[0])
         y = np.asarray(xys[1])
         s = np.asarray(xys[2])
@@ -227,16 +253,20 @@ class Marker(collections.namedtuple("Marker", "x y s")):
 
     __nonzero__ = __bool__
 
-    def extend(self, *xys):
-        """Extend the marker values."""
-        assert len(xys) == 3
+    def extend(self, xys):
+        """
+        Extend the marker values.
+        """
+        if len(xys) != 3:
+            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
 
         self.x.extend(xys[0])
         self.y.extend(xys[1])
         self.s.extend(xys[2])
 
-        lens = map(len, self.x, self.y, self.s)
-        assert np.all(lens == lens[0])
+        lens = np.array((len(self.x), len(self.y), len(self.s)))
+        if np.any(lens != lens[0]):
+            raise TypeError("x, y, s vectors should have same lengths but got %s" % str(lens))
 
     def posneg_marker(self):
         """
@@ -246,7 +276,7 @@ class Marker(collections.namedtuple("Marker", "x y s")):
         pos_x, pos_y, pos_s = [], [], []
         neg_x, neg_y, neg_s = [], [], []
 
-        for (x, y, s) in zip(self.x, self.y, self.s):
+        for x, y, s in zip(self.x, self.y, self.s):
             if s >= 0.0:
                 pos_x.append(x)
                 pos_y.append(y)
@@ -257,7 +287,3 @@ class Marker(collections.namedtuple("Marker", "x y s")):
                 neg_s.append(s)
 
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
-
-
-#if __name__ == "__main__":
-#    plot_array(np.random.rand(10, 10))
