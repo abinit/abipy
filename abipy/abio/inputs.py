@@ -174,7 +174,7 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         d = {}
         for aobj in abi_objects:
             if not hasattr(aobj, "to_abivars"):
-                raise ValueError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
             d.update(self.set_vars(aobj.to_abivars()))
         return d
 
@@ -1714,6 +1714,15 @@ class MultiDataset(object):
 
          multi.set_vars(ecut=1)
 
+        multi.get("ecut") returns a list of values. It's equivalent to:
+
+            [inp["ecut"] for inp in multi]
+
+        Note that if "ecut" is not present in one of the input of multi, the corresponding entry is set to None.
+        A default value can be specified with:
+
+            multi.get("paral_kgb", 0)
+
     .. warning::
 
         MultiDataset does not support calculations done with different sets of pseudopotentials.
@@ -2125,6 +2134,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None, stress_correction=False):
+        """Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations."""
         new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
@@ -2227,10 +2237,11 @@ class AnaddbInput(AbstractInput, Has_Structure):
             for i, qpt in enumerate(qptbounds):
                 if np.array_equal(qpt, (0, 0, 0)):
                     # anaddb expects cartesian coordinates for the qph2l list
-                    if i>0:
+                    if i > 0:
                         directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
                         directions.append(0)
-                    if i<len(qptbounds)-1:
+
+                    if i < len(qptbounds) - 1:
                         directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
                         directions.append(0)
 

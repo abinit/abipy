@@ -5,13 +5,28 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core import Structure
-from abipy.core.symmetries import *
+from abipy.core.symmetries import LatticeRotation, AbinitSpaceGroup, mati3inv
 from abipy.core.testing import AbipyTest
 from abipy.abilab import abiopen
 
 
 class TestSymmetries(AbipyTest):
     """"Test symmetries."""
+
+    def test_mati3inv(self):
+        """Testing mati3inv."""
+        with self.assertRaises(TypeError):
+            mati3inv(np.zeros((3, 3)))
+        with self.assertRaises(TypeError):
+            mati3inv(np.zeros(3))
+        with self.assertRaises(ValueError):
+            mati3inv(np.zeros((3, 3), dtype=np.int))
+
+        mat = np.reshape([0, -1, 1, 0, -1, 0, 1, -1, 0], (3, 3))
+        mat_it = mati3inv(mat)
+        self.assert_equal(np.dot(mat_it.T, mat), np.eye(3, dtype=np.int))
+        mat_it = mati3inv(mat, trans=False)
+        self.assert_equal(np.dot(mat_it, mat), np.eye(3, dtype=np.int))
 
     def test_silicon(self):
         """Test silicon space group."""

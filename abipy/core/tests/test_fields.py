@@ -24,7 +24,8 @@ class TestScalarField(AbipyTest):
 
         field = ScalarField(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
-        print(field)
+        repr(field)
+        str(field)
         assert field.datar.ndim ==  4
         assert len(field) == nsppol
         assert field.shape == datar.shape
@@ -33,11 +34,10 @@ class TestScalarField(AbipyTest):
         assert field.nz == field.mesh.nz
         assert field.is_collinear
 
-        assert np.all(field.mean(space="r") == field.datar.mean(axis=0))
-        assert np.all(field.mean(space="g") == field.datag.mean(axis=0))
-
-        assert np.all(field.std(space="r") == field.datar.std(axis=0))
-        assert np.all(field.std(space="g") == field.datag.std(axis=0))
+        self.assert_equal(field.mean(space="r"), field.datar.mean(axis=0))
+        self.assert_equal(field.mean(space="g"), field.datag.mean(axis=0))
+        self.assert_equal(field.std(space="r"), field.datar.std(axis=0))
+        self.assert_equal(field.std(space="g"), field.datag.std(axis=0))
 
         field.export(self.get_tmpname(text=True, suffix=".xsf"))
         visu = field.visualize("vesta")
@@ -54,6 +54,18 @@ class TestScalarField(AbipyTest):
         other = -field
         assert other.structure == field.structure
         self.assert_almost_equal(other.datar, -field.datar)
+
+        with self.assertRaises(TypeError):
+            field + "hello"
+
+        nspinor_ncoll, nsppol_ncoll, nspden_ncoll = 1, 1, 4
+        datar_ncoll = np.zeros((nspden_ncoll,) + xyz_shape)
+        field_ncoll = ScalarField(nspinor_ncoll, nsppol_ncoll, nspden_ncoll, datar_ncoll, structure, iorder="c")
+        with self.assertRaises(ValueError):
+            field + field_ncoll
+
+        with self.assertRaises(ValueError):
+            field._check_space("foo")
 
     def test_silicon_density(self):
         """Testing density object."""
@@ -114,7 +126,8 @@ class TestScalarField(AbipyTest):
 
             # Compute nelect from data.
             den = Density.from_file(path)
-            print(den)
+            repr(den)
+            str(den)
             structure = den.structure
             rhor_tot = den.total_rhor
             rhog_tot = den.total_rhog

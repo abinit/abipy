@@ -69,7 +69,7 @@ class ScalarField(Has_Structure):
     def _check_other(self, other):
         """Consistency check"""
         if not isinstance(other, self.__class__):
-            raise ValueError('object of class %s is not an instance of %s' % (other.__class__, self.__class__))
+            raise TypeError('object of class %s is not an instance of %s' % (other.__class__, self.__class__))
 
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
@@ -278,7 +278,7 @@ class ScalarField(Has_Structure):
             Instance of :class:`Visualizer`
         """
         if "." not in filename:
-            raise ValueError(" Cannot detect file extension in filename: %s " % filename)
+            raise ValueError("Cannot detect file extension in filename: %s " % filename)
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]

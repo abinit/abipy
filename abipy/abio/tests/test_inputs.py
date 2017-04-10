@@ -52,6 +52,7 @@ class TestAbinitInput(AbipyTest):
         # unless we deactive spell_check
         assert inp.spell_check
         inp.set_spell_check(False)
+        str(inp)
         inp["foo"] = 1
         assert inp["foo"] == 1
         inp.pop("foo")
@@ -80,6 +81,13 @@ class TestAbinitInput(AbipyTest):
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
             inp.set_vars(unit_cell)
+
+        with self.assertRaises(TypeError):
+            inp.add_abiobjects({})
+
+        with self.assertRaises(KeyError):
+            inp.remove_vars("foo", strict=True)
+        assert not inp.remove_vars("foo", strict=False)
 
         # Test deepcopy and remove_vars.
         inp["bdgw"] = [1, 2]
@@ -114,6 +122,15 @@ class TestAbinitInput(AbipyTest):
         assert len(inp.tags) == 2
         inp.remove_tags([GROUND_STATE])
         assert len(inp.tags) == 1
+
+        new_inp = AbinitInput(structure=inp.structure, pseudos=inp.pseudos, abi_kwargs=inp.vars)
+        new_inp.pop_par_vars(new_inp)
+        new_inp["npband"] = 2
+        new_inp["npfft"] = 3
+        popped = new_inp.pop_par_vars(new_inp)
+        assert popped["npband"] == 2 and "npband" not in new_inp
+        assert popped["npfft"] == 3 and "npfft" not in new_inp
+
 
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
@@ -165,6 +182,9 @@ class TestAbinitInput(AbipyTest):
         assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
+
+    # TODO
+    #def test_new_with_structure(self)
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
@@ -371,8 +391,17 @@ class TestMultiDataset(AbipyTest):
 
         multi.set_vars(ecut=2)
         assert all(inp["ecut"] == 2 for inp in multi)
+        self.assert_equal(multi.get("ecut"), [2, 2])
+
         multi[1].set_vars(ecut=1)
         assert multi[0]["ecut"] == 2 and multi[1]["ecut"] == 1
+        self.assert_equal(multi.get("ecut"), [2, 1])
+
+        self.assert_equal(multi.get("foo", "default"), ["default", "default"])
+
+        multi[1].set_vars(paral_kgb=1)
+        assert "paral_kgb" not in multi[0]
+        self.assert_equal(multi.get("paral_kgb"), [None, 1])
 
         pert_structure = structure.copy()
         pert_structure.perturb(distance=0.1)
@@ -387,6 +416,7 @@ class TestMultiDataset(AbipyTest):
 
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
+        repr(multi)
         str(multi)
 
         inp.write(filepath=self.tmpfileindir("run.abi"))
@@ -442,6 +472,7 @@ class AnaddbInputTest(AbipyTest):
         inp.set_spell_check(False)
         inp["foo"] = 1
         assert inp["foo"] == 1
+        str(inp)
         inp.pop("foo")
         assert "foo" not in inp
         inp.set_spell_check(True)
@@ -465,6 +496,19 @@ class AnaddbInputTest(AbipyTest):
         for i in (inp, inp2, inp3):
             self.serialize_with_pickle(i, test_eq=False)
             i.deepcopy()
+
+        # Test AnaddbInput with lo_to_splitting.
+        inp_loto = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
+                                               lo_to_splitting=True)
+        #print(inp_loto)
+        #print(inp_loto["qpath"])
+        #print(inp_loto["qph2l"])
+        assert "qpath" in inp_loto
+        assert inp_loto["nph2l"] == 3
+        self.assert_almost_equal(inp_loto["qph2l"],
+            [[ 0.        , 0.184959  , 0.       , 0.],
+             [ 0.13871925, 0.13871925, 0.       , 0.],
+             [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
 
     def test_thermo(self):
         """Test the thermodynamics constructor"""
@@ -498,6 +542,14 @@ class AnaddbInputTest(AbipyTest):
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
 
+    def test_piezo_elastic(self):
+        """Testing piezo_elastic constructor."""
+        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=True)
+        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 0
+
+        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False)
+        assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
+
 
 class TestCut3DInput(AbipyTest):
     """Unit tests for AbinitInput."""
@@ -530,7 +582,12 @@ class OpticInputTest(AbipyTest):
     def test_optic_input_api(self):
         """Test OpticInput API."""
         optic_input = OpticInput()
-        print(optic_input)
+        repr(optic_input)
+        str(optic_input)
+
+        for var in OpticInput._VARIABLES:
+            print(var)
+            assert str(var.help) and var.group
 
         with self.assertRaises(optic_input.Error):
             optic_input["foo"] = 23
@@ -557,11 +614,13 @@ class OpticInputTest(AbipyTest):
             nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
         )
 
-        print(optic_input)
+        str(optic_input)
+        repr(optic_input)
         assert optic_input.vars
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(optic_input, test_eq=True)
+
         # TODO: But change function that build namelist to ignore @module ...
         #self.assertMSONable(optic_input)
 

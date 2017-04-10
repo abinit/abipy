@@ -245,7 +245,7 @@ class FilesGenerator(object):
 
     def _run(self):
         from subprocess import Popen, PIPE
-        with open(os.path.join(self.workdir, "run.files"), "w") as fh:
+        with open(os.path.join(self.workdir, "run.files"), "wt") as fh:
             fh.write(self.make_filesfile_str())
 
         cmd = self.executable + " < run.files > run.log"

@@ -14,13 +14,14 @@ write_inputs_to_json = False
 
 class ShiftModeTest(AbipyTest):
 
-    @staticmethod
-    def test_shiftmode():
+    def test_shiftmode(self):
         """Testing shiftmode"""
         from abipy.abio.factories import ShiftMode
         gamma = ShiftMode.GammaCentered
         assert ShiftMode.from_object("G") == gamma
         assert ShiftMode.from_object(gamma) == gamma
+        with self.assertRaises(TypeError):
+            ShiftMode.from_object({})
 
 
 class FactoryTest(AbipyTest):
@@ -60,6 +61,20 @@ class FactoryTest(AbipyTest):
         self.abivalidate_multi(multi)
         self.assert_input_equality('scf_input.json', scf_inp)
         self.assert_input_equality('nscf_input.json', nscf_inp)
+
+        # Test dos_kppa and other options.
+        multi_dos = ebands_input(self.si_structure, self.si_pseudo, nscf_nband=10, kppa=10, ecut=2,
+                                 spin_mode="unpolarized", smearing=None, charge=2.0, dos_kppa=50)
+        assert len(multi_dos) == 3
+        assert all(i["charge"] == 2 for i in multi_dos)
+        self.assert_equal(multi_dos.get("nsppol"), [1, 1, 1])
+        self.assert_equal(multi_dos.get("iscf"), [None, -2, -2])
+        self.abivalidate_multi(multi_dos)
+
+        multi_dos = ebands_input(self.si_structure, self.si_pseudo, nscf_nband=10, kppa=10, ecut=2,
+                                 spin_mode="unpolarized", smearing=None, charge=2.0, dos_kppa=[50, 100])
+        assert len(multi_dos) == 4
+        self.assert_equal(multi_dos.get("iscf"), [None, -2, -2, -2])
 
     def test_ion_ioncell_relax_input(self):
         """Testing ion_ioncell_relax_input factory."""
@@ -183,7 +198,6 @@ class FactoryTest(AbipyTest):
             self.abivalidate_input(inp)
 
         # the rest is redundant now..
-
         self.assertEqual(len(inputs_flat), 24)
         nbands = [inp['nband'] for inp in inputs_flat]
         print(nbands)

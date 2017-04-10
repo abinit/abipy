@@ -110,7 +110,7 @@ class ShiftMode(Enum):
         elif is_string(obj):
             return cls(obj[0].upper())
         else:
-            raise ValueError('The object provided is not handled')
+            raise TypeError('The object provided is not handled: type' % type(obj))
 
 
 def _stopping_criterion(runlevel, accuracy):
@@ -183,7 +183,7 @@ def _get_shifts(shift_mode, structure):
         centered otherwise.
 
     Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
-        chksymbreak.
+        `chksymbreak` condition (Abinit input variable).
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
@@ -544,7 +544,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                 diff_abivars = dict()
                 diff_abivars[var] = value
                 if pseudos.allpaw and var == 'ecut':
-                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
+                    diff_abivars['pawecutdg'] = diff_abivars['ecut'] * 2
                 scf_diffs.append(diff_abivars)
 
     extra_abivars_all = dict(
@@ -558,7 +558,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     extra_abivars_all.update(extra_abivars)
 
     if pseudos.allpaw:
-        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
+        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut'] * 2
 
     extra_abivars_gw = dict(
         inclvkb=2,

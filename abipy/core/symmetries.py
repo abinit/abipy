@@ -53,7 +53,7 @@ def mati3inv(mat3, trans=True):
     Invert and transpose orthogonal 3x3 matrix of INTEGER elements.
 
     Args:
-        mat3: 3x3 matrix-like object with integer elements
+        mat3: (3, 3) matrix-like object with integer elements
 
     Returns:
         `ndarray` with the TRANSPOSE of the inverse of mat3 if trans==True.
@@ -65,7 +65,10 @@ def mati3inv(mat3, trans=True):
        Since these form a group, inverses are also integer arrays.
     """
     mat3 = np.array(mat3)
-    assert mat3.dtype in [np.int, np.int8, np.int16, np.int32, np.int64]
+    if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):
+        raise TypeError("Expecting integer matrix but received dtype %s" % mat3.dtype)
+    if mat3.shape != (3, 3):
+        raise TypeError("Expecting (3, 3) matrix but received shape %s" % str(mat3.shape))
 
     mit = np.empty((3,3), dtype=np.int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
@@ -82,7 +85,7 @@ def mati3inv(mat3, trans=True):
 
     # Make sure matrix is not singular
     if dd == 0:
-        raise ValueError("Attempting to invert integer array: %s\n ==> determinant is zero." % mat3)
+        raise ValueError("Attempting to invert integer array: %s\n ==> determinant is zero." % str(mat3))
 
     mit = mit // dd
     if trans:
@@ -168,7 +171,7 @@ class SymmOp(Operation, SlotPickleMixin):
             rot_r: 3x3 integer matrix with the rotational part in real space in reduced coordinates (C order).
             tau: fractional translation in reduced coordinates.
             time_sign: -1 if time reversal can be used, otherwise +1.
-            afm_sign: anti-ferromagnetic part [+1,-1].
+            afm_sign: anti-ferromagnetic part [+1, -1].
         """
         rot_r = np.asarray(rot_r)
 
@@ -326,7 +329,7 @@ class SymmOp(Operation, SlotPickleMixin):
         """
         Apply the symmetry operation to a point in real space given in reduced coordinates.
 
-        .. note::
+        .. NOTE::
 
             We use the convention: symmop(r) = R^{-1] (r - tau)
         """

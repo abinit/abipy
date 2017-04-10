@@ -23,7 +23,8 @@ class TestFunction1D(AbipyTest):
         """Basic methods of TestFunction1D."""
         sinf, cosf, eix = self.sinf, self.cosf, self.eix
 
-        print(sinf)
+        repr(sinf)
+        str(sinf)
         assert isinstance(sinf, collections.Iterable)
         assert len(sinf) == len(sinf.mesh)
         assert self.h == sinf.h
@@ -75,6 +76,17 @@ class TestFunction1D(AbipyTest):
         self.assert_almost_equal(abs(sinf).min, 0)
         self.assert_almost_equal(eix.max, 1.)
         self.assert_almost_equal(eix.min, 1.)
+
+        # Test Kramers-Kronig methods.
+        # TODO: This is not a response function. Should use realistic values.
+        for with_div in (True, False):
+            real_part = eix.real_from_kk(with_div=with_div)
+            imag_part = real_part.imag_from_kk(with_div=with_div)
+
+        if self.has_matplotlib():
+            cosf.plot(show=False)
+            eix.plot(show=False)
+            eix.plot(cplx_mode="re", exchange_xy=True, xfactor=2, yfactor=3, show=False)
 
     def test_fft(self):
         """Test FFT transforms."""
