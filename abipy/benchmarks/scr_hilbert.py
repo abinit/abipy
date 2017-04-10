@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
+import abipy.flowtk as flowtk
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -91,27 +92,27 @@ def make_inputs(paw=False):
     return gs, nscf, scr
 
 
-def scr_benchmark(options):
+def build_flow(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp = make_inputs(paw=options.paw)
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    bands = abilab.BandStructureWork(gs_inp, nscf_inp)
+    bands = flowtk.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
     #for nband in [200, 400, 600]:
     for nband in [600]:
-        scr_work = abilab.Work()
+        scr_work = flowtk.Work()
         inp = scr_inp.new_with_vars(nband=nband)
         mpi_list = options.mpi_list
         if mpi_list is None:
             # Cannot call autoparal here because we need a WFK file.
             print("Using hard coded values for mpi_list")
             mpi_list = [np for np in range(1, nband+1) if abs((nband - 4) % np) < 1]
-        print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
+        if options.verbose: print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
 
         for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
@@ -129,7 +130,7 @@ def main(options):
         # print doc string and exit.
         print(__doc__)
         return 
-    flow = scr_benchmark(options)
+    flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
 

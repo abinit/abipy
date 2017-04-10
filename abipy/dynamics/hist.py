@@ -8,7 +8,7 @@ from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings,
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.iotools import ETSF_Reader
@@ -77,6 +77,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @property
     def final_structure(self):
+        """The structure of the last iteration."""
         return self.structures[-1]
 
     @lazy_property
@@ -114,10 +115,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
             xsf_write_structure(fh, self.structures)
 
     @add_fig_kwargs
-    def plot(self, **kwargs):
+    def plot(self, axlist=None, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
+
+        Args:
+            axlist: List of matplotlib Axes. If None, a new figure is created.
 
         Returns:
             `matplotlib` figure
@@ -243,7 +247,6 @@ class HistReader(ETSF_Reader):
 
         znucl, typat = self.read_value("znucl"), self.read_value("typat")
         #print(znucl.dtype, typat)
-
         cart_forces_step = self.read_cart_forces(unit="eV ang^-1")
 
         structures = []
@@ -304,4 +307,3 @@ class HistReader(ETSF_Reader):
             pressures[step] = - (HaBohr3_GPa/3) * tensor.trace()
 
         return tensors, pressures
-

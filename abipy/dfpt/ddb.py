@@ -12,17 +12,17 @@ from six.moves import map, zip, StringIO
 from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
-from monty.dev import get_ncpus
-from pymatgen.io.abinit.netcdf import NetcdfReader
-from pymatgen.io.abinit.tasks import AnaddbTask
+from monty.dev import get_ncpus, deprecated
+from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
-from abipy.core.symmetries import SpaceGroup
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, InteratomicForceConstants
+from pymatgen.analysis.elasticity.elastic import ElasticTensor
 
 import logging
 logger = logging.getLogger(__name__)
@@ -73,10 +73,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         self._header = self._parse_header()
 
         self._structure = Structure.from_abivars(**self.header)
-        # Add Spacegroup (needed in guessed_ngkpt)
+        # Add AbinitSpacegroup (needed in guessed_ngkpt)
         # FIXME: has_timerev is always True
         spgid, has_timerev, h = 0, True, self.header
-        self._structure.set_spacegroup(SpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
+        self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
         frac_coords = self._read_qpoints()
         self._qpoints = KpointList(self.structure.lattice.reciprocal_lattice, frac_coords, weights=None, names=None)
@@ -84,9 +84,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         self.blocks = []
         if read_blocks:
             self.blocks = self._read_blocks()
-
-        # Guess q-mesh
-        #self._guessed_ngqpt = self._guess_ngqpt()
 
     def close(self):
         """Needed for the `AbinitFile` abstract interface."""
@@ -288,10 +285,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if not self.qpoints: return None
         # Build the union of the stars of the q-points.
-        all_qpoints = np.empty((len(self.qpoints) * len(self.structure.spacegroup), 3))
+        all_qpoints = np.empty((len(self.qpoints) * len(self.structure.abi_spacegroup), 3))
         count = 0
         for qpoint in self.qpoints:
-            for op in self.structure.spacegroup:
+            for op in self.structure.abi_spacegroup:
                 all_qpoints[count] = op.rotate_k(qpoint.frac_coords, wrap_tows=False)
                 count += 1
 
@@ -552,35 +549,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return emacro, becs
 
-    #def anaget_thermo(self, nqsmall, ngqpt=None, workdir=None, manager=None, verbose=0):
-    #    """
-    #    Execute anaddb to compute thermodinamical properties.
-
-    #    Args:
-    #        ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if it is None
-    #        asr, chneut, dipdp: Anaddb input variable. See official documentation.
-    #        workdir: Working directory. If None, a temporary directory is created.
-    #        manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
-    #        verbose: verbosity level. Set it to a value > 0 to get more information
-    #        kwargs: Additional variables you may want to pass to Anaddb.
-    #    """
-    #    if ngqpt is None: ngqpt = self.guessed_ngqpt
-
-    #    inp = AnaddbInput.thermo(self.structure, ngqpt, nqsmall, q1shft=(0, 0, 0), nchan=1250, nwchan=5, thmtol=0.5,
-    #           ntemper=199, temperinc=5, tempermin=5., asr=2, chneut=1, dipdip=1, ngrids=10)
-
-    #    task = AnaddbTask.temp_shell_task(inp, self.filepath, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=1))
-
-    #    if verbose:
-    #        print("ANADDB INPUT:\n", inp)
-    #        print("workdir:", task.workdir)
-
-    #    task.start_and_wait(autoparal=False)
-
-    #    report = task.get_event_report()
-    #    if not report.run_completed:
-    #        raise self.AnaddbError(task=task, report=report)
-
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
                    verbose=0, anaddb_kwargs=None):
         """
@@ -704,7 +672,9 @@ ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose
 
 
 class Becs(Has_Structure):
-    """This object stores the Born effective charges and provides simple tools for data analysis."""
+    """
+    This object stores the Born effective charges and provides simple tools for data analysis.
+    """
 
     def __init__(self, becs_arr, structure, chneut, order="c"):
         """
@@ -719,12 +689,16 @@ class Becs(Has_Structure):
         self._structure = structure
         self.chneut = chneut
 
-        self.becs = np.empty((len(structure), 3, 3))
+        self.values = np.empty((len(structure), 3, 3))
         for i, bec in enumerate(becs_arr):
             mat = becs_arr[i]
-            if order == "f": mat = mat.T
-            self.becs[i] = mat
-            #self.becs[i] = Tensor.from_cartesian_tensor(mat, structure.lattice, space="r")
+            if order.lower() == "f": mat = mat.T
+            self.values[i] = mat
+
+    @property
+    @deprecated(message="becs  has been renamed values. Will be removed in abipy 0.4.")
+    def becs(self):
+        return self.values
 
     @property
     def structure(self):
@@ -738,10 +712,10 @@ class Becs(Has_Structure):
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
 
-        for site, bec in zip(self.structure, self.becs):
+        for site, bec in zip(self.structure, self.values):
             # TODO: why PeriodicSite.__str__ does not give the frac_coords?
             #print(type(site))
-            app("bec at site: %s" % (site))
+            app("BEC at site: %s" % (site))
             app(str(bec))
             app("")
 
@@ -754,7 +728,7 @@ class Becs(Has_Structure):
 
     def check_sumrule(self, stream=sys.stdout):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        becs_atomsum = self.becs.sum(axis=0)
+        becs_atomsum = self.values.sum(axis=0)
         stream.write(str(becs_atomsum))
 
 
@@ -785,14 +759,14 @@ class ElasticComplianceTensor(Has_Structure):
     def from_ec_nc_file(cls, ec_nc_file, tensor_type='relaxed_ion'):
         with NetcdfReader(ec_nc_file) as nc_reader:
             if tensor_type == 'relaxed_ion':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion'))
             elif tensor_type == 'clamped_ion':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_clamped_ion'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_clamped_ion'))
             elif tensor_type == 'relaxed_ion_stress_corrected':
-                ec =  np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
-                compl =  np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
+                ec = np.array(nc_reader.read_variable('elastic_constants_relaxed_ion_stress_corrected'))
+                compl = np.array(nc_reader.read_variable('compliance_constants_relaxed_ion_stress_corrected'))
             else:
                 raise ValueError('tensor_type "{0}" not allowed'.format(tensor_type))
         #TODO: add the structure object!
@@ -838,3 +812,11 @@ class ElasticComplianceTensor(Has_Structure):
         return cls(elastic_tensor=dd['elastic_tensor'], compliance_tensor=dd['compliance_tensor'],
                    structure=dd['structure'] if dd['structure'] is not None else None,
                    additional_info=dd['additional_info'])
+
+    def get_pmg_elastic_tensor(self):
+        """
+        Converts to a pymatgen ElasticTensor object.
+        """
+
+        return ElasticTensor.from_voigt(self.elastic_tensor)
+

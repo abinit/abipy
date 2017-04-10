@@ -7,6 +7,7 @@ import os
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
+from abipy import flowtk
 
 
 def scf_ph_inputs(paral_kgb=0):
@@ -47,6 +48,7 @@ def scf_ph_inputs(paral_kgb=0):
         ixc=1,
         nstep=25,
         diemac=9.0,
+        iomode=3,
     )
 
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
@@ -102,7 +104,7 @@ def build_flow(options):
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
     #scf_input, ph_inputs = all_inps[0], all_inps[1:3]
 
-    return abilab.phonon_flow(workdir, scf_input, ph_inputs, manager=options.manager)
+    return flowtk.phonon_flow(workdir, scf_input, ph_inputs, manager=options.manager)
 
 
 @abilab.flow_main

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""Tests for core.density module"""
+"""Tests for core.field module"""
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data 
+import abipy.data as abidata
 
 from abipy.core.fields import *
 from abipy.core.testing import *
@@ -14,24 +14,21 @@ class TestScalarField(AbipyTest):
 
     def test_base(self):
         """Testing ScalarField."""
-        atrue = self.assertTrue
-        aequal = self.assertEqual
-
-        structure = data.structure_from_ucell("Si")
-        nspinor, nsppol, nspden = 1,1,1
-        xyz_shape = (2,3,4)
+        structure = abidata.structure_from_ucell("Si")
+        nspinor, nsppol, nspden = 1, 1, 1
+        xyz_shape = (2, 3, 4)
         datar = np.zeros((nsppol,) + xyz_shape)
 
         field = ScalarField(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
         print(field)
-        atrue(field.is_collinear)
+        assert field.datar.ndim ==  4
+        assert len(field) == nsppol
+        assert field.shape == datar.shape
+        assert field.nx == 2 and field.ny == 3 and field.nz == 4
+        assert field.is_collinear
 
-        #aequal(field.datar.ndim, 2)
-        #aequal(field.datar_xyz.ndim, 4)
-        #aequal(field.datar_xyz.shape[-3:], xyz_shape)
+        #assert field.datar_xyz.ndim == 4
+        #assert field.datar_xyz.shape[-3:], xyz_shape)
 
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+        field.export(self.get_tmpname(text=True, suffix=".xsf"))

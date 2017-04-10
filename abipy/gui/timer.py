@@ -2,10 +2,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
+import abipy.gui.awx as awx
 
 from collections import OrderedDict
-from pymatgen.io.abinit.abitimer import AbinitTimerSection, AbinitTimerParser
-import abipy.gui.awx as awx
+from abipy.flowtk import AbinitTimerSection, AbinitTimerParser
 
 
 class AbinitTimerFrame(awx.Frame):

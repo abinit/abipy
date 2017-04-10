@@ -7,8 +7,8 @@ import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 import wx.lib.dialogs as wxdg
 
-from monty.string import is_string 
-from pymatgen.io.abinit.pseudos import PseudoParser
+from monty.string import is_string
+from abipy.flowtk import PseudoParser
 
 
 class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
@@ -53,7 +53,7 @@ class PseudosViewerFrame(awx.Frame):
 class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
     """
     This panel shows a list of files (strings), supports column sorting
-    and provides specific popup menus for the different type of files 
+    and provides specific popup menus for the different type of files
     (file type detection is based on file extensions).
     """
     def __init__(self, parent, pseudos, **kwargs):
@@ -111,7 +111,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
         """Add a pseudo to the panel."""
         next = len(self.id2pseudo)
 
-        # We use next as entry id because we want to be able 
+        # We use next as entry id because we want to be able
         # to sort the columns with the mixin ColumnSorterMixin.
         entry_id = next
         entry = map(str, [getattr(pseudo, attr) for attr in self.columns])
@@ -163,7 +163,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
 #class PopupMenu(wx.Menu):
 #    """
 #    Base class for popup menus. `A PopupMenu` has a list of callback functions
-#    indexed by the menu title. The signature of the callback function is func(parent, filename) where 
+#    indexed by the menu title. The signature of the callback function is func(parent, filename) where
 #    filename is the name of the file selected in the Widget and parent is the wx
 #    Window that will become the parent of the new frame created by the callback.
 #    """
@@ -200,7 +200,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
 #                else:
 #                    children.append(sc)
 #            return set(children)
-#            
+#
 #        for cls in allsubclasses(PopupMenu):
 #            if cls.handle_file_class(file_class):
 #                return cls()
@@ -235,7 +235,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
 #
 #            # Add sentinel for Menu separator.
 #            self.menu_title_by_id["separator_" + str(len(self.menu_titles))] = None
-#                                                                  
+#
 #        for (id, title) in self.menu_title_by_id.items():
 #            if title is None:
 #                sepid = int(id.split("_")[-1])
@@ -300,21 +300,21 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
 #    """
 #    Base class for popup menus. `A PopupMenu` has a list of callback functions
 #    indexed by the menu title and a list of `AbinitNcFile` associated to it.
-#    The signature of the callback function is func(filename, parent) where 
+#    The signature of the callback function is func(filename, parent) where
 #    filename is the name of the file selected in the Widget and parent is the wx
 #    Window that will become the parent of the new frame created by the callback.
 #
 #    How to subclass PopupMenu:
 #
-#        1. Define a new class that inherits from NcFilePopupMenu. 
+#        1. Define a new class that inherits from NcFilePopupMenu.
 #
 #        2. Define the callbacks in the class variable MENU_TITLES.
 #           Use OrderedDict to have a fixed ordering of the labels.
 #
-#        3. Define the class variable HANDLED_FILES with the list of 
+#        3. Define the class variable HANDLED_FILES with the list of
 #           `AbinitNcFile` subclasses associated to the popupmenu.
 #
-#        4. Done (most of the work is indeed done in the base class and in 
+#        4. Done (most of the work is indeed done in the base class and in
 #           the factory function popupmenu_for_filename.
 #    """
 #    MENU_TITLES = OrderedDict([
@@ -334,7 +334,7 @@ class PseudoListPanel(awx.Panel, listmix.ColumnSorterMixin):
 #        ("eJdos", ewx.showElectronJdosFrame),
 #    ])
 #
-#    HANDLED_FILES = [WFK_File, GSR_File] 
+#    HANDLED_FILES = [WFK_File, GSR_File]
 
 
 def wxapp_pseudos(dirpath):

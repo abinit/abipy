@@ -6,8 +6,8 @@ import numpy as np
 
 from monty.string import list_strings
 from monty.bisect import find_gt
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
-from pymatgen.io.abinit.pseudos import Pseudo
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.flowtk import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile
 
@@ -41,7 +41,7 @@ def mklabel(fsym, der, arg):
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
     else:
-        fsym = fsym + "^{" + (der * "\prime") + "}"
+        fsym = fsym + "^{" + (der * r"\prime") + "}"
         return "$%s(%s)$" % (fsym, arg)
 
 
@@ -302,6 +302,7 @@ class PspsFile(AbinitNcFile):
 
     @add_fig_kwargs
     def compare(self, others, **kwargs):
+        """Produce matplotlib plot comparing self with another list of pseudos `others`."""
         if not isinstance(others, (list, tuple)):
             others = [others]
 

@@ -1,41 +1,80 @@
 language: python
-python:
-  - "2.7"
-  #- "3.3"
-  #- "3.4"
-before_install:
-  - sudo apt-get install build-essential gfortran python-dev
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev 
-  - sudo apt-get install libhdf5-serial-dev netcdf-bin libnetcdf-dev
-  - sudo apt-get install python-numpy 
-  - sudo apt-get install python-scipy
 
-# command to install dependencies
+# We don't actually use the Travis Python but conda
+matrix:
+  include:
+    - os: linux
+      python: 2.7
+      env: PYTHON_VERSION=2.7
+    - os: linux
+      python: 3.6
+      env: PYTHON_VERSION=3.6
+    - os: osx
+      python: 2.7
+      language: generic
+      env: PYTHON_VERSION=2.7
+
+sudo: required
+
 install:
-  - easy_install -U setuptools
-  - travis_wait pip install -r requirements.txt
-  - pip install nose-exclude
-  - pip install coveralls
+  #- sudo apt-get update
+  - env
 
-# This is needed, otherwise, nosetests will import try to import wx.
+  # Install conda https://conda.io/docs/travis.html
+  - source dev_scripts/conda_installer.sh
+
+  # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
+  - conda install nomkl
+  - conda install gcc scipy sympy
+  - conda install pandas
+  - conda install netcdf4 
+  # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
+  - conda install hdf4=4.2.12
+  - pip install pytest scripttest nose nose-exclude
+  - pip install pep8 python-coveralls
+  - conda install matplotlib seaborn
+  - conda install ipython jupyter nbformat
+
+  # Install abinit from abinit conda channel.
+  - conda config --add channels conda-forge
+  - conda install -c abinit abinit=8.2.2
+
+  # phonopy is not a requirement but we test scripts in data/runs that use it
+  - conda install -c conda-forge phonopy
+
+  # Get pymatgen from matsci
+  - conda config --add channels matsci
+  - conda install pymatgen #=4.7.2
+  # Use my pymatgen fork
+  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+  # pymatgen master
+  #- git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+
+  - python setup.py install
+  - mkdir -p ${HOME}/.abinit/abipy 
+  - cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
+  - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
+  - ./dev_scripts/pyclean.py .
+
 before_script:
+    # https://github.com/travis-ci/travis-ci/issues/6307
+    - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
     - rm abipy/gui/__init__.py 
-    - export LD_LIBRARY_PATH=/usr/lib/:$LD_LIBRARY_PATH
 
 # command to run tests
-script: nosetests
+script: ./dev_scripts/runtests.sh
+
 branches:
   only:
     - master
     - develop
-#after_success:
-#  coveralls
+
+after_success:
+- if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+
 notifications:
   email:
     recipients:
       - gmatteo@gmail.com
     on_success: change
     on_failure: always
-
-
-

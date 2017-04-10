@@ -2,7 +2,6 @@
 from __future__ import print_function, division
 
 import numpy as np
-import abipy.data as data
 
 from pymatgen.core.structure import Structure
 from pymatgen.core.lattice import Lattice
@@ -26,8 +25,8 @@ class TestTensor(AbipyTest):
         #finder = SymmetryFinder(structure)
         finder = SpacegroupAnalyzer(structure)
 
-        spacegroup = finder.get_space_group()
-        pointgroup = finder.get_point_group()
+        spacegroup = finder.get_space_group_operations()
+        pointgroup = finder.get_point_group_symbol()
 
         cartesian_tensor = [[2,3,1.2],[3,4,1.0],[1.2,1.0,6]]
 

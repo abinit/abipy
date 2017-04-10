@@ -34,6 +34,7 @@ from __future__ import division, print_function
 
 import sys
 import abipy.abilab as abilab 
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 
@@ -41,7 +42,7 @@ def help(stream=sys.stdout):
     stream.write(__doc__)
 
 
-class NgkptFlow(abilab.Flow):
+class NgkptFlow(flowtk.Flow):
     def analyze(self):
         with abilab.abirobot(self, "GSR") as robot:
             data = robot.get_dataframe()
@@ -66,7 +67,7 @@ def make_ngkpt_flow():
     return NgkptFlow.from_inputs(workdir="flow_base3_ngkpt", inputs=multi.split_datasets())
 
 
-class RelaxFlow(abilab.Flow):
+class RelaxFlow(flowtk.Flow):
     def analyze(self):
         with abilab.GsrRobot.open(self) as robot:
             data = robot.get_dataframe()
@@ -98,7 +99,7 @@ def make_relax_flow():
     for i, ngkpt in enumerate(ngkpt_list):
         multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0,0,0])
 
-    return RelaxFlow.from_inputs("flow_base3_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
+    return RelaxFlow.from_inputs("flow_base3_relax", inputs=multi.split_datasets(), task_class=flowtk.RelaxTask)
 
 
 def make_ebands_flow():
@@ -118,16 +119,14 @@ def make_ebands_flow():
 
     scf_input, nscf_input = multi.split_datasets()
 
-    return abilab.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input)
+    return flowtk.bandstructure_flow(workdir="flow_base3_ebands", scf_input=scf_input, nscf_input=nscf_input)
 
 
 if __name__ == "__main__":
-    from abipy.lessons.lesson_helper_functions import abinit_help
-    print(abinit_help("tsmear"))
-    #flow = make_ngkpt_flow()
+    flow = make_ngkpt_flow()
     #flow = make_relax_flow()
     #flow = make_ebands_flow()
 
-    #flow.show_inputs()
-    #flow.make_scheduler().start()
-    #flow.analyze()
+    flow.show_inputs()
+    flow.make_scheduler().start()
+    flow.analyze()

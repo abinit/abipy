@@ -7,12 +7,12 @@ Background
 ----------
 
 In this lesson we discuss two different methods to find the equilibrium  structure of a system.
-In the first method, we use the GS part of Abinit to calculate the total energy of silicon for 
+In the first method, we use the GS part of Abinit to calculate the total energy of silicon for
 different volumes and then we fit the energy vs the volume with a model for the equation of state (EOS).
 The fit provides the optimal volume (i.e. the volume for which the total energy is minimal),
 as well as the bulk modulus (the 'compressibility' of the system).
-Note that this approach is only applicable to isotropic materials without any degree of freedom for the atomic positions. 
-Indeed, the equation of state is obtained by performing a homogeneous compressions/dilatation of 
+Note that this approach is only applicable to isotropic materials without any degree of freedom for the atomic positions.
+Indeed, the equation of state is obtained by performing a homogeneous compressions/dilatation of
 the initial Bravais lattice while keeping the atoms fixed in the initial high-symmetry positions.
 
 In the second example, we find the equilibrium configuration of GaN.
@@ -36,7 +36,7 @@ The related abinit variables
 from __future__ import division, print_function
 
 _ipython_lesson_ = """
-For a more detailed description of the variables, you are invited to consult the abinit documentation. 
+For a more detailed description of the variables, you are invited to consult the abinit documentation.
 The full description, directly from the official abinit docs, is available in ipython with the command:
 
     .. code-block:: python
@@ -48,7 +48,7 @@ Description of the lesson
 -------------------------
 
 We will use two different AbiPy flows to find the equilibrium configuration.
-The first flow, si_flow, calculates the total energy of silicon at different volumes 
+The first flow, si_flow, calculates the total energy of silicon at different volumes
 and computes the equation of state E(V).
 The other flow, gan_flow, uses Abinit to optimize all degrees of freedom (atomic positions
 and lattice vectors).
@@ -107,7 +107,7 @@ In the case of silicon, python will show a fit of the total energy vs the
 volume of the unit cell. The minimum of this curve is the equilibrium
 volume. From this fit, we can also obtain the bulk modulus.
 Note that this approach is only applicable to isotropic materials since the
-equation of state has been obtained by performing 
+equation of state has been obtained by performing
 a homogeneous compressions/dilatation of the initial Bravais lattice.
 
 Try to compare the results with these experimental results:
@@ -123,17 +123,17 @@ Try to compare the results with these experimental results:
     * Lattice parameters of GaN: a = 3.190 A, c = 5.189 A [Schulz & Thiemann 1977]
     * Vertical distance between Ga and N : about 0.377 * c [ Schulz & Thiemann, 1977]
 
-Of course you will need to converge your results with respect to the k-point sampling and the 
+Of course you will need to converge your results with respect to the k-point sampling and the
 cutoff energy ecut.
 
-Note the we are using pseudopotentials generated with the GGA which tends to 
-overestimate the lattice parameters. 
+Note the we are using pseudopotentials generated with the GGA which tends to
+overestimate the lattice parameters.
 If you use LDA-type pseudopotentials, you will observe that LDA tends to underestimate the parameters.
 
 Exercises
 ---------
 
-As an exercise you can now try to get the equilibrium unit cell of silicon automatically using abinit. 
+As an exercise you can now try to get the equilibrium unit cell of silicon automatically using abinit.
 You can use the code for the relaxation of GaN as template.
 First download a local copy of the python script.
 
@@ -145,11 +145,11 @@ and have a look at the code in make_relax_gan_flow().
 Try to do the same with 'si.cif' file instead of 'gan.cif'
 
 Pay attention to the fact that for silicon, you cannot use tolrff
-to stop your self-consistent cycle. 
-Silicon has no internal degree of freedom, the forces are zero by symmetry. 
+to stop your self-consistent cycle.
+Silicon has no internal degree of freedom, the forces are zero by symmetry.
 and hence the tolrff criterion makes no sense.
 
-As a second exercise, you can try to converge the results for silicon with respect 
+As a second exercise, you can try to converge the results for silicon with respect
 to the k-point sampling and ecut.
 Compare the converged results with experimental data.
 
@@ -175,26 +175,27 @@ lesson.
 For the flow_si_relax folder, look in particular to the changes in the unit cell (rprim) in the input files and the
 corresponding change in the unit cell volume (ucvol), total energy (etotal) and stresses (strten) in the output file.
 For the flow_gan_relax, observe in the output files how the automatic relaxation takes place.
-At each step of the relaxation, a full SCF-cycle is performed and forces and the stress are computed. 
+At each step of the relaxation, a full SCF-cycle is performed and forces and the stress are computed.
 The ions are then moved according to the forces and a new SCF-cycle is started.
-The procedure is interated until convergence is achieved. 
+The procedure is interated until convergence is achieved.
 This is the reason why there are two stopping criteria for structural relaxation:
 tolrff or tolvrs are used for the SCF cycle whereas tolmxf govers the relaxation algorithm.
 
 Exercises
 ---------
 
-Edit the input files to run the same jobs with different values of ecut. 
+Edit the input files to run the same jobs with different values of ecut.
 
 You can also try to change the stopping criterion to see if this affects the final results.
 
-Finally, try to generate the input file for silicon, and try to guess why setting the stopping 
+Finally, try to generate the input file for silicon, and try to guess why setting the stopping
 criterion on the forces won't work in this case!
 """
 
 import os
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from pymatgen.analysis.eos import EOS
@@ -234,12 +235,12 @@ def make_relax_flow(structure_file=None):
     for i, ngkpt in enumerate(ngkpt_list):
         multi[i].set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return abilab.Flow.from_inputs("flow_gan_relax", inputs=multi.split_datasets(), task_class=abilab.RelaxTask)
+    return flowtk.Flow.from_inputs("flow_gan_relax", inputs=multi.split_datasets(), task_class=flowtk.RelaxTask)
 
 
 def make_eos_flow(structure_file=None):
     """
-    Build and return a Flow to compute the equation of state 
+    Build and return a Flow to compute the equation of state
     of an isotropic material for different k-point samplings.
     """
     scale_volumes = np.arange(94, 108, 2) / 100.
@@ -266,7 +267,7 @@ def make_eos_flow(structure_file=None):
 
         multi[idt].set_structure(new_structure)
 
-    eos_flow = abilab.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets())
+    eos_flow = flowtk.Flow.from_inputs("flow_si_relax", inputs=multi.split_datasets())
     eos_flow.volumes = structure.volume * scale_volumes
     return eos_flow
 
@@ -293,7 +294,7 @@ class Lesson(BaseLesson):
     def analyze_eos_flow(flow, **kwargs):
         work = flow[0]
         etotals = work.read_etotals(unit="eV")
-        eos_fit = EOS.Birch_Murnaghan().fit(flow.volumes, etotals)
+        eos_fit = EOS(eos_name="birch_murnaghan").fit(flow.volumes, etotals)
         return eos_fit.plot(**kwargs)
 
     @staticmethod
@@ -309,13 +310,12 @@ class Lesson(BaseLesson):
 
         with abilab.GsrRobot.open(flow) as robot:
             data = robot.get_dataframe(funcs=get_dist)
-            return robot.pairplot(data, x_vars="nkpts", y_vars=["a", "c", "volume", "u"]) 
+            return robot.pairplot(data, x_vars="nkpt", y_vars=["a", "c", "volume", "u"])
 
 
 if __name__ == "__main__":
-    l = Lesson()
-    flow = l.make_eos_flow()
+    lesson = Lesson()
+    flow = lesson.make_eos_flow()
     flow.build_and_pickle_dump()
-    flow = l.make_relax_flow()
-    flow.build_and_pickle_dump()
-    l.setup()
+    flow = lesson.make_relax_flow()
+    lesson.setup()

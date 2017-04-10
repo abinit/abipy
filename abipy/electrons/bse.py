@@ -10,7 +10,7 @@ import numpy as np
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import marquee
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -46,7 +46,7 @@ class DielectricTensor(object):
 
         # One tensor for each frequency
         all_tensors = []
-        for (ifrq, freq) in enumerate(mdf.wmesh):
+        for ifrq, freq in enumerate(mdf.wmesh):
             tensor = SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq],
                                                      structure.lattice.reciprocal_lattice, space="g")
             all_tensors.append(tensor)
@@ -607,7 +607,7 @@ class MdfPlotter(object):
                 # Plot the average value
                 l = mdf.plot_ax(ax, qpoint, cplx_mode=cmode, **kwargs)[0]
                 lines.append(l)
-                legends.append("%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
+                legends.append(r"%s: %s, %s $\,\\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)

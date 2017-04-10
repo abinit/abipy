@@ -5,29 +5,33 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
 
+from enum import Enum
 from collections import namedtuple
 from monty.collections import AttrDict
+from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder
-from pymatgen.io.abinit.abiobjects import KSampling
-from pymatgen.io.abinit.pseudos import PseudoTable
+from pymatgen.serializers.json_coders import pmg_serialize
+from abipy.flowtk import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *
 
 import logging
-from pymatgen.serializers.json_coders import pmg_serialize
-
 logger = logging.getLogger(__file__)
 
 
 __all__ = [
     "gs_input",
     "ebands_input",
+    "phonons_from_gsinput",
     "g0w0_with_ppmodel_inputs",
     "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
     "ion_ioncell_relax_input",
+    "ion_ioncell_relax_and_ebands_input",
     "scf_phonons_inputs",
+    "piezo_elastic_inputs_from_gsinput",
+    "scf_piezo_elastic_inputs",
 ]
 
 
@@ -79,6 +83,34 @@ del T
 _DEFAULTS = dict(
     kppa=1000,
 )
+
+class ShiftMode(Enum):
+    """
+    Class defining the mode to be used for the shifts.
+    G: Gamma centered
+    M: Monkhorst-Pack ((0.5, 0.5, 0.5))
+    S: Symmetric. Respects the chksymbreak with multiple shifts
+    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
+        centered otherwise.
+    """
+    GammaCentered = 'G'
+    MonkhorstPack = 'M'
+    Symmetric = 'S'
+    OneSymmetric = 'O'
+
+    @classmethod
+    def from_object(cls, obj):
+        """
+        Returns an instance of ShiftMode based on the type of object passed. Converts strings to ShiftMode depending
+        on the iniital letter of the string. G for GammaCenterd, M for MonkhorstPack, S for Symmetric, O for OneSymmetric.
+        Case insensitive.
+        """
+        if isinstance(obj, cls):
+            return obj
+        elif is_string(obj):
+            return cls(obj[0].upper())
+        else:
+            raise ValueError('The object provided is not handled')
 
 
 def _stopping_criterion(runlevel, accuracy):
@@ -139,6 +171,36 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
     return int(nband)
+
+
+def _get_shifts(shift_mode, structure):
+    """
+    Gives the shifts based on the selected shift mode and on the symmetry of the structure.
+    G: Gamma centered
+    M: Monkhorst-Pack ((0.5, 0.5, 0.5))
+    S: Symmetric. Respects the chksymbreak with multiple shifts
+    O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
+        centered otherwise.
+
+    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
+        chksymbreak.
+    """
+    if shift_mode == ShiftMode.GammaCentered:
+        return ((0, 0, 0))
+    elif shift_mode == ShiftMode.MonkhorstPack:
+        return ((0.5, 0.5, 0.5))
+    elif shift_mode == ShiftMode.Symmetric:
+        structure = Structure.from_sites(structure)
+        return structure.calc_shiftk()
+    elif shift_mode == ShiftMode.OneSymmetric:
+        structure = Structure.from_sites(structure)
+        shifts = structure.calc_shiftk()
+        if len(shifts) == 1:
+            return shifts
+        else:
+            return ((0, 0, 0))
+    else:
+        raise ValueError("shift_mode not valid.")
 
 
 def gs_input(structure, pseudos,
@@ -250,7 +312,7 @@ def ebands_input(structure, pseudos,
 def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
-                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, force_gamma_centered=False):
+                            smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, shift_mode='Monkhorst-pack'):
     """
     Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -273,10 +335,10 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-    if force_gamma_centered:
-        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
-    else:
-        ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+
+    shift_mode = ShiftMode.from_object(shift_mode)
+    shifts = _get_shifts(shift_mode, structure)
+    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
     electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                charge=charge, nband=nband, fband=None)
 
@@ -308,7 +370,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
     Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
-    The first dataset optmizes the atomic positions at fixed unit cell.
+    The first dataset optimizes the atomic positions at fixed unit cell.
     The second datasets optimizes both ions and unit cell parameters.
     The other datasets perform a band structure calculation.
 
@@ -327,6 +389,9 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+
+    Returns:
+        :class:`MultiDataset` object
     """
     structure = Structure.as_structure(structure)
 
@@ -344,11 +409,11 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
 
 def g0w0_with_ppmodel_inputs(structure, pseudos,
-                            kppa, nscf_nband, ecuteps, ecutsigx,
-                            ecut=None, pawecutdg=None,
-                            accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
-                            ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-                            sigma_nband=None, gw_qprange=1):
+                             kppa, nscf_nband, ecuteps, ecutsigx,
+                             ecut=None, pawecutdg=None,
+                             accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
+                             ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+                             sigma_nband=None, gw_qprange=1):
     """
     Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
 
@@ -421,7 +486,6 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi[3].set_vars(nscf_electrons.to_abivars())
     multi[3].set_vars(self_energy.to_abivars())
     multi[3].set_vars(_stopping_criterion("sigma", accuracy)) # Dummy
-    #sigma_strategy = aobj.SelfEnergyStrategy(scf_strategy, nscf_strategy, scr_strategy, self_energy)
 
     # TODO: Cannot use istwfk != 1.
     multi.set_vars(istwfk="*1")
@@ -469,7 +533,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     scf_diffs = []
 
-    for k in extra_abivars.keys():
+    keys = list(extra_abivars.keys())
+    #for k in extra_abivars.keys():
+    for k in keys:
         if k[-2:] == '_s':
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)
@@ -504,15 +570,15 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # all these too many options are for development only the current idea for the final version is
     #if gamma:
-    #    scf_ksampling = KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
-    #    nscf_ksampling = KSampling.gamma_centered(kpts=(2, 2, 2))
+    #    scf_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
+    #    nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(2, 2, 2))
     #    if kppa <= 13:
-    #        nscf_ksampling = KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
+    #        nscf_ksampling = aobj.KSampling.gamma_centered(kpts=(scf_kppa, scf_kppa, scf_kppa))
     #    else:
-    #        nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
+    #        nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0, shifts=(0, 0, 0))
     #else:
-    #    scf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
-    #    nscf_ksampling = KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    scf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
+    #    nscf_ksampling = aobj.KSampling.automatic_density(structure, scf_kppa, chksymbreak=0)
 
     if gamma:
         if kppa == 1:
@@ -532,9 +598,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
             nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
         # this is the original behaviour before the devellopment of the gwwrapper
-        scf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-        nscf_ksampling = KSampling.automatic_density(structure, kppa, chksymbreak=0)
-
+        scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+        nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=scf_nband, fband=None)
@@ -542,8 +607,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                     charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
-
-    print(len(scf_diffs))
+    #print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -580,10 +644,10 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     # create screening and sigma inputs
 
-#    if scr_nband is None:
-#        scr_nband = nscf_nband_nscf
-#   if sigma_nband is None:
-#        sigma_nband = nscf_nband_nscf
+    #if scr_nband is None:
+    #   scr_nband = nscf_nband_nscf
+    #if sigma_nband is None:
+    #     sigma_nband = nscf_nband_nscf
 
     if 'cd' in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None, freqremax=None, nfreqim=None,
@@ -591,8 +655,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     scr_inputs = []
     sigma_inputs = []
 
-    print(ecuteps)
-    print(nscf_nband)
+    print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
@@ -784,11 +847,40 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     return all_inps
 
 
-def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, with_bec=False, ph_tol=None, ddk_tol=None,
-                         dde_tol=None):
+def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
+                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None):
     """
-    Returns a :class:`MultiDataset` for performing phonon calculations.
-    GS input + the input files for the phonon calculation.
+    Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
+    a ground state AbinitInput.
+    It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
+    The inputs have the following tags, according to their function: "ddk", "dde", "nscf", "ph_q_pert".
+    All of them have the tag "phonon".
+
+    Args:
+        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.
+        ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.
+            If None and qpoint==None the ngkpt value present in the gs_input will be used.
+            Incompatible with qpoints.
+        qpoints: a list of of coordinatesq points in reduced coordinates for which the phonon perturbations will
+            be calculated. Incompatible with ph_ngqpt.
+        with_ddk: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+            the DDK.
+        with_dde: If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+            the DDE. Automatically sets with_ddk=True.
+        with_bec: If Truem if Gamma is included in the list of qpoints the DDE will be calculated in the same
+            input as the phonons. This will allow to determine the BECs.
+            Automatically sets with_ddk=True and with_dde=False.
+        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+            its value. Default from AbinitInput.make_ph_inputs_qpoint: {"tolvrs": 1.0e-10}.
+        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+            its value. Default from AbinitInput.make_ddk_inputs: {"tolwfr": 1.0e-22}.
+        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+            its value. Default from AbinitInput.make_dde_inputs: {"tolvrs": 1.0e-10}.
+        wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
+            the WFQ and its value. Default {"tolwfr": 1.0e-22}.
+        qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
+            Useful when calculating multiple grids for the same system to avoid duplicate calculations.
+            If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().
     """
     gs_inp = gs_inp.deepcopy()
     gs_inp.pop_irdvars()
@@ -800,12 +892,58 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
         with_ddk = True
         with_dde = False
 
+    if ph_tol is None:
+        ph_tol = {"tolvrs": 1.0e-10}
+
+    if ddk_tol is None:
+        ddk_tol = {"tolwfr": 1.0e-22}
+
+    if dde_tol is None:
+        dde_tol = {"tolvrs": 1.0e-10}
+
+    if wfq_tol is None:
+        wfq_tol = {"tolwfr": 1.0e-22}
+
     multi = []
 
-    if ph_ngqpt is None:
-        ph_ngqpt = np.array(gs_inp["ngkpt"])
+    if qpoints is not None and ph_ngqpt is not None:
+        raise ValueError("ph_ngqpt and qpoints can't be used together")
 
-    qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0,0,0), kptopt=1).points
+    if qpoints is None:
+        if ph_ngqpt is None:
+            ph_ngqpt = np.array(gs_inp["ngkpt"])
+        else:
+            ph_ngqpt = np.array(ph_ngqpt)
+
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1).points
+
+    if qpoints_to_skip:
+        preserved_qpoints = []
+        for q in qpoints:
+            if not any(np.allclose(q, ddb_q) for ddb_q in qpoints_to_skip):
+                preserved_qpoints.append(q)
+        qpoints = np.array(preserved_qpoints)
+
+    if ph_ngqpt is None or any(gs_inp["ngkpt"] % ph_ngqpt != 0):
+        # find which q points are needed and build nscf inputs to calculate the WFQ
+        kpts = gs_inp.abiget_ibz(shiftk=(0, 0, 0), kptopt=3).points.tolist()
+        nscf_qpt = []
+        for q in qpoints:
+            if list(q) not in kpts:
+                nscf_qpt.append(q)
+        if nscf_qpt:
+            multi_nscf = MultiDataset.replicate_input(gs_inp, len(nscf_qpt))
+            multi_nscf.set_vars(kptopt=3, nqpt=1, iscf=-2)
+            if wfq_tol:
+                multi_nscf.set_vars(**wfq_tol)
+            else:
+                multi_nscf.set_vars(tolwfr=1e-22)
+            for q, nscf_inp in zip(nscf_qpt, multi_nscf):
+                nscf_inp.set_vars(qpt=q)
+
+            multi_nscf.add_tags(NSCF)
+
+            multi.extend(multi_nscf)
 
     # Build the input files for the q-points in the IBZ.
     # Response-function calculation for phonons.
@@ -832,23 +970,18 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, with_ddk=True, with_dde=True, wi
     multi = MultiDataset.from_inputs(multi)
     multi.add_tags(PHONON)
 
-    #FIXME for the time being there could be problems in mergddb if the kpoints grid is gamma centered or if
-    # if the grid is odd. Remove when mergddb is fixed
-    multi.set_vars(kptopt=3)
-
     return multi
-
 
 def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
     """
-    Returns a :class:`AbinitInput` for performing elastic and piezoelectric constants calculations.
+    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
         gs_inp: Ground State input to build piezo elastic inputs from.
-        ddk_tol: Tolerance for the Ddk calculation (i.e. {"tolwfr": 1.0e-20}).
+        ddk_tol: Tolerance for the DDK calculation (i.e. {"tolwfr": 1.0e-20}).
         rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
-        ddk_split: Whether to split the ddk calculations.
+        ddk_split: Whether to split the DDK calculations.
         rf_split: whether to split the RF calculations.
     """
     # Ddk input(s)
@@ -1049,7 +1182,8 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-    shifts = (0.5, 0.5, 0.5) if shift_mode[0].lower() == "m" else (0.0, 0.0, 0.0)
+    shift_mode = ShiftMode.from_object(shift_mode)
+    shifts = _get_shifts(shift_mode, structure)
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=nband, fband=None)
@@ -1070,11 +1204,15 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
 def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     """
-    :param gsinput:
-    :param nband:
-    :param ndivsm:
-    :param accuracy:
-    :return: AbinitInput
+    Return an :class:`AbinitInput` object to compute a band structure from a GS SCF input.
+
+    Args:
+        gsinput:
+        nband:
+        ndivsm:
+        accuracy:
+
+    Return: :class:`AbinitInput`
     """
     # create a copy to avoid messing with the previous input
     bands_input = gsinput.deepcopy()
@@ -1096,15 +1234,15 @@ def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=Fals
 
     # create a copy to avoid messing with the previous input
     dos_input = gsinput.deepcopy()
-
     dos_input.pop_irdvars()
 
-    dos_ksampling = aobj.KSampling.automatic_density(structure, dos_kppa, chksymbreak=0)
+    dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
     dos_input.set_vars(dos_ksampling.to_abivars())
-    dos_input.set_vars(iscf=-2, ionmov=0, )
+    dos_input.set_vars(iscf=-2, ionmov=0)
     dos_input.set_vars(_stopping_criterion("nscf", accuracy))
 
     if pdos:
+        # FIXME
         pass
 
     return dos_input
@@ -1125,7 +1263,6 @@ def ioncell_relax_from_gsinput(gsinput, accuracy="normal"):
 def hybrid_oneshot_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
 
     hybrid_input = gsinput.deepcopy()
-
     hybrid_input.pop_irdvars()
 
     functional = functional.lower()
@@ -1165,14 +1302,7 @@ def hybrid_scf_input(gsinput, functional="hse06", ecutsigx=None, gw_qprange=1):
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                     shift_mode="Symmetric"):
-    symmetric_kpt = False
-    # set symmetrized k-point
-    if shift_mode[0].lower() == 's':
-        # need to convert to abipy structure to get the calc_shiftk method
-        structure = Structure.from_sites(structure)
-        shiftk = structure.calc_shiftk()
-        kppa = int(kppa/len(shiftk))
-        symmetric_kpt = True
+
     abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
                          accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
                          scf_algorithm=scf_algorithm, shift_mode=shift_mode)
@@ -1185,14 +1315,11 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
         nband = int(nval // 2 + nbdbuf)
         abiinput.set_vars(nband=nband)
 
-    if symmetric_kpt:
-        abiinput.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
-
-
     # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
     abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
+
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements

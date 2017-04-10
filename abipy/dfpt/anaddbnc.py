@@ -5,14 +5,15 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from abipy.core.tensor import Tensor
-from abipy.core.mixins import AbinitNcFile, Has_Structure
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
 
 
-class AnaddbNcFile(AbinitNcFile, Has_Structure):
+class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
     This object is usually instanciated with `abiopen("anaddb.nc")`.
@@ -86,5 +87,20 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure):
         try:
             return InteratomicForceConstants.from_file(self.filepath)
         except Exception as exc:
-            print(exc, "Returning None", sep="\n")
+            print(exc)
+            cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("ananc = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ananc)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

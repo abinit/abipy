@@ -10,7 +10,6 @@ import shutil
 import abipy.data as abidata
 
 from monty.functools import lazy_property
-from abipy.tools.notebooks import mpld3_enable_notebook
 
 
 class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
@@ -19,11 +18,6 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
         mode = kwargs.get("mode") #, "ipython-shell")
         if mode is None: return
             
-        if mode == "mpld3": 
-            mpld3_enable_notebook()
-        else:
-            raise ValueError("Don't know how to handle mode %s" % mode)
-
     @abc.abstractproperty
     def abipy_string(self):
         """the abipy lesson."""
@@ -119,6 +113,6 @@ def get_pseudos(structure, extension='oncvpsp'):
     """
     pseudos = []
     for element in structure.composition.elements:
-        pseudos.append(abidata.pseudo(str(element)+'.'+extension))
+        pseudos.append(abidata.pseudo(str(element) + '.' + extension))
         #todo test if the pseudo potential file exists
     return pseudos

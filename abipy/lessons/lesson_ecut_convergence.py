@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 """
-Basis set convergence study and more info on flows, works, and tasks 
+Basis set convergence study and more info on flows, works, and tasks
 ====================================================================
 
 Background
 ----------
 
-This lesson focuses on the convergence study on the completeness of the plane wave (PW) basis set. 
-Plane waves are inherently well suited to capture the periodic nature of crystalline solids. 
+This lesson focuses on the convergence study on the completeness of the plane wave (PW) basis set.
+Plane waves are inherently well suited to capture the periodic nature of crystalline solids.
 In addition, a PW basis set has the advantage that it introduces only one convergence parameter,
 the kinetic energy cutoff (ecut).
 
-The sharp features of the wavefunctions near the nucleus are however problematic for PWs. 
+The sharp features of the wavefunctions near the nucleus are however problematic for PWs.
 Describing these features would require very high energy cutoff energies.
-For this reason PW codes use pseudo-potentials in order to facilitate the convergence of the results. 
-A pseudopotential replaces the singular coulomb potential of the nucleus and the 
-core electrons by something smoother inside the so-called pseudization region. 
+For this reason PW codes use pseudo-potentials in order to facilitate the convergence of the results.
+A pseudopotential replaces the singular coulomb potential of the nucleus and the
+core electrons by something smoother inside the so-called pseudization region.
 The pseudopotential connects smoothly to the real all-electron potential outside the pseudization region.
 
-Note that different pseudo potentials usually require a different cutoff energy to be converged. 
-In general norm-conserving pseudos require a larger cut-off than ultra-soft pseudos 
-or Projector Augmented Wave 'pseudos'. 
-Moreover two pseudos of the same type for the same element may require different  cutoff energies as well. 
+Note that different pseudo potentials usually require a different cutoff energy to be converged.
+In general norm-conserving pseudos require a larger cut-off than ultra-soft pseudos
+or Projector Augmented Wave 'pseudos'.
+Moreover two pseudos of the same type for the same element may require different  cutoff energies as well.
 Pseudos with small pseudization radius usually require larger cutoffs than pseudos
 with large pseudization radius.
 
@@ -80,9 +80,9 @@ to show the status of a flow:
 
         flow.show_status()
 
-There are many more properties and methods of the flow than may also come in handy. 
+There are many more properties and methods of the flow than may also come in handy.
 By typing [tab] in ipython after the period, you will be presented
-with all the options. Feel free to experiment a bit at this point. 
+with all the options. Feel free to experiment a bit at this point.
 In the ipython shell, one can get the description of the object by
 adding a question mark at the end of the statement:
 
@@ -107,7 +107,7 @@ Exercises
 
 Try to run the convergence study for Al.
 
-Get a copy of the python script used in this lesson like before and look at the `analyze` method. 
+Get a copy of the python script used in this lesson like before and look at the `analyze` method.
 Use the code in `analyze` to build your Pandas dataframe and use its method to produce convergence plots:
 
 Next
@@ -144,6 +144,7 @@ Edit the input files to run the same convergence study for a different k-point m
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowtk as flowtk
 from abipy.lessons.core import BaseLesson
 
 
@@ -152,13 +153,13 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     Build and return a `Flow` to perform a convergence study wrt to ecut.
 
     Args:
-        structure_file: (optional) file containing the crystalline structure.  
+        structure_file: (optional) file containing the crystalline structure.
             If None, crystalline silicon structure.
         ecut_list: List of cutoff energies to be investigated.
     """
     # Define the structure and add the necessary pseudos:
     if structure_file is None:
-        multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), 
+        multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                   pseudos=abidata.pseudos("14si.pspnc"), ndtset=len(ecut_list))
         workdir = "flow_Si_ecut_convergence"
     else:
@@ -178,7 +179,7 @@ def make_ecut_flow(structure_file=None, ecut_list = (10, 12, 14, 16, 18)):
     for i, ecut in enumerate(ecut_list):
         multi[i].set_vars(ecut=ecut)
 
-    return abilab.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
+    return flowtk.Flow.from_inputs(workdir=workdir, inputs=multi.split_datasets())
 
 
 class Lesson(BaseLesson):
@@ -212,7 +213,7 @@ class Lesson(BaseLesson):
 
 
 if __name__ == "__main__":
-    l = Lesson()
-    flow = l.make_ecut_flow()
+    lesson = Lesson()
+    flow = lesson.make_ecut_flow()
     flow.build_and_pickle_dump()
-    l.setup()
+    lesson.setup()

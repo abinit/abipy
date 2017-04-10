@@ -18,14 +18,14 @@ class TestSymmetries(AbipyTest):
         """Test silicon space group."""
         structure = Structure.from_file(abidata.ref_file("si_scf_WFK.nc"))
 
-        self.assertTrue(structure.has_spacegroup)
-        self.assertTrue(structure.is_symmorphic)
+        assert structure.has_abi_spacegroup
+        assert structure.abi_spacegroup.is_symmorphic
 
         print(structure)
         print("composition:", structure.composition)
         self.serialize_with_pickle(structure, test_eq=True)
 
-        spgrp = structure.spacegroup
+        spgrp = structure.abi_spacegroup
         print("spgrp:\n", spgrp)
 
         #print("mult_tables:\n", spgrp.mult_table)
@@ -146,8 +146,9 @@ class LittleGroupTest(AbipyTest):
     def test_silicon_little_group(self):
         """Testing little group in Silicon."""
         wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
-        spgrp = wfk_file.structure.spacegroup
-        #print(spgrp)
+        spgrp = wfk_file.structure.abi_spacegroup
+        assert spgrp is not None
+        print(spgrp)
 
         kpoints = [[0,0,0],
                    [0.5, 0, 0],

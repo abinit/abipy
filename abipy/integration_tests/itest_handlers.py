@@ -2,21 +2,22 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 
 
 def itest_tolsymerror_handler(fwp):
     """
     Test the handler of TolSymError. The test triggers:
-    
+
         --- !TolSymError
         message: |
             Could not find the point group
         src_file: symptgroup.F90
         src_line: 236
         ...
-    
+
     at the level of the symmetry finder and autoparal fails
     because it cannot find the parallel configurations.
     """
@@ -48,8 +49,8 @@ def itest_tolsymerror_handler(fwp):
          nshiftk=1,
     )
 
-    flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
-    flow.register_task(inp, task_class=abilab.RelaxTask)
+    flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)
+    flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
     assert flow.make_scheduler().start() == 0
@@ -75,7 +76,7 @@ def itest_dilatmxerror_handler(fwp):
         src_file: mover.F90
         src_line: 840
         ...
-   
+
     in variable cell structural optimizations.
     """
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -87,12 +88,12 @@ def itest_dilatmxerror_handler(fwp):
     inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
     inp.set_vars(
-        ecut=4,  
-        ngkpt=[4,4,4], 
+        ecut=4,
+        ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=1, 
+        paral_kgb=1,
         optcell=1,
         ionmov=2,
         ecutsm=0.5,
@@ -105,11 +106,11 @@ def itest_dilatmxerror_handler(fwp):
         )
 
     # Create the flow
-    flow = abilab.Flow(fwp.workdir, manager=fwp.manager)
-    flow.register_task(inp, task_class=abilab.RelaxTask)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+    flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
-    assert flow.make_scheduler().start() == 0 
+    assert flow.make_scheduler().start() == 0
 
     flow.show_status()
     assert flow.all_ok

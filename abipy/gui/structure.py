@@ -4,8 +4,7 @@ import wx
 import abipy.gui.awx as awx
 
 from monty.string import is_string
-from pymatgen.core import Structure
-from abipy.abilab import abiopen
+from abipy.core.structure import Structure
 from abipy.gui.editor import SimpleTextViewer
 
 
@@ -58,17 +57,7 @@ class StructureConverterFrame(wx.Frame):
 
     def _get_structure(self, obj):
         """Extract the structure from the input object."""
-        if isinstance(obj, Structure):
-            self.structure = obj
-                                                                                           
-        elif is_string(obj):
-            self.structure = abiopen(obj).structure
-                                                                                           
-        elif hasattr(obj, "structure"):
-            self.structure = obj.structure
-                                                                                           
-        else:
-            raise TypeError("Don't know how to extract the structure from %s" % str(obj))
+        return Structure.as_structure(obj)
 
     @property
     def format(self):
@@ -88,7 +77,7 @@ class StructureConverterFrame(wx.Frame):
                                     wildcard="%{format} files (*.{format})|*.{format}".format(format=self.format),
                                     style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
-        if save_dialog.ShowModal() == wx.ID_CANCEL: return 
+        if save_dialog.ShowModal() == wx.ID_CANCEL: return
 
         with open(save_dialog.GetPath(), "w") as fh:
             fh.write(self._convert())

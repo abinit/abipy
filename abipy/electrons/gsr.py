@@ -253,8 +253,11 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(gsr)"),
             nbv.new_code_cell("fig = gsr.ebands.plot()"),
             nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = gsr.ebands.get_edos().plot()"),
-            nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+            nbv.new_code_cell("""\
+if gsr.ebands.kpoints.is_ibz:
+    fig = gsr.ebands.get_edos().plot()"""),
+            #nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -299,7 +302,7 @@ class EnergyTerms(AttrDict):
         #("e_xc_vdw", "vdW-DF correction to the XC energy"),
     ])
 
-    ALL_KEYS = _NAME2DOC.keys()
+    ALL_KEYS = list(_NAME2DOC.keys())
 
     def __str__(self):
         return self.to_string(with_doc=False)
@@ -356,11 +359,10 @@ class GsrReader(ElectronsReader):
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
         d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
-
         return EnergyTerms(**d)
 
 
-# TODO: Remove
+# TODO: Remove and/or merge with robots.
 class GsrPlotter(Iterable):
     """
     This object receives a list of `GsrFile` objects and provides

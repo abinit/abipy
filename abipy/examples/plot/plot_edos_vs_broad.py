@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
 This example shows how to compute and plot multiple
-electron DOSes obtained with different values for the gaussian broadening.
+electron DOSes obtained with different values of the gaussian broadening.
 """
 import abipy.data as abidata
 from abipy.abilab import abiopen, ElectronDosPlotter
 
-# Open the wavefunction file computed with a homogeneous sampling of the BZ 
+# Open the wavefunction file computed with a homogeneous sampling of the BZ
 # and extract the band structure on the k-mesh.
 with abiopen(abidata.ref_file("si_scf_WFK.nc")) as gs_wfk:
     gs_bands = gs_wfk.ebands

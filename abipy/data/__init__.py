@@ -2,13 +2,13 @@
 Functions providing access to file data for unit tests and tutorials.
 Preferred way to import the module is via the import syntax:
 
-import abipy.abidata as abidata
+    import abipy.abidata as abidata
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 
-from pymatgen.io.abinit.pseudos import PseudoParser, PseudoTable
+from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
 __all__ = [
@@ -36,9 +36,10 @@ _SCRIPTS = None
 
 
 def pyscript(basename):
-    """Return the absolute name of one of the scripts in the `examples` directory from its basename."""
-
-    global _SCRIPTS 
+    """
+    Return the absolute name of one of the scripts in the `examples` directory from its basename.
+    """
+    global _SCRIPTS
     if _SCRIPTS is None:
         # Build mapping basename --> path.
         from monty.os.path import find_exts
@@ -62,7 +63,7 @@ pseudo_dir = _PSEUDOS_DIRPATH
 def pseudo(filename):
     """Returns a `Pseudo` object."""
     filepath = os.path.join(_PSEUDOS_DIRPATH, filename)
-    return PseudoParser().parse(filepath)
+    return Pseudo.from_file(filepath)
 
 
 def pseudos(*filenames):
@@ -107,7 +108,7 @@ def find_ncfiles(top):
                         SILENT += 1
 
                 else:
-                    ncfiles[basename] = apath 
+                    ncfiles[basename] = apath
 
     return ncfiles
 
@@ -119,7 +120,10 @@ def ref_file(basename):
     if basename in _DATA_NCFILES:
         return _DATA_NCFILES[basename]
     else:
-        return os.path.join(dirpath, basename)
+        path = os.path.join(dirpath, basename)
+        if not os.path.exists(path):
+            raise ValueError("Cannot find reference file %s" % path)
+        return path
 
 
 def ref_files(*basenames):
@@ -139,23 +143,19 @@ def ncfiles_with_ext(ext):
 
 
 def mp_structures():
-    """ Returns a dictionary containg the structures stored in mpdata/mp_structures. """
+    """Returns a dictionary containing the structures stored in mpdata/mp_structures. """
     import json
     from monty.json import MontyDecoder
 
-    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'r') as f:
+    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
         return json.load(f, cls=MontyDecoder)
 
 
 WFK_NCFILES = ncfiles_with_ext("WFK")
-
 DEN_NCFILES = ncfiles_with_ext("DEN")
-
 GSR_NCFILES = ncfiles_with_ext("GSR")
-
 SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
-
-ALL_NCFILES = _DATA_NCFILES.values()
+ALL_NCFILES = list(_DATA_NCFILES.values())
 
 
 class FilesGenerator(object):
@@ -179,7 +179,7 @@ class FilesGenerator(object):
         self.finalize = kwargs.pop("finalize", True)
         self.verbose = kwargs.pop("verbose", 1)
 
-        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] + 
+        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] +
                 list(self.files_to_save.keys()))
 
     def __str__(self):
@@ -195,7 +195,7 @@ class FilesGenerator(object):
         process = self._run()
         process.wait()
 
-        if process.returncode != 0: 
+        if process.returncode != 0:
             print("returncode == %s" % process.returncode)
             print(process.stderr.readlines())
             return process.returncode
@@ -218,7 +218,7 @@ class FilesGenerator(object):
 
         # Remove files
         garbage = [f for f in all_files if f not in self.files_to_keep]
-        for f in garbage: 
+        for f in garbage:
             if f.endswith(".py"): continue
             if self.verbose: print("Will remove file %s" % f)
             os.remove(f)
@@ -245,7 +245,8 @@ class AbinitFilesGenerator(FilesGenerator):
         super(AbinitFilesGenerator, self).__init__(**kwargs)
 
         # Add Absolute paths for the pseudopotentials.
-        self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+        #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+        self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
     def make_filesfile_str(self):
         s = "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
@@ -301,8 +302,8 @@ class AnaddbFilesGenerator(FilesGenerator):
         # 6) base name for elphon output files e.g. t13
         # 7) file containing ddk filenames for elphon/transport
         return "\n".join([
-            "run.abi", 
-            "out", 
+            "run.abi",
+            "out",
             self.in_ddb,
             self.out_ddb,
             self.in_gkk,

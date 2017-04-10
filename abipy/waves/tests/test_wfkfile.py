@@ -1,7 +1,7 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 from abipy.core.testing import *
 from abipy.waves import WfkFile
@@ -12,9 +12,9 @@ class TestWFKFile(AbipyTest):
 
     def test_read_wfkfile(self):
         """Read WfkFile and waves from NC example data files."""
-        assert data.WFK_NCFILES
+        assert abidata.WFK_NCFILES
 
-        for path in data.WFK_NCFILES:
+        for i, path in enumerate(abidata.WFK_NCFILES):
             wfk = WfkFile(path)
             print(wfk)
 
@@ -23,8 +23,8 @@ class TestWFKFile(AbipyTest):
             wave = wfk.get_wave(spin, kpoint, band)
             other_wave = wfk.get_wave(spin, kpoint, band+1)
 
-            self.assertTrue(wave == wave)
-            self.assertTrue(wave != other_wave)
+            assert wave == wave
+            assert wave != other_wave
 
             for ig, (g, u_g) in enumerate(wave):
                 self.assertTrue(np.all(g == wave.gvecs[ig]))
@@ -56,10 +56,9 @@ class TestWFKFile(AbipyTest):
             same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
             self.assert_almost_equal(wave.ug, same_ug)
 
-            if self.which("xcrysden") is not None:
-                wave.export_ur2(".xsf", structure)
+            wave.export_ur2(".xsf", structure)
 
+            if i == 0 and self.has_nbformat():
+                wfk.write_notebook(nbpath=self.get_tmpname(text=True))
 
-if __name__ == "__main__":
-   import unittest
-   unittest.main()
+            wfk.close()

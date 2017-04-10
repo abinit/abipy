@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+This script opens an output file produced by Abinit (usually in netcdf format but
+other files are supported as well). By default the script starts an interactive ipython
+session so that one can interact with the file and call its methods.
+Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
+"""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
@@ -14,7 +20,7 @@ from abipy import abilab
 
 def make_and_open_notebook(options):
     """
-    Generate an ipython notebook and open it in the browser.
+    Generate an jupyter notebook and open it in the browser.
     Return system exit code.
 
     Raise:
@@ -47,13 +53,22 @@ from abipy import abilab\
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
-    cmd = "jupyter notebook %s" % nbpath
-    if options.no_daemon:
+    if options.foreground:
+        cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
+
     else:
-        import daemon
-        with daemon.DaemonContext():
-            return os.system(cmd)
+        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+        print("Executing:", cmd)
+
+        import subprocess
+        try:
+            from subprocess import DEVNULL # py3k
+        except ImportError:
+            DEVNULL = open(os.devnull, "wb")
+
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL) #, stderr=DEVNULL)
+        cprint("pid: %s" % str(process.pid), "yellow")
 
 
 @prof_main
@@ -63,7 +78,7 @@ def main():
         s = """\
 Usage example:
     abiopen.py out_GSR.nc
-    abiopen.py out_DDB
+    abiopen.py out_DDB -nb  # To generate jupyter notebook
 
 File extensions supported:
 """
@@ -86,8 +101,8 @@ File extensions supported:
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
-    parser.add_argument('--no-daemon', action='store_true', default=False,
-                         help="Don't start jupyter notebook with daemon process")
+    parser.add_argument('--foreground', action='store_true', default=False,
+                         help="Run jupyter notebook in the foreground.")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
@@ -131,8 +146,12 @@ File extensions supported:
         # else generate simple notebook by calling `make_and_open_notebook`
         cls = abilab.abifile_subclass_from_filename(options.filepath)
         if hasattr(cls, "make_and_open_notebook"):
-            with abilab.abiopen(options.filepath) as abifile:
-                return abifile.make_and_open_notebook(daemonize=not options.no_daemon)
+            if hasattr(cls, "__exit__"):
+                with abilab.abiopen(options.filepath) as abifile:
+                    return abifile.make_and_open_notebook(foreground=options.foreground)
+            else:
+                abifile = abilab.abiopen(options.filepath)
+                return abifile.make_and_open_notebook(foreground=options.foreground)
         else:
             return make_and_open_notebook(options)
 

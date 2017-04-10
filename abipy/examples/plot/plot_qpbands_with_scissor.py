@@ -48,3 +48,4 @@ plotter.add_ebands("LDA+scissors(e)", qp_bands, dos=qp_dos)
 plotter.combiplot(title="Silicon band structure")
 
 plotter.gridplot(title="Silicon band structure")
+sigma_file.close()

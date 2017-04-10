@@ -6,15 +6,16 @@ import abc
 import os
 import six
 import collections
+import tempfile
 
 from time import ctime
 from monty.os.path import which
+from monty.termcolor import cprint
 from monty.string import is_string
 from monty.functools import lazy_property
-from pymatgen.io.abinit.events import EventsParser
-from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
-from pymatgen.io.abinit.abitimer import AbinitTimerParser
-from pymatgen.io.abinit.netcdf import NetcdfReader, NO_DEFAULT
+
+from abipy.iotools.cube import cube_read_structure_mesh_data
+from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
 
 __all__ = [
@@ -49,13 +50,8 @@ class _File(object):
         if isinstance(filepath, cls):
             return filepath
 
-        try:
-            return cls(filepath)
-        except:
-            import traceback
-            msg = traceback.format_exc()
-            msg += "\n Perhaps the subclass %s must redefine the classmethod from_file\n" % cls
-            raise ValueError(msg)
+        #print("Perhaps the subclass", cls, "must redefine the classmethod from_file.")
+        return cls(filepath)
 
     @property
     def filepath(self):
@@ -110,8 +106,8 @@ class _File(object):
     #    finally:
     #        super(_File, self).__close__(self)
 
-
 class TextFile(_File):
+
     def __enter__(self):
         # Open the file
         self._file
@@ -135,120 +131,6 @@ class TextFile(_File):
     def seek(self, offset, whence=0):
         """Set the file's current position, like stdio's fseek()."""
         self._file.seek(offset, whence)
-
-
-class AbinitTextFile(TextFile):
-    """Class for the ABINIT main output file and the log file."""
-
-    @property
-    def events(self):
-        """
-        List of ABINIT events reported in the file.
-        """
-        # Parse the file the first time the property is accessed or when mtime is changed.
-        stat = os.stat(self.filepath)
-        if stat.st_mtime != self._last_mtime or not hasattr(self, "_events"):
-            self._events = EventsParser().parse(self.filepath)
-        return self._events
-
-    @property
-    def timer_data(self):
-        """
-        Timer data.
-        """
-        # Parse the file the first time the property is accessed or when mtime is changed.
-        stat = os.stat(self.filepath)
-        if stat.st_mtime != self._last_mtime or not hasattr(self, "_timer_data"):
-            self._timer_data = AbinitTimerParser().parse(self.filepath)
-        return self._timer_data
-
-
-class AbinitLogFile(AbinitTextFile):
-    """Class representing the log file."""
-
-
-class AbinitOutputFile(AbinitTextFile):
-    """Class representing the main output file."""
-
-    #ndtset
-    #offset_dataset
-    #dims_dataset
-    #vars_dataset
-    #pseudos
-
-    def next_gs_scf_cycle(self):
-        """
-        Return the next :class:`GroundStateScfCycle` in the file. None if not found.
-        """
-        return GroundStateScfCycle.from_stream(self)
-
-    def next_d2de_scf_cycle(self):
-        """
-        Return :class:`GroundStateScfCycle` with information on the GS iterations. None if not found.
-        """
-        return D2DEScfCycle.from_stream(self)
-
-    def compare_gs_scf_cycles(self, others, show=True):
-        """
-        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent
-        cycle in self with the ones in others.
-
-        Args:
-            others: list of `AbinitOutputFile` objects or strings with paths to output files.
-            show: True to diplay plots.
-        """
-        for i, other in enumerate(others):
-            if is_string(other): others[i] = self.__class__.from_file(other)
-
-        fig, figures = None, []
-        while True:
-            cycle = self.next_gs_scf_cycle()
-            if cycle is None: break
-
-            fig = cycle.plot(show=False)
-            for i, other in enumerate(others):
-                other_cycle = other.next_gs_scf_cycle()
-                if other_cycle is None: break
-                last = (i == len(others) - 1)
-                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
-                if last:
-                    fig.tight_layout()
-                    figures.append(fig)
-
-        self.seek(0)
-        for other in others: other.seek(0)
-        return figures
-
-    def compare_d2de_scf_cycles(self, others, show=True):
-        """
-        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent
-        cycle in self with the ones in others.
-
-        Args:
-            others: list of `AbinitOutputFile` objects or strings with paths to output files.
-            show: True to diplay plots.
-        """
-        for i, other in enumerate(others):
-            if is_string(other): others[i] = self.__class__.from_file(other)
-
-        fig, figures = None, []
-        while True:
-            cycle = self.next_d2de_scf_cycle()
-            if cycle is None: break
-
-            fig = cycle.plot(show=False)
-            for i, other in enumerate(others):
-                other_cycle = other.next_d2de_scf_cycle()
-                if other_cycle is None: break
-                last = (i == len(others) - 1)
-                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
-                if last:
-                    fig.tight_layout()
-                    figures.append(fig)
-
-        self.seek(0)
-        for other in others: other.seek(0)
-        return figures
 
 
 class AbinitOutNcFile(NetcdfReader):
@@ -276,46 +158,44 @@ class AbinitNcFile(_File):
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
 
-class OutNcFile(AbinitNcFile):
+@six.add_metaclass(abc.ABCMeta)
+class AbinitFortranFile(_File):
     """
-    Class representing the _OUT.nc file containing the dataset results
-    produced at the end of the run. The netcdf variables can be accessed
-    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
+    Abstract class representing a fortran file containing
+    output data from abinit.
+    """
+    def close(self):
+        pass
+
+
+class CubeFile(_File):
+    """
+
+    .. attribute:: structure
+
+        :class:`Structure` object
+
+    .. attribute:: mesh
+
+        :class:`Mesh3d` object with information on the uniform 3d mesh.
+
+    .. attribute:: data
+
+        numpy array of shape [nx, ny, nz] with numerical values on the real-space mesh.
     """
     def __init__(self, filepath):
-        super(OutNcFile, self).__init__(filepath)
-        self.reader = NetcdfReader(filepath)
-        self._varscache= {k: None for k in self.reader.rootgrp.variables}
-
-    def __dir__(self):
-        """Ipython integration."""
-        return sorted(list(self._varscache.keys()))
-
-    def __getattribute__(self, name):
-        try:
-            return super(OutNcFile, self).__getattribute__(name)
-        except AttributeError:
-            # Look in self._varscache
-            varscache = super(OutNcFile, self).__getattribute__("_varscache")
-            if name not in varscache:
-                raise AttributeError("Cannot find attribute %s" % name)
-            reader = super(OutNcFile, self).__getattribute__("reader")
-            if varscache[name] is None:
-                varscache[name] = reader.read_value(name)
-            return varscache[name]
+        from abipy.iotools.cube import cube_read_structure_mesh_data
+        super(CubeFile, self).__init__(filepath)
+        self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
 
     def close(self):
-        self.reader.close()
+        """nop, just to fulfill the abstract interface."""
 
-    def get_allvars(self):
-        """
-        Read all netcdf variables present in the file.
-        Return dictionary varname --> value
-        """
-        for k, v in self._varscache.items():
-            if v is not None: continue
-            self._varscache[k] = self.reader.read_value(k)
-        return self._varscache
+    #@classmethod
+    #def write_structure_mesh_data(cls, path, structure, mesh, data):
+    #    with open(path, "wt") as fh:
+    #        cube_write_structure_mesh(fh, structure, mesh)
+    #        cube_write_data(fh, data, mesh):
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -445,7 +325,6 @@ class NcDumper(object):
         """
         self.nc_args = nc_args
         self.nc_kwargs = nc_kwargs
-
         self.ncdump = which("ncdump")
 
     def dump(self, filepath):
@@ -496,13 +375,14 @@ class NotebookWriter(object):
     See also:
         http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
-    def make_and_open_notebook(self, nbpath=None, daemonize=False):
+    def make_and_open_notebook(self, nbpath=None, foreground=False):
         """
         Generate an ipython notebook and open it in the browser.
 
         Args:
             nbpath: If nbpath is None, a temporay file is created.
-            daemonize:
+            foreground: By default, jupyter is executed in background and stdout, stderr are redirected
+            to devnull. Use foreground to run the process in foreground
 
         Return:
             system exit code.
@@ -513,15 +393,24 @@ class NotebookWriter(object):
         nbpath = self.write_notebook(nbpath=nbpath)
 
         if which("jupyter") is None:
-            raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
+            raise RuntimeError("Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
-        cmd = "jupyter notebook %s" % nbpath
-        if not daemonize:
+        if foreground:
+            cmd = "jupyter notebook %s" % nbpath
             return os.system(cmd)
         else:
-            import daemon
-            with daemon.DaemonContext():
-                return os.system(cmd)
+            cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+            print("Executing:", cmd)
+            import subprocess
+            cmd = "jupyter notebook %s" % nbpath
+
+            try:
+                from subprocess import DEVNULL # py3k
+            except ImportError:
+                DEVNULL = open(os.devnull, "wb")
+
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+            cprint("pid: %s" % str(process.pid), "yellow")
 
     def get_nbformat_nbv_nb(self, title=None):
         """
@@ -539,10 +428,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
+import numpy as np
 
 %matplotlib notebook
 from IPython.display import display
-#import seaborn as sns
+#import seaborn as sns   # uncomment this line to activate seaborn settings.
 
 from abipy import abilab""")
         ])

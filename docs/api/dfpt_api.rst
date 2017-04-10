@@ -10,6 +10,14 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`anaddbnc` Module
+----------------------
+
+.. automodule:: abipy.dfpt.anaddbnc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`ddb` Module
 -----------------
 

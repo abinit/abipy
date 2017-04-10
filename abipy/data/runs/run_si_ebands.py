@@ -4,8 +4,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -24,6 +25,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
                        istwfk="*1",
                        nstep=15,
                        paral_kgb=paral_kgb,
+                       iomode=3,
                     )
 
     if multi.ispaw:
@@ -44,8 +46,8 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
     multi[1].set_vars(tolwfr=1e-12)
-    
-    # Generate two input files for the GS and the NSCF run 
+
+    # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
@@ -54,21 +56,18 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
-    #print(scf_input.to_string(sortmode="section"))
 
     # Build the flow.
-    return abilab.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
-    
+    return flowtk.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
+
 
 @abilab.flow_main
 def main(options):
     flow = build_flow(options)
-    #import pymatgen.io.abinit.mocks as mocks
-    #flow = mocks.infinite_flow(flow)
     flow.build_and_pickle_dump()
     return flow
 

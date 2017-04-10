@@ -2,14 +2,16 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
+import os
 import numpy as np
 
 from pprint import pformat
 from monty.string import is_string, boxed
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, frames_from_structures
-from abipy.core.mixins import Has_Structure, TextFile
+from abipy.core.mixins import Has_Structure, TextFile, NotebookWriter
 
 import logging
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ def _get_anaddb_varnames():
         return _anaddb_varnames
 
     from abipy import data as abidata
-    with open(abidata.var_file("anaddb_vars.json")) as fh:
+    with open(abidata.var_file("anaddb_vars.json"), "rt") as fh:
         _anaddb_varnames = set(json.load(fh))
         return _anaddb_varnames
 
@@ -46,12 +48,11 @@ def is_abivar(s):
     global ABI_VARNAMES
     if ABI_VARNAMES is None:
         from abipy import data as abidata
-        with open(abidata.var_file("abinit_vars.json")) as fh:
+        with open(abidata.var_file("abinit_vars.json"), "rt") as fh:
             ABI_VARNAMES = set(json.load(fh))
             # Add include statement
-            # FIXME: This should be added to the database.
-            ABI_VARNAMES.add("include")
-            ABI_VARNAMES.add("xyzfile")
+            # FIXME: These variables should be added to the database.
+            ABI_VARNAMES.update(("include", "xyzfile"))
 
     return s in ABI_VARNAMES
 
@@ -210,8 +211,17 @@ class Dataset(dict, Has_Structure):
             print("  kwargs", kwargs)
             raise exc
 
+    def __str__(self):
+        """string representation."""
+        lines = []
+        app = lines.append
+        for k in sorted(list(self.keys())):
+            app("%s %s" % (k, str(self[k])))
 
-class AbinitInputFile(TextFile, Has_Structure):
+        return "\n".join(lines)
+
+
+class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object parses the Abinit input file, stores the variables in
     dict-like objects (Datasets) and build `Structure` objects from
@@ -238,6 +248,9 @@ class AbinitInputFile(TextFile, Has_Structure):
         self.ndtset = len(self.datasets)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
         """String representation."""
         lines = []
         app = lines.append
@@ -290,6 +303,35 @@ class AbinitInputFile(TextFile, Has_Structure):
                 logger.info("Datasets have different structures. Returning None. Use input.datasets[i].structure")
                 return None
         return self.datasets[0].structure
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("abinp = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(abinp)"),
+        ])
+
+        has_multi_structures = self.structure is None
+        if has_multi_structures:
+            nb.cells.extend([
+                nbv.new_code_cell("""
+for dataset in inp.datasets:
+    print(dataset.structure)"""),
+            ])
+
+        if self.ndtset > 1:
+            nb.cells.extend([
+                nbv.new_code_cell("""
+for dataset in abinp.datasets:
+    print(dataset)"""),
+            ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class AbinitInputParser(object):
@@ -467,7 +509,7 @@ class AbinitInputParser(object):
         """
         import math
         import re
-        re_sqrt = re.compile("[+|-]?sqrt\((.+)\)")
+        re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
 
         values = []
         for tok in tokens:
@@ -502,30 +544,16 @@ class AbinitInputParser(object):
         return varname, dtidx
 
 
-def validate_input_parser():
+def validate_input_parser(abitests_dir=None, input_files=None):
     """
-    Script to validate/test AbinitInput parser.
+    validate/test AbinitInput parser.
 
-    Usage:
-	$ test_input_parser DIRECTORY
-	$ test_input_parser FILES
+    Args:
+        dirpath: Abinit tests directory.
+        input_files: List of Abinit input files.
 
     Return: Exit code.
     """
-    import sys
-    import os
-    from abipy import abilab
-
-    try:
-        args = sys.argv[1:]
-    except:
-        print(validate_input_parser.__doc__)
-        return 1
-
-    if "-h" in args or "--help" in args:
-        print(validate_input_parser.__doc__)
-        return 0
-
     def is_abinit_input(path):
         """
         True if path is one of the input files used in the Abinit Test suite.
@@ -538,48 +566,67 @@ def validate_input_parser():
                 if "executable" in line and "abinit" in line: return True
             return False
 
-    # Collect files
+    # Files are collected in paths.
     paths = []
 
-    if len(args) == 1 and os.path.isdir(args[0]):
-        print("Analyzing directory %s for input files" % args[0])
-        for dirpath, dirnames, filenames in os.walk(args[0]):
+    if abitests_dir is not None:
+        print("Analyzing directory %s for input files" % abitests_dir)
+
+        for dirpath, dirnames, filenames in os.walk(abitests_dir):
             for fname in filenames:
                 path = os.path.join(dirpath, fname)
                 if is_abinit_input(path): paths.append(path)
-    else:
-        for arg in args:
-            if is_abinit_input(arg):
-                paths.append(arg)
+
+            #import ast
+            #init_path = os.path.join(dirpath, "__init__.py")
+            #with open(init_path, "rt") as f:
+            #    source = f.read()
+            #    start = source.find("inp_files = [")
+            #    if start == -1:
+            #        print("ignoring ", init_path)
+            #        continue
+            #    stop = source.find("]", start)
+            #    if stop == -1:
+            #        raise ValueError("Invalid code in %s" % init_path)
+            #    print(init_path)
+            #    inp_basenames = ast.literal_eval(source[start:stop+1])
+            #    print(int_basenames)
+
+    if input_files is not None:
+        print("Analyzing files ", str(input_files))
+        for arg in input_files:
+            if is_abinit_input(arg): paths.append(arg)
 
     nfiles = len(paths)
     if nfiles == 0:
-        print("Empty list of input files.")
+        cprint("Empty list of input files.", "red")
         return 0
 
     print("Found %d Abinit input files" % len(paths))
     errpaths = []
     for path in paths:
-        print("About to analyze:", path)
+        print(path + ": ", end="")
         try:
-            inp = abilab.AbinitInputFile.from_file(path)
+            inp = AbinitInputFile.from_file(path)
             s = str(inp)
-            print(s)
+            cprint("OK", "green")
         except Exception as exc:
             if not isinstance(exc, NotImplementedError):
+                cprint("FAILED", "red")
                 errpaths.append(path)
                 import traceback
                 print(traceback.format_exc())
                 #print("[%s]: Exception:\n%s" % (path, str(exc)))
-
                 #with open(path, "rt") as fh:
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
 
-    print("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles))
     if errpaths:
+        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
         for i, epath in enumerate(errpaths):
-            print("[%d] %s" % (i, epath))
+            cprint("[%d] %s" % (i, epath), "red")
+    else:
+        cprint("All input files successfully parsed!", "green")
 
     return len(errpaths)

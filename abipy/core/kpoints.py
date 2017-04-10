@@ -4,8 +4,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import collections
 import json
+import sys
 import numpy as np
 
+from itertools import product
 from tabulate import tabulate
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
@@ -29,11 +31,15 @@ __all__ = [
     "IrredZone",
     "rc_list",
     "kmesh_from_mpdivs",
+    "Ktables",
 ]
 
 # Tolerance used to compare k-points.
 _ATOL_KDIFF = 1e-8
 
+# Tolerances passed to spglib.
+_SPGLIB_SYMPREC = 1e-5
+_SPGLIB_ANGLE_TOLERANCE = -1.0
 
 def set_atol_kdiff(new_atol):
     """
@@ -48,6 +54,20 @@ def set_atol_kdiff(new_atol):
     old_atol = _ATOL_KDIFF
     _ATOL_KDIFF = new_atol
     return old_atol
+
+def set_spglib_tols(symprec, angle_tolerance):
+    """
+    Change the value of the tolerances `symprec` and `angle_tolerance`
+    used to call spglib. Return old values
+
+    .. warning::
+
+        This function should be called at the beginning of the script.
+    """
+    global _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE
+    old_symprec, old_angle_tolerance = _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE
+    _SPGLIB_SYMPREC, _SPGLIB_ANGLE_TOLERANCE = symprec, angle_tolerance
+    return old_symprec, old_angle_tolerance
 
 
 def is_integer(x, atol=None):
@@ -161,8 +181,7 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     assert np.all(np.abs(shifts) <= 0.5)
 
     # Build k-point grid.
-    from itertools import product
-    kbz = []
+    kbz = collections.deque()
     for ish, shift in enumerate(shifts):
         rc0 = rc_list(mpdivs[0], shift[0], pbc=pbc, order=order)
         rc1 = rc_list(mpdivs[1], shift[1], pbc=pbc, order=order)
@@ -172,6 +191,142 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
             kbz.append(kxyz)
 
     return np.array(kbz)
+
+
+def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
+    """
+    Compute the correspondence between the list of k-points in the *unit cell*
+    associated to the `ngkpt` mesh and the corresponding points in the IBZ.
+    Requires structure with Abinit symmetries.
+    This routine is mainly used to symmetrize eigenvalues in the unit cell
+    e.g. to write BXSF files for electronic isosurfaces.
+
+    Args:
+        structure: Structure with (Abinit) symmetry operations.
+        ibz: [*,3] array with reduced coordinates in the in the IBZ.
+        ngkpt: Mesh divisions.
+        has_timrev: True if time-reversal can be used.
+        pbc: True if the mesh should contain the periodic images (closed mesh).
+
+    Returns:
+        bz2ibz: 1d array with BZ --> IBZ mapping
+    """
+    ngkpt = np.asarray(ngkpt, dtype=np.int)
+
+    # Extract (FM) symmetry operations in reciprocal space.
+    abispg = structure.abi_spacegroup
+    if abispg is None:
+        raise ValueError("Structure does not contain the Abinit spacegroup!")
+    symrec_fm = [s for (s, afm) in zip(abispg.symrec, abispg.symafm) if afm == 1]
+
+    # Compute TS k_ibz.
+    bzgrid2ibz = -np.ones(ngkpt, dtype=np.int)
+
+    for ik_ibz, kibz in enumerate(ibz):
+        gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=np.int)
+        for rot in symrec_fm:
+            rot_gp = np.matmul(rot, gp_ibz)
+            gp_bz = rot_gp % ngkpt
+            bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
+            if has_timrev:
+                gp_bz = (-rot_gp) % ngkpt
+                bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
+
+    if pbc:
+        # Add periodical replicas.
+        from abipy.tools.numtools import add_periodic_replicas
+        bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
+    bz2ibz = bzgrid2ibz.flatten()
+
+    if np.any(bz2ibz == -1):
+        #for ik_bz, ik_ibz in enumerate(self.bz2ibz): print(ik_bz, ">>>", ik_ibz)
+        msg = "Found %s/%s invalid entries in bz2ibz array" % ((bz2ibz == -1).sum(), len(bz2ibz))
+        msg += "This can happen if there an inconsistency between the input IBZ and ngkpt"
+        msg += "ngkpt: %s, has_timrev: %s" % (str(ngkpt), has_timrev)
+        raise ValueError(msg)
+
+    return bz2ibz
+
+    """
+    for ik_bz, kbz in enumerate(bz):
+        found = False
+        for ik_ibz, kibz in enumerate(ibz):
+            if found: break
+            for symmop in structure.spacegroup:
+                krot = symmop.rotate_k(kibz)
+                if issamek(krot, kbz):
+                    bz2ibz[ik_bz] = ik_ibz
+                    found = True
+                    break
+    """
+
+
+def has_timrev_from_kptopt(kptopt):
+    """
+    True if time-reversal symmetry can be used in the generation of the k-points in the IBZ.
+    """
+    kptopt = int(kptopt)
+    return False if kptopt in (3, 4) else True
+
+
+def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
+    """
+    Build mapping between a list of k-points in reduced coordinates (`other_kpoints`)
+    in the reciprocal lattice `other_lattice` and a list of reference k-points given
+    in the reciprocal lattice `ref_lattice` with symmetry operations `ref_symrecs`.
+
+    Args:
+        other_kpoints:
+        other_lattice: matrix whose rows are the reciprocal lattice vectors in cartesian coordinates.
+        ref_lattice: same meaning as other_lattice.
+        ref_kpoints:
+        ref_symrecs: [nsym,3,3] arrays with symmetry operations in the `ref_lattice` reciprocal space.
+        has_timrev: True if time-reversal can be used.
+
+    Returns
+        (o2r_map, nmissing)
+
+        nmissing:
+            Number of k-points in ref_kpoints that cannot be mapped onto ref_kpoints.
+
+        o2r_map[i] gives the mapping  between the i-th k-point in other_kpoints and
+            ref_kpoints. Set to None if the i-th k-point does not have any image in ref.
+            Each entry is a named tuple with the following attributes:
+
+                ik_ref:
+                tsign:
+                isym
+                g0
+
+            kpt_other = TS kpt_ref + G0
+    """
+    ref_gprimd_inv = np.inv(np.asarray(ref_lattice).T)
+    other_gprimd = np.asarray(other_lattice).T
+    other_kpoints = np.asarray(other_kpoints).reshape((-1, 3))
+    ref_kpoints = np.asarray(ref_kpoints).reshape((-1, 3))
+    o2r_map = len(other_kpoints) * [None]
+
+    tsigns = (1, -1) if has_timrev else (1,)
+    kmap = collections.namedtuple("kmap", "ik_ref, tsign, isym, g0")
+
+    for ik_oth, okpt in enumerate(other_kpoints):
+        # Get other k-point in reduced coordinates in the referece lattice.
+        okpt_red = np.matmul(ref_gprimd_inv, np.matmul(other_gprimd, okpt))
+
+        # k_other = TS k_ref + G0
+        found = False
+        for ik_ref, kref in enumerate(ref_kpoints):
+            if found: break
+            for tsign in tsign:
+                for isym, symrec in enumerate(ref_symrecs):
+                    krot = tsign * np.matmul(symrec, kref)
+                    if issamek(okpt_red, krot):
+                        g0 = np.rint(okpt_red - krot)
+                        o2r_map[ik_oth] = kmap(ik_ref, tsign, isym, g0)
+                        found = True
+                        break
+
+        return o2r_map, o2r_map.count(None)
 
 
 class KpointsError(Exception):
@@ -369,7 +524,7 @@ class Kpoint(SlotPickleMixin):
     @classmethod
     def gamma(cls, lattice, weight=None):
         """Constructor for the Gamma point."""
-        return cls(np.zeros(3), lattice, weight=weight, name="$\Gamma$")
+        return cls(np.zeros(3), lattice, weight=weight, name=r"$\Gamma$")
 
     def copy(self):
         """Deep copy."""
@@ -625,12 +780,12 @@ class KpointList(collections.Sequence):
         Both quantities are set to None if self is not a MP mesh.
         Use `is_mpmesh` to check whether self is a MP mesh.
         """
-        ksampling = self.ksampling
         if not self.is_ibz: return (None, None)
-        m = ksampling.kptrlatt.copy()
+        # Test if kptrlatt is diagonal.
+        m = self.ksampling.kptrlatt.copy()
         np.fill_diagonal(m, 0)
         if np.any(m != 0): return (None, None)
-        return ksampling.kptrlatt.diagonal(), ksampling.shifts
+        return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
     def is_mpmesh(self):
@@ -645,6 +800,11 @@ class KpointList(collections.Sequence):
     def frac_coords(self):
         """Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)"""
         return self._frac_coords
+
+    @property
+    def names(self):
+        """List with the name of the k-points."""
+        return [k.name for k in self]
 
     @property
     def weights(self):
@@ -729,10 +889,65 @@ class Kpath(KpointList):
     The k-points do not have weights so Kpath should not be used to compute integral in the BZ.
     """
 
+    @classmethod
+    def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
+        """
+        Generate K-path from a list of vertices and the corresponding labels.
+
+        Args:
+            structure: Structure object.
+            vertices_names:  List of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path.
+            line_density: Number of points used to sample the smallest segment of the path
+        """
+        gmet = structure.lattice.reciprocal_lattice.metric_tensor
+        vnames = [str(vn[1]) for vn in vertices_names]
+        vertices = np.array([vn[0] for vn in vertices_names], dtype=np.float)
+        vertices.shape = (-1, 3)
+
+        dl_vals = []
+        for ik, k0 in enumerate(vertices[:-1]):
+            dk = vertices[ik + 1] - k0
+            dl = np.sqrt(np.dot(dk, np.matmul(gmet, dk)))
+            if abs(dl) < 1e-6: dl = np.inf
+            dl_vals.append(dl)
+
+        dl_min = np.array(dl_vals).min()
+
+        fact = dl_min / line_density
+        frac_coords = collections.deque()
+        knames = collections.deque()
+        for ik, dl in enumerate(dl_vals):
+            if dl == np.inf: continue
+            numk = int(np.rint(dl / fact))
+            k0 = vertices[ik]
+            dk = vertices[ik + 1] - k0
+            knames.append(vnames[ik])
+            for ii in range(numk):
+                next_k = k0 + dk * ii / numk
+                frac_coords.append(next_k)
+                if ii > 0: knames.append("")
+        knames.append(vnames[-1])
+        frac_coords.append(vertices[-1])
+
+        return cls(structure.lattice.reciprocal_lattice,
+                   frac_coords=frac_coords,
+                   weights=None,
+                   names=knames,
+                   )
+
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, **kwargs):
+        """
+        String representation.
+
+        Args:
+            verbose: Verbosity level. Default: 0
+        """
+        verbose = kwargs.get("verbose", 0)
         lines = []
         app = lines.append
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
@@ -745,6 +960,8 @@ class Kpath(KpointList):
 
         table = [["Idx", "Frac_coords", "Name", "ds", "Vert",]]
         for i, kpoint in enumerate(self):
+            tag = "*" if i in vids else " "
+            if verbose == 0 and not tag: continue
             table.append([
                 str(i),
                 "%.5f, %.5f, %.5f" % tuple(kpoint.frac_coords),
@@ -883,6 +1100,7 @@ class IrredZone(KpointList):
         return self.to_string()
 
     def to_string(self):
+        """String representation."""
         lines = []; app = lines.append
 
         if self.is_mpmesh:
@@ -936,49 +1154,84 @@ class IrredZone(KpointList):
 
 
 class KSamplingInfo(AttrDict):
+    """
+    Store metadata defining the k-point sampling according to the abinit conventions.
+    One should pass through one of the class methods to instanciate the class,
+    avoid calling __init__ directly.
+    """
 
-    #KNOWN_KEYS = {
-    #    "reduced_coordinates_of_kpoints": MANDATORY,
-    #    "kpoint_weights": OPTIONAL,
-    #    "kpoint_grid shift": OPTIONAL,
-    #    "monkhorst_pack_folding": OPTIONAL,
-    #    "kpoint_grid vectors": OPTIONAL,
-    #    "kptopt": OPTIONAL,
-    #}
+    KNOWN_KEYS = set([
+        "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None
+        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None
+        "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None
+        "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None
+        "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None
+        "kptopt"           # Options for k-point generation. Negative if we have a k-path (nbounds - 1)
+    ])
+
+    @classmethod
+    def from_mpdivs(cls, mpdivs, shifts, kptopt):
+        """
+        Homogeneous sampling specified in terms of `mpdivs` (ngkpt in abinit),
+        the set of `shifts` and the value of `kptopt`.
+        """
+        kptrlatt = kptrlatt_orig = np.diag(mpdivs)
+        shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
+
+    @classmethod
+    def from_kptrlatt(cls, kptrlatt, shifts, kptopt):
+        """
+        Homogeneous sampling specified in terms of `kptrlatt`
+        the set of `shifts` and the value of `kptopt`.
+        """
+        kptrlatt = kptrlatt_orig = np.reshape(kptrlatt, (3,3))
+        shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
+        # Test if kptrlatt is diagonal.
+        m = kptrlatt.copy()
+        np.fill_diagonal(m, 0)
+        mpdivs = None if np.any(m != 0) else np.diag(kptrlatt)
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
+
+    @classmethod
+    def from_kbounds(cls, kbounds):
+        """Metadata associated to a k-path specified in terms of boundaries."""
+        mpdivs, kptrlatt, kptrlatt_orig, shifts, shifts_orig = 5 * (None,)
+        kptopt = len(np.reshape(kbounds, (-1, 3))) - 1  # Note -1
+        return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
+                   kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     def __init__(self, *args, **kwargs):
         super(KSamplingInfo, self).__init__(*args, **kwargs)
-        #print("ksampling", self)
-        #for k in self:
-        #   if k not in self.KNOWN_KEYS:
-        #       raise ValueError("Unknow key %s" % k)
+        for k in self:
+           if k not in self.KNOWN_KEYS:
+               raise ValueError("Unknow key %s" % k)
+
+    #def __str__(self):
+    #    lines = []
+    #    app = lines.append
+    #    return "\n".join(lines)
 
     @property
     def is_homogeneous(self):
         """True if we have a homogeneous sampling of the BZ."""
-        return self.mpdivs is not None or self.kptrlatt is not None and self.kptopt > 0
+        return (self.mpdivs is not None or self.kptrlatt is not None) and self.kptopt > 0
+
+    #@property
+    #def sampling_with_diagonal_kptrlatt(self)
+    #    if self.kptrlatt is None: return False
+    #    # Test if kptrlatt is diagonal.
+    #    m = self.kptrlatt.copy()
+    #    np.fill_diagonal(m, 0)
+    #    if np.any(m != 0): return False
+    #    return True
 
     #@property
     #def is_path(self):
     #    """True if we have a path in the BZ."""
     #    return self.kptopt < 0
-
-
-def returns_None_onfail(func):
-    import functools
-    from numpy.ma import MaskedArray
-
-    @functools.wraps(func)
-    def wrapper(self):
-        try:
-            value = func(self)
-            # This trick is needed because in many cases we define the netcdf variable
-            # but we don't write its value.
-            return value if not isinstance(value, MaskedArray) else None
-        except self.Error:
-            return None
-
-    return wrapper
 
 
 class KpointsReaderMixin(object):
@@ -1024,24 +1277,22 @@ class KpointsReaderMixin(object):
         shifts = self.read_kshifts()
 
         return KSamplingInfo(
-            kptopt=int(self.read_value("kptopt", default=0)),
             mpdivs=self.read_kmpdivs(),
             kptrlatt=kptrlatt,
-            shifts=shifts,
             kptrlatt_orig=self.read_value("kptrlatt_orig", default=kptrlatt),
-            shiftk_orig=self.read_value("shiftk_orig", default=shifts),
+            shifts=shifts,
+            shifts_orig=self.read_value("shiftk_orig", default=shifts),
+            kptopt=int(self.read_value("kptopt", default=0)),
         )
 
     def read_kfrac_coords(self):
         """Fractional coordinates of the k-points"""
         return self.read_value("reduced_coordinates_of_kpoints")
 
-    #@returns_None_onfail
     def read_kweights(self):
         """Returns the weight of the k-points. None if not found."""
         return self.read_value("kpoint_weights")
 
-    #@returns_None_onfail
     def read_kshifts(self):
         """Returns the shifts of the k-mesh in reduced coordinates. None if not found."""
         try:
@@ -1049,12 +1300,10 @@ class KpointsReaderMixin(object):
         except self.Error:
             return self.read_value("kpoint_grid_shift")
 
-    #@returns_None_onfail
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
         return self.read_value("monkhorst_pack_folding")
 
-    #@returns_None_onfail
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
         try:
@@ -1070,3 +1319,82 @@ class KpointsReaderMixin(object):
 
 class KpointsReader(ETSF_Reader, KpointsReaderMixin):
     """This object reads k-point data from a netcdf file."""
+
+
+class Ktables(object):
+    """
+    Call spglib to compute the k-points in the IBZ with the corresponding weights
+    as well as the mapping BZ --> IBZ.
+
+    Args:
+        mesh:
+        is_shift:
+
+    Attributes:
+
+        mesh
+        is_shift
+        ibz:
+        nibz
+        weights:
+        bz:
+        nbz
+        grid:
+    """
+    def __init__(self, structure, mesh, is_shift, has_timrev):
+        """
+
+        Args:
+            structure
+            mesh
+            is_shift
+            has_timrev
+        """
+        import spglib as spg
+        self.mesh = np.array(mesh)
+        self.is_shift = is_shift
+        self.has_timrev = has_timrev
+        cell = (structure.lattice.matrix, structure.frac_coords, structure.atomic_numbers)
+
+        mapping, self.grid = spg.get_ir_reciprocal_mesh(self.mesh, cell,
+            is_shift=self.is_shift, is_time_reversal=self.has_timrev, symprec=_SPGLIB_SYMPREC)
+
+        uniq, self.weights = np.unique(mapping, return_counts=True)
+        self.weights = np.asarray(self.weights, dtype=np.float) / len(self.grid)
+        self.nibz = len(uniq)
+        self.kshift = [0., 0., 0.] if is_shift is None else 0.5 * np.asarray(is_shift)
+        self.ibz = (self.grid[uniq] + self.kshift) / self.mesh
+        self.bz = (self.grid + self.kshift) / self.mesh
+        self.nbz = len(self.bz)
+
+        # All k-points and mapping to ir-grid points.
+        # FIXME This is slow.
+        self.bz2ibz = np.empty(len(self.bz), dtype=np.int)
+        for ik_bz, ir_gp_id in enumerate(mapping):
+            inds = np.where(uniq == ir_gp_id)
+            assert len(inds) == 1
+            self.bz2ibz[ik_bz] = inds[0]
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, **kwargs):
+        """String representation"""
+        lines = collections.deque()
+        app = lines.append
+        app("mesh %s, shift %s, time-reversal: %s, Irred points: %d" % (
+            self.mesh, self.kshift, self.has_timrev, self.nibz))
+
+        app("Irreducible k-points with number of points in star:\n")
+        for ik, kpt in enumerate(self.ibz):
+            app("%s: [%9.6f, %9.6f, %9.6f], nstar: %d" % (ik, kpt[0], kpt[1], kpt[2], self.weights[ik] * self.nbz))
+
+        return "\n".join(lines)
+
+    def print_bz2ibz(self, file=sys.stdout):
+        """Print BZ --> IBZ mapping."""
+        print("BZ points --> IBZ points", file=file)
+        for ik_bz, ik_ibz in enumerate(self.bz2ibz):
+            print("%6d) [%9.6f, %9.6f, %9.6f], ====> %6d) [%9.6f, %9.6f, %9.6f]," %
+                (ik_bz, self.bz[ik_ibz][0], self.bz[ik_ibz][1], self.bz[ik_ibz][2],
+                ik_ibz, self.ibz[ik_ibz][0], self.ibz[ik_ibz][1], self.ibz[ik_ibz][2]), file=file)

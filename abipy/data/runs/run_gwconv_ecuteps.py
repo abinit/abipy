@@ -8,6 +8,8 @@ import numpy as np
 
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowtk as flowtk
+
 
 def make_inputs(paral_kgb=1):
     """
@@ -23,7 +25,8 @@ def make_inputs(paral_kgb=1):
         ecut=ecut,
         istwfk="*1",
         paral_kgb=paral_kgb,
-        gwpara=2
+        gwpara=2,
+        iomode=1,
     )
 
     ecuteps = 4
@@ -84,16 +87,16 @@ def build_flow(options):
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Band structure work to produce the WFK file
-    bands = abilab.BandStructureWork(scf_inp, nscf_inp)
+    bands = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands)
 
     # Build a work made of two SCR runs with different value of nband
     # Use max_ecuteps for the dielectric matrix (sigma tasks will 
     # read a submatrix when we test the convergence wrt to ecuteps.
-    scr_work = abilab.Work()
+    scr_work = flowtk.Work()
 
     for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
         inp.set_vars(ecuteps=max_ecuteps)
@@ -108,7 +111,7 @@ def build_flow(options):
     sigma_inputs = list(abilab.input_gen(sig_inp, ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
-        sigma_conv = abilab.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
+        sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
     return flow

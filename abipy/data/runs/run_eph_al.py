@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import abipy.data as abidata  
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 
 
 def build_flow(options):
@@ -65,10 +66,10 @@ def build_flow(options):
         -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
         ], (-1,3))
 
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
-    work0 = flow.register_task(gs_inp, task_class=abilab.ScfTask)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+    work0 = flow.register_task(gs_inp, task_class=flowtk.ScfTask)
 
-    ph_work = abilab.PhononWork.from_scf_task(work0[0], qpoints)
+    ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)
 
     # Build input file for E-PH run.
@@ -95,7 +96,7 @@ def build_flow(options):
         ph_qshift=[0, 0, 0],
     )
 
-    eph_work = abilab.Work()
+    eph_work = flowtk.Work()
     eph_task = eph_work.register_eph_task(eph_inp, deps={work0[0]: "WFK", ph_work: ["DDB", "DVDB"]})
     flow.register_work(eph_work)
 

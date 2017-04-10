@@ -10,13 +10,11 @@ import wx.lib.agw.flatnotebook as fnb
 
 from collections import OrderedDict
 from monty.dev import get_ncpus
-from pymatgen.io.abinit.launcher import PyLauncher 
-from pymatgen.io.abinit.tasks import Node
-from abipy import abilab
 from abipy.gui.events import AbinitEventsFrame, AbinitEventsNotebookFrame
 from abipy.gui.timer import MultiTimerFrame, AbinitTimerFrame
 from abipy.gui.browser import FileListFrame, DirBrowserFrame, frame_from_filepath, frameclass_from_filepath
 from abipy.gui.editor import TextNotebookFrame, SimpleTextViewer
+import abipy.flowtk as flowtk
 
 
 def yaml_manager_dialog(parent):
@@ -27,15 +25,15 @@ def yaml_manager_dialog(parent):
     dialog = wx.FileDialog(parent, message="Choose a taskmanager.yml file", defaultDir=os.getcwd(),
                            wildcard="YAML files (*.yml)|*.yml",
                            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
-                                                                                                          
-    # Show the dialog and retrieve the user response. 
+
+    # Show the dialog and retrieve the user response.
     # If it is the OK response, process the data.
     if dialog.ShowModal() == wx.ID_CANCEL: return None
     filepath = dialog.GetPath()
     dialog.Destroy()
 
     try:
-        return abilab.TaskManager.from_file(filepath)
+        return flowtk.TaskManager.from_file(filepath)
     except:
         awx.showErrorMessage(parent)
         return None
@@ -70,11 +68,11 @@ Also, these key bindings can be used
         """
         if "title" not in kwargs:
             kwargs["title"] = self.codename
-            
+
         super(FlowViewerFrame, self).__init__(parent, -1, **kwargs)
 
         # This combination of options for config seems to work on my Mac.
-        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini", 
+        self.config = wx.FileConfig(appName=self.codename, localFilename=self.codename + ".ini",
                                     style=wx.CONFIG_USE_LOCAL_FILE)
 
         # Build menu, toolbar and status bar.
@@ -158,7 +156,7 @@ Also, these key bindings can be used
 
         #toolbar.AddSeparator()
         #self.file_selector = FileSelector(toolbar, self)
-        #toolbar.AddControl(control=self.file_selector) 
+        #toolbar.AddControl(control=self.file_selector)
 
         toolbar.Realize()
 
@@ -175,7 +173,7 @@ Also, these key bindings can be used
             (self.ID_SHOW_TIMERS, self.OnShowTimers),
             (self.ID_CHECK_STATUS, self.OnCheckStatusButton),
         ]
-                                                               
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
@@ -183,7 +181,7 @@ Also, these key bindings can be used
     def makeMenu(self):
         """Make the menu bar."""
         menu_bar = wx.MenuBar()
-                                                                                                    
+
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open", help="Open an existing flow in a new frame")
         file_menu.Append(wx.ID_CLOSE, "&Close", help="Close the file associated to the active tab")
@@ -218,7 +216,7 @@ Also, these key bindings can be used
         self.ID_HELP_QUICKREF = wx.NewId()
         help_menu.Append(self.ID_HELP_QUICKREF, "Quick Reference ", help="Quick reference for " + self.codename)
         help_menu.Append(wx.ID_ABOUT, "About " + self.codename, help="Info on the application")
-                                                                                                
+
         # Associate menu/toolbar items with their handlers.
         menu_handlers = [
             (wx.ID_OPEN, self.OnOpen),
@@ -232,7 +230,7 @@ Also, these key bindings can be used
             #
             (self.ID_HELP_QUICKREF, self.onQuickRef),
         ]
-                                                            
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
@@ -241,7 +239,7 @@ Also, these key bindings can be used
 
     def check_launcher_file(self, with_dialog=True):
         """
-        Disable the launch button if we have a sheduler running, 
+        Disable the launch button if we have a sheduler running,
         since we don't want to have processes modifying the flow.
         """
         self.disabled_launcher = False
@@ -259,7 +257,7 @@ Also, these key bindings can be used
                        "Job submission has been disabled." % (pid_file, pid))
 
             if with_dialog:
-                dialog = wx.MessageDialog(None, message=message, caption='Flow is being executed by a scheduler',  
+                dialog = wx.MessageDialog(None, message=message, caption='Flow is being executed by a scheduler',
                                           style=wx.OK | wx.ICON_EXCLAMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
@@ -271,13 +269,13 @@ Also, these key bindings can be used
         """Submit up to max_nlauch tasks."""
         if self.disabled_launcher: return
         max_nlaunch = int(self.max_nlaunch.GetValue())
-        nlaunch = PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
+        nlaunch = flowtk.PyLauncher(self.flow).rapidfire(max_nlaunch=max_nlaunch)
 
         self.statusbar.PushStatusText("Submitted %d tasks" % nlaunch)
 
     def GetSelectedWork(self):
         """
-        Return the selected workflow namely that the 
+        Return the selected workflow namely that the
         workflow associated to the active tab. None if list is empty.
         """
         return self.notebook.GetSelectedWork()
@@ -327,7 +325,7 @@ Also, these key bindings can be used
         self.statusbar.PushStatusText("Reading %s" % filepath)
 
         try:
-            flow = abilab.AbinitFlow.pickle_load(filepath)
+            flow = flowtk.AbinitFlow.pickle_load(filepath)
             self.AddFileToHistory(filepath)
             return flow
         except:
@@ -340,9 +338,9 @@ Also, these key bindings can be used
             wildcard="pickle files (*.pickle)|*.pickle",
             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
 
-        # Show the dialog and retrieve the user response. 
+        # Show the dialog and retrieve the user response.
         # If it is the OK response, process the data.
-        if dialog.ShowModal() == wx.ID_CANCEL: return 
+        if dialog.ShowModal() == wx.ID_CANCEL: return
 
         filepath = dialog.GetPath()
         dialog.Destroy()
@@ -393,56 +391,56 @@ Also, these key bindings can be used
 
     def OnShowInputs(self, event):
         """Show all the input files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abi").Show()
 
     def OnShowOutputs(self, event):
         """Show all the output files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.abo").Show()
 
     def OnShowJobScripts(self, event):
         """Show all the job script files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.sh").Show()
 
     def OnShowJobOutErrs(self, event):
         """Show all the queue output/error files files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.qout|*.qerr").Show()
 
     def OnShowLogs(self, event):
         """Show all the log files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         TextNotebookFrame.from_files_and_dir(self, dirpath=work.workdir, walk=True, wildcard="*.log").Show()
 
     def OnBrowse(self, event):
         """Browse all the output files produced by the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         FileListFrame(self, dirpaths=work.workdir).Show()
         #DirBrowserFrame(self, dir=work.workdir).Show()
 
     def OnShowMainEvents(self, event):
         """Browse all the main events of the tasks in the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         AbinitEventsNotebookFrame(self, filenames=[task.output_file.path for task in work]).Show()
 
     def OnShowLogEvents(self, event):
         """Browse all the log events of the tasks in the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         AbinitEventsNotebookFrame(self, [task.log_file.path for task in work]).Show()
 
     def OnShowTimers(self, event):
         """Analyze the timing data of all the output files of the selected `Workflow`."""
-        work = self.GetSelectedWork() 
+        work = self.GetSelectedWork()
         if work is None: return
         timers = work.parse_timers()
         # Build the frame for analyzing multiple timers.
@@ -475,8 +473,8 @@ class FlowNotebook(fnb.FlatNotebook):
         try:
             style = fnb.FNB_NO_X_BUTTON | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
         except AttributeError:
-            style = fnb.FNB_NO_X_BUTTON 
-            
+            style = fnb.FNB_NO_X_BUTTON
+
         super(FlowNotebook, self).__init__(parent, id=-1, style=style)
 
         self.flow = flow
@@ -486,12 +484,12 @@ class FlowNotebook(fnb.FlatNotebook):
 
     def GetSelectedWork(self):
         """
-        Return the selected workflow namely that the workflow associated to the 
+        Return the selected workflow namely that the workflow associated to the
         active tab. None is list is empy.
         """
         # FIXME: If we want to allow the user to remove some tab we have
         # to remove the corresponding work from workflows.
-        # Easy if workflow_viewer can only read data but it might be source 
+        # Easy if workflow_viewer can only read data but it might be source
         # of bugs if we want to modify the object e.g. by submitting the calculation.
         # For the time-being, use this assertion to prevent users from removing pages.
         if self.GetPageCount() != len(self.flow):
@@ -542,9 +540,9 @@ class TaskListCtrl(wx.ListCtrl):
 
         self.work = work
 
-        columns = ["Task", "Status", "Queue_id", 
-                   "Errors", "Warnings", "Comments", 
-                   "MPI", "OMP", 
+        columns = ["Task", "Status", "Queue_id",
+                   "Errors", "Warnings", "Comments",
+                   "MPI", "OMP",
                    "num_restarts", "Task Class",
                    ]
 
@@ -559,15 +557,15 @@ class TaskListCtrl(wx.ListCtrl):
 
             try:
                 report = task.get_event_report()
-                if report is not None: 
+                if report is not None:
                     events = map(str, [report.num_errors, report.num_warnings, report.num_comments])
             except:
                 pass
 
             cpu_info = [task.mpi_procs, task.omp_threads]
-            entry = map(str, [task.name, str(task.status), task.queue_id] + 
-                              events + 
-                              cpu_info + 
+            entry = map(str, [task.name, str(task.status), task.queue_id] +
+                              events +
+                              cpu_info +
                               [task.num_restarts, task.__class__.__name__]
                         )
             w = [awx.get_width_height(self, s)[0] for s in entry]
@@ -601,7 +599,7 @@ class TaskListCtrl(wx.ListCtrl):
         FileListFrame(self, dirpaths=task.outdir.path, title=task.outdir.relpath).Show()
 
 
-# Callbacks 
+# Callbacks
 
 def show_task_main_output(parent, task):
     """Show the main output file of the task."""
@@ -670,7 +668,7 @@ def show_timer(parent, task):
         frame = AbinitTimerFrame(parent, task.output_file.path)
         frame.Show()
     except awx.Error as exc:
-        awx.showErrorMessage(parent, str(exc)) 
+        awx.showErrorMessage(parent, str(exc))
 
 
 def check_status_and_pickle(task):
@@ -693,7 +691,7 @@ def task_reset(parent, task):
 
 def task_set_status(parent, task):
     """Reset the status of the task."""
-    choices = [str(s) for s in Node.ALL_STATUS]
+    choices = [str(s) for s in flowtk.Node.ALL_STATUS]
     dialog = wx.SingleChoiceDialog(parent, message="Select new status", caption="", choices=choices)
     if dialog.ShowModal() == wx.ID_CANCEL: return None
     status = choices[dialog.GetSelection()]
@@ -718,8 +716,8 @@ def task_inspect(parent, task):
 
 class TaskPopupMenu(wx.Menu):
     """
-    A `TaskPopupMenu` has a list of callback functions indexed by the menu title. 
-    The signature of the callback function is func(parent, task) where parent is 
+    A `TaskPopupMenu` has a list of callback functions indexed by the menu title.
+    The signature of the callback function is func(parent, task) where parent is
     the wx Window that will become the parent of the new frame created by the callback.
     and task is a `Task` instance.
     """
@@ -846,7 +844,7 @@ class TaskStatusTreePanel(awx.Panel):
         proxy = self.tree.GetItemData(node)
         if proxy is None: return
 
-        if node in self.status_nodes: 
+        if node in self.status_nodes:
             status = proxy.GetData()
             print("received set of tasks with status %s" % status)
             popup_menu = self.makePopupMenuStatus()
@@ -865,11 +863,11 @@ class TaskStatusTreePanel(awx.Panel):
         menu_handlers = [
             (self.ID_POPUP_CHANGE_MANAGER, self.onChangeManager),
         ]
-                                                            
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
-                                                     
+
         return menu
 
     def onChangeManager(self, event):
@@ -886,7 +884,7 @@ class TaskStatusTreePanel(awx.Panel):
             e.task.set_manager(new_manager)
 
         #self.flow.build_and_pickle_dump()
-            
+
 
 class TaskTreeView(awx.Frame):
     """
@@ -915,7 +913,7 @@ class FileSelector(awx.Panel):
 
         wcards = ["*GSR.nc", "*WFK-etsf.nc", "*SIGRES.nc", "*MDF.nc"]
 
-        self.wcards_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=wcards, value=wcards[0], style=wx.CB_READONLY)  
+        self.wcards_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=wcards, value=wcards[0], style=wx.CB_READONLY)
 
         smodes = ["Selected Workflow", "Entire Flow"]
         self.select_rbox = wx.RadioBox(panel, id=1, name="Selection Mode", choices=smodes, style=wx.RA_SPECIFY_ROWS)
@@ -968,7 +966,7 @@ class FileSelector(awx.Panel):
         else:
             return awx.showErrorMessage(self, "Wrong value of smode: %s" % smode)
 
-        if not filepaths: 
+        if not filepaths:
             return awx.showErrorMessage(self, "Cannot find any file matching the specified shell pattern")
 
         print("filepaths", filepaths)
@@ -999,7 +997,7 @@ class FileSelectorFrame(wx.Frame):
 #
 #        #choices = ["S_OK", "*WFK-etsf.nc", "*SIGRES.nc", "*MDF.nc"]
 #
-#        #self.status_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=choices, value=choices[0], style=wx.CB_READONLY)  
+#        #self.status_cbox = wx.ComboBox(panel, id=-1, name='File type', choices=choices, value=choices[0], style=wx.CB_READONLY)
 #
 #        #smodes = ["Selected Workflow", "Entire Flow"]
 #        #self.select_rbox = wx.RadioBox(panel, id=1, name="Selection Mode", choices=smodes, style=wx.RA_SPECIFY_ROWS)

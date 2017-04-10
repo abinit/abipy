@@ -4,8 +4,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import collections
-import pymatgen
+import tempfile
 import numpy as np
+import pickle
+import pymatgen
 
 from pprint import pprint
 from warnings import warn
@@ -16,19 +18,21 @@ from monty.string import is_string
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
-from pymatgen.util.plotting_utils import add_fig_kwargs #, get_ax_fig_plt
-from pymatgen.io.abinit.pseudos import PseudoTable
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.core.symmetries import SpaceGroup
-from abipy.iotools import as_etsfreader, Visualizer
-from abipy.iotools import xsf
+from abipy.tools.plotting import add_fig_kwargs #, get_ax_fig_plt
+from abipy.flowtk import PseudoTable
+from abipy.core.mixins import NotebookWriter
+from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.iotools import as_etsfreader, Visualizer,  xsf
+from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 __all__ = [
     "Structure",
+    "frames_from_structures",
 ]
 
 
-class Structure(pymatgen.Structure):
+class Structure(pymatgen.Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.Structure` with Abinit-specific methods.
 
@@ -48,7 +52,8 @@ class Structure(pymatgen.Structure):
             obj.__class__ = cls
             return obj
 
-        if is_string(obj): return cls.from_file(obj)
+        if is_string(obj):
+            return cls.from_file(obj)
 
         if isinstance(obj, collections.Mapping):
             try:
@@ -94,12 +99,12 @@ class Structure(pymatgen.Structure):
                 return hist.structures[-1]
 
         elif filepath.endswith(".nc"):
-            from pymatgen.io.abinit.netcdf import as_etsfreader
-            file, closeit = as_etsfreader(filepath)
+            from abipy.iotools import as_etsfreader
+            ncfile, closeit = as_etsfreader(filepath)
 
-            new = file.read_structure(cls=cls)
-            new.set_spacegroup(SpaceGroup.from_file(file))
-            if closeit: file.close()
+            new = ncfile.read_structure(cls=cls)
+            new.set_abi_spacegroup(AbinitSpaceGroup.from_file(ncfile))
+            if closeit: ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
             from abipy.abio.abivars import AbinitInputFile
@@ -111,8 +116,21 @@ class Structure(pymatgen.Structure):
             with abiopen(filepath) as abifile:
                 return abifile.structure
 
+        elif filepath.endswith(".pickle"):
+            with open(filepath, "rb") as fh:
+                new = pickle.load(fh)
+                if not isinstance(new, pymatgen.Structure):
+                    # Is it a object with a structure property?
+                    if hasattr(new, "structure"): new = new.structure
+
+                if not isinstance(new, pymatgen.Structure):
+                    raise ValueError("Don't know how to extract a Structure from file %s, received type %s" %
+                        (filepath, type(new)))
+
+                if new.__class__ != cls: new.__class__ = cls
+
         else:
-            # TODO: Spacegroup is missing here.
+            # TODO: AbinitSpacegroup is missing here.
             new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
             # Change the class of new.
             if new.__class__ != cls: new.__class__ = cls
@@ -196,8 +214,9 @@ class Structure(pymatgen.Structure):
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
-        structure = molecule.get_boxed_structure(l[0], l[1], l[2])
-        return cls(structure)
+        new = molecule.get_boxed_structure(l[0], l[1], l[2])
+        new.__class__ = cls
+        return new
 
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
@@ -309,7 +328,7 @@ class Structure(pymatgen.Structure):
         """
         Build a :class:`Structure` object from a dictionary with ABINIT variables.
 
-        example:
+        Example:
 
             al_structure = Structure.from_abivars(
                 acell=3*[7.5],
@@ -324,12 +343,10 @@ class Structure(pymatgen.Structure):
 
         `xred` can be replaced with `xcart` or `xangst`.
         """
-        from pymatgen.io.abinit.abiobjects import structure_from_abivars
         return structure_from_abivars(cls, *args, **kwargs)
 
     def to_abivars(self, **kwargs):
         """Returns a dictionary with the ABINIT variables."""
-        from pymatgen.io.abinit.abiobjects import structure_to_abivars
         return structure_to_abivars(self, **kwargs)
 
     @property
@@ -366,25 +383,22 @@ class Structure(pymatgen.Structure):
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
         # to be considered in February 2016
-        from pymatgen.io.ase import AseAtomsAdaptor
-        try:
-            import spglib
-            version = spglib.get_version()
-            if version != (1, 9, 0):
-                raise ValueError('abi_primitive requires spglib version 1.9.0 '
-                                 'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
-        except ImportError:
-            raise ValueError('abi_primitive requires spglib')
+        import spglib
+        version = spglib.get_version()
+        if version < (1, 9, 0):
+            raise ValueError('abi_primitive requires spglib version >= 1.9.0 '
+                             'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
 
+        from pymatgen.io.ase import AseAtomsAdaptor
         try:
             from ase.atoms import Atoms
         except ImportError:
-            raise ValueError('Could not import Atoms from ase')
+            raise ImportError('Could not import Atoms from ase. Install it with `conda install ase` or pip')
 
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
-        standardized = spglib.standardize_cell(bulk=ase_atoms, to_primitive=1, no_idealize=no_idealize,
+        standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
                                                symprec=symprec, angle_tolerance=angle_tolerance)
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
@@ -464,8 +478,7 @@ class Structure(pymatgen.Structure):
         Returns the vectors of the unit cell in Angstrom.
 
         Args:
-            space: "r" for real space vectors, "g" for reciprocal space basis
-                vectors.
+            space: "r" for real space vectors, "g" for reciprocal space basis vectors.
         """
         if space.lower() == "r":
             return self.lattice.matrix
@@ -484,7 +497,7 @@ class Structure(pymatgen.Structure):
         spgan = SpacegroupAnalyzer(self)
         spgdata = spgan.get_symmetry_dataset()
         # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+        abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         # Print lattice info
         outs = ["Full Formula ({s})".format(s=self.composition.formula),
@@ -499,7 +512,7 @@ class Structure(pymatgen.Structure):
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
              spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
         app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
-            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group()))
+            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol()))
         app("")
 
         wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
@@ -526,36 +539,35 @@ class Structure(pymatgen.Structure):
         return "\n".join(outs)
 
     @property
-    def spacegroup(self):
-        """:class:`SpaceGroup` instance."""
+    def abi_spacegroup(self):
+        """
+        :class:`AbinitSpaceGroup` instance with Abinit symmetries read from the netcd file.
+        None if abinit symmetries are not available e.g. if the structure has been created
+        from a CIF file.
+        """
         try:
-            return self._spacegroup
+            return self._abi_spacegroup
         except AttributeError:
             return None
 
-    def set_spacegroup(self, spacegroup):
-        """`SpaceGroup` setter."""
-        self._spacegroup = spacegroup
+    def set_abi_spacegroup(self, spacegroup):
+        """`AbinitSpaceGroup` setter."""
+        self._abi_spacegroup = spacegroup
 
     @property
-    def has_spacegroup(self):
+    def has_abi_spacegroup(self):
         """True is the structure contains info on the spacegroup."""
-        return self.spacegroup is not None
+        return self.abi_spacegroup is not None
 
-    @property
-    def is_symmorphic(self):
-        """True if at least one fractional translation is non-zero."""
-        return self.spacegroup.is_symmorphic
+    #@property
+    #def fm_symmops(self):
+    #    """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
+    #    return self.abi_spacegroup.symmops(afm_sign=+1)
 
-    @property
-    def fm_symmops(self):
-        """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sign=+1)
-
-    @property
-    def afm_symmops(self):
-        """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
-        return self.spacegroup.symmops(afm_sign=-1)
+    #@property
+    #def afm_symmops(self):
+    #    """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
+    #    return self.abi_spacegroup.symmops(afm_sign=-1)
 
     @lazy_property
     def hsym_kpath(self):
@@ -591,7 +603,7 @@ class Structure(pymatgen.Structure):
         present in the `pymatgen` database.
         """
         # Construct the stars.
-        return [kpoint.compute_star(self.fm_symmops) for kpoint in self.hsym_kpoints]
+        return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
     def get_sorted_structure_z(self):
         """Orders the structure according to increasing Z of the elements"""
@@ -599,7 +611,7 @@ class Structure(pymatgen.Structure):
 
     def findname_in_hsym_stars(self, kpoint):
         """Returns the name of the special k-point, None if kpoint is unknown."""
-        if self.spacegroup is None: return None
+        if self.abi_spacegroup is None: return None
         for star in self.hsym_stars:
             if star.find(kpoint) != -1:
                 return star.name
@@ -671,7 +683,7 @@ class Structure(pymatgen.Structure):
         spglib_symbol, spglib_number = None, None
         if with_spglib: spglib_symbol, spglib_number = self.get_space_group_info()
         # Get spacegroup number computed by Abinit if available.
-        abispg_number = None if self.spacegroup is None else self.spacegroup.spgid
+        abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         return OrderedDict([
             ("formula", self.formula), ("natom", self.num_sites),
@@ -694,7 +706,7 @@ class Structure(pymatgen.Structure):
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = self.hsym_kpath.kpath["kpoints"]
-        pprint(labels)
+        #pprint(labels)
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:
@@ -723,14 +735,12 @@ class Structure(pymatgen.Structure):
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             # dir=os.getcwd() is needed when we invoke the method from a notebook.
-            import tempfile
             _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
 
         if ext == "xsf":
             # xcrysden
             print("Writing data to:", filename)
             s = self.to(fmt="xsf", filename=filename)
-            #print(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -792,12 +802,10 @@ class Structure(pymatgen.Structure):
         prefix = prefix_dict.get(format, "tmp")
         suffix = suffix_dict.get(format, "")
 
-        import tempfile
-        tmp_file = tempfile.NamedTemporaryFile(suffix=suffix, prefix=prefix, mode="rw")
-
+        tmp_file = tempfile.NamedTemporaryFile(mode="w+", suffix=suffix, prefix=prefix)
         self.write_structure(tmp_file.name)
-
         tmp_file.seek(0)
+
         return tmp_file.read()
 
     #def to_xsf(self):
@@ -1142,7 +1150,7 @@ class Structure(pymatgen.Structure):
 
         new_displ = np.zeros(3, dtype=np.float)
         new_sites = []
-        for at,site in enumerate(self):
+        for at, site in enumerate(self):
             for t in tvects:
                 if do_real:
                     new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
@@ -1403,10 +1411,39 @@ class Structure(pymatgen.Structure):
 
         return psp_valences
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence.
+        # The notebook will reconstruct the object from this file
+        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        with open(tmpfile, "wb") as fh:
+            pickle.dump(self, fh)
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("structure = abilab.Structure.from_file('%s')" % tmpfile),
+            nbv.new_code_cell("print(structure)"),
+            nbv.new_code_cell("print(structure.abi_string)"),
+            nbv.new_code_cell("structure"),
+            nbv.new_code_cell("print(structure.spglib_summary())"),
+            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
+            nbv.new_code_cell("print(structure.hsym_kpoints)"),
+            nbv.new_code_cell("fig = structure.show_bz()"),
+            nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),
+            nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
-    Build two pandas dataframes with the most important geometrical paramaters associated to
+    Build two pandas dataframes with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
 
     Args:
@@ -1419,10 +1456,13 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
             instead of Reduced coordinates.
 
     Return:
-        namedtuple with two pandas :class:`DataFrame`: `lattice` contains the lattice parameters,
-        `coords` the atomic positions. The list of structures is available in the `structures` entry:
+        namedtuple with two pandas :class:`DataFrame`:
+            `lattice` contains the lattice parameters,
+            `coords` the atomic positions.
+        The list of structures is available in the `structures` entry:
 
     Example:
+
         dfs = frames_from_structures(files)
         dfs.lattice
         dfs.coords

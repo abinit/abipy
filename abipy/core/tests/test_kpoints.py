@@ -5,11 +5,11 @@ from __future__ import print_function, division
 import itertools
 import unittest
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
-                                as_kpoints, rc_list, kmesh_from_mpdivs,)
+    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
 from abipy.core.testing import *
 
 
@@ -69,19 +69,18 @@ class TestKpoint(AbipyTest):
         self.assertNotEqual(gamma, X)
 
         self.assertEqual(X.norm, (gamma + X).norm)
-
         self.assertEqual(X.norm, (gamma + X).norm)
         self.assertEqual(X.norm, np.sqrt(np.sum(X.cart_coords**2)))
 
         self.assertTrue(hash(gamma) == hash(pgamma))
 
         if hash(K) != hash(X):
-            self.assertTrue(K != X)
+            assert K != X
 
         # test on_border
-        self.assertFalse(gamma.on_border)
-        self.assertTrue(X.on_border)
-        self.assertFalse(K.on_border)
+        assert not gamma.on_border
+        assert X.on_border
+        assert not K.on_border
 
 
 class TestKpointList(AbipyTest):
@@ -154,6 +153,9 @@ class TestKpointList(AbipyTest):
         self.assertTrue(len(add_klist) == 4)
         self.assertTrue(add_klist == add_klist.remove_duplicated())
 
+#class TestIrredZone(AbipyTest):
+#class TestKpath(AbipyTest):
+
 
 class TestKpointsReader(AbipyTest):
 
@@ -167,7 +169,7 @@ class TestKpointsReader(AbipyTest):
         ]
 
         for fname in filenames:
-            filepath = data.ref_file(fname)
+            filepath = abidata.ref_file(fname)
             print("About to read file: %s" % filepath)
 
             with KpointsReader(filepath) as r:
@@ -351,3 +353,93 @@ class KmeshTest(AbipyTest):
  [ 1.          0.5         0.33333333]
  [ 1.          0.5         0.66666667]]"""
         self.assertMultiLineEqual(str(bz_kmesh), ref_string)
+
+
+class TestKsamplingInfo(AbipyTest):
+    def test_ksampling(self):
+        """Test KsamplingInfo API."""
+        # from_mpdivs constructor
+        mpdivs, shifts = [2, 3, 4], [0.5, 0.5, 0.5]
+        kptopt = 1
+        ksi = KSamplingInfo.from_mpdivs(mpdivs, shifts, kptopt)
+        self.assert_equal(ksi.mpdivs, mpdivs)
+        self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
+        self.assert_equal(ksi.shifts.flatten(), shifts)
+        assert ksi.kptopt == kptopt
+        assert ksi.is_homogeneous
+        print(ksi)
+
+        # from kptrlatt constructor
+        kptrlatt = np.diag(mpdivs)
+        ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
+        self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
+        self.assert_equal(ksi.mpdivs, np.diag(ksi.kptrlatt))
+        self.assert_equal(ksi.shifts.flatten(), shifts)
+        assert ksi.kptopt == kptopt
+        assert ksi.is_homogeneous
+        print(ksi)
+
+        # kptrlatt with non-zero off-diagonal elements.
+        shifts = [0.5, 0.5, 0.5]
+        kptrlatt = [1, 1, 1, 2, 2, 2, 3, 3, 3]
+        kptopt = 1
+        ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
+        assert ksi.mpdivs is None
+        print(ksi)
+
+        # from_kbounds constructor
+        kbounds = [0, 0, 0, 1, 1, 1]
+        ksi = KSamplingInfo.from_kbounds(kbounds)
+        assert (ksi.mpdivs, ksi.kptrlatt, ksi.kptrlatt_orig, ksi.shifts, ksi.shifts_orig) == 5 * (None,)
+        assert ksi.kptopt == 1
+        assert not ksi.is_homogeneous
+        print(ksi)
+
+        with self.assertRaises(ValueError):
+            foo = KSamplingInfo(foo=1)
+
+
+class TestKmappingTools(AbipyTest):
+
+    def setUp(self):
+        from abipy.abilab import abiopen
+
+        with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as ncfile:
+            self.mgb2 = ncfile.structure
+            self.kibz = [k.frac_coords for k in ncfile.ebands.kpoints]
+            self.has_timrev = True
+            #self.has_timrev = has_timrev_from_kptopt(kptopt)
+            self.ngkpt = [18, 18, 18]
+
+    def test_map_bz2ibz(self):
+        bz2ibz = map_bz2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
+
+        #errors = []
+        #for ik_bz, kbz in enumerate(bz):
+        #    ik_ibz = bz2inz[ik_bz]
+        #    for symmop in structure.spacegroup:
+        #        krot = symmop.rotate_k(kibz)
+        #        if issamek(krot, kbz):
+        #            bz2ibz[ik_bz] = ik_ibz
+        #            break
+        #    else:
+        #        errors.append((ik_bz, kbz))
+
+        #if errors:
+        #assert not errors
+
+    #def test_with_from_structure_with_symrec(self):
+    #    """Generate Ktables from a structure with Abinit symmetries."""
+    #    self.mgb2 = self.get_abistructure.mgb2("mgb2_kpath_FATBANDS.nc")
+    #    assert self.mgb2.spacegroup is not None
+    #    mesh = [4, 4, 4]
+    #    k = Ktables(self.mgb2, mesh, is_shift=None, has_timrev=True)
+    #    print(k)
+    #    k.print_bz2ibz()
+
+    #def test_with_structure_without_symrec(self):
+    #    """Generate Ktables from a structure without Abinit symmetries."""
+    #    assert self.mgb2.spacegroup is None
+    #    k = Ktables(self.mgb2, mesh, is_shift, has_timrev)
+    #    print(k)
+    #    k.print_bz2ibz()

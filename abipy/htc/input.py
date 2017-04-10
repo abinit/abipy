@@ -1,7 +1,7 @@
 """
-This module defines objects that faciliate the creation of the 
-ABINIT input files. The syntax is similar to the one used 
-in ABINIT with small differences. 
+This module defines objects that faciliate the creation of the
+ABINIT input files. The syntax is similar to the one used
+in ABINIT with small differences.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -23,9 +23,7 @@ from monty.os.path import which
 from monty.json import MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
-from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinit.tasks import TaskManager, AbinitTask
-from pymatgen.io.abinit.netcdf import NetcdfReader
+from abipy.flowtk import PseudoTable, Pseudo, TaskManager, AbinitTask, NetcdfReader
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
@@ -78,7 +76,7 @@ def _idt_varname(varname):
     >>> assert _idt_varname("foo") == (0, "foo")
     >>> assert _idt_varname("foo1") == (1, "foo")
     """
-    if not varname[-1].isdigit(): 
+    if not varname[-1].isdigit():
         return 0, varname
 
     # Find the index of the dataset.
@@ -98,7 +96,7 @@ class Input(six.with_metaclass(abc.ABCMeta, MSONable, object)):
     """
     Base class for Input objects.
 
-    An input object must define have a make_input method 
+    An input object must define have a make_input method
     that returns the string representation used by the client code.
     """
     def deepcopy(self):
@@ -111,7 +109,7 @@ class Input(six.with_metaclass(abc.ABCMeta, MSONable, object)):
         """
         dirname = os.path.dirname(filepath)
         if not os.path.exists(dirname): os.makedirs(dirname)
-                                                                                      
+
         # Write the input file.
         input_string = str(self)
         with open(filepath, "wt") as fh:
@@ -189,7 +187,7 @@ class AbiInput(Input, Has_Structure):
 
             missing = [p for p in pseudo_paths if not os.path.exists(p)]
             if missing:
-                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing)) 
+                raise self.Error("Cannot find the following pseudopotential files:\n%s" % str(missing))
 
             self._pseudos = PseudoTable(pseudo_paths)
 
@@ -204,7 +202,7 @@ class AbiInput(Input, Has_Structure):
             s = ""
             for i, dataset in enumerate(self):
                 header = "### DATASET %d ###" % i
-                if i == 0: 
+                if i == 0:
                     header = "### GLOBAL VARIABLES ###"
 
                 str_dataset = str(dataset)
@@ -213,9 +211,9 @@ class AbiInput(Input, Has_Structure):
                     s += "\n" + header + str(dataset) + "\n"
         else:
             # single datasets ==> don't append the dataset index to the variables in self[1]
-            # this trick is needed because Abinit complains if ndtset is not specified 
+            # this trick is needed because Abinit complains if ndtset is not specified
             # and we have variables that end with the dataset index e.g. acell1
-            # We don't want to specify ndtset here since abinit will start to add DS# to 
+            # We don't want to specify ndtset here since abinit will start to add DS# to
             # the input and output files thus complicating the algorithms we have to use
             # to locate the files.
             d = self[0].deepcopy()
@@ -305,7 +303,7 @@ class AbiInput(Input, Has_Structure):
         Returns the :class:`Structure` associated to the ABINIT input.
 
         Raises:
-            ValueError if we have multi datasets with different 
+            ValueError if we have multi datasets with different
             structure so that users will learn that multiple datasets are bad.
         """
         structures = [dt.structure for dt in self[1:]]
@@ -313,7 +311,7 @@ class AbiInput(Input, Has_Structure):
         if all(s == structures[0] for s in structures):
             return structures[0]
 
-        raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" + 
+        raise ValueError("Cannot extract a unique structure from an input file with multiple datasets!\n" +
                          "Please DON'T use multiple datasets with different unit cells!")
 
     def is_abivar(self, varname):
@@ -356,7 +354,7 @@ class AbiInput(Input, Has_Structure):
         if isinstance(dtset, int):
             return [dtset]
 
-        elif isinstance(dtset, slice): 
+        elif isinstance(dtset, slice):
             start = dtset.start if dtset.start is not None else 0
             stop = dtset.stop
             step = dtset.step if dtset.step is not None else 1
@@ -386,7 +384,7 @@ class AbiInput(Input, Has_Structure):
             new.set_vars(**my_vars)
             new.set_mnemonics(self.mnemonics)
             news.append(new)
-    
+
         return news
 
     def set_vars(self, *args, **kwargs):
@@ -394,7 +392,7 @@ class AbiInput(Input, Has_Structure):
         Set the value of a set of input variables.
 
         Args:
-            dtset: Int with the index of the dataset, slice object of iterable 
+            dtset: Int with the index of the dataset, slice object of iterable
             kwargs: Dictionary with the variables.
 
         Returns:
@@ -414,9 +412,9 @@ class AbiInput(Input, Has_Structure):
     def remove_vars(self, keys, dtset=0):
         """
         Remove the variables listed in keys
-                                                                             
+
         Args:
-            dtset: Int with the index of the dataset, slice object of iterable 
+            dtset: Int with the index of the dataset, slice object of iterable
             keys: List of variables to remove.
         """
         for idt in self._dtset2range(dtset):
@@ -444,7 +442,7 @@ class AbiInput(Input, Has_Structure):
             return self._mnemonics
         except AttributeError:
             return False
-        
+
     def get_ibz(self, ngkpt=None, shiftk=None, kptopt=None, qpoint=None, workdir=None, manager=None):
         """
         This function, computes the list of points in the IBZ and the corresponding weights.
@@ -569,7 +567,7 @@ class AbiInput(Input, Has_Structure):
         """
         if varname in self[0]:
             raise self.Error("varname %s is already defined in globals" % varname)
-            
+
         lspace = np.linspace(start, stop, num=self.ndtset, endpoint=endpoint, retstep=False)
 
         for dataset, value in zip(self[1:], lspace):
@@ -627,7 +625,7 @@ class AbiInput(Input, Has_Structure):
         for names, values in zip(varnames, values):
             idt += 1
             self[idt].set_vars(**{k: v for k, v in zip(names, values)})
-        
+
         if idt != self.ndtset:
             raise self.Error("The number of configurations must equal ndtset while %d != %d" % (idt, self.ndtset))
 
@@ -643,7 +641,7 @@ class AbiInput(Input, Has_Structure):
     @deprecated(set_structure)
     def set_structure_from_file(self, filepath, dtset=0, cls=Structure):
         """
-        Set the :class:`Structure` object for the specified dtset. 
+        Set the :class:`Structure` object for the specified dtset.
         data is read from filepath. cls specifies the class to instantiate.
         """
         structure = cls.from_file(filepath)
@@ -658,7 +656,7 @@ class AbiInput(Input, Has_Structure):
     def set_autokmesh(self, nksmall, kptopt=1, dtset=0):
         """
         Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
-                                                       
+
         Args:
             nksmall: Number of k-points used to sample the smallest lattice vector.
             kptopt: Option for the generation of the mesh (ABINIT variable).
@@ -668,7 +666,7 @@ class AbiInput(Input, Has_Structure):
 
     def set_autokpath(self, ndivsm, dtset=0):
         """
-        Set automatically the k-path from the lattice 
+        Set automatically the k-path from the lattice
         and the number of divisions for the smallest segment (ndivsm)
         """
         for idt in self._dtset2range(dtset):
@@ -703,7 +701,7 @@ class AbiInput(Input, Has_Structure):
                     ds_copy[key] = value.tolist()
             dtsets.append(dict(ds_copy))
 
-        return {'pseudos': [p.as_dict() for p in self.pseudos], 
+        return {'pseudos': [p.as_dict() for p in self.pseudos],
                 'datasets': dtsets,
                 "decorators": [dec.as_dict() for dec in self._decorators],
                 }
@@ -751,7 +749,7 @@ class AbiInput(Input, Has_Structure):
         Raises:
             `RuntimeError` if executable is not in $PATH.
         """
-        task = AbinitTask.temp_shell_task(inp=self) 
+        task = AbinitTask.temp_shell_task(inp=self)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
@@ -919,9 +917,9 @@ class Dataset(MappingMixin, Has_Structure):
             post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
-                so that we can prevent the code from adding "1" to the name of the variables 
-                (In this case, indeed, Abinit complains if ndtset=1 is not specified 
-                and we don't want ndtset=1 simply because the code will start to add 
+                so that we can prevent the code from adding "1" to the name of the variables
+                (In this case, indeed, Abinit complains if ndtset=1 is not specified
+                and we don't want ndtset=1 simply because the code will start to add
                 _DS1_ to all the input and output files.
         """
         lines = []
@@ -954,7 +952,7 @@ class Dataset(MappingMixin, Has_Structure):
             if self.index != 0 and var in _ABINIT_NO_MULTI:
                 continue
 
-            # Print ndtset only if we really have datasets. 
+            # Print ndtset only if we really have datasets.
             # This trick prevents abinit from adding DS# to the output files.
             # thus complicating the creation of workflows made of separated calculations.
             if var == "ndtset" and value == 1:
@@ -990,7 +988,7 @@ class Dataset(MappingMixin, Has_Structure):
 
         # Debugging section.
         if False and varname in self:
-            try: 
+            try:
                 iseq = (self[varname] == value)
                 iseq = np.all(iseq)
             except ValueError:
@@ -1008,7 +1006,7 @@ class Dataset(MappingMixin, Has_Structure):
 
         # Handle no_multi variables.
         if varname in _ABINIT_NO_MULTI and self.index != 0:
-                                                                                                                      
+
             if varname in self.dt0:
                 glob_value = np.array(self.dt0[varname])
                 isok = np.all(glob_value == np.array(value))
@@ -1079,20 +1077,20 @@ class Dataset(MappingMixin, Has_Structure):
             kptopt: Option for the generation of the mesh.
         """
         shiftk = np.reshape(shiftk, (-1,3))
-        
+
         self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """
         Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.
-                                                       
+
         Args:
             nksmall: Number of k-points used to sample the smallest lattice vector.
             kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
-        
-        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, 
+
+        self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
                       nshiftk=len(shiftk), shiftk=shiftk)
 
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
@@ -1116,7 +1114,7 @@ class Dataset(MappingMixin, Has_Structure):
         Args
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
-                Accepts iterable that be reshaped to (nkptgw, 2) 
+                Accepts iterable that be reshaped to (nkptgw, 2)
                 or a tuple of two integers if the extrema are the same for each k-point.
         """
         kptgw = np.reshape(kptgw, (-1,3))
@@ -1147,17 +1145,17 @@ class LdauParams(object):
     """
     This object stores the parameters for LDA+U calculations with the PAW method
     It facilitates the specification of the U-J parameters in the Abinit input file.
-    (see `to_abivars`). The U-J operator will be applied only on the atomic species 
+    (see `to_abivars`). The U-J operator will be applied only on the atomic species
     that have been selected by calling `lui_for_symbol`.
 
-    To setup the Abinit variables for a LDA+U calculation in NiO with a 
+    To setup the Abinit variables for a LDA+U calculation in NiO with a
     U value of 5 eV applied on the nickel atoms:
 
     .. code-block:: python
 
         luj_params = LdauParams(usepawu=1, structure=nio_structure)
         # Apply U-J on Ni only.
-        u = 5.0 
+        u = 5.0
         luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
 
         print(luj_params.to_abivars())
@@ -1170,7 +1168,7 @@ class LdauParams(object):
         """
         self.usepawu = usepawu
         self.structure = structure
-        self._params = {} 
+        self._params = {}
 
     @property
     def symbols_by_typat(self):
@@ -1205,11 +1203,11 @@ class LdauParams(object):
             else:
                 l, u, j = -1, 0, 0
 
-            lpawu.append(int(l)) 
+            lpawu.append(int(l))
             upawu.append(float(u))
             jpawu.append(float(j))
 
-        # convert upawu and jpaw to string so that we can use 
+        # convert upawu and jpaw to string so that we can use
         # eV unit in the Abinit input file (much more readable).
         return dict(
             usepawu=self.usepawu,
@@ -1222,12 +1220,12 @@ class LexxParams(object):
     """
     This object stores the parameters for local exact exchange calculations with the PAW method
     It facilitates the specification of the LEXX parameters in the Abinit input file.
-    (see `to_abivars`). The LEXX operator will be applied only on the atomic species 
+    (see `to_abivars`). The LEXX operator will be applied only on the atomic species
     that have been selected by calling `lexx_for_symbol`.
 
     To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
     channel of the nickel atoms:
-                                                                         
+
     .. code-block:: python
 
         lexx_params = LexxParams(nio_structure)
@@ -1241,7 +1239,7 @@ class LexxParams(object):
             structure: :class:`Structure` object.
         """
         self.structure = structure
-        self._lexx_for_symbol = {} 
+        self._lexx_for_symbol = {}
 
     @property
     def symbols_by_typat(self):
@@ -1249,7 +1247,7 @@ class LexxParams(object):
 
     def lexx_for_symbol(self, symbol, l):
         """
-        Enable LEXX for the given chemical symbol and the angular momentum l 
+        Enable LEXX for the given chemical symbol and the angular momentum l
 
         Args:
             symbol: Chemical symbol of the atoms on which LEXX should be applied.
@@ -1270,7 +1268,7 @@ class LexxParams(object):
 
         for symbol in self.symbols_by_typat:
             l = self._lexx_for_symbol.get(symbol, -1)
-            lexx_typat.append(int(l)) 
+            lexx_typat.append(int(l))
 
         return dict(useexexch=1, lexexch=" ".join(map(str, lexx_typat)))
 
@@ -1314,7 +1312,7 @@ def product_dict(d):
     >>> d = OrderedDict([("foo", [2, 4]), ("bar", 1)])
     >>> product_dict(d) == [OrderedDict([('foo', 2), ('bar', 1)]), OrderedDict([('foo', 4), ('bar', 1)])]
     True
-    >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])]) 
+    >>> d = OrderedDict([("bar", [1,2]), ('foo', [3,4])])
     >>> product_dict(d) == [{'bar': 1, 'foo': 3},
     ... {'bar': 1, 'foo': 4},
     ... {'bar': 2, 'foo': 3},
@@ -1323,7 +1321,7 @@ def product_dict(d):
 
     .. warning:
 
-        Dictionaries are not ordered, therefore one cannot assume that 
+        Dictionaries are not ordered, therefore one cannot assume that
         the order of the keys in the output equals the one used to loop.
         If the order is important, one should pass a :class:`OrderedDict` in input.
     """
@@ -1336,9 +1334,9 @@ def product_dict(d):
         if not isinstance(v, collections.Iterable): v = [v]
         values.append(v)
 
-    # Build list of dictionaries. Use ordered dicts so that 
+    # Build list of dictionaries. Use ordered dicts so that
     # we preserve the order when d is an OrderedDict.
-    vars_prod = [] 
+    vars_prod = []
 
     for prod_values in itertools.product(*values):
         dprod = OrderedDict(zip(keys, prod_values))

@@ -108,6 +108,7 @@ def find_package_data():
         'abipy.data.refs' : [
             "al_g0w0_spfunc/*",
             "alas_phonons/*",
+            "mgb2_fatbands/*",
             "si_bse/*",
             "si_ebands/*",
             "si_g0w0/*",
@@ -159,7 +160,7 @@ def cleanup():
     if "develop" not in sys.argv:
         try:
             shutil.rmtree('abipy.egg-info')
-        except IOError:
+        except (IOError, OSError):
             try:
                 os.unlink('abipy.egg-info')
             except:
@@ -172,24 +173,18 @@ install_requires = [
     "prettytable",
     "tabulate",
     "apscheduler==2.1.0",
-    "pydispatcher>=2.0.3",
+    "pydispatcher>=2.0.5",
     "tqdm",
-    "wxmplot",
     "html2text",
-    "pigments",
-    #"orderedset",
     "pyyaml>=3.11",
     "pandas",
-    "numpy>=1.8",
-    "scipy>=0.10",
-    "pymatgen>=3.0.8",
+    "numpy>=1.9",
+    "scipy>=0.14",
+    "spglib",
+    "pymatgen>=4.7.2",
     "netCDF4",
-    "python-daemon",
-    #"matplotlib",
-    #"seaborn",
-    #"psutil",
-    #"fabric",
-    #"paramiko",
+    "matplotlib>=1.5",
+    "seaborn",
 ]
 
 if with_ipython:
@@ -197,14 +192,19 @@ if with_ipython:
         "ipython",
         "jupyter",
         "nbformat",
-        #"pyzmq",
-        #"jinja2",
     ]
 
 #if with_cython:
 #    install_requires += [
 #        "cython",
 #    ]
+
+with_wxpython = False
+if with_wxpython:
+    install_requires += [
+        "wxmplot",
+        "wxpython",
+    ]
 
 #print("install_requires\n", install_requires)
 
@@ -230,6 +230,8 @@ setup_args = dict(
       long_description=long_description,
       author=author,
       author_email=author_email,
+      maintainer=maintainer,
+      maintainer_email=maintainer_email,
       url=url,
       license=license,
       platforms=platforms,
@@ -240,14 +242,14 @@ setup_args = dict(
       package_data=my_package_data,
       exclude_package_data=my_excl_package_data,
       scripts=my_scripts,
-      #download_url=download_url,
+      download_url=download_url,
       ext_modules=ext_modules,
       )
 
 if __name__ == "__main__":
     setup(**setup_args)
 
-    msg = """
+    print("""
 Please read the following if you are about to use abipy for the first time:
 
 [1]
@@ -268,7 +270,6 @@ followed by:
 
 This will print the lessons documentation with further instructions.
 Have fun!
-"""
-    print(msg)
+""")
 
     cleanup()

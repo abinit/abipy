@@ -2,6 +2,15 @@ from __future__ import division, print_function, unicode_literals
 
 __author__ = 'setten'
 
+import unittest
+try:
+    raise ImportError("No module named sets_deprecated")
+except ImportError:
+    raise unittest.SkipTest("Skipping all tests in test_classes due to sets_deprecated")
+
+
+
+
 from pymatgen.util.testing import PymatgenTest
 from abipy.gw.codeinterfaces import AbinitInterface, NewCodeInterface, VaspInterface
 from abipy.gw.codeinterfaces import get_all_ecuteps, get_all_nbands, CODE_CLASSES

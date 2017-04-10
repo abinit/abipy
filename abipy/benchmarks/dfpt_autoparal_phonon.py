@@ -7,13 +7,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata
+import abipy.flowtk as flowtk
 
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
 def make_inputs(paw=False):
     """
-    This function constructs the input files for the phonon calculation: 
+    This function constructs the input files for the phonon calculation:
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
@@ -24,7 +25,7 @@ def make_inputs(paw=False):
 
     # List of q-points for the phonon calculation.
     qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
              5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
@@ -38,8 +39,8 @@ def make_inputs(paw=False):
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(
-        nband=12,             
-        ecut=12.0,         
+        nband=12,
+        ecut=12.0,
         pawecutdg=24 if paw else None,
         ngkpt=[8, 8, 8],
         nshiftk=4,
@@ -59,7 +60,7 @@ def make_inputs(paw=False):
     # i.e. the same parameters used for the k-mesh in gs_inp.
     #qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
- 
+
     ph_inp = abilab.AbinitInput(structure, pseudos)
 
     # Response-function calculation for phonons.
@@ -85,24 +86,24 @@ def build_flow(options):
     gs_inp, ph_inp = make_inputs()
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
-    gs_work = abilab.Work()
+    gs_work = flowtk.Work()
     gs_work.register_scf_task(gs_inp)
     flow.register_work(gs_work)
     flow.exclude_from_benchmark(gs_work)
 
     # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
 
     pconfs = ph_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    print(pconfs)
+    if options.verbose: print(pconfs)
 
     omp_threads = 1
-    work = abilab.Work()
+    work = flowtk.Work()
     for conf in pconfs:
         mpi_procs = conf.mpi_ncpus
         if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
-        if conf.efficiency < min_eff: continue
+        if min_eff is not None and conf.efficiency < min_eff: continue
 
         if options.verbose: print(conf)
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
@@ -120,7 +121,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow

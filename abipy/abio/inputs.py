@@ -1,7 +1,6 @@
 """
-This module defines objects that faciliate the creation of the
-ABINIT input files. The syntax is similar to the one used
-in ABINIT with small differences.
+This module defines objects to facilitate the creation of ABINIT input files.
+The syntax is similar to the one used in ABINIT with small differences.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -21,17 +20,15 @@ from monty.string import is_string, list_strings
 from monty.json import MontyEncoder, MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
-from pymatgen.io.abinit.pseudos import PseudoTable, Pseudo
-from pymatgen.io.abinit.tasks import AbinitTask, ParalHintsParser
-from pymatgen.io.abinit.netcdf import NetcdfReader
-from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
-from pymatgen.io.abinit import abiobjects as aobj
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
+from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
+from abipy.flowtk.abiinspect import yaml_read_irred_perts
+from abipy.flowtk import abiobjects as aobj
 
 import logging
 logger = logging.getLogger(__file__)
@@ -226,12 +223,16 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         """Returns a string with the input."""
 
     @abc.abstractmethod
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         """
         This method should invoke the executable associated to the input object.
         to test whether the input variables are correct and consistent.
         The executable is supposed to implemente some sort of `--dry-run` option
         that invokes the parser to validate the input and exits.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             `namedtuple` with the following attributes:
@@ -319,31 +320,41 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         import hashlib
         sha1 = hashlib.sha1()
 
+        try:
+            tos = unicode
+        except NameError:
+            # Py3K
+            def tos(s):
+                return str(s).encode(encoding="utf-8")
+
         # Add key, values to sha1
         # (not sure this is code is portable: roundoff errors and conversion to string)
         # We could just compute the hash from the keys (hash equality does not necessarily imply __eq__!)
         for key in sorted(self.keys()):
             value = self[key]
             if isinstance(value, np.ndarray): value = value.tolist()
-            sha1.update(unicode(key))
-            sha1.update(unicode(value))
+            sha1.update(tos(key))
+            sha1.update(tos(value))
 
         # Use string representation to compute hash
         # Not perfect but it supposed to be better than the version above
         # Use alphabetical sorting, don't write pseudos (treated below).
         #s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
-        #sha1.update(unicode(s))
+        #sha1.update(tos(s))
 
-        sha1.update(unicode(self.comment))
+        sha1.update(tos(self.comment))
         # add pseudos (this is easy because we have md5)
-        sha1.update(unicode([p.md5 for p in self.pseudos]))
+        sha1.update(tos([p.md5 for p in self.pseudos]))
         # add the decorators, do we need to add them ?
-        sha1.update(unicode([dec.__class__.__name__ for dec in self.decorators]))
+        sha1.update(tos([dec.__class__.__name__ for dec in self.decorators]))
 
         return sha1.hexdigest()
 
     @pmg_serialize
     def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         #vars = OrderedDict()
         # Use a list of (key, value) to serialize the OrderedDict
         abi_args = []
@@ -364,6 +375,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     @classmethod
     def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
         dec = MontyDecoder()
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
@@ -653,8 +667,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
-                Accepts iterable that be reshaped to (nkptgw, 2)
-                or a tuple of two integers if the extrema are the same for each k-point.
+              Accepts iterable that be reshaped to (nkptgw, 2)
+              or a tuple of two integers if the extrema are the same for each k-point.
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
@@ -984,14 +998,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         It should be called with an input the represents a GS run.
 
         Args:
-            qpt: q-point in reduced coordinatesl
+            qpt: q-point in reduced coordinates.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
 
         Return:
-            List of AbinitInput objects for DFPT runs.
+            List of `AbinitInput` objects for DFPT runs.
 
-        .. warning::
+        .. WARNING::
 
             The routine assumes the q-point is such that k + q belongs to the initial GS mesh.
             so that the DFPT run can be started from the WFK file directly without having
@@ -1080,20 +1094,19 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def make_dde_inputs(self, tolerance=None, use_symmetries=True):
         """
         Return inputs for the calculation of the electric field perturbations.
-
         This functions should be called with an input the represents a gs run.
+
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
-                Defaults to {"tolvrs": 1.0e-10}.
-
+                Defaults to {"tolwfr": 1.0e-22}.
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
 
         Return:
-            List of AbinitInput objects for DFPT runs.
+            List of `AbinitInput` objects for DFPT runs.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+            tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
@@ -1294,9 +1307,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return dict2namedtuple(errors=errors, warnings=warnings)
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         """
         Run ABINIT in dry mode to validate the input file.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             `namedtuple` with the following attributes:
@@ -1308,7 +1325,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Raises:
             `RuntimeError` if executable is not in $PATH.
         """
-        task = AbinitTask.temp_shell_task(inp=self)
+        task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
 
@@ -1380,7 +1397,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
                  {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
-
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1913,7 +1929,7 @@ class MultiDataset(object):
     def write(self, filepath="run.abi"):
         """
         Write `ndset` input files to disk. The name of the file
-        is constructued from the dataset index e.g. run0.abi
+        is constructed from the dataset index e.g. run0.abi
         """
         root, ext = os.path.splitext(filepath)
         for i, inp in enumerate(self):
@@ -2304,7 +2320,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
             ifcout=ifcout,
             natifc=len(structure),
             atifc=list(range(1, len(structure)+1)),
-            ifcana=1
+            ifcana=1,
+            prt_ifc=1
         )
 
         return new
@@ -2364,9 +2381,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
         """
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         # TODO: Anaddb does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self)
+        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
 
@@ -2382,44 +2399,32 @@ class OpticError(Exception):
     """Error class raised by OpticInput."""
 
 
-class OpticInput(AbstractInput):
+class OpticInput(AbstractInput, MSONable):
     """
-    abo_1WF7      ! Name of the first d/dk response wavefunction file, produced by abinit
-    abo_1WF8      ! Name of the second d/dk response wavefunction file, produced by abinit
-    abo_1WF9      ! Name of the third d/dk response wavefunction file, produced by abinit
-    abo_WFK       ! Name of the ground-state wavefunction file, produced by abinit
-    0.01          ! Value of the *smearing factor*, in Hartree
-    0.010   1     ! frequency *step* and *maximum* frequency (Ha)
-    0.000         ! *Scissor* shift if needed, in Hartree
-    0.001         ! *Tolerance* on closeness of singularities (in Hartree)
-    3             ! *Number of components* of linear optic tensor to be computed
-    11 33 23      ! Linear *coefficients* to be computed (x=1, y=2, z=3)
-    2             ! Number of components of nonlinear optic tensor to be computed
-    123 222       ! Non-linear coefficients to be computed
-    """
+    Input file for optic.
 
-    """
-    &FILES
-     ddkfile_1 = 'abo_1WF7',
-     ddkfile_2 = 'abo_1WF8',
-     ddkfile_3 = 'abo_1WF9',
-     wfkfile = 'abo_WFK'
-    /
-    &PARAMETERS
-     broadening = 0.002,
-     domega = 0.0003,
-     maxomega = 0.3,
-     scissor = 0.000,
-     tolerance = 0.002
-    /
-    &COMPUTATIONS
-     num_lin_comp = 1,
-     lin_comp = 11,
-     num_nonlin_comp = 2,
-     nonlin_comp = 123,222,
-     num_linel_comp = 0,
-     num_nonlin2_comp = 0,
-    /
+    Example:
+        &FILES
+         ddkfile_1 = 'abo_1WF7',
+         ddkfile_2 = 'abo_1WF8',
+         ddkfile_3 = 'abo_1WF9',
+         wfkfile = 'abo_WFK'
+        /
+        &PARAMETERS
+         broadening = 0.002,
+         domega = 0.0003,
+         maxomega = 0.3,
+         scissor = 0.000,
+         tolerance = 0.002
+        /
+        &COMPUTATIONS
+         num_lin_comp = 1,
+         lin_comp = 11,
+         num_nonlin_comp = 2,
+         nonlin_comp = 123,222,
+         num_linel_comp = 0,
+         num_nonlin2_comp = 0,
+        /
     """
     Error = OpticError
 
@@ -2429,22 +2434,40 @@ class OpticInput(AbstractInput):
         #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
         #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
         #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
-        OpticVar(name="broadening",      default=0.01, group='PARAMETERS', help="Value of the *smearing factor*, in Hartree"),
-        OpticVar(name="domega",     default=0.010, group='PARAMETERS', help="Frequency *step* (Ha)"),
-        OpticVar(name="maxomega",     default=1, group='PARAMETERS', help="Maximum frequency (Ha)"),
-        OpticVar(name="scissor",   default=0.000, group='PARAMETERS', help="*Scissor* shift if needed, in Hartree"),
-        OpticVar(name="tolerance",  default=0.001, group='PARAMETERS', help="*Tolerance* on closeness of singularities (in Hartree)"),
-        OpticVar(name="autoparal",  default=0, group='PARAMETERS', help="Autoparal option"),
-        OpticVar(name="max_ncpus",  default=0, group='PARAMETERS', help="Max number of CPUs considered in autoparal mode"),
 
-        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS', help="*Number of components* of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp",     default=0, group='COMPUTATIONS', help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients to be computed"),
-        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS', help="Number of components of linear electro-optic tensor to be computed"),
-        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS', help="Linear electro-optic coefficients to be computed"),
-        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS', help="Number of components of nonlinear optic tensor v2 to be computed"),
-        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS', help="Non-linear coefficients v2 to be computed"),
+        # PARAMETERS section:
+        OpticVar(name="broadening", default=0.01, group='PARAMETERS',
+                 help="Value of the *smearing factor*, in Hartree"),
+        OpticVar(name="domega", default=0.010, group='PARAMETERS',
+                 help="Frequency *step* (Ha)"),
+        OpticVar(name="maxomega", default=1, group='PARAMETERS',
+                 help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor", default=0.000, group='PARAMETERS',
+                 help="*Scissor* shift if needed, in Hartree"),
+        OpticVar(name="tolerance", default=0.001, group='PARAMETERS',
+                 help="*Tolerance* on closeness of singularities (in Hartree)"),
+        OpticVar(name="autoparal", default=0, group='PARAMETERS',
+                 help="Autoparal option"),
+        OpticVar(name="max_ncpus", default=0, group='PARAMETERS',
+                 help="Max number of CPUs considered in autoparal mode"),
+
+        # COMPUTATIONS section:
+        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS',
+                 help="*Number of components* of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp", default=0, group='COMPUTATIONS',
+                 help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients to be computed"),
+        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of linear electro-optic tensor to be computed"),
+        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS',
+                 help="Linear electro-optic coefficients to be computed"),
+        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor v2 to be computed"),
+        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients v2 to be computed"),
     ]
 
     _GROUPS = ['PARAMETERS','COMPUTATIONS']
@@ -2456,7 +2479,7 @@ class OpticInput(AbstractInput):
     _NAME2VAR = {v.name: v for v in _VARIABLES}
 
     def __init__(self, **kwargs):
-        # Init with default values.
+        # Initalize with default values.
         self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
 
         # Update the variables with the values passed by the user
@@ -2479,14 +2502,32 @@ class OpticInput(AbstractInput):
                              (key, __file__))
 
     def get_default(self, key):
+        """Return the default value of variable `key`."""
         for var in self._VARIABLES:
             if var.name == key: return var.default
-        raise KeyError("Cannot find %s in _VARIABLES" % key)
+        raise self.Error("Cannot find %s in _VARIABLES" % str(key))
 
+    @classmethod
+    def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        kwargs = {}
+        for grp, section in d.items():
+            if grp in ("@module", "@class"): continue
+            kwargs.update(**section)
+        return cls(**kwargs)
+
+    # TODO
+    #@pmg_serialize
     def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
         my_dict = OrderedDict()
         for grp in self._GROUPS:
             my_dict[grp] = OrderedDict()
+
         for name in self._VARNAMES:
             value = self.vars.get(name)
             if value is None: value = self.get_default(name)
@@ -2495,11 +2536,12 @@ class OpticInput(AbstractInput):
 
             var = self._NAME2VAR[name]
             grp = var.group
-            my_dict[grp].update({name : value})
+            my_dict[grp].update({name: value})
 
         return my_dict
 
     def to_string(self):
+        """String representation."""
         table = []
         app = table.append
 
@@ -2522,8 +2564,213 @@ class OpticInput(AbstractInput):
 
         return "\n".join(lines)
 
-    def abivalidate(self):
+    def abivalidate(self, workdir=None, manager=None):
         # TODO: Optic does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self)
+        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+
+
+class Cut3DInput(MSONable, object):
+    """
+    This object stores the options to run a single cut3d analysis.
+    """
+    def __init__(self, infile_path=None, output_filepath=None, options=None):
+        """
+        Args:
+            infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
+                None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            options: a list of strings that defines the options to be passed to cut3d
+        """
+        self.infile_path = infile_path
+        self.output_filepath = output_filepath
+        self.options = options
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
+        """Returns a string with the input."""
+        lines = [self.infile_path]
+        lines.extend(self.options)
+        return '\n'.join(lines)
+
+    def write(self, filepath):
+        """Writes the input to a file."""
+        if self.infile_path is None or self.options is None:
+            raise ValueError("Infile path and options should be provided")
+
+        with open(filepath, 'w') as f:
+            f.write(self.to_string())
+
+    @classmethod
+    def _convert(cls, infile_path, output_filepath, out_option):
+        """
+        Generic function used to generate the input for convertions using cut3d
+
+        Args:
+            infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
+                None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            out_option: a number corresponding to the required converting option in cut3d
+        """
+        options = [str(out_option)]  # Option to convert a _DEN file
+        options.append(output_filepath)  # Name of the output file
+        options.append('0')  # No more analysis
+        return cls(infile_path=infile_path, output_filepath=output_filepath, options=options)
+
+    @classmethod
+    def den_to_3d_formatted(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a 3D formatted format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit.
+                Can be None to be defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 5)
+
+    @classmethod
+    def den_to_3d_indexed(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a 3D indexed format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 6)
+
+    @classmethod
+    def den_to_molekel(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a Molekel format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 7)
+
+    @classmethod
+    def den_to_tecplot(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a Tecplot format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 8)
+
+    @classmethod
+    def den_to_xsf(cls, density_filepath, output_filepath, shift=None):
+        """
+        Generates a cut3d input for the conversion to an xsf format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+            shift: a list of three integers defining the shift along the x, y, z axis.
+                None if no shift is required.
+        """
+        options = ['9']  # Option to convert a _DEN file to an .xsf file
+        options.append(output_filepath)  # Name of the output .xsf file
+        if shift is not None:
+            options.append('y')
+            options.append("{} {} {} ".format(*shift))
+        else:
+            options.append('n')
+        options.append('0')  # No more analysis
+        return cls(infile_path=density_filepath, output_filepath=output_filepath, options=options)
+
+    @classmethod
+    def den_to_cube(cls, density_filepath, output_filepath):
+        """
+        Generates a cut3d input for the conversion to a cube format.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            output_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
+                safer to use just the file name, as using an absolute or relative path may fail depending on
+                the compiler.
+        """
+        return cls._convert(density_filepath, output_filepath, 14)
+
+    @classmethod
+    def hirshfeld(cls, density_filepath, all_el_dens_paths):
+        """
+        Generates a cut3d input for the calculation of the Hirshfeld charges from the density.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
+                in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
+        """
+        options = ['11']  # Option to convert _DEN file to a .cube file
+        for p in all_el_dens_paths:
+            options.append(p)
+        options.append('0')
+
+        return cls(infile_path=density_filepath, options=options)
+
+    @classmethod
+    def hirshfeld_from_fhi_path(cls, density_filepath, structure, fhi_all_el_path):
+        """
+        Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Automatically
+        selects the all-electron density files from a folder containing the fhi all-electron density files:
+        http://www.abinit.org/downloads/all_core_electron
+
+        This will work only if the input has been generated with AbinitInput and the Structure object is the same
+        provided to AbinitInput.
+
+        Args:
+            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
+                defined at a later time.
+            structure: the structure used for the ground state calculation. Used to determine the elements
+            fhi_all_el_path: path to the folder containing the fhi all-electron density files
+        """
+        all_el_dens_paths = []
+        # This relies on AbinitInput using Structure.types_of_specie to define znucl
+        for e in structure.types_of_specie:
+            all_el_dens_paths.append(os.path.join(fhi_all_el_path, "0.{:02}-{}.8.density.AE".format(e.number, e.name)))
+
+        return cls.hirshfeld(density_filepath, all_el_dens_paths)
+
+    @pmg_serialize
+    def as_dict(self):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        d = dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options = self.options)
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
+                   options=d.get('options', None))

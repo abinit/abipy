@@ -7,14 +7,15 @@ import numpy as np
 
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
+from monty.termcolor import cprint
 from monty.functools import lazy_property
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian
-from abipy.tools.plotting_utils import set_axlims
+from abipy.tools.plotting import set_axlims
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -22,6 +23,7 @@ def gaussians_dos(dos, mesh, width, values, energies, weights):
     for vw, e, w in zip(values * weights, energies, weights):
         dos += vw * gaussian(mesh, width, center=e)
     return dos
+
 
 class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
@@ -31,13 +33,15 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
     .. code-block:: python
 
-        with FatBandsFile("foo_FATBANDS.nc") as fb:
+        with abiopen("out_FATBANDS.nc") as fb:
+            print(fb.structure)
             fb.plot_fatbands_lview()
 
-    Alternatively, one can use::
+    Alternatively, one can use the abiopen.py script to open the file in an ipython notebook with
 
-        with abiopen("foo_FATBANDS.nc") as fb:
-            fb.plot_fatbands_lview()
+    .. code-block:: shell
+
+        $ abiopen.py out_FATBANDS.nc -nb
     """
     # These class attributes can be redefined in order to customize the plots.
 
@@ -50,13 +54,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     # Markers used for up/down bands (collinear spin)
     marker_spin = {0: "^", 1: "v"}
 
-    # Mapping spin --> title used in subplots that depend on spin (collinear)
-    spin2tex = {0: "$\sigma=\\uparrow$", 1: "$\sigma=\\downarrow$"}
+    # Mapping spin --> title used in subplots that depend on (collinear) spin.
+    spin2tex = {0: r"$\sigma=\\uparrow$", 1: r"$\sigma=\\downarrow$"}
 
-    # Mappings used non-collinear spin.
-    spinors2tex = {"up-up": "$\\uparrow,\\uparrow$", "up-down": "$\\uparrow,\\downarrow$",
-                   "down-up": "$\\downarrow,\\uparrow$", "down-down": "$\\downarrow,\\downarrow$",
-                   "sigma_x": "$\sigma_{x}$", "sigma_y": "$\sigma_{y}$", "sigma_z": "$\sigma_{z}$",
+    # Mappings used for non-collinear spins.
+    spinors2tex = {"up-up": r"$\\uparrow,\\uparrow$", "up-down": r"$\\uparrow,\\downarrow$",
+                   "down-up": r"$\\downarrow,\\uparrow$", "down-down": r"$\\downarrow,\\downarrow$",
+                   "sigma_x": r"$\sigma_{x}$", "sigma_y": r"$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
                   }
     spinors2color = {"up-up": "black", "up-down": "brown",
                      "down-up": "violet", "down-down": "yellow",
@@ -71,6 +75,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     marker_size = 3.0
     linewidth = 0.1
     linecolor = "grey"
+    #klabel_size = None
 
     @classmethod
     def from_file(cls, filepath):
@@ -227,9 +232,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
         if self.prtdos != 3:
-          raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+            raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
         if self.prtdosm == 0:
-          raise RuntimeError("The file does not contain LM-DOS since prtdosm=%i" % self.prtdosm)
+            raise RuntimeError("The file does not contain LM-DOS since prtdosm=%i" % self.prtdosm)
 
         wshape = (self.natom, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
 
@@ -394,6 +399,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             linewidth=self.linewidth,
             markersize=self.marker_size,
             marker=self.marker_spin[spin],
+            #klabel_size=self.klabel_size,
         )
 
     @add_fig_kwargs
@@ -501,7 +507,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_lview(self, e0="fermie", fact=2.0, axmat=None, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands grouped by l.
+        Plot the electronic fatbands grouped by L.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -509,7 +515,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
-            axmat:
+            axmat: Matrix of axes, if None new figure is produce.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -542,7 +548,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     ax.set_ylabel("")
                     # Only the first column show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                    # also the other axes are affecred (likely due to sharey=True).
+                    # also the other axes are affected (likely due to sharey=True).
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label.set_fontsize(0)
 
@@ -568,7 +574,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands grouped by L.
+        Plot the electronic fatbands grouped by LM.
 
         Args:
             iatom: Index of the atom in the structure.
@@ -584,8 +590,14 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
+        # TODO
         if self.nsppol == 2:
             raise NotImplementedError("To be tested with spin")
+
+        if not (self.prtdos == 3 and self.prtdosm != 0):
+            cprint("Fatbands plots with LM-character require `prtdos = 3 and prtdosm != 0`", "red")
+            return None
+
         mylmax = self.lmax_atom[iatom] if lmax is None else lmax
 
         # Build plot grid.
@@ -643,7 +655,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None,
                                ylims=None, blist=None, **kwargs):
         """
-        Plot the electronic fatbands
+        Plot the electronic fatbands grouped by atomic type.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -783,7 +795,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the marker size.
-            axlist:
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -1500,37 +1512,52 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("fbfile = abilab.abiopen('%s')\nprint(fbfile)" % self.filepath),
-            nbv.new_code_cell("fbfile.structure"),
-            nbv.new_code_cell("fig = fbfile.ebands.kpoints.plot()"),
+            nbv.new_code_cell("fbnc = abilab.abiopen('%s')\nprint(fbnc)" % self.filepath),
+            nbv.new_code_cell("fbnc.structure"),
+            nbv.new_code_cell("fig = fbnc.ebands.kpoints.plot()"),
             nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
-
-            nbv.new_markdown_cell("## Fatbands plots with L-character \n(require `prtdos=3`)"),
-            #nbv.new_code_cell("fig = fbfile.ebands.plot(ylims=ylims)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_typeview(ylims=ylims)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_lview(ylims=ylims)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_siteview(ylims=ylims)"),
-
-            nbv.new_markdown_cell("## Fatbands plots with LM-character \n(require `prtdos = 3 and prtdosm != 0`)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_mview(iatom=0, ylims=ylims)"),
-
-            nbv.new_markdown_cell("## Fatbands plots with Spin-character \n(require `prtdos = 5 and nspinor == 2`)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_spinor(ylims=ylims)"),
-
-            nbv.new_markdown_cell("## L-DOSes plots \n(require `prtdos = 3` and BZ sampling)"),
-            nbv.new_code_cell("fig = fbfile.plot_pjdos_lview(xlims=xlims)"),
-            nbv.new_code_cell("fig = fbfile.plot_pjdos_typeview(xlims=xlims)"),
-
-            nbv.new_markdown_cell("## L-DOSes with fatbands\n"
-                                 "(require `prtdos=3`, `fbfile` must contain a k-path, "
-                                 "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
-            nbv.new_code_cell("fig = fbfile.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type')"),
+            #nbv.new_code_cell("fig = fbnc.ebands.plot(ylims=ylims)"),
         ])
 
-        if self.usepaw == 0 and self.prtdos != 3:
+        if self.prtdos == 3:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## Fatbands plots with L-character \n(require `prtdos=3`)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_typeview(ylims=ylims)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_lview(ylims=ylims)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_siteview(ylims=ylims)"),
+            ])
+
+        if self.prtdos == 3 and self.prtdosm != 0:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## Fatbands plots with LM-character \n(require `prtdos = 3 and prtdosm != 0`)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_mview(iatom=0, ylims=ylims)"),
+            ])
+
+        if self.prtdos == 5 and self.nspinor == 2:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## Fatbands plots with Spin-character \n(require `prtdos = 5 and nspinor == 2`)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_spinor(ylims=ylims)"),
+            ])
+
+        if self.prtdos == 3 and self.ebands.kpoints.is_mpmesh:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## L-DOSes plots \n(require `prtdos = 3` and BZ sampling)"),
+                nbv.new_code_cell("fig = fbnc.plot_pjdos_lview(xlims=xlims)"),
+                nbv.new_code_cell("fig = fbnc.plot_pjdos_typeview(xlims=xlims)"),
+            ])
+
+        if self.prtdos == 3 and self.ebands.kpoints.is_path:
+            nb.cells.extend([
+                nbv.new_markdown_cell("## L-DOSes with fatbands\n"
+                                     "(require `prtdos=3`, `fbnc` must contain a k-path, "
+                                     "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
+                nbv.new_code_cell("fig = fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type')"),
+            ])
+
+        if self.usepaw == 1 and self.prtdos != 3:
             nb.cells.extend([
                 nbv.new_markdown_cell("## PAW L-DOS decomposed into smooth PW part, AE and PS terms"),
-                nbv.new_code_cell("fig = fbfile.plot_pawdos_terms()"),
+                nbv.new_code_cell("fig = fbnc.plot_pawdos_terms()"),
             ])
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -43,6 +43,14 @@ abio Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`input_tags` Module
+------------------------
+
+.. automodule:: abipy.abio.input_tags
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`inputs` Module
 --------------------
 
@@ -51,10 +59,27 @@ abio Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`outputs` Module
+---------------------
+
+.. automodule:: abipy.abio.outputs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`robots` Module
 --------------------
 
 .. automodule:: abipy.abio.robots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`timer` Module
+-------------------
+
+.. automodule:: abipy.abio.timer
    :members:
    :undoc-members:
    :show-inheritance:

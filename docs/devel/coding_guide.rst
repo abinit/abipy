@@ -7,7 +7,7 @@ Coding guide
 Committing changes
 ==================
 
-When committing changes to abipy, there are a few things to bear in mind.
+When committing changes to AbiPy, there are a few things to bear in mind.
 
 * if your changes are non-trivial, please make an entry in the :file:`CHANGELOG`
 

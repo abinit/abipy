@@ -4,8 +4,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
-
+import abipy.data as abidata
+import abipy.flowtk as flowtk
 from abipy import abilab
 
 
@@ -17,10 +17,10 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove) 
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     scf_kppa = 10
     nscf_nband = 10
@@ -31,7 +31,7 @@ def build_flow(options):
     #sigma_nband = 50
 
     multi = abilab.g0w0_with_ppmodel_inputs(
-        structure, pseudos, 
+        structure, pseudos,
         scf_kppa, nscf_nband, ecuteps, ecutsigx,
         ecut=ecut, pawecutdg=None,
         accuracy="normal", spin_mode="unpolarized", smearing=None,
@@ -42,11 +42,11 @@ def build_flow(options):
     #multi.set_vars(paral_kgb=1)
 
     scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
-    work = abilab.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
+    work = flowtk.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
 
     flow.register_work(work)
     return flow
-    
+
 
 @abilab.flow_main
 def main(options):

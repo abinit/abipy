@@ -10,6 +10,9 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import subprocess
 import json
+import tempfile
+import shutil
+import numpy.testing.utils as nptu
 
 from monty.os.path import which
 from pymatgen.util.testing import PymatgenTest
@@ -42,7 +45,7 @@ def has_abinit(version=None, op=">="):
     If version is not None, abinit version op version is evaluated and the result is returned.
     False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
     """
-    abinit = which("abinit") 
+    abinit = which("abinit")
     if abinit is None: return False
     if version is None: return abinit is not None
 
@@ -69,20 +72,33 @@ def has_matplotlib(version=None, op=">="):
     If version is None, the result of matplotlib.__version__ `op` version is returned.
     """
     try:
+        #have_display = "DISPLAY" in os.environ
         import matplotlib
+        matplotlib.use("Agg")  # Use non-graphical display backend during test.
 
-        matplotlib.use("Agg") # Use non-graphical display backend during test.
-        have_matplotlib = "DISPLAY" in os.environ
-
-        if version is None: return True
     except ImportError:
         print("Skipping matplotlib test")
         return False
 
+    # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+    import matplotlib.pyplot as plt
+    plt.close("all")
+
+    if version is None: return True
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
+def has_seaborn():
+    """True if seaborn is installed."""
+    try:
+        import seaborn.apionly as sns
+        return True
+    except ImportError:
+        return False
+
+
 def has_fireworks():
+    """True if fireworks is installed."""
     try:
         import fireworks
         return True
@@ -101,6 +117,11 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
         return True
     except:
         return False
+
+def straceback():
+    """Returns a string with the traceback."""
+    import traceback
+    return traceback.format_exc()
 
 
 class AbipyTest(PymatgenTest):
@@ -121,19 +142,64 @@ class AbipyTest(PymatgenTest):
         return has_matplotlib(version=version, op=op)
 
     @staticmethod
+    def has_seaborn():
+        return has_seaborn()
+
+    @staticmethod
     def has_ase(version=None, op=">="):
         """True if ASE package is available."""
         try:
             import ase
         except ImportError:
             return False
-        
+
         if version is None: return True
         return cmp_version(ase.__version__, version, op=op)
 
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())
         self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
+
+    @staticmethod
+    def get_abistructure_from_abiref(basename):
+        """Return an Abipy structure from the basename of one of the reference files."""
+        import abipy.data as abidata
+        from abipy.core.structure import Structure
+        return Structure.as_structure(abidata.ref_file(basename))
+
+    @staticmethod
+    def get_tmpname(**kwargs):
+        """Invoke mkstep with kwargs, return the name of a temporary file."""
+        fd, tmpname = tempfile.mkstemp(**kwargs)
+        return tmpname
+
+    @staticmethod
+    def has_nbformat():
+        """Return True if nbformat is available and we can test the generation of ipython notebooks."""
+        try:
+            import nbformat
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
+    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
+        """
+        Alternative naming for assertArrayAlmostEqual.
+        """
+        return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
+
+    @staticmethod
+    def assert_equal(actual, desired, err_msg='', verbose=True):
+        """
+        Alternative naming for assertArrayEqual.
+        """
+        return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
+
+    @staticmethod
+    def straceback():
+        """Returns a string with the traceback."""
+        return straceback()
 
 
 class AbipyFileTest(AbipyTest):
@@ -195,3 +261,39 @@ class AbipyFileTest(AbipyTest):
         last = ref.split(expression1)[-1]
 
         return self.assertRegexpMatches(last, expression2)
+
+
+CONF_FILE = None
+BKP_FILE = None
+
+def change_matplotlib_backend(new_backend=""):
+    """Change the backend by modifying the matplotlib configuration file."""
+    global CONF_FILE, BKP_FILE
+
+    if not new_backend:
+        return
+
+    home = os.environ["HOME"]
+    CONF_FILE = conf_file = os.path.join(home, ".matplotlib", "matplotlibrc")
+
+    BKP_FILE = conf_file + ".bkp"
+
+    if os.path.exists(conf_file):
+        shutil.copy(conf_file, BKP_FILE)
+
+        with open(conf_file, "rt") as f:
+            lines = f.readlines()
+
+        for i, line in enumerate(lines):
+            if line.strip().startswith("backend"):
+                lines[i] = "backend : " + new_backend + "\n"
+
+        with open(conf_file, "w") as f:
+            f.writelines(lines)
+
+
+def revert_matplotlib_backend():
+    global CONF_FILE, BKP_FILE
+    #print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
+    if BKP_FILE is not None:
+        shutil.move(BKP_FILE, CONF_FILE)

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-Script to analyze/compare multiple files.
+Script to analyze/compare results stored in multiple netcdf files.
+By default the script displays the results/plots in the shell.
+Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
 
@@ -83,7 +85,7 @@ def abicomp_ebands(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
+        plotter.make_and_open_notebook(foreground=options.foreground)
 
     else:
         # Print pandas Dataframe.
@@ -120,7 +122,7 @@ def abicomp_edos(options):
                       plotter=plotter)
 
     elif options.notebook:
-        plotter.make_and_open_notebook(daemonize=not options.no_daemon)
+        plotter.make_and_open_notebook(foreground=options.foreground)
 
     else:
         # Print pandas Dataframe.
@@ -211,7 +213,7 @@ def abicomp_robot(options):
         IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
                      robot=robot)
     elif options.notebook:
-        robot.make_and_open_notebook(daemonize=not options.no_daemon)
+        robot.make_and_open_notebook(foreground=options.foreground)
     else:
         print(robot)
         abilab.print_frame(robot.get_dataframe())
@@ -288,7 +290,7 @@ def abicomp_time(options):
         import IPython
         IPython.start_ipython(argv=[], user_ns={"parser": parser})
     elif options.notebook:
-        parser.make_and_open_notebook(daemonize=not options.no_daemon)
+        parser.make_and_open_notebook(foreground=options.foreground)
     else:
         parser.plot_all()
 
@@ -300,18 +302,19 @@ def main():
     def str_examples():
         return """\
 Usage example:
-  abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
-  abicomp.py ebands out1_GSR.nc out2_GSR.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
-  abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
-  abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
-  abicomp.py phbands out1_PHBST.nc out2_PHBST.nc  => Plot electron bands on a grid.
-  abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
-  abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
-  abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
-  abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
-                                                     parse timing data and plot results.
+
+  abicomp.py structure */*/outdata/out_GSR.nc         => Compare structures in multiple files.
+  abicomp.py ebands out1_GSR.nc out2_GSR.nc           => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                     => Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                      => Interact with the plotter via the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                        => Compare electron DOS in the jupyter notebook.
+  abicomp.py gs_scf run1.abo run2.abo                 => Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo              => Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                      => Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                      => Scan directory tree from `.`, look for files with extension `abo`
+                                                         parse timing data and plot results.
 """
+  #abicomp.py phbands out1_PHBST.nc out2_PHBST.nc      => Plot electron bands on a grid.
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -330,8 +333,8 @@ Usage example:
     # Parent parser for commands support (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    ipy_parser.add_argument('--no-daemon', action='store_true', default=False,
-                             help="Don't start jupyter notebook with daemon process")
+    ipy_parser.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
     # Build the main parser.
@@ -363,13 +366,14 @@ Usage example:
                           help="Option used to define the zero of energy in the DOS plot. Default is `fermie`")
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+    #p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
 
     # Subparser for pseudos command.
     #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for robot command.
-    p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
+    # TODO
+    #p_robot = subparsers.add_parser('robot', parents=[copts_parser, ipy_parser], help=abicomp_robot.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)

@@ -8,7 +8,7 @@ import numpy as np
 from six.moves import cPickle as pickle
 from collections import OrderedDict
 from monty.collections import AttrDict
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
 
 __all__ = [
@@ -28,6 +28,7 @@ class Scissors(object):
     documented in the main constructor.
 
     .. note::
+
         eV units are assumed.
 
     The standard way to create this object is via the methods provided by the factory class :class:`ScissorBuilder`.
@@ -365,4 +366,4 @@ class ScissorsBuilder(object):
                             s.append(qp_marker)
             plotter.set_marker("ab-initio QP", [x, y, s])
 
-        return plotter.plot(**kwargs)
+        return plotter.combiplot(**kwargs)

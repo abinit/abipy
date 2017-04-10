@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 """
-This example shows how to compute the band structure of a set of 
+This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing a set of internal paramaters
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import sys 
+import sys
+import abipy.data as abidata
 
 from abipy import abilab
-import abipy.data as data
-
-from abipy.abilab import FloatWithUnit
+from abipy import flowtk
 
 
 def special_positions(lattice, u):
@@ -23,7 +22,7 @@ def special_positions(lattice, u):
                         ]
 
     frac_coords["O"] = [ [0, 0, u] ]
-                            
+
     species, coords = [], []
 
     for symbol, positions in frac_coords.items():
@@ -32,23 +31,24 @@ def special_positions(lattice, u):
 
     return abilab.Structure(lattice, species, coords, validate_proximity=True, coords_are_cartesian=False)
 
+
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
-    pseudos = data.pseudos("14si.pspnc", "8o.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
 
-    base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
+    base_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    news, uparams = [], [0.1, 0.2, 0.3]
+    news, uparams = [], [0.2, 0.3]
 
     for u in uparams:
         new = special_positions(base_structure.lattice, u)
         news.append(new)
 
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
     for new_structure, u in zip(news, uparams):
@@ -65,12 +65,12 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     """
     # Variables global to the SCF and the NSCF run.
     global_vars = dict(
-        ecut=FloatWithUnit(100, "eV").to("Ha"),
+        ecut=abilab.FloatWithUnit(100, "eV").to("Ha"),
         paral_kgb=paral_kgb,
         #nband=8,
     )
 
-    # GS + NSCF run 
+    # GS + NSCF run
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
     multi.set_vars(global_vars)
 
@@ -89,7 +89,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 
     gs_inp, nscf_inp = multi.split_datasets()
 
-    return abilab.BandStructureWork(gs_inp, nscf_inp)
+    return flowtk.BandStructureWork(gs_inp, nscf_inp)
 
 
 @abilab.flow_main
@@ -101,4 +101,3 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
-

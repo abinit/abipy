@@ -11,6 +11,8 @@ import argparse
 import shlex
 import time
 import platform
+import abipy.flowtk as flowtk
+import abipy.abilab as abilab
 
 from pprint import pprint
 from collections import defaultdict
@@ -20,9 +22,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
-from pymatgen.io.abinit.nodes import Status
-from pymatgen.io.abinit.events import autodoc_event_handlers
-import abipy.abilab as abilab
+from abipy.flowtk import Status
 
 
 def straceback():
@@ -87,7 +87,7 @@ def flowdir_wname_tname(dirname):
     """
     if dirname is None: dirname = os.getcwd()
     dirname = os.path.abspath(dirname)
-    if os.path.exists(os.path.join(dirname, abilab.Flow.PICKLE_FNAME)):
+    if os.path.exists(os.path.join(dirname, flowtk.Flow.PICKLE_FNAME)):
         return dirname, None, None
 
     # Handle works or tasks.
@@ -96,7 +96,7 @@ def flowdir_wname_tname(dirname):
     for i in range(2):
         head, tail = os.path.split(head)
         if i == 0: tail_1 = tail
-        if os.path.exists(os.path.join(head, abilab.Flow.PICKLE_FNAME)):
+        if os.path.exists(os.path.join(head, flowtk.Flow.PICKLE_FNAME)):
             if i == 0:
                 # We have a work: /root/flow_dir/w[num]
                 wname = tail
@@ -152,7 +152,7 @@ from abipy import abilab
 """),
 
         nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % flow.workdir),
-        nbf.new_code_cell("#flow.debug()"),
+        nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
         nbf.new_code_cell("flow.show_dependencies()"),
         nbf.new_code_cell("fig = flow.plot_networkx()"),
@@ -174,13 +174,23 @@ from abipy import abilab
     if which("jupyter") is None:
         raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
 
-    cmd = "jupyter notebook %s" % nbpath
-    if not options.no_daemon:
+    if options.foreground:
+        cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
     else:
-        import daemon
-        with daemon.DaemonContext():
-            return os.system(cmd)
+        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+        print("Executing:", cmd)
+        import subprocess
+        cmd = "jupyter notebook %s" % nbpath
+
+        try:
+            from subprocess import DEVNULL # py3k
+        except ImportError:
+            DEVNULL = open(os.devnull, "wb")
+
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+        cprint("pid: %s" % str(process.pid), "yellow")
+
 
 @prof_main
 def main():
@@ -365,7 +375,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for abibuild
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
-                                       help="Show Abinit build information and exit.")
+                                        help="Show Abinit build information and exit.")
 
     # Subparser for doc_scheduler
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
@@ -443,8 +453,8 @@ Specify the files to open. Possible choices:
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
                                        help="Create and open an ipython notebook to interact with the flow.")
-    p_notebook.add_argument('--no-daemon', action='store_true', default=False,
-                             help="Don't start jupyter notebook with daemon process")
+    p_notebook.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
@@ -519,7 +529,7 @@ Specify the files to open. Possible choices:
         qtype = options.qtype
 
         if qtype == "script":
-            manager = abilab.TaskManager.from_user_config()
+            manager = flowtk.TaskManager.from_user_config()
             script = manager.qadapter.get_script_str(
                 job_name="job_name",
                 launch_dir="workdir",
@@ -533,21 +543,30 @@ Specify the files to open. Possible choices:
             print(script)
 
         else:
-            print(abilab.TaskManager.autodoc())
-            from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
-
-            print("qtype supported: %s" % all_qtypes())
+            print(flowtk.TaskManager.autodoc())
+            print("qtype supported: %s" % flowtk.all_qtypes())
             print("Use `abirun.py . manager slurm` to have the list of qparams for slurm.\n")
 
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)
-                show_qparams(qtype)
+                flowtk.show_qparams(qtype)
 
         return 0
 
     if options.command == "doc_scheduler":
         print("Options that can be specified in scheduler.yml:")
-        print(abilab.PyFlowScheduler.autodoc())
+        print(flowtk.PyFlowScheduler.autodoc())
+        return 0
+
+    if options.command == "abibuild":
+        abinit_build = flowtk.AbinitBuild()
+        print()
+        print(abinit_build)
+        print()
+        if not options.verbose:
+            print("Use --verbose for additional info")
+        else:
+            print(abinit_build.info)
         return 0
 
     # After this point we start to operate on the flow.
@@ -577,7 +596,7 @@ Specify the files to open. Possible choices:
         options.flowdir, wname, tname = flowdir_wname_tname(options.flowdir)
 
     # Read the flow from the pickle database.
-    flow = abilab.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
+    flow = flowtk.Flow.pickle_load(options.flowdir, remove_lock=options.remove_lock)
     #flow.show_info()
 
     # If we have selected a work/task, we have to convert wname/tname into node ids (nids)
@@ -611,19 +630,7 @@ Specify the files to open. Possible choices:
 
     retcode = 0
 
-    if options.command == "abibuild":
-        #abilab.abicheck():
-        abinit_build = abilab.AbinitBuild()
-        print()
-        print(abinit_build)
-        print()
-        if not options.verbose:
-            print("Use --verbose for additional info")
-        else:
-            print(abinit_build.info)
-        #print(flow.manager)
-
-    elif options.command == "gui":
+    if options.command == "gui":
         if options.chroot:
             # Change the workdir of flow.
             print("Will chroot to %s..." % options.chroot)
@@ -634,7 +641,7 @@ Specify the files to open. Possible choices:
 
     elif options.command == "new_manager":
         # Read the new manager from file.
-        new_manager = abilab.TaskManager.from_file(options.manager_file)
+        new_manager = flowtk.TaskManager.from_file(options.manager_file)
 
         # Default status for new_manager is QCritical
         if options.task_status is None:
@@ -664,9 +671,9 @@ Specify the files to open. Possible choices:
 
     elif options.command == "handlers":
         if options.doc:
-            autodoc_event_handlers()
+            flowtk.autodoc_event_handlers()
         else:
-            flow.show_event_handlers()
+            flow.show_event_handlers(verbose=options.verbose)
 
     elif options.command  == "single":
         nlaunch = flow.single_shot()
@@ -929,7 +936,7 @@ Specify the files to open. Possible choices:
         with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
             IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
             #IPython.start_ipython(argv=[], user_ns={"robot": robot})
-            #robot.make_and_open_notebook(nbpath=None, daemonize=True)
+            #robot.make_and_open_notebook(nbpath=None, foreground=True)
 
     elif options.command == "plot":
         fext = dict(

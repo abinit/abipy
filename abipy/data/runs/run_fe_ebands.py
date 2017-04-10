@@ -9,6 +9,7 @@ import os
 import sys
 import abipy.data as data  
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 
 
 def make_scf_nscf_inputs(nsppol, paral_kgb=1):
@@ -52,12 +53,12 @@ def build_flow(options):
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
 
     # Create the Flow.
-    flow = abilab.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the task defining the calculation and run and register it in the flow
     for nsppol in [1,2]:
         scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
-        work = abilab.BandStructureWork(scf_input, nscf_input)
+        work = flowtk.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
     return flow

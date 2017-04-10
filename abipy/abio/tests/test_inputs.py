@@ -280,7 +280,7 @@ class TestMultiDataset(AbipyTest):
 
         assert len(multi) == 1 and multi.ndtset == 1
         for i, inp in enumerate(multi):
-            assert inp.keys() == multi[i].keys()
+            assert list(inp.keys()) == list(multi[i].keys())
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
@@ -343,7 +343,6 @@ class TestMultiDataset(AbipyTest):
         assert len(new_multi[0].tags) == 1
 
 
-
 class AnaddbInputTest(AbipyTest):
     """Tests for AnaddbInput."""
 
@@ -353,9 +352,9 @@ class AnaddbInputTest(AbipyTest):
     def test_phbands_and_dos(self):
         """Test phbands_and_dos constructor."""
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
-        self.assertTrue("brav" in inp)
-        self.assertEqual(inp["brav"], 1)
-        self.assertEqual(inp.get("brav"), 1)
+        assert "brav" in inp
+        assert inp["brav"] == 1
+        assert inp.get("brav") == 1
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -366,17 +365,15 @@ class AnaddbInputTest(AbipyTest):
         ngqpt = (4, 4, 4)
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
-        self.assertEqual(inp2['ifcflag'], 1)
+        assert inp2['ifcflag'] == 1
 
-        s2 = inp2.to_string(sortmode="a")
-        print(s2)
+        print(inp2.to_string(sortmode="a"))
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
-        self.assertEqual(inp3['ifcflag'], 1)
-        self.assertEqual(inp3['prtdos'], 1)
-        s3 = inp3.to_string(sortmode="a")
-        print(s3)
+        assert inp3['ifcflag'] == 1
+        assert inp3['prtdos'] == 1
+        print(inp3.to_string(sortmode="a"))
 
         # Compatible with deepcopy and Pickle?
         for i in (inp, inp2, inp3):
@@ -416,6 +413,65 @@ class AnaddbInputTest(AbipyTest):
         anaddb_input.deepcopy()
 
 
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
+class TestCut3DInput(AbipyTest):
+    """Unit tests for AbinitInput."""
+
+    def setUp(self):
+        self.structure = abidata.structure_from_ucell("Si")
+
+    def test_dict_methods(self):
+        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        self.assertMSONable(cut3d_input)
+
+    def test_generation_methods(self):
+        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_xsf('/path/to/den', 'outfile_name', shift=[2, 2, 2])
+        cut3d_input = Cut3DInput.den_to_3d_indexed('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_3d_formatted('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_tecplot('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
+
+
+class OpticInputTest(AbipyTest):
+    """Tests for OpticInput."""
+
+    def test_optic_input_api(self):
+        """Test OpticInput API."""
+        optic_input = OpticInput()
+        print(optic_input)
+
+        with self.assertRaises(optic_input.Error):
+            optic_input["foo"] = 23
+
+        with self.assertRaises(optic_input.Error):
+            optic_input.get_default("foo")
+
+        optic_input.set_vars(num_lin_comp=0)
+        assert optic_input["num_lin_comp"] == 0
+        assert optic_input["broadening"] == 0.01
+
+    def test_real_optic_input(self):
+        """Testing real optic input."""
+        # Optic does not support MPI with ncpus > 1.
+        optic_input = OpticInput(
+            broadening=0.002,          # Value of the smearing factor, in Hartree
+            domega=0.0003,             # Frequency mesh.
+            maxomega=0.3,
+            scissor=0.000,             # Scissor shift if needed, in Hartree
+            tolerance=0.002,           # Tolerance on closeness of singularities (in Hartree)
+            num_lin_comp=1,            # Number of components of linear optic tensor to be computed
+            lin_comp=11,               # Linear coefficients to be computed (x=1, y=2, z=3)
+            num_nonlin_comp=2,         # Number of components of nonlinear optic tensor to be computed
+            nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
+        )
+
+        print(optic_input)
+        assert optic_input.vars
+
+        # Compatible with Pickle and MSONable?
+        self.serialize_with_pickle(optic_input, test_eq=True)
+        # TODO: But change function that build namelist to ignore @module ...
+        #self.assertMSONable(optic_input)
+
+        v = optic_input.abivalidate()
+        assert v.retcode == 0

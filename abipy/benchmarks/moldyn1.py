@@ -7,6 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import abipy.abilab as abilab
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 
 from itertools import product
@@ -119,14 +120,14 @@ def build_flow(options):
     if max_ncpus is None:
         nkpt = len(template.abiget_ibz().points)
         max_ncpus = nkpt * template["nsppol"] * template["nband"] * 4 
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
 
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
     if options.verbose: print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    work = abilab.Work()
+    work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
         if not options.accept_conf(conf, omp_threads): continue

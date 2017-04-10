@@ -8,18 +8,21 @@ import numpy as np
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string, marquee
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
+from monty.termcolor import cprint
+from monty.dev import deprecated
 from monty.bisect import find_le, find_ge
-from pymatgen.util.plotting_utils import add_fig_kwargs, get_ax_fig_plt
 from prettytable import PrettyTable
 from six.moves import cStringIO
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
+from abipy.tools.plotting import ArrayPlotter, plot_array
 
 import logging
 logger = logging.getLogger(__name__)
@@ -148,6 +151,31 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
             return _TIPS
 
 
+def _get_fields_for_plot(with_fields, exclude_fields):
+    """
+    Return list of fields to plot from input arguments.
+    """
+    all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
+
+    # Initialize fields.
+    if is_string(with_fields) and with_fields == "all":
+        fields = all_fields
+    else:
+        fields = list_strings(with_fields)
+        for f in fields:
+            if f not in all_fields:
+                raise ValueError("Field %s not in allowed values %s" % (f, all_fields))
+
+    # Remove entries
+    if exclude_fields:
+        if is_string(exclude_fields):
+            exclude_fields = exclude_fields.split()
+        for e in exclude_fields:
+            fields.remove(e)
+
+    return fields
+
+
 class QPList(list):
     """
     A list of quasiparticle corrections for a given spin.
@@ -160,6 +188,10 @@ class QPList(list):
         return "<%s at %s, len=%d>" % (self.__class__.__name__, id(self), len(self))
 
     def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self, **kwargs):
         """String representation."""
         table = self.to_table()
         strio = cStringIO()
@@ -215,13 +247,17 @@ class QPList(list):
         return table
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
         """
+        Plot the QP results as function of the initial KS energy.
+
         Args:
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Simiar to `with_field` but it excludes
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            label: Label for plot.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -234,50 +270,50 @@ class QPList(list):
         """
         fermi = kwargs.pop("fermi", None)
 
-        if is_string(with_fields):
-            if with_fields == "all":
-                fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
-            else:
-                fields = with_fields.split()
+        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        if not fields:
+            return None
 
-        if exclude_fields:
-            if is_string(exclude_fields):
-                exclude_fields = exclude_fields.split()
-            for e in exclude_fields:
-                fields.remove(e)
-
-        # Build grid of plots.
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
+        # Build grid of plots.
         import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
-
-        if self.is_e0sorted:
-            qps = self
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+            axlist = axlist.ravel()
         else:
-            qps = self.sort_by_e0()
+            axlist = np.reshape(axlist, (1, len(fields))).ravel()
+            fig = plt.gcf()
 
+        # Get qplist and sort it.
+        qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
 
         linestyle = kwargs.pop("linestyle", "o")
-        for field, ax in zip(fields, ax_list):
+        for ii, (field, ax) in enumerate(zip(fields, axlist)):
+            irow, icol = divmod(ii, ncols)
             ax.grid(True)
-            ax.set_xlabel('e0 [eV]')
+            if irow == nrows - 1: ax.set_xlabel('e0 [eV]')
             ax.set_ylabel(field)
             yy = qps.get_field(field)
-            ax.plot(e0mesh, yy.real, linestyle, **kwargs)
+            lbl = label if ii == 0 and label is not None else None
+
+            ax.plot(e0mesh, yy.real, linestyle, label=lbl, **kwargs)
             #ax.plot(e0mesh, e0mesh)
+
             if fermi is not None:
                 ax.plot(2*[fermi], [min(yy), max(yy)])
 
         # Get around a bug in matplotlib
-        if (num_plots % ncols) != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0:
+            axlist[-1].plot([0,1], [0,1], lw=0)
+            axlist[-1].axis('off')
+
+        if label is not None:
+            axlist[0].legend(loc="best")
 
         return fig
 
@@ -323,18 +359,16 @@ class QPList(list):
         for idx, v in enumerate(dflat):
             if idx == 0 and v > e0mesh[0]:
                 raise ValueError("min(e0mesh) %s is not included in domains" % e0mesh[0])
-
             if idx == dsize-1 and v < e0mesh[-1]:
                 raise ValueError("max(e0mesh) %s is not included in domains" % e0mesh[-1])
-
             if idx != dsize-1 and dflat[idx] > dflat[idx+1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
-
             if idx == dsize-1 and dflat[idx] < dflat[idx-1]:
                 raise ValueError("domain boundaries should be given in increasing order.")
+
         # Create the sub_domains and the spline functions in each subdomain.
-        func_list = []
-        residues = []
+        func_list, residues = [], []
+
         if len(domains) == 2:
             #print('forcing extremal point on the scissor')
             ndom = 0
@@ -422,7 +456,7 @@ class Sigmaw(object):
 
         if w == "s":
             f = self.xc
-            label = kwargs.get("label", "$\Sigma(\omega)$")
+            label = kwargs.get("label", r"$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
             ax.legend(loc="best")
@@ -430,7 +464,7 @@ class Sigmaw(object):
 
         elif w == "a":
             f = self.spfunc
-            label = kwargs.get("label", "$A(\omega)$")
+            label = kwargs.get("label", r"$A(\omega)$")
             extend(f.plot_ax(ax, label=label))
             # Plot I(w)
             #ax2 = ax.twinx()
@@ -460,14 +494,14 @@ class Sigmaw(object):
         import matplotlib.pyplot as plt
 
         nrows = len(what)
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
+        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
+        axlist = axlist.ravel()
 
         title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
-            ax = ax_list[i]
+            ax = axlist[i]
             ax.grid(True)
 
             if i == len(what):
@@ -486,9 +520,9 @@ def torange(obj):
     Convert obj into a range. Accepts integer, slice object  or any object
     with an __iter__ method. Note that an integer is converted into range(int, int+1)
 
-    >>> torange(1)
+    >>> list(torange(1))
     [1]
-    >>> torange(slice(0,4,2))
+    >>> list(torange(slice(0,4,2)))
     [0, 2]
     >>> list(torange([1,4,2]))
     [1, 4, 2]
@@ -577,9 +611,7 @@ class SigresPlotter(Iterable):
         # Initialize/check useful quantities.
         #
         # 1) Number of spins
-        if not hasattr(self, "nsppol"):
-            self.nsppol = sigres.nsppol
-
+        if not hasattr(self, "nsppol"): self.nsppol = sigres.nsppol
         if self.nsppol != sigres.nsppol:
             raise ValueError("Found two SIGRES files with different nsppol")
 
@@ -700,7 +732,7 @@ class SigresPlotter(Iterable):
         # Set ticks and labels.
         if self.param_name is None:
             # Could not figure the name of the parameter ==> Use the basename of the files
-            ticks, labels = range(len(self)), [f.basename for f in self]
+            ticks, labels = list(range(len(self))), [f.basename for f in self]
         else:
             ticks, labels = self.xvalues, [f.params[self.param_name] for f in self]
 
@@ -795,22 +827,21 @@ class SigresPlotter(Iterable):
 
         self.prepare_plot()
 
-        import matplotlib.pyplot as plt
-
         # Build grid of plots.
+        import matplotlib.pyplot as plt
         num_plots, ncols, nrows = len(kpoints_for_plot), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
-        ax_list = ax_list.ravel()
+        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
+        axlist = axlist.ravel()
 
         if (num_plots % ncols) != 0:
-            ax_list[-1].axis('off')
+            axlist[-1].axis('off')
 
         xx = self.xvalues
-        for kpoint, ax in zip(kpoints_for_plot, ax_list):
+        for kpoint, ax in zip(kpoints_for_plot, axlist):
 
             for spin in spin_range:
                 for band in band_range:
@@ -824,6 +855,40 @@ class SigresPlotter(Iterable):
 
             self.decorate_ax(ax, title="kpoint %s" % repr(kpoint))
 
+        return fig
+
+    @add_fig_kwargs
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+        """
+        Plot the QP results as function of the initial KS energy for all SIGRES files stored in the plotter.
+
+        Args:
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+
+        Returns:
+            `matplotlib` figure.
+        """
+        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        if not fields:
+            return None
+
+        # Build plot grid
+        import matplotlib.pyplot as plt
+        num_plots, ncols, nrows = len(fields), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+
+        for sigres in self:
+            label = sigres.basename
+            fig = sigres.plot_qps_vs_e0(with_fields=fields, axlist=axlist,
+                                        label=label, show=False, **kwargs)
         return fig
 
 
@@ -903,6 +968,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.to_string()
 
     def to_string(self):
+        """String representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -955,13 +1021,33 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
         return Function1D(wmesh, spf_values)
 
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, **kwargs):
+    @deprecated(message="print_qps is deprecated and will be removed in the next version")
+    def print_qps(self, **kwargs):
+        self.reader.print_qps(**kwargs)
+
+    @add_fig_kwargs
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
         """
         Plot QP data as function of the KS energy.
+
+        Args:
+            with_fields: The names of the qp attributes to plot as function of e0.
+                Accepts: List of strings or string with tokens separated by blanks.
+                See :class:`QPState` for the list of available fields.
+            exclude_fields: Similar to `with_field` but excludes fields
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            label: Label for plot.
+
+        Returns:
+            `matplotlib` figure.
         """
+        with_fields = _get_fields_for_plot(with_fields, exclude_fields)
+
         for spin in range(self.nsppol):
             qps = self.qplist_spin[spin].sort_by_e0()
-            qps.plot_qps_vs_e0(with_fields=with_fields, exclude_fields=exclude_fields, **kwargs)
+            fig = qps.plot_qps_vs_e0(with_fields=with_fields, axlist=axlist, label=label, show=False, **kwargs)
+
+        return fig
 
     @add_fig_kwargs
     def plot_spectral_functions(self, spin, kpoint, bands, ax=None, **kwargs):
@@ -979,17 +1065,25 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         ax, fig, plt = get_ax_fig_plt(ax)
 
+        errlines = []
         for band in bands:
-            sigw = self.get_sigmaw(spin, kpoint, band)
-            label = "skb = %s, %s, %s" % (spin, kpoint, band)
-            sigw.plot_ax(ax, label="$A(\omega)$:" + label, **kwargs)
+            try:
+                sigw = self.get_sigmaw(spin, kpoint, band)
+            except ValueError as exc:
+                errlines.append(str(exc))
+                continue
+            label = r"$A(\omega)$: skb = %s, %s, %s" % (spin, kpoint, band)
+            sigw.plot_ax(ax, label=label, **kwargs)
+
+        if errlines:
+            cprint("\n".join(errlines), "red")
+            return None
 
         return fig
 
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
 
         if kpoint is None:
-            from abipy.tools.plotting_utils import ArrayPlotter
             plotter = ArrayPlotter()
             for kpoint in self.ibz:
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
@@ -998,15 +1092,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             fig = plotter.plot(**kwargs)
 
         else:
-            from abipy.tools.plotting_utils import plot_array
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
             fig = plot_array(ksqp_arr, **kwargs)
 
         return fig
-
-    def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
-        # TODO Is it still used?
-        self.reader.print_qps(spin=spin, kpoints=kpoints, bands=bands, fmt=None, stream=stream)
 
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", fact=1, **kwargs):
         """
@@ -1019,7 +1108,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     def get_dataframe_sk(self, spin, kpoint, index=None):
-        """Returns pandas DataFrame"""
+        """
+        Returns pandas DataFrame with QP results for the given (spin, k-point).
+        """
         rows, bands = [], []
         # FIXME start and stop should depend on k
         for band in range(self.min_gwbstart, self.max_gwbstop):
@@ -1033,7 +1124,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         import pandas as pd
         index = len(bands) * [index] if index is not None else bands
-        return pd.DataFrame(rows, index=index, columns=rows[0].keys())
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     #def plot_matrix_elements(self, mel_name, spin, kpoint, *args, **kwargs):
     #   matrix = self.reader.read_mel(mel_name, spin, kpoint):
@@ -1042,6 +1133,180 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def plot_mlda_to_qps(self, spin, kpoint, *args, **kwargs):
     #    matrix = self.reader.read_mlda_to_qps(spin, kpoint)
     #    return plot_matrix(matrix, *args, **kwargs)
+
+    def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
+        """
+        Interpolated the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
+
+        Args:
+            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+                The default should be OK in many systems, larger values may be required for accurate derivatives.
+            ks_ebands_kpath: KS :class:`ElectronBands` on a k-path. If present,
+                the routine interpolates the QP corrections and apply them on top of the KS band structure
+                This is the recommended option because QP corrections are usually smoother than the
+                QP energies and therefore easier to interpolate. If None, the QP energies are interpolated
+                along the path defined by `vertices_names` and `line_density`.
+            ks_ebands_kmesh: KS :class:`ElectronBands` on a homogeneous k-mesh. If present, the routine
+                interpolates the corrections on the k-mesh (used to compute QP DOS)
+            ks_degatol: Energy tolerance in eV. Used when either `ks_ebands_kpath` or `ks_ebands_kmesh` are given.
+                KS energies are assumed to be degenerate if they differ by less than this value.
+                The interpolator may break band degeneracies (the error is usually smaller if QP corrections
+                are interpolated instead of QP energies). This problem can be partly solved by averaging
+                the interpolated values over the set of KS degenerate states.
+                A negative value disables this ad-hoc symmetrization.
+            vertices_names: Used to specify the k-path for the interpolated QP band structure
+                when `ks_ebands_kpath` is None.
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
+            filter_params: TO BE DESCRIBED
+            only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
+                Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
+            verbose: Verbosity level
+
+        Returns:
+
+            :class:`namedtuple` with the following attributes:
+
+                qp_ebands_kpath: :class:`ElectronBands` with the QP energies interpolated along the k-path.
+                qp_ebands_kmesh: :class:`ElectronBands` with the QP energies interpolated on the k-mesh.
+                    None if `ks_ebands_kmesh` is not passed.
+                ks_ebands_kpath: :class:`ElectronBands` with the KS energies interpolated along the k-path.
+                ks_ebands_kmesh: :class:`ElectronBands` with the KS energies on the k-mesh..
+                    None if `ks_ebands_kmesh` is not passed.
+                interpolator: :class:`SkwInterpolator` object.
+        """
+        # TODO: Consistency check.
+        errlines = []
+        eapp = errlines.append
+        if len(self.gwkpoints) != len(self.ibz):
+            eapp("QP energies should be computed for all k-points in the IBZ but nkibz != nkptgw")
+        if len(self.gwkpoints) == 1:
+            eapp("QP Interpolation requires nkptgw > 1.")
+        #if (np.any(self.gwbstop_sk[0, 0] != self.gwbstop_sk):
+        #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
+        #if (np.any(self.gwbstart_sk[0, 0] != self.gwbstart_sk):
+        #if (np.any(self.gwbstart_sk[0, 0] != 0):
+
+        if errlines:
+            raise ValueError("\n".join(errlines))
+
+        # Get symmetries from abinit spacegroup (read from file).
+        abispg = self.structure.abi_spacegroup
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+
+        if ks_ebands_kpath is None:
+            # Generate k-points for interpolation. Will interpolate all bands available in the sigres file.
+            bstart, bstop = 0, -1
+            if vertices_names is None:
+                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+            kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+            kfrac_coords, knames = kpath.frac_coords, kpath.names
+
+        else:
+            # Use list of k-points from ks_ebands_kpath.
+            ks_ebands_kpath = ElectronBands.as_ebands(ks_ebands_kpath)
+            kfrac_coords = [k.frac_coords for k in ks_ebands_kpath.kpoints]
+            knames = [k.name for k in ks_ebands_kpath.kpoints]
+
+            # Find the band range for the interpolation.
+            bstart, bstop = 0, ks_ebands_kpath.nband
+            bstop = min(bstop, self.min_gwbstop)
+            if ks_ebands_kpath.nband < self.min_gwbstop:
+                cprint("Number of bands in KS band structure smaller than the number of bands in GW corrections", "red")
+                cprint("Highest GW bands will be ignored", "red")
+
+        # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
+        # and re-apply them on top of the KS band structure.
+        gw_kcoords = [k.frac_coords for k in self.gwkpoints]
+
+        # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
+        egw_rarr = self.reader.read_value("egw", cmode="c").real
+        if ks_ebands_kpath is not None:
+            if ks_ebands_kpath.structure != self.structure:
+                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+            egw_rarr -= self.reader.read_value("e0")
+
+        # Note there's no guarantee that the gw_kpoints and the corrections have the same k-point index.
+        # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
+        qpdata = np.empty(egw_rarr.shape)
+        for gwk in self.gwkpoints:
+            ik_ibz = self.reader.kpt2fileindex(gwk)
+            for spin in range(self.nsppol):
+                qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
+
+        # Build interpolator for QP corrections.
+        from abipy.core.skw import SkwInterpolator
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+        qpdata = qpdata[:, :, bstart:bstop]
+        has_timrev = has_timrev_from_kptopt(self.reader.read_value("kptopt"))
+
+        skw = SkwInterpolator(lpratio, gw_kcoords, qpdata, self.ebands.fermie, self.ebands.nelect,
+                              cell, fm_symrel, has_timrev,
+                              filter_params=filter_params, verbose=verbose)
+
+        if ks_ebands_kpath is None:
+            # Interpolate QP energies.
+            eigens_kpath = skw.eval_all(kfrac_coords)
+        else:
+            # Interpolate QP energies corrections and add them to KS.
+            ref_eigens = ks_ebands_kpath.eigens[:, :, bstart:bstop]
+            qp_corrs = skw.eval_all_and_enforce_degs(kfrac_coords, ref_eigens, atol=ks_degatol)
+            eigens_kpath = qp_corrs if only_corrections else ref_eigens + qp_corrs
+
+        # Build new ebands object with k-path.
+        kpts_kpath = Kpath(self.structure.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
+        occfacts_kpath = np.zeros(eigens_kpath.shape)
+
+        # Finding the new Fermi level of the interpolated bands is not trivial, in particular if metallic.
+        # because one should first interpolate the QP bands on a mesh. Here I align the QP bands
+        # at the HOMO of the KS bands.
+        homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
+        qp_fermie = max([eigens_kpath[e.spin, e.kidx, e.band] for e in homos])
+        #qp_fermie = self.ebands.fermie
+        #qp_fermie = 0.0
+
+        qp_ebands_kpath = ElectronBands(self.structure, kpts_kpath, eigens_kpath, qp_fermie, occfacts_kpath,
+                                         self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+
+        qp_ebands_kmesh = None
+        if ks_ebands_kmesh is not None:
+            # Interpolate QP corrections on the same k-mesh as the one used in the KS run.
+            ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
+            if bstop > ks_ebands_kmesh.nband:
+                msg = "Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
+                    ks_ebands_kmesh%nband, bstop)
+                raise ValueError(msg)
+            if ks_ebands_kpath.structure != self.structure:
+                cprint("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!", "red")
+
+            # K-points and weight for DOS are taken from ks_ebands_kmesh
+            dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
+            dos_weights = [k.weight for k in ks_ebands_kmesh.kpoints]
+
+            # Interpolate QP corrections from bstart to bstop
+            ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
+            qp_corrs = skw.eval_all_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol)
+            eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
+
+            # Build new ebands object with k-mesh
+            #ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0,0,0], kptopt=1)
+            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
+                                   names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
+            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+            qp_ebands_kmesh = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
+                                            self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden)
+
+        return dict2namedtuple(qp_ebands_kpath=qp_ebands_kpath,
+                               qp_ebands_kmesh=qp_ebands_kmesh,
+                               ks_ebands_kpath=ks_ebands_kpath,
+                               ks_ebands_kmesh=ks_ebands_kmesh,
+                               interpolator=skw,
+                               )
 
     def write_notebook(self, nbpath=None):
         """
@@ -1055,14 +1320,27 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("print(sigres)"),
             nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
             nbv.new_code_cell("fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=1000)"),
-            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0,0,0], bands=0)"),
+            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
+            nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
+            nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),
+            nbv.new_code_cell("""
+if r.ks_ebands_kpath is not None:
+    plotter = abilab.ElectronBandsPlotter()
+    plotter.add_ebands("KS", r.ks_ebands_kpath) # dos=r.ks_ebands_kmesh.get_edos())
+    plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath) # dos=r.qp_ebands_kmesh.get_edos()))
+    plotter.combiplot(title="Silicon band structure")
+    #plotter.gridplot(title="Silicon band structure")
+    plotter.plot()
+""")
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 class SigresReader(ETSF_Reader):
-    """This object provides method to read data from the SIGRES file produced ABINIT.
+    r"""
+    This object provides method to read data from the SIGRES file produced ABINIT.
+
     # See 70gw/m_sigma_results.F90
 
     # Name of the diagonal matrix elements stored in the file.
@@ -1267,7 +1545,6 @@ class SigresReader(ETSF_Reader):
         # Frequencies for the spectral function.
         if self.has_spfunc:
             self._omega_r = self.read_value("omega_r")
-
             self._sigcme = self.read_value("sigcme", cmode="c")
             self._sigxcme = self.read_value("sigxcme", cmode="c")
 
@@ -1300,14 +1577,8 @@ class SigresReader(ETSF_Reader):
             This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
-        if isinstance(kpoint, int):
-            return kpoint
-            #kpoint = self.gwkpoints[kpoint]
-
-        try:
-            return self.ibz.index(kpoint)
-        except:
-            raise
+        if isinstance(kpoint, int): return kpoint
+        return self.ibz.index(kpoint)
 
     def gwkpt2seqindex(self, gwkpoint):
         """
@@ -1329,8 +1600,7 @@ class SigresReader(ETSF_Reader):
             qps = []
             for gwkpoint in self.gwkpoints:
                 ik = self.gwkpt2seqindex(gwkpoint)
-                bands = range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik])
-                for band in bands:
+                for band in range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik]):
                     qps.append(self.read_qp(spin, gwkpoint, band))
 
             qps_spin[spin] = QPList(qps)
@@ -1379,7 +1649,6 @@ class SigresReader(ETSF_Reader):
             raise ValueError("%s does not contain spectral function data" % self.path)
 
         ik = self.kpt2fileindex(kpoint)
-
         return self._omega_r, self._sigxcme[spin,:,ik,band]
 
     def read_spfunc(self, spin, kpoint, band):
@@ -1399,7 +1668,7 @@ class SigresReader(ETSF_Reader):
         aim_sigc = np.abs(self._sigcme[spin,:,ik,ib].imag)
 
         den = np.zeros(self.nomega_r)
-        for (io, omega) in enumerate(self._omega_r):
+        for io, omega in enumerate(self._omega_r):
             den[io] = (omega - self._hhartree[spin,ik,ib,ib].real - self._sigxcme[spin,io,ik,ib].real) ** 2 + \
                 self._sigcme[spin,io,ik,ib].imag ** 2
 

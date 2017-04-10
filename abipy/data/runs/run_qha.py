@@ -9,7 +9,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-from abipy.dfpt.qha import QhaFlow
+from abipy.flowtk.qha import QhaFlow
 
 
 def build_flow(options):

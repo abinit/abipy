@@ -9,7 +9,8 @@ import abipy.gui.electronswx as ewx
 from collections import OrderedDict
 
 from abipy.abilab import abifile_subclass_from_filename, abiopen
-from abipy.core.mixins import NcDumper, AbinitLogFile, AbinitOutputFile, get_filestat
+from abipy.core.mixins import NcDumper, get_filestat
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile
 from abipy.iotools.visualizer import Visualizer
 from abipy.waves import WfkFile
 from abipy.electrons import SigresFile, GsrFile
@@ -27,7 +28,7 @@ __all__ = [
 
 def popupmenu_for_filename(parent, filename):
     """
-    Factory function that returns the appropriate popup menu. 
+    Factory function that returns the appropriate popup menu.
 
     Args:
         parent:
@@ -81,7 +82,7 @@ def showAbinitTimerFrame(parent, filepath):
         frame = AbinitTimerFrame(parent, filepath)
         frame.Show()
     except awx.Error as exc:
-        awx.showErrorMessage(parent, str(exc)) 
+        awx.showErrorMessage(parent, str(exc))
 
 
 def showStructure(parent, filepath):
@@ -89,7 +90,7 @@ def showStructure(parent, filepath):
     visu_classes = Visualizer.get_available(ext="xsf")
     if not visu_classes:
         print("Not visualizer found for extension xsf")
-        return 
+        return
     vname = visu_classes[0].name
 
     visu = ncfile.structure.visualize(vname)
@@ -102,7 +103,7 @@ def showStructure(parent, filepath):
 class PopupMenu(wx.Menu):
     """
     Base class for popup menus. `A PopupMenu` has a list of callback functions
-    indexed by the menu title. The signature of the callback function is func(parent, filename) where 
+    indexed by the menu title. The signature of the callback function is func(parent, filename) where
     filename is the name of the file selected in the Widget and parent is the wx
     Window that will become the parent of the new frame created by the callback.
     """
@@ -140,7 +141,7 @@ class PopupMenu(wx.Menu):
                 else:
                     children.append(sc)
             return set(children)
-            
+
         for cls in allsubclasses(PopupMenu):
             if cls.handle_file_class(file_class):
                 return cls()
@@ -176,7 +177,7 @@ class PopupMenu(wx.Menu):
 
             # Add sentinel for Menu separator.
             self.menu_title_by_id["separator_" + str(len(self.menu_titles))] = None
-                                                                  
+
         for (id, title) in self.menu_title_by_id.items():
             if title is None:
                 sepid = int(id.split("_")[-1])
@@ -241,21 +242,21 @@ class NcFilePopupMenu(PopupMenu):
     """
     Base class for popup menus. `A PopupMenu` has a list of callback functions
     indexed by the menu title and a list of `AbinitNcFile` associated to it.
-    The signature of the callback function is func(filename, parent) where 
+    The signature of the callback function is func(filename, parent) where
     filename is the name of the file selected in the Widget and parent is the wx
     Window that will become the parent of the new frame created by the callback.
 
     How to subclass PopupMenu:
 
-        1. Define a new class that inherits from NcFilePopupMenu. 
+        1. Define a new class that inherits from NcFilePopupMenu.
 
         2. Define the callbacks in the class variable MENU_TITLES.
            Use OrderedDict to have a fixed ordering of the labels.
 
-        3. Define the class variable HANDLED_FILES with the list of 
+        3. Define the class variable HANDLED_FILES with the list of
            `AbinitNcFile` subclasses associated to the popupmenu.
 
-        4. Done (most of the work is indeed done in the base class and in 
+        4. Done (most of the work is indeed done in the base class and in
            the factory function popupmenu_for_filename.
     """
     MENU_TITLES = OrderedDict([
@@ -276,7 +277,7 @@ class EbandsPopupMenu(NcFilePopupMenu):
         ("eJdos", ewx.showElectronJdosFrame),
     ])
 
-    HANDLED_FILES = [WfkFile, GsrFile] 
+    HANDLED_FILES = [WfkFile, GsrFile]
 
 
 def showQPData(parent, filepath):
@@ -292,7 +293,7 @@ class SigResPopupMenu(NcFilePopupMenu):
         ("qpDataPlot", showQPData),
     ])
 
-    HANDLED_FILES = [SigresFile] 
+    HANDLED_FILES = [SigresFile]
 
 
 def showEXCMDF(parent, filepath):
@@ -306,5 +307,5 @@ class MDFPopupMenu(NcFilePopupMenu):
         ("mdfPlot", showEXCMDF),
     ])
 
-    HANDLED_FILES = [MdfFile] 
+    HANDLED_FILES = [MdfFile]
 

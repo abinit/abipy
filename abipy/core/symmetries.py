@@ -21,7 +21,7 @@ from abipy.iotools import as_etsfreader
 
 __all__ = [
     "LatticeRotation",
-    "SpaceGroup",
+    "AbinitSpaceGroup",
 ]
 
 def wrap_in_ucell(x):
@@ -100,7 +100,7 @@ def _get_det(mat):
         + mat[0,2]* (mat[1,0]*mat[2,1] - mat[1,1]*mat[2,0])
 
     if abs(det) != 1:
-        raise ValueError("determinant must be \pm 1 while it is %s" % det)
+        raise ValueError("determinant must be +-1 while it is %s" % det)
 
     return det
 
@@ -549,7 +549,7 @@ class OpSequence(collections.Sequence):
                 yield [self[i] for i in indices]
 
 
-class SpaceGroup(OpSequence):
+class AbinitSpaceGroup(OpSequence):
     """Container storing the space group symmetries."""
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
@@ -774,6 +774,9 @@ class SpaceGroup(OpSequence):
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
 
+# To maintain backward compatibility.
+SpaceGroup = AbinitSpaceGroup
+
 
 class LittleGroup(OpSequence):
     def __init__(self, kpoint, symmops, g0vecs):
@@ -844,8 +847,6 @@ class LatticePointGroup(OpSequence):
         # Remove blanks from C string.
         import spglib
         herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
-        #from pymatgen.symmetry.analyzer import get_point_group
-        #herm_symbol, ptg_num, trans_mat = get_point_group(rotations)
         self.herm_symbol = herm_symbol.strip()
         #print(self.herm_symbol, ptg_num, trans_mat)
 

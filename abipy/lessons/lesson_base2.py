@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 
 import abipy.abilab as abilab 
+import abipy.flowtk as flowtk
 import abipy.data as abidata
 import numpy as np
 
@@ -73,7 +74,7 @@ def ecut_convergence_study(ecuts=range(10, 40, 5)):
     for ecut in ecuts:
         inputs += h2_h_input(ecut=ecut)
 
-    flow = abilab.Flow.from_inputs("flow_h2h_ecut", inputs)
+    flow = flowtk.Flow.from_inputs("flow_h2h_ecut", inputs)
     flow.make_scheduler().start()
 
     import matplotlib.pyplot as plt
@@ -107,7 +108,7 @@ def acell_convergence_study(acell_list=range(8, 20, 2), ecut=10):
     inputs = []
     for acell in acell_list:
         inputs += h2_h_input(ecut=ecut, acell=3*[acell])
-    flow = abilab.Flow.from_inputs("flow_h2h_acell", inputs)
+    flow = flowtk.Flow.from_inputs("flow_h2h_acell", inputs)
     flow.make_scheduler().start()
 
     def hh_dist(gsr):

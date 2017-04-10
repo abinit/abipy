@@ -5,6 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.data as abidata  
+import abipy.flowtk as flowtk
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -68,18 +69,18 @@ def make_inputs(paw=False):
     return gs, nscf, scr, sigma
 
 
-def sigma_benchmark(options):
+def build_flow(options):
     """
     Build an `AbinitWorkflow` used for benchmarking ABINIT.
     """
     gs_inp, nscf_inp, scr_inp, sigma_inp = make_inputs(paw=options.paw)
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
-    bands = abilab.BandStructureWork(gs_inp, nscf_inp)
+    bands = flowtk.BandStructureWork(gs_inp, nscf_inp)
     flow.register_work(bands)
     flow.exclude_from_benchmark(bands)
 
-    scr_work = abilab.Work()
+    scr_work = flowtk.Work()
     scr_work.register_scr_task(scr_inp, deps={bands.nscf_task: "WFK"})
     flow.register_work(scr_work)
     flow.exclude_from_benchmark(scr_work)
@@ -87,13 +88,13 @@ def sigma_benchmark(options):
     mpi_list = options.mpi_list
 
     for nband in [200, 400, 600]:
-        sigma_work = abilab.Work()
+        sigma_work = flowtk.Work()
 
         if options.mpi_list is None:
             # Cannot call autoparal here because we need a WFK file.
             print("Using hard coded values for mpi_list")
             mpi_list = [np for np in range(1, nband+1) if abs(nband % np) < 1]
-        print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
+        if options.verbose: print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
 
         for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
@@ -112,7 +113,7 @@ def main(options):
         # print doc string and exit.
         print(__doc__)
         return 
-    flow = sigma_benchmark(options)
+    flow = build_flow(options)
     flow.build_and_pickle_dump()
     return flow
 

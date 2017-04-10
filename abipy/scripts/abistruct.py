@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Script to export/visualize the crystal structure saved in the netcdf files produced by ABINIT."""
+"""
+Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
+"""
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
@@ -13,6 +15,7 @@ from abipy import abilab
 from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
+from abipy.core.kpoints import Ktables
 
 
 @prof_main
@@ -26,15 +29,18 @@ Usage example:
     abistruct.py convert filepath abivars     => Print the ABINIT variables defining the structure.
     abistruct.py convert out_HIST abivars     => Read the last structure from the HIST file and
                                                  print the corresponding Abinit variables.
-    abistrcut.py kpath filepath               => Read structure from filepath and print Abinit variables for k-path.
+    abistruct.py kpath filepath               => Read structure from filepath and print Abinit variables for k-path.
     abistruct.py bz filepath                  => Read structure from filepath, plot BZ with matplotlib.
+    abistruct.py kmesh filepath -m 2 2 2      => Read structure from filepath, call spglib to sample the BZ with a 2,2,2 mesh,
+                                                 print points in IBZ with weights.
+
     abistruct.py abisanitize FILE             => Read structure from FILE, call abisanitize, compare structures and save
                                                  "abisanitized" structure to file.
-
-    abistruct.py conventional FILE             => Read structure from FILE, generate conventional structure
-                                                  following doi:10.1016/j.commatsci.2010.05.010
+    abistruct.py conventional FILE            => Read structure from FILE, generate conventional structure
+                                                 following doi:10.1016/j.commatsci.2010.05.010
     abistruct.py visualize filepath xcrysden  => Visualize the structure with XcrysDen.
     abistruct.py ipython filepath             => Read structure from filepath and open Ipython terminal.
+    abistruct.py notebook filepath            => Read structure from filepath and generate jupyter notebook.
     abistruct.py pmgdata mp-149               => Get structure from pymatgen database and print its JSON representation.
 """
 
@@ -99,13 +105,28 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
                                       help="Open IPython shell for advanced operations on structure object.")
 
+    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
+                                       help="Read structure from file and generate jupyter notebook.")
+    p_notebook.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
+
+    # Subparser for kpath.
+    p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
+                                    help="Read structure from file, generate k-path for band-structure calculations.")
+
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
                                  help="Read structure from file, plot Brillouin zone with matplotlib.")
 
-    # Subparser for bz.
-    p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
-                             help="Read structure from file, generate k-path for band-structure calculations.")
+    p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
+                                    help=("Read structure from filepath, call spglib to sample the BZ,"
+                                           "print k-points in the IBZ with weights."))
+    p_kmesh.add_argument("-m", "--mesh", nargs="+", required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_kmesh.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
+                         help=("Three integers (spglib API). The kmesh is shifted along " +
+                               "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
+                               "Default: Unshited mesh."))
+    p_kmesh.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
@@ -117,7 +138,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
-    p_pmgdata.add_argument("--mapi-key", default=None, 
+    p_pmgdata.add_argument("--mapi-key", default=None,
                            help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     p_pmgdata.add_argument("--endpoint", help="Pymatgen database.",
                            default="https://www.materialsproject.org/rest/v2")
@@ -235,6 +256,10 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         import IPython
         IPython.start_ipython(argv=[], user_ns={"structure": structure})
 
+    elif options.command == "notebook":
+        structure = abilab.Structure.from_file(options.filepath)
+        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground)
+
     elif options.command == "visualize":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure)
@@ -257,9 +282,22 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         structure = abilab.Structure.from_file(options.filepath)
         structure.show_bz()
 
+    elif options.command == "kmesh":
+        structure = abilab.Structure.from_file(options.filepath)
+        k = Ktables(structure, options.mesh, options.is_shift, not options.no_time_reversal)
+        print(k)
+        print("")
+        print("NB: These results are obtained by calling spglib with the structure read from file.")
+        print("The k-points might differ from the ones expected by Abinit, especially if the space groups differ.")
+
+        if not options.verbose:
+            print("\nUse -v to obtain the BZ --> IBZ mapping.")
+        else:
+            k.print_bz2ibz()
+
     elif options.command == "pmgdata":
         # Get the Structure corresponding the a material_id.
-        structure = abilab.Structure.from_material_id(options.pmgid, final=True, 
+        structure = abilab.Structure.from_material_id(options.pmgid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
         # Convert to json and print it.
         s = structure.convert(format="json")

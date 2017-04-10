@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import abipy.data as abidata  
+import abipy.flowtk as flowtk
 
 from abipy import abilab
 
@@ -20,11 +21,11 @@ def build_flow(options):
     pseudos = abidata.pseudos("14si.pspnc")
 
     # Initialize the flow.
-    flow = abilab.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
 
     # Use ebands_input factory function to build inputs.
     multi = abilab.ebands_input(structure, pseudos, kppa=40, nscf_nband=6, ndivsm=10, ecut=6)
-    work = abilab.BandStructureWork(scf_input=multi[0], nscf_input=multi[1])
+    work = flowtk.BandStructureWork(scf_input=multi[0], nscf_input=multi[1])
 
     flow.register_work(work)
     return flow
