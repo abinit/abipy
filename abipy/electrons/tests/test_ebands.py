@@ -69,11 +69,26 @@ class ElectronBandsTest(AbipyTest):
         str(gs_bands)
         assert gs_bands.to_string(title="Title", with_structure=False, with_kpoints=True, verbose=1)
 
-        # Test get_e0
+        for spin, ik, band in gs_bands.skb_iter():
+            assert spin == 0
+            assert gs_bands.nkpt >= ik >= 0
+            assert gs_bands.nband_sk[spin, ik] >= band >= 0
+
+        # Test ElectronBands get_e0
         assert gs_bands.get_e0("fermie") == gs_bands.fermie
         assert gs_bands.get_e0(None) == 0.0
         assert gs_bands.get_e0("None") == 0.0
         assert gs_bands.get_e0(1.0) == 1.0
+
+        dless_states = gs_bands.dispersionless_states()
+        assert not dless_states
+
+        estats = gs_bands.spacing()
+        self.assert_almost_equal(estats.mean, 2.3100587301616917)
+        self.assert_almost_equal(estats.stdev, 2.164400652355628)
+        self.assert_almost_equal(estats.min, 0)
+        self.assert_almost_equal(estats.max, 11.855874158768694)
+        print(estats)
 
         edos = gs_bands.get_edos()
         print(edos)
@@ -90,6 +105,12 @@ class ElectronBandsTest(AbipyTest):
         tot_d, tot_i = edos.dos_idos()
         self.assert_almost_equal(2 * d.values, tot_d.values)
         self.assert_almost_equal(2 * i.values, tot_i.values)
+
+        # Test ElectronDos get_e0
+        assert edos.get_e0("fermie") == edos.fermie
+        assert edos.get_e0(None) == 0.0
+        assert edos.get_e0("None") == 0.0
+        assert edos.get_e0(1.0) == 1.0
 
         self.serialize_with_pickle(edos, protocols=[-1], test_eq=False)
 

@@ -573,18 +573,18 @@ class ElectronBands(object):
         else:
             return self.kpoints.index(kpoint)
 
-    def sb_iter(self):
-        """Iterator over (spin, band) indices."""
-        for spin in self.spins:
-            for band in self.nband_sk[spin,k]:
-                yield spin, band
+    #def sb_iter(self, ik):
+    #    """Iterator over (spin, band) indices."""
+    #    for spin in self.spins:
+    #        for band in range(self.nband_sk[spin, ik]):
+    #            yield spin, band
 
     def skb_iter(self):
         """Iterator over (spin, k, band) indices."""
         for spin in self.spins:
-            for k in self.kidxs:
-                for band in self.nband_sk[spin,k]:
-                    yield spin, k, band
+            for ik in self.kidxs:
+                for band in range(self.nband_sk[spin, ik]):
+                    yield spin, ik, band
 
     def show_bz(self, **kwargs):
         """Call `matplotlib` to show the Brillouin zone."""
@@ -689,7 +689,7 @@ class ElectronBands(object):
         """
         This function detects dispersionless states.
         A state is dispersionless if there are more that (nkpt * kfact) energies
-        in the energy intervale [e0-deltae, e0+deltae]
+        in the energy intervale [e0 - deltae, e0 + deltae]
 
         Args:
             erange=Energy range to be analyzed in the form [emin, emax]
@@ -718,24 +718,24 @@ class ElectronBands(object):
 
         return dless_states
 
-    def raw_print(self, stream=sys.stdout):
-        """Print k-points and energies on stream."""
-        stream.write("# Band structure energies in Ev.\n")
-        stream.write("# idx   kpt_red(1:3)  ene(b1) ene(b2) ...\n")
+    #def raw_print(self, stream=sys.stdout):
+    #    """Print k-points and energies on stream."""
+    #    stream.write("# Band structure energies in Ev.\n")
+    #    stream.write("# idx   kpt_red(1:3)  ene(b1) ene(b2) ...\n")
 
-        fmt_k = lambda k: " %.6f" % k
-        fmt_e = lambda e: " %.6f" % e
-        for spin in self.spins:
-            stream.write("# spin = " + str(spin) + "\n")
-            for k, kpoint in enumerate(self.kpoints):
-                nb = self.nband_sk[spin,k]
-                ene_sk = self.eigens[spin,k,:nb]
-                st = str(k+1)
-                for c in kpoint: st += fmt_k(c)
-                for e in ene_sk: st += fmt_e(e)
-                stream.write(st+"\n")
+    #    fmt_k = lambda k: " %.6f" % k
+    #    fmt_e = lambda e: " %.6f" % e
+    #    for spin in self.spins:
+    #        stream.write("# spin = " + str(spin) + "\n")
+    #        for k, kpoint in enumerate(self.kpoints):
+    #            nb = self.nband_sk[spin,k]
+    #            ene_sk = self.eigens[spin,k,:nb]
+    #            st = str(k+1)
+    #            for c in kpoint: st += fmt_k(c)
+    #            for e in ene_sk: st += fmt_e(e)
+    #            stream.write(st+"\n")
 
-        stream.flush()
+    #    stream.flush()
 
     def to_dataframe(self, e0="fermie"):
         """
@@ -1044,7 +1044,7 @@ class ElectronBands(object):
         Returns:
             `namedtuple` with the statistical parameters in eV
         """
-        ediff = self.eigens[1:,:,:] - self.eigens[:self.mband-1,:,:]
+        ediff = self.eigens[:, :, 1:] - self.eigens[:, :, :self.mband-1]
 
         return StatParams(
             mean=ediff.mean(axis=axis),

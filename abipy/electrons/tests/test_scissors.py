@@ -21,6 +21,7 @@ class TestScissors(AbipyTest):
         # Construct the scissors operator
         domains = [[-10, 6.1], [6.1, 18]]
         scissors = qplist_spin[0].build_scissors(domains, bounds=None)
+        #scissors = qplist_spin[0].build_scissors(domains, bounds=None, plot=True)
 
         # Read the KS band energies computed on the k-path
         with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as nc:
@@ -49,5 +50,5 @@ class TestScissors(AbipyTest):
             # By default, the two band energies are shifted wrt to *their* fermi level.
             # Use e=0 if you don't want to shift the eigenvalus
             # so that it's possible to visualize the QP corrections.
-            plotter.combiplot(title="Silicon band structure")
-            plotter.gridplot(title="Silicon band structure")
+            plotter.combiplot(title="Silicon band structure", show=False)
+            plotter.gridplot(title="Silicon band structure", show=False)

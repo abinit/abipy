@@ -28,13 +28,6 @@ def test_if_all_scripts_are_tested():
             print("[%d] %s" % (i, s))
 
     assert len(not_tested) == 0
-    #assert not_tested == set([
-    #    "abiGWprint.py",
-    #    "abiGWstore.py",
-    #    "abiGWoutput.py",
-    #    "abiphonons.py",
-    #    "abiGWsetup.py",
-    #])
 
 
 class ScriptTest(AbipyTest):
@@ -160,7 +153,7 @@ class TestAbicomp(ScriptTest):
         env = self.get_env()
 
         cif_paths = abidata.cif_files("al.cif", "gan.cif", "gan2.cif")
-        r = env.run(self.script, "structure", *cif_paths, self.loglevel, self.verbose,
+        r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")
@@ -197,14 +190,14 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "mdf", args[0], args[1], args[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-       # args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
+       # args = abidata.ref_files()
        # r = env.run(self.script, "gs_scf", *args, self.loglevel, self.verbose,
        #             expect_stderr=self.expect_stderr)
 
-        #args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
+        #args = abidata.ref_files()
         #r = env.run(self.script, "dfpt2_scf", *args, self.loglevel, self.verbose,
 
-        #args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
+        #args = abidata.ref_files()
         #r = env.run(self.script, "time", *args, self.loglevel, self.verbose,
 
 
