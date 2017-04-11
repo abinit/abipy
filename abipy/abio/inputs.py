@@ -848,8 +848,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
-            print(varnames, values)
-            raise self.Error("The number of variables must equal the number of lists")
+            raise self.Error("The number of variables must equal the number of lists\n"
+                              "varnames: %s\nvalues %s" % (str(varnames), str(values)))
 
         # TODO: group varnames and varvalues!
         #varnames = [t[0] for t in items]
@@ -966,7 +966,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             # TODO
             elif "kptrlatt" in new:
-                raise NotImplemented("kptrlatt in new_with_structure")
+                raise NotImplementedError("kptrlatt in new_with_structure")
                 #new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
             else:
                # Single k-point
@@ -1872,7 +1872,7 @@ class MultiDataset(object):
             new_mds.extend(other)
             return new_mds
         else:
-            return NotImplemented
+            return NotImplementedError("Operation not supported")
 
     def __radd__(self, other):
         if isinstance(other, AbinitInput):
@@ -1882,7 +1882,7 @@ class MultiDataset(object):
             new_mds = MultiDataset.from_inputs(other)
             new_mds.extend(self)
         else:
-            return NotImplemented
+            return NotImplementedError("Operation not supported")
 
     def append(self, abinit_input):
         """Add a :class:`AbinitInput` to the list."""

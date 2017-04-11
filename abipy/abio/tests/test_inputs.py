@@ -176,8 +176,10 @@ class TestAbinitInput(AbipyTest):
         ranginps = inp.arange("ecut", start=3, stop=5, step=1)
         assert len(ranginps) == 2 and (ranginps[0]["ecut"] == 3 and (ranginps[-1]["ecut"] == 4))
 
-        prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
-        #prod_inps = inp.product([("ngkpt", [[2,2,2], [4,4,4]]), ("tsmear", [0.1, 0.2, 0.3])])
+        with self.assertRaises(inp.Error):
+            inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]])
+
+        prod_inps = inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
         assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3

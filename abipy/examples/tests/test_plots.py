@@ -24,6 +24,7 @@ class TestPlots(AbipyTest):
 
     def test_plots_with_exec(self):
         """Running plot script with exec."""
+        raise unittest.SkipTest("Skipping matplotlib examples")
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib is not installed")
 

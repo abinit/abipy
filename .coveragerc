@@ -29,3 +29,4 @@ omit =
     *tests/*
     *htc/*
     *gui/*
+    ./docs/
