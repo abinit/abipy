@@ -12,8 +12,7 @@ class TestMesh3D(AbipyTest):
 
     def test_base(self):
         """Testing mesh3d methods"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
+        rprimd = np.reshape([1., 0, 0, 0, 1, 0, 0, 0, 1], (3, 3))
 
         mesh_443 = Mesh3D((4,4,3), rprimd)
         assert len(mesh_443) == 4 * 4 * 3
@@ -48,11 +47,26 @@ class TestMesh3D(AbipyTest):
 
         # Iteration
         # i = iz + iy * nz + ix * ny * nz
+        #ny, nz = mesh_443.ny, mesh_443.nz
+        #nyz = mesh_443.ny * nz
         #for i, r in enumerate(mesh_443):
-        #    ix = i % (mesh_443.ny * mesh_443.nz)
-        #    iy = (i - ix * mesh_443.ny * mesh_443.nz) % mesh_443.nz
-        #    iz = i - iy * mesh_443.nz - ix * mesh_443.ny * mesh_443.nz
+        #    #iyz, ix = divmod(i, nyz)
+        #    ix, iyz = divmod(i, nyz)
+        #    iy, iz = divmod(iyz, ny)
         #    assert np.all(mesh_443.rpoint(ix, iy, iz) == r)
+
+        for ixyz, r in mesh_443.iter_ixyz_r():
+            self.assert_equal(mesh_443.rpoint(*ixyz), r)
+
+        shift = 0.2 * mesh_443.dvx + 0.1 * mesh_443.dvy + 0.3 * mesh_443.dvz
+        for ix in range(mesh_443.nx):
+            for iy in range(mesh_443.ny):
+                for iz in range(mesh_443.nz):
+                    r = mesh_443.rpoint(ix, iy, iz)
+                    self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
+                    r += shift
+                    self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
+
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""

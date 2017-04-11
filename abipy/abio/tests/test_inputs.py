@@ -131,7 +131,6 @@ class TestAbinitInput(AbipyTest):
         assert popped["npband"] == 2 and "npband" not in new_inp
         assert popped["npfft"] == 3 and "npfft" not in new_inp
 
-
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -184,7 +183,51 @@ class TestAbinitInput(AbipyTest):
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
 
     # TODO
-    #def test_new_with_structure(self)
+    def test_new_with_structure(self):
+        """Testing new_with_structure."""
+
+        si2_inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"),
+                abi_kwargs={"ecut": 4, "toldfe": 1e-10, "nband": 6, "ngkpt": [12, 12, 12]})
+
+        # Build new input with same parameters and compressed unit cell.
+        new_vol = 0.9 * si2_inp.structure.volume
+        new_lattice = si2_inp.structure.lattice.scale(new_vol)
+        new_structure = abilab.Structure(new_lattice, si2_inp.structure.species, si2_inp.structure.frac_coords)
+
+        new_inp = si2_inp.new_with_structure(new_structure, scdims=None)
+        assert new_inp.structure.volume == new_vol
+        assert new_inp["ecut"] == 4
+
+        #al2_structure = abilab.Structure.from_file(abidata.cif_file("al.cif"))
+
+        # Let's build an input file for a (2, 3, 4) supercell
+        #super_structure = si2_inp.structure.make_supercell
+        scdims = np.array((2, 3, 4))
+        # Note: This will return a pymatgen structure, not an Abipy structure.
+        super_structure = si2_inp.structure * scdims
+        sc_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
+        assert isinstance(sc_inp.structure, abilab.Structure)
+        assert len(sc_inp.structure) == 2 * scdims.prod()
+        self.assert_almost_equal(sc_inp.structure.volume, si2_inp.structure.volume * scdims.prod())
+        assert sc_inp["chkprim"] == 0
+        assert sc_inp["nband"] == si2_inp["nband"] * scdims.prod()
+        self.assert_equal(sc_inp["ngkpt"], [6, 4, 3])
+        self.abivalidate_input(sc_inp)
+        #sc_inp.write(filepath=self.tmpfileindir("run.abi"))
+
+        # TODO
+        # Test new_with_structure with nsppol == 2
+        # In this case, we have the `spinat` array that depends on natom
+        #si2_inp["nsppol"] = 2
+        #si2_inp["spinat"] = [[0, 0, 1], [0, 0 -1]]
+        #scdims = np.array((1, 1, 2))
+        #super_structure = si2_inp.structure * scdims
+        #with self.assertRaises(ValueError):
+        #    si2_inp.new_with_structure(new_structure, scdims=scdims)
+
+        #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
+        #self.abivalidate_input(new_inp)
+
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
@@ -483,14 +526,15 @@ class AnaddbInputTest(AbipyTest):
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
         assert inp2['ifcflag'] == 1
-
         print(inp2.to_string(sortmode="a"))
+        self.abivalidate_input(inp2)
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
         assert inp3['ifcflag'] == 1
         assert inp3['prtdos'] == 1
         print(inp3.to_string(sortmode="a"))
+        self.abivalidate_input(inp3)
 
         # Compatible with deepcopy and Pickle?
         for i in (inp, inp2, inp3):
@@ -509,6 +553,7 @@ class AnaddbInputTest(AbipyTest):
             [[ 0.        , 0.184959  , 0.       , 0.],
              [ 0.13871925, 0.13871925, 0.       , 0.],
              [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
+        self.abivalidate_input(inp_loto)
 
     def test_thermo(self):
         """Test the thermodynamics constructor"""
@@ -528,6 +573,7 @@ class AnaddbInputTest(AbipyTest):
         assert str(anaddb_input)
         for flag in ('ifcflag', 'dieflag'):
             assert anaddb_input[flag] == 1
+        self.abivalidate_input(anaddb_input)
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
@@ -541,14 +587,17 @@ class AnaddbInputTest(AbipyTest):
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
+        self.abivalidate_input(anaddb_input)
 
     def test_piezo_elastic(self):
         """Testing piezo_elastic constructor."""
         anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=True)
         assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 0
+        self.abivalidate_input(anaddb_input)
 
         anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False)
         assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
+        self.abivalidate_input(anaddb_input)
 
 
 class TestCut3DInput(AbipyTest):

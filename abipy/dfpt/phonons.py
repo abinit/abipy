@@ -1127,7 +1127,7 @@ class PhononBands(object):
                 phdos_file = PhdosFile(phdos_file)
                 close_phdos_file = True
             else:
-                if not isinstance(phdos_kwargs, PhdosFile):
+                if not isinstance(phdos_file, PhdosFile):
                     raise TypeError("Expecting string or PhdosFile, got %s" % type(phdos_file))
 
         # Grid with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
@@ -1925,7 +1925,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
         """
-        Plot of type-projected phonon DOS
+        Plot type-projected phonon DOS.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.

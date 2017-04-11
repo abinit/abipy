@@ -17,14 +17,13 @@ class DdbTest(AbipyTest):
 
     def test_alas_ddb_1qpt_phonons(self):
         """Testing DDB with one q-point"""
-        ddb_fname = os.path.join(test_dir, "AlAs_1qpt_DDB")
-
-        with DdbFile(ddb_fname) as ddb:
+        with DdbFile(os.path.join(test_dir, "AlAs_1qpt_DDB")) as ddb:
             repr(ddb)
             print(ddb)
             # Test qpoints.
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert len(ddb.qpoints) == 1
+
 
             # Test header
             h = ddb.header
@@ -34,6 +33,7 @@ class DdbTest(AbipyTest):
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
             print(h.znucl)
             assert "ecut" in ddb.params
+            assert ddb.version == 100401
 
             assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
             assert np.all(h.symrel[2].T.ravel() == [-1, 0, 0, -1, 0, 1, -1, 1, 0])
@@ -138,8 +138,9 @@ class DdbTest(AbipyTest):
 
         # Test DOS computation via anaddb.
         c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=None)
+        assert c.phdoses and c.plotter is not None
         if self.has_matplotlib():
-            c.plotter.plot(show=False)
+            c.plotter.combiplot(show=False)
 
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()

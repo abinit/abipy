@@ -32,5 +32,4 @@ def profile(statement, global_vars, local_vars):
 
     s = pstats.Stats(filename)
     s.strip_dirs().sort_stats("time").print_stats()
-
     os.remove(filename)

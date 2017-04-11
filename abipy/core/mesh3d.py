@@ -84,6 +84,16 @@ class Mesh3D(object):
                 for iz in range(self.nz):
                     yield ix * self.dvx + iy * self.dvy + iz * self.dvz
 
+    def iter_ixyz_r(self):
+        """
+        Iterator returning (ixyz, rr) where ixyz gives the index of the point and r is the point on the grid.
+        """
+        for ix in range(self.nx):
+            for iy in range(self.ny):
+                for iz in range(self.nz):
+                    rr = ix * self.dvx + iy * self.dvy + iz * self.dvz
+                    yield np.array((ix, iy, iz), dtype=np.int), rr
+
     def rpoint(self, ix, iy, iz):
         """The vector corresponding to the (ix, iy, iz) indices"""
         return ix * self.dvx + iy * self.dvy + iz * self.dvz
@@ -107,7 +117,7 @@ class Mesh3D(object):
         """Number of points along z."""
         return self.shape[2]
 
-    @property
+    @lazy_property
     def inv_vectors(self):
         return np.linalg.inv(self.vectors)
 
@@ -298,101 +308,108 @@ class Mesh3D(object):
     #                    0:1:1/self.ny,
     #                    0:1:1/self.nz]
 
-    def line_inds(self, line):
-        """
-        Returns an ogrid with the indices associated to the specified line.
+    #def line_inds(self, line):
+    #    """
+    #    Returns an ogrid with the indices associated to the specified line.
 
-        Args:
-            line:
-                String specifying the type of line (in reduced coordinates),
-                e.g. "x", "y", "z".
-        """
-        line = line.lower()
+    #    Args:
+    #        line:
+    #            String specifying the type of line (in reduced coordinates),
+    #            e.g. "x", "y", "z".
+    #    """
+    #    line = line.lower()
 
-        if line == "x":
-            return np.ogrid[0:self.nx, 0:1, 0:1]
-        elif line == "y":
-            return np.ogrid[0:1, 0:self.ny, 0:1]
-        elif line == "z":
-            return np.ogrid[0:1, 0:1, 0:self.nz]
-        else:
-            raise ValueError("Wrong line %s" % line)
+    #    if line == "x":
+    #        return np.ogrid[0:self.nx, 0:1, 0:1]
+    #    elif line == "y":
+    #        return np.ogrid[0:1, 0:self.ny, 0:1]
+    #    elif line == "z":
+    #        return np.ogrid[0:1, 0:1, 0:self.nz]
+    #    else:
+    #        raise ValueError("Wrong line %s" % line)
 
-    def plane_inds(self, plane, h):
-        """
-        Returns an ogrid with the indices associated to the specified plane.
+    #def plane_inds(self, plane, h):
+    #    """
+    #    Returns an ogrid with the indices associated to the specified plane.
 
-        Args:
-            plane:
-                String specifying the type of plane (in reduced coordinates),
-                e.g. "xy" "xz" ...
-            h:
-                Index giving the position of the plane along the perpendicular.
-        """
-        plane = plane.lower()
-        nx, ny, nz = self.nx, self.ny, self.nz
+    #    Args:
+    #        plane:
+    #            String specifying the type of plane (in reduced coordinates),
+    #            e.g. "xy" "xz" ...
+    #        h:
+    #            Index giving the position of the plane along the perpendicular.
+    #    """
+    #    plane = plane.lower()
+    #    nx, ny, nz = self.nx, self.ny, self.nz
 
-        if plane in ("xy", "yx"):
-            return np.ogrid[0:nx, 0:ny, h:h+1]
-        elif plane in ("xz", "zx"):
-            return np.ogrid[0:nx, h:h+1, 0:nz]
-        elif plane in ("yz", "zy"):
-            return np.ogrid[h:h+1, 0:ny, 0:nz]
-        else:
-            raise ValueError("Wrong plane %s" % plane)
+    #    if plane in ("xy", "yx"):
+    #        return np.ogrid[0:nx, 0:ny, h:h+1]
+    #    elif plane in ("xz", "zx"):
+    #        return np.ogrid[0:nx, h:h+1, 0:nz]
+    #    elif plane in ("yz", "zy"):
+    #        return np.ogrid[h:h+1, 0:ny, 0:nz]
+    #    else:
+    #        raise ValueError("Wrong plane %s" % plane)
 
-    def irottable(self, symmops):
-        nsym = len(symmops)
-        nx, ny, nz = self.nx, self.ny, self.nz
+    #def irottable(self, symmops):
+    #    nsym = len(symmops)
+    #    nx, ny, nz = self.nx, self.ny, self.nz
 
-        red2fft = np.diag([nx, ny, nz])
-        fft2red = np.diag([1/nx, 1/ny, 1/nz])
+    #    red2fft = np.diag([nx, ny, nz])
+    #    fft2red = np.diag([1/nx, 1/ny, 1/nz])
 
-        # For a fully compatible mesh, each mat in rotsm1_fft should be integer
-        rotsm1_fft, tnons_fft = np.empty((nsym, 3, 3)), np.empty((nsym, 3))
+    #    # For a fully compatible mesh, each mat in rotsm1_fft should be integer
+    #    rotsm1_fft, tnons_fft = np.empty((nsym, 3, 3)), np.empty((nsym, 3))
 
-        for isym, symmop in enumerate(symmops):
-            rotm1_r, tau = symmop.rotm1_r, symmop.tau
-            rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)
-            tnons_fft[isym] = np.dot(red2fft, tau)
+    #    for isym, symmop in enumerate(symmops):
+    #        rotm1_r, tau = symmop.rotm1_r, symmop.tau
+    #        rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)
+    #        tnons_fft[isym] = np.dot(red2fft, tau)
 
-        # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
-        irottable = np.empty((nsym, nx*ny*nz), dtype=np.int)
+    #    # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
+    #    irottable = np.empty((nsym, nx*ny*nz), dtype=np.int)
 
-        #max_err = 0.0
-        nxyz = np.array((nx, ny, nz), np.int)
-        for isym in range(nsym):
-            rm1_fft = rotsm1_fft[isym]
-            tau_fft = tnons_fft[isym]
-            for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
-                # Form R^-1 (r-\tau) in the FFT basis.
-                p1_fft = np.array(p1_fft)
-                prot_fft = np.dot(rm1_fft, p1_fft - tau_fft)
-                #err = ABS(prot_fft - (ix, iy, iz)) / (nx, ny, nz)
-                prot_fft = np.round(prot_fft)
-                jx, jy, jz = prot_fft % nxyz
-                irottable[isym, ifft] = jz + (jy * nz) + (jx * nx * ny)
+    #    #max_err = 0.0
+    #    nxyz = np.array((nx, ny, nz), np.int)
+    #    for isym in range(nsym):
+    #        rm1_fft = rotsm1_fft[isym]
+    #        tau_fft = tnons_fft[isym]
+    #        for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
+    #            # Form R^-1 (r-\tau) in the FFT basis.
+    #            p1_fft = np.array(p1_fft)
+    #            prot_fft = np.dot(rm1_fft, p1_fft - tau_fft)
+    #            #err = ABS(prot_fft - (ix, iy, iz)) / (nx, ny, nz)
+    #            prot_fft = np.round(prot_fft)
+    #            jx, jy, jz = prot_fft % nxyz
+    #            irottable[isym, ifft] = jz + (jy * nz) + (jx * nx * ny)
 
-        # Test
-        #for isym in range(nsym):
-        #    irottable[isym, ifft]
-        #    rm1_fft = rotsm1_fft[isym]
-        #    tau_fft = tnons_fft[isym]
-        #    for ifft, p1_fft in enumerate(itertools.product(range(nx), range(ny), range(nz))):
-        #        irot_fft == irottable[isym, ifft]
+    #    # Test
+    #    #for isym in range(nsym):
+    #    #    irottable[isym, ifft]
+    #    #    rm1_fft = rotsm1_fft[isym]
+    #    #    tau_fft = tnons_fft[isym]
+    #    #    for ifft, p1_fft in enumerate(itertools.product(range(nx), range(ny), range(nz))):
+    #    #        irot_fft == irottable[isym, ifft]
 
-        return irottable
+    #    return irottable
 
     def i_closest_gridpoints(self, points):
+        """
+        Given a list of points, this function return a numpy array with the indices of the closest gridpoint.
+        """
+        points = np.reshape(points, (-1, 3))
         inv_vectors = self.inv_vectors
         fcoords = [np.dot(point, inv_vectors) for point in points]
-        return [[np.mod(int(np.rint(pc[ii]*self.shape[ii])), self.nx) for ii in range(3)] for pc in fcoords]
+        inds = [[np.mod(int(np.rint(pc[ii]*self.shape[ii])), self.nx) for ii in range(3)] for pc in fcoords]
+        return np.array(inds)
+
         # return [(int(np.rint(pc[ii]*self.nx)), int(np.rint(pc[0]*self.nx)),int(np.rint(pc[0]*self.nx))) for pc in coords]
         # ix = int(np.rint(coords[0]*self.nx))
         # iy = int(np.rint(coords[1]*self.ny))
         # iz = int(np.rint(coords[2]*self.nz))
         # return (ix, iy, iz)
 
+    # @DW TODO Add test.
     def dist_gridpoints_in_spheres(self, points, radius):
         # c_ab = np.cross(self.vectors[0], self.vectors[1])
         # c_bc = np.cross(self.vectors[1], self.vectors[2])

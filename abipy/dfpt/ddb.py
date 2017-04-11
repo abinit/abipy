@@ -12,6 +12,7 @@ from six.moves import map, zip, StringIO
 from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.dev import get_ncpus, deprecated
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
@@ -110,7 +111,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @property
     def structure(self):
+        """Abipy Structure."""
         return self._structure
+
+    @property
+    def natom(self):
+        """Number of atoms in structure"""
+        return len(self.structure)
+
+    @property
+    def version(self):
+        """DDB Version number (integer)."""
+        return self.header["version"]
 
     @property
     def header(self):
@@ -256,6 +268,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
 
+        # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
+
         return blocks
 
     @property
@@ -324,11 +338,31 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     #def has_phonon_terms(self, qpoint)
     #    """True if the DDB file contains info on the phonon perturbation."""
 
-    #def has_emacro_terms(self)
-    #    """True if the DDB file contains info on the electric-field perturnation."""
+    #def has_emacro_terms(self, ij="at_least_one"):
+    #    """
+    #    True if the DDB file contains info on the electric-field perturbation.
 
-    #def has_bec_terms(self)
-    #    """True if the DDB file contains info on the Born effective charges."""
+    #        Args:
+    #            ij: Possible values in ["at_least_one", "all"] or tuple e.g. (0, 1)
+    #            If ij == "at_least_one", we check if there's at least one entry associated to the electric field.
+    #            and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+    #            If ij == "all", all tensor components must be present in the DDB file.
+    #            If ij == (0, 1), the method returns False if the (0, 1) component of the tensor is not present in the DDB.
+    #    """
+
+    #def has_bec_terms(self, ij="at_least_one"):
+    #    """
+    #    True if the DDB file contains info on the Born effective charges.
+    #    By default, we check if there's at least one entry associated to electric field.
+    #    and we assume that anaddb will be able to reconstruct the full tensor by symmetry
+
+    #    Args:
+    #            ij: "at_least_one", "all", (1,2)
+    #    """
+
+    #def has_lo_to_data(self)
+    #    """True if the DDB file contains data requires to compute LO-TO splitting."""
+    #    return self.has_bec_terms() and self.has_emacro_terms()
 
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None,
                                  manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
@@ -361,6 +395,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             self.qindex(qpoint)
         except:
             raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
+
+        #if lo_to_splitting and not self.has_lo_to_data:
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
@@ -418,6 +455,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
+        #if lo_to_splitting and not self.has_lo_to_data:
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
+
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
@@ -443,15 +483,19 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return phbst, task.open_phdos()
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
-                         num_cpus=None, stream=sys.stdout):
+                         num_cpus=1, stream=sys.stdout):
         """
+        Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
+        reported in the DDB file will be Fourier-interpolated on the list of qmeshes specified
+        by `nqsmalls. Useful to perform covergence studies.
+
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
             the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.
             stream: File-like object used for printing.
 
@@ -459,9 +503,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             `namedtuple` with the following attributes:
 
                 phdoses: List of :class:`PhononDos` objects
-                plotter: :class:`PhononDosPlotter` object. Use plotter.plot() to visualize the results.
+                plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`
+                    to visualize the results.
         """
-        num_cpus = get_ncpus() if num_cpus is None else num_cpus
+        num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
 
@@ -666,16 +711,32 @@ bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, as
                                    qptbounds=None, anaddb_kwargs=None)
 phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
             nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos)"),
+            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile)"),
+            nbv.new_code_cell("#fig = phbands.plot_colored_matched()"),
+            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_type()"),
+            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_type()"),
+            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site()"),
 
             nbv.new_code_cell("""\
-emacro, becs = ddb.anaget_emacro_and_becs()
-print(emacro)
-print(becs)
-"""),
+c = None
+if False:
+    c = ddb.anacompare_phdos(nqsmalls=[20, 30], asr=2, chneut=1, dipdip=1,
+            dos_method="tetra", ngqpt=None, num_cpus=1)"""),
 
             nbv.new_code_cell("""\
-ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)
-"""),
+if c is not None:
+    c.plotter.ipw_select_plot()
+    #for phdos in c.phdoses"""),
+
+            nbv.new_code_cell("""\
+if False:
+    emacro, becs = ddb.anaget_emacro_and_becs()
+    print(emacro)
+    print(becs)"""),
+
+            nbv.new_code_cell("""\
+if False:
+    ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

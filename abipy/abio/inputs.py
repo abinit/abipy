@@ -26,7 +26,7 @@ from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
-from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
+from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
 
@@ -240,9 +240,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
                 retcode: Return code. 0 if OK.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-
-        Raises:
-            `RuntimeError` if executable is not in $PATH.
         """
 
 
@@ -882,6 +879,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         new.set_vars(*args, **kwargs)
         return new
 
+    #def new_with_supercell(self, scdims):
+    #    sucell = self.structure * scdims
+    #    return new_with_structure(sucell, scdims)
+
     def new_with_structure(self, structure, scdims=None):
         """
         Return a new :class:`AbinitInput` with a different structure
@@ -903,7 +904,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         # Check structure
         if scdims is None:
-            # Same value of natom and typat
+            # Assume same value of natom and typat
             if len(self.structure) != len(structure):
                 raise ValueError("Structures must have same value of natom")
             errors = []
@@ -921,15 +922,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             numcells = np.product(scdims)
             if len(structure) != numcells * len(self.structure):
-                errmsg = "Number of atoms in input structure should be %d * %d but found %d" % (
+                errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(structure))
                 raise ValueError(errmsg)
 
             if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
                                   [site.specie.symbol for site in structure]):
-                errmsg = "Wrong supercell"
-                raise ValueError(errmsg)
-            # TODO CHeck angles and lengths
+                raise ValueError("Wrong supercell")
+            # TODO Check angles and lengths
 
         # Build new input
         new = AbinitInput(structure, self.pseudos, abi_args=list(self.items()),
@@ -962,21 +962,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
-                print("new new:", new["ngkpt"])
+                print("new ngkpt:", new["ngkpt"])
 
             # TODO
-            #elif "kptrlatt" in new:
-            #   new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
-            #else:
-            #   """Single k-point"""
+            elif "kptrlatt" in new:
+                raise NotImplemented("kptrlatt in new_with_structure")
+                #new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
+            else:
+               # Single k-point
+               pass
+
+            # Add chkprim if not yet done.
+            new.set_vars_ifnotin(chkprim=0)
 
         return new
 
     def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
-        applyes the decorators to the input and returns a new :class:`AbinitInput` object.
-        self is not changed.
+        applies the decorators to the input and returns a new :class:`AbinitInput` object. self is not changed.
         """
         if not isinstance(decorators, (list, tuple)): decorators = [decorators]
 
@@ -996,7 +1000,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def pop_irdvars(self):
         """
-        Remove all the ird variables present in self.
+        Remove all the `ird*` variables present in self.
         Return dictionary with the variables that have been removed.
         """
         return self.remove_vars(_IRDVARS, strict=False)
@@ -1004,7 +1008,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     @property
     def scf_tolvar(self):
         """
-        Returns the tolerance variable and value relative to the scf convergence.
+        Returns the tolerance variable and value relative to the SCF convergence.
         If more than one is present raise an error
         """
         tolvar, value = None, None
@@ -1020,7 +1024,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def make_ph_inputs_qpoint(self, qpt, tolerance=None):
         """
         This functions builds and returns a list of input files
-        for the calculation of phonons at the given q-point `qpt.
+        for the calculation of phonons at the given q-point `qpt`.
         It should be called with an input the represents a GS run.
 
         Args:
@@ -1338,7 +1342,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def abivalidate(self, workdir=None, manager=None):
         """
-        Run ABINIT in dry mode to validate the input file.
+        Run ABINIT in dry-run mode to validate the input file.
 
         Args:
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
@@ -1350,9 +1354,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 retcode: Return code. 0 if OK.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-
-        Raises:
-            `RuntimeError` if executable is not in $PATH.
         """
         task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
@@ -2209,7 +2210,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 value, eunit = dos_method[i+1:].split()
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
-            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
+            raise cls.Error("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
@@ -2486,10 +2487,24 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
     def abivalidate(self, workdir=None, manager=None):
+        """
+        Run ANADDB in dry-run mode to validate the input file.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+        """
+        task = AnaddbTask.temp_shell_task(self, ddb_node="fake_DDB", workdir=workdir, manager=manager)
         # TODO: Anaddb does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+        return dict2namedtuple(retcode=0, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
@@ -2505,7 +2520,7 @@ class OpticError(Exception):
 
 class OpticInput(AbstractInput, MSONable):
     """
-    Input file for optic.
+    Input file for optic executable
 
     Example:
         &FILES
@@ -2669,8 +2684,23 @@ class OpticInput(AbstractInput, MSONable):
         return "\n".join(lines)
 
     def abivalidate(self, workdir=None, manager=None):
+        """
+        Run OPTIC in dry-run mode to validate the input file.
+        Note: This method is a stub, it always return retcode 0
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+        """
         # TODO: Optic does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
+        #task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
 
