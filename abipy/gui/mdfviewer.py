@@ -2,7 +2,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
-
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
@@ -12,7 +11,7 @@ from abipy.abilab import abiopen
 from abipy.electrons.bse import MdfPlotter
 from abipy.iotools.visualizer import Visualizer
 from abipy.gui.kpoints import KpointsPanel
-from abipy.gui import mixins as mix 
+from abipy.gui import mixins as mix
 from abipy.gui.baseviewer import MultiViewerFrame
 
 
@@ -68,7 +67,7 @@ Also, these key bindings can be used
     @property
     def ebands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `ElectronBands` have been read.
         """
         paths = []
@@ -89,7 +88,7 @@ Also, these key bindings can be used
     @property
     def mdf_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `MDF_Files` have been read.
         """
         paths = []
@@ -122,14 +121,14 @@ Also, these key bindings can be used
         # Help menu
         help_menu = self.makeHelpMenu()
         menu_bar.Append(help_menu, "Help")
-                                           
+
         self.SetMenuBar(menu_bar)
 
     def CreateMdfMenu(self):
         # MDF Menu ID's
         self.ID_MDF_PLOT_AVERAGE = wx.NewId()
         self.ID_MDF_COMPARE = wx.NewId()
-                                                                                      
+
         menu = wx.Menu()
         menu.Append(self.ID_MDF_PLOT_AVERAGE, "Plot averaged MDF", "Plot the average of the macroscopic dielectric function")
         self.Bind(wx.EVT_MENU, self.onPlotAveragedMdf, id=self.ID_MDF_PLOT_AVERAGE)
@@ -137,7 +136,7 @@ Also, these key bindings can be used
         menu.AppendSeparator()
 
         menu.Append(self.ID_MDF_COMPARE, "Compare MDF", "Compare multiple macroscopic dielectric functions")
-        self.Bind(wx.EVT_MENU, self.OnMdfCompare, id=self.ID_MDF_COMPARE)                                                                                                            
+        self.Bind(wx.EVT_MENU, self.OnMdfCompare, id=self.ID_MDF_COMPARE)
 
         return menu
 
@@ -184,15 +183,15 @@ Also, these key bindings can be used
 
         # Combo box with the list of MDF types
         mdf_types = ["ALL", "EXC", "RPA", "GWRPA"]
-        self.mdftype_cbox = wx.ComboBox(toolbar, id=-1, name='MDF type', choices=mdf_types, value="ALL", style=wx.CB_READONLY) 
+        self.mdftype_cbox = wx.ComboBox(toolbar, id=-1, name='MDF type', choices=mdf_types, value="ALL", style=wx.CB_READONLY)
         self.mdftype_cbox.SetToolTipString("Select the type of MDF spectra to plot.")
-        toolbar.AddControl(control=self.mdftype_cbox, label="MDF Type:") 
+        toolbar.AddControl(control=self.mdftype_cbox, label="MDF Type:")
 
         # Combo box with the list of complex modes
         cplx_modes = ["Re-Im", "Re", "Im"]
-        self.cplx_cbox = wx.ComboBox(toolbar, id=-1, name='COMPLEX mode', choices=cplx_modes, value="Re-Im", style=wx.CB_READONLY) 
+        self.cplx_cbox = wx.ComboBox(toolbar, id=-1, name='COMPLEX mode', choices=cplx_modes, value="Re-Im", style=wx.CB_READONLY)
         self.cplx_cbox.SetToolTipString("Select the component of the MDF spectra to plot (real or imaginary part).")
-        toolbar.AddControl(control=self.cplx_cbox, label="Complex Mode:") 
+        toolbar.AddControl(control=self.cplx_cbox, label="Complex Mode:")
 
         toolbar.Realize()
 
@@ -231,7 +230,7 @@ Also, these key bindings can be used
             return awx.showErrorMessage(self, "ALL is not supported by Compare. Please use EXC, RPA, GWRPA")
 
         plotter = MdfPlotter()
-                                                                            
+
         # Extract the type of MDF we are interested in
         for path, mdf_file in zip(self.mdf_filepaths, self.mdf_files_list):
             label = os.path.relpath(path)
@@ -268,11 +267,11 @@ class MdfQpointsPanel(KpointsPanel):
         menu_handlers = [
             (self.ID_POPUP_MDF_QCOMPARE, self.onCompareSpectraQ),
         ]
-                                                            
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
-                                                     
+
         return menu
 
     @property
@@ -280,7 +279,7 @@ class MdfQpointsPanel(KpointsPanel):
         """The parent frame `MdfViewerFrame`."""
         try:
             return self._viewer_frame
-                                                                                    
+
         except AttributeError:
             self._viewer_frame = self.getParentWithType(MdfViewerFrame)
             return self._viewer_frame
@@ -349,7 +348,7 @@ class MdfFileTab(awx.Panel):
         """The parent frame `MdfViewerFrame`."""
         try:
             return self._viewer_frame
-                                                                                    
+
         except AttributeError:
             self._viewer_frame = self.getParentWithType(MdfViewerFrame)
             return self._viewer_frame

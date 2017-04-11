@@ -33,7 +33,7 @@ class TestStructure(AbipyTest):
             assert geodict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
-            structure.export(self.get_tmpname(text=True, suffix=".xsf"))
+            #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
             #visu = structure.visualize("vesta")
             #assert callable(visu)
 

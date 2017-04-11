@@ -7,7 +7,6 @@ import abipy.gui.awx as awx
 import abipy.gui.electronswx as ewx
 
 from collections import OrderedDict
-
 from abipy.abilab import abifile_subclass_from_filename, abiopen
 from abipy.core.mixins import NcDumper, get_filestat
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile

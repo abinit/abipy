@@ -3,13 +3,12 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import wx
 import abc
-
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
 from monty.string import marquee
 from abipy.abilab import abiopen
-from abipy.gui import mixins as mix 
+from abipy.gui import mixins as mix
 from abipy.gui.kpoints import KpointsPanel
 from abipy.gui.baseviewer import MultiViewerFrame
 
@@ -76,7 +75,7 @@ Also, these key bindings can be used
     @property
     def phbands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `PhononBands` have been read.
         """
         paths = []
@@ -127,11 +126,11 @@ Also, these key bindings can be used
         menu_bar.Append(self.CreatePhbandsMenu(), "Phbands")
         menu_bar.Append(self.CreateToolsMenu(), "Tools")
         menu_bar.Append(self.CreateNetcdfMenu(), "Netcdf")
-                                                                 
+
         # Help menu
         help_menu = self.makeHelpMenu()
         menu_bar.Append(help_menu, "Help")
-                                                                 
+
         self.SetMenuBar(menu_bar)
 
     def makeToolBar(self):

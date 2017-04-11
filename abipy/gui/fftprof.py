@@ -59,8 +59,8 @@ class FftalgsPanel(wx.Panel):
 class ControlPanel(wx.Panel):
     """
     !!   &CONTROL
-    !!     tasks = string specifying the tasks to perform i.e. the routines that should be tested or profiled. 
-    !!             allowed values: 
+    !!     tasks = string specifying the tasks to perform i.e. the routines that should be tested or profiled.
+    !!             allowed values:
     !!                 fourdp --> Test FFT transforms of density and potentials on the full box.
     !!                 fourwf --> Test FFT transforms of wavefunctions using the zero-padded algorithm.
     !!                 gw_fft --> Test the FFT transforms used in the GW code.
@@ -72,8 +72,8 @@ class ControlPanel(wx.Panel):
     !!                    uses threaded external libraries or OpenMP parallelization)
     !!     ndat   = integer specifying how many FFT transforms should be executed for each call to the FFT routine
     !!              (same meaning as the ndat input variable passed to fourwf)
-    !!     necut  = Used if tasks = "bench". Specifies the number of cutoff energies to profile (see also ecut_arth) 
-    !!     ecut_arth = Used if tasks = "bench". Used to generate an arithmetic progression of cutoff energies 
+    !!     necut  = Used if tasks = "bench". Specifies the number of cutoff energies to profile (see also ecut_arth)
+    !!     ecut_arth = Used if tasks = "bench". Used to generate an arithmetic progression of cutoff energies
     !!                 whose starting value is ecut_arth(1) and whose step is ecut_arth(2)
     """
     BENCHMARKS = ["bench_fourwf", "bench_fourdp", "bench_rhotwg"]
@@ -97,7 +97,7 @@ class ControlPanel(wx.Panel):
         text = wx.StaticText(self, -1, "ndat:")
         text.Wrap(-1)
         text.SetToolTipString("Number of FFT transform per call.")
-        self.ndat_ctrl = wx.SpinCtrl(self, -1, value="1", min=1) 
+        self.ndat_ctrl = wx.SpinCtrl(self, -1, value="1", min=1)
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.ndat_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -113,7 +113,7 @@ class ControlPanel(wx.Panel):
         text = wx.StaticText(self, -1, "max_nthreads:")
         text.Wrap(-1)
         text.SetToolTipString("Maximum number of OpenMP threads")
-        self.max_nthreads_ctrl = wx.SpinCtrl(self, -1, value="1", min=1) 
+        self.max_nthreads_ctrl = wx.SpinCtrl(self, -1, value="1", min=1)
 
         hsz1.Add(text, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
         hsz1.Add(self.max_nthreads_ctrl, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -192,7 +192,7 @@ class SystemPanel(wx.Panel):
     """
     !!     ecut = cutoff energy for wavefunctions (real, Hartree units)
     !!     rprimd = Direct lattice vectors in Bohr. (3,3) matrix in Fortran column-major order
-    !!     kpoint = real(3) vector specifying the reduced coordinates of the k-point of the wavefunction (used if tasks = "fourwf"). 
+    !!     kpoint = real(3) vector specifying the reduced coordinates of the k-point of the wavefunction (used if tasks = "fourwf").
     !!               The value of the k-point defines the storage scheme (istwfk) of the u(G) coefficients and therefore
     !!               the FFT algorithm used to perform the transform u(G) <--> u(R) in fourwf.
     !!     osc_ecut = cutoff energy (Hartree) for the oscillator matrix elements computed in the GW code

@@ -2,14 +2,13 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
-
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
 from monty.string import marquee
 from abipy.abilab import abiopen
 from abipy.iotools.visualizer import Visualizer
-from abipy.gui import mixins as mix 
+from abipy.gui import mixins as mix
 from abipy.gui.kpoints import SpinKpointBandPanel
 from abipy.gui.baseviewer import MultiViewerFrame
 
@@ -60,7 +59,7 @@ Also, these key bindings can be used
     @property
     def ebands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `ElectronBands` have been read.
         """
         paths = []
@@ -111,8 +110,8 @@ Also, these key bindings can be used
         # Combo box with the list of visualizers
         avail_visunames = [visu.name for visu in Visualizer.get_available()]
         value = avail_visunames[0] if avail_visunames else "None"
-        self.visualizer_cbox = wx.ComboBox(toolbar, id=-1, name='visualizer', choices=avail_visunames, value=value, style=wx.CB_READONLY)  
-        toolbar.AddControl(control=self.visualizer_cbox) 
+        self.visualizer_cbox = wx.ComboBox(toolbar, id=-1, name='visualizer', choices=avail_visunames, value=value, style=wx.CB_READONLY)
+        toolbar.AddControl(control=self.visualizer_cbox)
 
         toolbar.Realize()
 
@@ -170,39 +169,39 @@ class WfkFileTab(awx.Panel):
     def onVisualizeSKB(self, event):
         """
         Calls the visualizer to visualize the specified wavefunction.
-        Use the approach described in http://wiki.wxpython.org/LongRunningTasks                                
-        to make the Gui responsive one can use 
+        Use the approach described in http://wiki.wxpython.org/LongRunningTasks
+        to make the Gui responsive one can use
         """
         #print("in new" ,event.skb)
         spin, kpoint, band = event.skb
-        
+
         visu_name = self.GetVisualizer()
         if visu_name == "None": return
-                                                                                                                       
+
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
             visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-                                                                                                                       
+
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
-                                                                                                                       
+
         except:
             awx.showErrorMessage(self)
 
     #def _visualize_skb(self, spin, kpoint, band):
     #    """Calls the visualizer to visualize the specified wavefunction."""
-    #    # To make the Gui responsive one can use the approach described in 
+    #    # To make the Gui responsive one can use the approach described in
     #    # http://wiki.wxpython.org/LongRunningTasks
     #    visu_name = self.GetVisualizer()
     #    if visu_name == "None": return
-    #                                                                                                                   
+    #
     #    self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
     #    try:
     #        visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-    #                                                                                                                   
+    #
     #        thread = awx.WorkerThread(self, target=visu)
     #        thread.start()
-    #                                                                                                                   
+    #
     #    except:
     #        awx.showErrorMessage(self)
 
@@ -211,7 +210,7 @@ class WfkFileTab(awx.Panel):
         """The parent frame `WfkViewerFrame`."""
         try:
             return self._viewer_frame
-                                                                                    
+
         except AttributeError:
             self._viewer_frame = self.getParentWithType(WfkViewerFrame)
             return self._viewer_frame
