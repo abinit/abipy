@@ -50,7 +50,7 @@ class HistFileTest(AbipyTest):
             self.assert_almost_equal(cart_stress_tensors[-1, i, i], 5.01170783E-08)
 
         same_structure = abilab.Structure.from_file(abidata.ref_file("sic_relax_HIST.nc"))
-        assert same_structure == hist.final_structure
+        self.assert_almost_equal(same_structure.frac_coords, hist.final_structure.frac_coords)
 
         # Test matplotlib plots.
         if self.has_matplotlib():

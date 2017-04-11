@@ -203,8 +203,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         if options.format == "abivars":
             print(structure.abi_string)
         else:
-            s = structure.convert(format=options.format)
-            print(s)
+            print(structure.convert(fmt=options.format))
 
     elif options.command == "abisanitize":
         print("\nCalling abi_sanitize to get a new structure in which:")
@@ -353,8 +352,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
         structure = abilab.Structure.from_material_id(options.pmgid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
         # Convert to json and print it.
-        s = structure.convert(format="json")
-        print(s)
+        print(structure.convert(fmt="json"))
 
     elif options.command == "animate":
         filepath = options.filepath
