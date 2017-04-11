@@ -2,6 +2,7 @@
 from __future__ import division, print_function, unicode_literals
 
 import abipy.data as abidata
+from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.dynamics.hist import HistFile
 
@@ -47,6 +48,9 @@ class HistFileTest(AbipyTest):
         self.assert_almost_equal(cart_stress_tensors[-1, 1, 0], 0.0)
         for i in range(3):
             self.assert_almost_equal(cart_stress_tensors[-1, i, i], 5.01170783E-08)
+
+        same_structure = abilab.Structure.from_file(abidata.ref_file("sic_relax_HIST.nc"))
+        assert same_structure == hist.final_structure
 
         # Test matplotlib plots.
         if self.has_matplotlib():

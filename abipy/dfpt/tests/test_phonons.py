@@ -3,15 +3,31 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import unittest
 import os
+import pickle
 import numpy as np
 import abipy.data as abidata
 
+from abipy import abilab
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
         PhononBandsPlotter, PhononDosPlotter, frame_from_phbands)
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+
+
+class TestUnitTools(AbipyTest):
+
+    def test_units_api(self):
+        from abipy.dfpt.phonons import _factor_ev2units, _unit_tag, _dos_label_from_units
+        for units in ["ev", "meV" ,"ha", "cm-1", "cm^-1", "Thz"]:
+            _factor_ev2units(units)
+            _unit_tag(units)
+            _dos_label_from_units(units)
+
+        for func in [_factor_ev2units, _unit_tag, _dos_label_from_units]:
+            with self.assertRaises(KeyError):
+                func("foo")
 
 
 class PhononBandsTest(AbipyTest):
@@ -26,7 +42,18 @@ class PhononBandsTest(AbipyTest):
         assert PhononBands.as_phbands(phbands) is phbands
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
+        with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
+            same_phbands = PhononBands.as_phbands(nc)
+            self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
+
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
+
+        # From pickle file.
+        tmp_path = self.get_tmpname(suffix=".pickle")
+        with open(tmp_path, "wb") as fh:
+            pickle.dump(phbands, fh)
+        same_phbands = PhononBands.as_phbands(tmp_path)
+        self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
 
         self.assertEqual(phbands.minfreq, 0.0)
         #self.assertEqual(phbands.maxfreq, 30)
@@ -170,18 +197,34 @@ class PhononBandsPlotterTest(AbipyTest):
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
 
+        # Plotter without PHDOS
+        plotter = PhononBandsPlotter(key_phbands=[("foo", phbst_paths[0]), ("bar", phbst_paths[1])])
+
+        if self.has_matplotlib():
+            assert plotter.combiplot(units="EV", show=True)
+            assert plotter.gridplot(units="MEV", show=True)
+            assert plotter.boxplot(units="cm^-1", show=True)
+            assert plotter.combiboxplot(units="THZ", show=True)
+
 
 class PhononDosTest(AbipyTest):
 
     def test_api(self):
         """Testing PhononDos API with fake data."""
-        dos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
-        assert dos.mesh.tolist() == [1, 2, 3] and dos.h == 1 and dos.values.tolist() == [4, 5, 6]
-        repr(dos)
-        str(dos)
-        dos.idos
-        assert PhononDos.as_phdos(dos, {}) is dos
-        assert dos.iw0 == 0
+        phdos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
+        assert phdos.mesh.tolist() == [1, 2, 3] and phdos.h == 1 and phdos.values.tolist() == [4, 5, 6]
+        repr(phdos)
+        str(phdos)
+        phdos.idos
+        assert PhononDos.as_phdos(phdos, {}) is phdos
+        assert phdos.iw0 == 0
+
+        # From pickle file.
+        tmp_path = self.get_tmpname(suffix=".pickle")
+        with open(tmp_path, "wb") as fh:
+            pickle.dump(phdos, fh)
+        same_phdos = PhononDos.as_phdos(tmp_path)
+        same_phdos == phdos
 
     def test_from_phdosfile(self):
         """Test PHDOS from netcdf file."""
@@ -190,6 +233,8 @@ class PhononDosTest(AbipyTest):
         str(ncfile)
         assert hasattr(ncfile, "structure")
         phdos = ncfile.phdos
+
+        assert phdos == PhononDos.as_phdos(abidata.ref_file("trf2_5.out_PHDOS.nc"))
 
         # Thermodinamics in the Harmonic approximation
         #self.assert_almost_equal(phdos.zero_point_energy, )
@@ -209,6 +254,7 @@ class PhononDosTest(AbipyTest):
             assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=False, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=True, alpha=0.5, show=False)
 
             assert phdos.plot(units="cm-1", show=False)
             assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)

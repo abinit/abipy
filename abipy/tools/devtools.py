@@ -2,8 +2,6 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-import re
-import subprocess
 import json
 import numpy as np
 
@@ -11,12 +9,12 @@ import logging
 logger = logging.getLogger(__file__)
 
 
-class NumPyArangeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist() # or map(int, obj)
-
-        return json.JSONEncoder.default(self, obj)
+#class NumPyArangeEncoder(json.JSONEncoder):
+#    def default(self, obj):
+#        if isinstance(obj, np.ndarray):
+#            return obj.tolist() # or map(int, obj)
+#
+#        return json.JSONEncoder.default(self, obj)
 
 
 def profile(statement, global_vars, local_vars):

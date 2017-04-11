@@ -47,6 +47,38 @@ class TestStructure(AbipyTest):
         assert si.formula == "Si2"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
 
+        with self.assertRaises(TypeError):
+            Structure.as_structure({})
+        with self.assertRaises(TypeError):
+            Structure.as_structure([])
+
+        si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
+        assert si_wfk.formula == "Si2"
+
+        si_abi = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
+        assert si_abi.formula == "Si2"
+        self.assert_equal(si_abi.frac_coords, [[0, 0, 0], [0.25, 0.25, 0.25]])
+
+        znse = Structure.from_file(abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB"))
+        assert len(znse) == 4
+        assert znse.formula == "Zn2 Se2"
+        self.assert_almost_equal(znse.frac_coords.flat, [
+            0.33333333333333,  0.66666666666667, 0.99962203020000,
+            0.66666666666667,  0.33333333333333, 0.49962203020000,
+            0.33333333333333,  0.66666666666667, 0.62537796980000,
+            0.66666666666667,  0.33333333333333, 0.12537796980000])
+
+        # From pickle file.
+        import pickle
+        tmp_path = self.get_tmpname(suffix=".pickle")
+        with open(tmp_path, "wb") as fh:
+            pickle.dump(znse, fh)
+        same_znse = Structure.from_file(tmp_path)
+        assert same_znse == znse
+
+        for fmt in ["cif", "POSCAR", "json"]:
+            assert len(znse.convert(fmt=fmt)) > 0
+
         e = si.spget_equivalent_atoms(printout=True)
         assert len(e.irred_pos) == 1
         self.assert_equal(e.eqmap[0], [0, 1])
@@ -81,7 +113,10 @@ class TestStructure(AbipyTest):
         # FIXME: This is buggy
         #print(mgb2.get_sorted_mgb2())
         #assert [site.species_string for site in mgb2.get_sorted_structure()] == ["B", "B", "Mg"]
+
+        # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
+        mgb2.abi_sanitize(primitive_standard=True)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spglib_summary(verbose=10))
@@ -128,11 +163,11 @@ class TestStructure(AbipyTest):
         formulas = [struct.composition.reduced_formula for struct in dfs.structures]
         assert formulas == ["MgB2", "SiC", "AlAs"]
 
-    def test_frozen_phonons(self):
-        """ This is not a real test, just to show how to use it ! """
-        rprimd = np.array([[0.5,0.5,0],[0.5,0,0.5],[0,0.5,0.5]])
+    def test_frozen_phonon_methods(self):
+        """Testing frozen phonon methods (This is not a real test, just to show how to use it!)"""
+        rprimd = np.array([[0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]])
         #rprimd = rprimd*6.7468
-        rprimd = rprimd *10.60 * 0.529
+        rprimd = rprimd * 10.60 * 0.529
         lattice = Lattice(rprimd)
         structure = Structure(lattice, ["Ga", "As"], [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
@@ -151,17 +186,22 @@ class TestStructure(AbipyTest):
         natoms = int(np.round(2*np.linalg.det(scale_matrix)))
 
         structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [1,1,1]]),
-                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
-                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
+
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None)
 
         structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
-                                do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix = scale_matrix)
+                                do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        print("Structure = ", structure)
+        # We should add some checks here
+        #structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+        #                        do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None)
 
+        #print("Structure = ", structure)
         #print(structure.lattice._matrix)
         #for site in structure:
         #    print(structure.lattice.get_cartesian_coords(site.frac_coords))
-        # We should add some checks here

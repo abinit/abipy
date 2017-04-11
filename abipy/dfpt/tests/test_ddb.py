@@ -23,7 +23,7 @@ class DdbTest(AbipyTest):
             # Test qpoints.
             assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert len(ddb.qpoints) == 1
-
+            assert ddb.natom == len(ddb.structure)
 
             # Test header
             h = ddb.header
@@ -51,11 +51,16 @@ class DdbTest(AbipyTest):
 
             # Wrong qpoint
             with self.assertRaises(ValueError):
-                ddb.anaget_phmodes_at_qpoint(qpoint=(0,0,0), verbose=1)
+                ddb.anaget_phmodes_at_qpoint(qpoint=(0, 0, 0), verbose=1)
 
             # Wrong ngqpt
             with self.assertRaises(ddb.AnaddbError):
-                ddb.anaget_phbst_and_phdos_files(ngqpt=(4,4,4), verbose=1)
+                try:
+                    ddb.anaget_phbst_and_phdos_files(ngqpt=(4, 4, 4), verbose=1)
+                except Exception as exc:
+                    # This to test AnaddbError.__str__
+                    print(exc)
+                    raise
 
             # Cannot compute DOS since we need a mesh.
             with self.assertRaises(ddb.AnaddbError):
@@ -96,6 +101,10 @@ class DdbTest(AbipyTest):
         repr(ddb)
         str(ddb)
         print(ddb.header)
+
+        #assert ddb.has_phonon_terms()
+        #assert not ddb.has_bec_terms()
+        #assert not ddb.has_emacro_terms()
 
         ref_qpoints = np.reshape([
                  0.00000000E+00,  0.00000000E+00,  0.00000000E+00,

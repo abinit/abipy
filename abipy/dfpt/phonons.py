@@ -1451,7 +1451,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             return self.qpoints.index(qpoint)
 
     def qindex_qpoint(self, qpoint):
-        """Returns (qindex, qpoint) from an intege or a qpoint."""
+        """Returns (qindex, qpoint) from an integer or a qpoint."""
         qindex = self.qindex(qpoint)
         qpoint = self.qpoints[qindex]
         return qindex, qpoint
@@ -1543,7 +1543,7 @@ class PhononDos(Function1D):
     #    self.qmesh = qmesh
 
     @classmethod
-    def as_phdos(cls, obj, phdos_kwargs):
+    def as_phdos(cls, obj, phdos_kwargs=None):
         """
         Return an instance of :class:`PhononDOS` from a generic obj.
         Supports:
@@ -2260,7 +2260,7 @@ class PhononBandsPlotter(NotebookWriter):
     def __init__(self, key_phbands=None, key_phdos=None, phdos_kwargs=None):
         """
         Args:
-            key_phbands: List of (label, ebands) tuples.
+            key_phbands: List of (label, phbands) tuples.
                 phbands is any object that can be converted into :class:`PhononBands` e.g. ncfile, path.
             key_phdos: List of (label, phdos) tuples.
                 phdos is any object that can be converted into :class:`PhononDos`

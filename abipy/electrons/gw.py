@@ -1324,9 +1324,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Interpolate QP corrections on the same k-mesh as the one used in the KS run.
             ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
             if bstop > ks_ebands_kmesh.nband:
-                msg = "Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
-                    ks_ebands_kmesh%nband, bstop)
-                raise ValueError(msg)
+                raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
+                    ks_ebands_kmesh%nband, bstop))
+
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!", "red")
 
@@ -1366,7 +1366,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             nbv.new_code_cell("print(sigres)"),
             nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
             nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
-            nbv.new_code_cell("# fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=100)"),
+            nbv.new_code_cell("#fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=100)"),
             nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
             nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),
             nbv.new_code_cell("""
@@ -1374,10 +1374,7 @@ if r.ks_ebands_kpath is not None:
     plotter = abilab.ElectronBandsPlotter()
     plotter.add_ebands("KS", r.ks_ebands_kpath) # dos=r.ks_ebands_kmesh.get_edos())
     plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath) # dos=r.qp_ebands_kmesh.get_edos()))
-    plotter.combiplot(title="Silicon band structure")
-    #plotter.gridplot(title="Silicon band structure")
-    plotter.plot()
-""")
+    plotter.ipw_select_plot()"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
