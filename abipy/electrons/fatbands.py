@@ -780,94 +780,95 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         return fig
 
-    @add_fig_kwargs
-    def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=1,
-                             ylims=None, blist=None, axlist=None, **kwargs):
-        """
-        Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.
+    # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
+    #@add_fig_kwargs
+    #def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=1,
+    #                         ylims=None, blist=None, axlist=None, **kwargs):
+    #    """
+    #    Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.
 
-        Args:
-            terms: List of strings defining the quantities to plot. Possible values in:
+    #    Args:
+    #        terms: List of strings defining the quantities to plot. Possible values in:
 
-                {"up-up", "up-down", "down-up", "down-down", "sigma_x", "sigma_y", "sigma_z"}
+    #            {"up-up", "up-down", "down-up", "down-down", "sigma_x", "sigma_y", "sigma_z"}
 
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            fact:  float used to scale the marker size.
-            axlist: List of matplotlib axes for plot. If None, new figure is produced
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            blist: List of band indices for the fatband plot. If None, all bands are included
+    #        e0: Option used to define the zero of energy in the band structure plot. Possible values:
+    #            - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+    #            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+    #            -  None: Don't shift energies, equivalent to e0=0
+    #        fact:  float used to scale the marker size.
+    #        axlist: List of matplotlib axes for plot. If None, new figure is produced
+    #        ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+    #               or scalar e.g. `left`. If left (right) is None, default values are used
+    #        blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
-        """
-        if not (self.prtdos == 5 and self.nspinor == 2):
-            print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
-                % (self.prtdos, self.nspinor))
-            return None
+    #    Returns:
+    #        `matplotlib` figure
+    #    """
+    #    if not (self.prtdos == 5 and self.nspinor == 2):
+    #        print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
+    #            % (self.prtdos, self.nspinor))
+    #        return None
 
-        # Build axlist
-        import matplotlib.pyplot as plt
-        if axlist is None:
-            fig, axlist = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)
-            axlist = axlist.ravel()
-        else:
-            axlist = np.reshape(axlist, (1, len(terms))).ravel()
-            fig = plt.gcf()
+    #    # Build axlist
+    #    import matplotlib.pyplot as plt
+    #    if axlist is None:
+    #        fig, axlist = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)
+    #        axlist = axlist.ravel()
+    #    else:
+    #        axlist = np.reshape(axlist, (1, len(terms))).ravel()
+    #        fig = plt.gcf()
 
-        ebands = self.ebands
-        e0 = ebands.get_e0(e0)
-        xvals = np.arange(self.nkpt)
-        mybands = range(ebands.mband) if blist is None else blist
-        spin0 = 0
+    #    ebands = self.ebands
+    #    e0 = ebands.get_e0(e0)
+    #    xvals = np.arange(self.nkpt)
+    #    mybands = range(ebands.mband) if blist is None else blist
+    #    spin0 = 0
 
-        # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
-        # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
-        w_sbk = self.reader.read_value("dos_fractions")
-        term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
+    #    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
+    #    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
+    #    w_sbk = self.reader.read_value("dos_fractions")
+    #    term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
 
-        # TODO: To be tested.
-        terms = list_strings(terms)
-        for i, (term, ax) in enumerate(zip(terms, axlist)):
-            ebands.plot_ax(ax, e0, spin=spin0, color=self.linecolor, linewidth=self.linewidth)
-            ebands.decorate_ax(ax, title=term)
-            if i != 0:
-                ax.set_ylabel("")
-                # Only the first column show labels.
-                # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                # also the other axes are affecred (likely due to sharey=True).
-                for tick in ax.yaxis.get_major_ticks():
-                    tick.label.set_fontsize(0)
+    #    # TODO: To be tested.
+    #    terms = list_strings(terms)
+    #    for i, (term, ax) in enumerate(zip(terms, axlist)):
+    #        ebands.plot_ax(ax, e0, spin=spin0, color=self.linecolor, linewidth=self.linewidth)
+    #        ebands.decorate_ax(ax, title=term)
+    #        if i != 0:
+    #            ax.set_ylabel("")
+    #            # Only the first column show labels.
+    #            # Trick: Don't change the labels but set their fontsize to 0 otherwise
+    #            # also the other axes are affecred (likely due to sharey=True).
+    #            for tick in ax.yaxis.get_major_ticks():
+    #                tick.label.set_fontsize(0)
 
-            idx = term2idx[term]
-            color = self.spinors2color[term]
-            # Rescale weights in [0, 1]
-            data = w_sbk[idx, spin0, :, :].copy()
-            data -= data.min()
-            dmax = data.max()
-            if dmax != 0.0: data /= dmax
-            #print(data)
+    #        idx = term2idx[term]
+    #        color = self.spinors2color[term]
+    #        # Rescale weights in [0, 1]
+    #        data = w_sbk[idx, spin0, :, :].copy()
+    #        data -= data.min()
+    #        dmax = data.max()
+    #        if dmax != 0.0: data /= dmax
+    #        #print(data)
 
-            for ib, band in enumerate(mybands):
-                yvals = ebands.eigens[spin0, :, band] - e0
-                ax.scatter(xvals, yvals, c=data[band], s=20, alpha=self.alpha,
-                           #edgecolor=plt.get_cmap('jet')(data[band]),
-                           marker="o", label=self.spinors2tex[term] if ib == 0 else None)
+    #        for ib, band in enumerate(mybands):
+    #            yvals = ebands.eigens[spin0, :, band] - e0
+    #            ax.scatter(xvals, yvals, c=data[band], s=20, alpha=self.alpha,
+    #                       #edgecolor=plt.get_cmap('jet')(data[band]),
+    #                       marker="o", label=self.spinors2tex[term] if ib == 0 else None)
 
-                #ws = w_sbk[idx, spin0, band, :] * fact
-                #pos_inds, neg_inds = np.where(ws >= 0), np.where(ws < 0)
-                #ax.scatter(xvals[pos_inds], yvals[pos_inds], c=color, s=ws[pos_inds],
-                #           marker="^", label=term if ib == 0 else None)
-                #ax.scatter(xvals[neg_inds], yvals[neg_inds], c=color, s=np.abs(ws[neg_inds]),
-                #           marker="v", label=term if ib == 0 else None)
+    #            #ws = w_sbk[idx, spin0, band, :] * fact
+    #            #pos_inds, neg_inds = np.where(ws >= 0), np.where(ws < 0)
+    #            #ax.scatter(xvals[pos_inds], yvals[pos_inds], c=color, s=ws[pos_inds],
+    #            #           marker="^", label=term if ib == 0 else None)
+    #            #ax.scatter(xvals[neg_inds], yvals[neg_inds], c=color, s=np.abs(ws[neg_inds]),
+    #            #           marker="v", label=term if ib == 0 else None)
 
-            set_axlims(ax, ylims, "y")
+    #        set_axlims(ax, ylims, "y")
 
-        axlist[0].legend(loc="best")
-        return fig
+    #    axlist[0].legend(loc="best")
+    #    return fig
 
     def nelect_in_spheres(self, start_energy=None, stop_energy=None,
                          method="gaussian", step=0.1, width=0.2):
@@ -1435,86 +1436,87 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             ax.set_xlabel('Energy [eV]')
             set_axlims(ax, xlims, "x")
 
-    @add_fig_kwargs
-    def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
-                          e0="fermie", method="gaussian", step=0.1, width=0.2,
-                          blist=None,
-                          #stacked=True,
-                          ax=None, exchange_xy=False, xlims=None,
-                          #with_info=True,
-                          **kwargs):
-        """
-        Plot the PJ-DOS on a linear mesh.
+    # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
+    #@add_fig_kwargs
+    #def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
+    #                      e0="fermie", method="gaussian", step=0.1, width=0.2,
+    #                      blist=None,
+    #                      #stacked=True,
+    #                      ax=None, exchange_xy=False, xlims=None,
+    #                      #with_info=True,
+    #                      **kwargs):
+    #    """
+    #    Plot the PJ-DOS on a linear mesh.
 
-        Args:
-            terms:
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            method: String defining the method for the computation of the DOS.
-            step: Energy step (eV) of the linear mesh.
-            width: Standard deviation (eV) of the gaussian.
-            stacked: True if DOS partial contributions should be stacked on top of each other.
-            ax: matplotlib axis, if None a new figure is generated.
-            exchange_xy: True if the dos should be plotted on the x axis instead of y.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+    #    Args:
+    #        terms:
+    #        e0: Option used to define the zero of energy in the band structure plot. Possible values:
+    #            - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
+    #            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+    #            -  None: Don't shift energies, equivalent to e0=0
+    #        method: String defining the method for the computation of the DOS.
+    #        step: Energy step (eV) of the linear mesh.
+    #        width: Standard deviation (eV) of the gaussian.
+    #        stacked: True if DOS partial contributions should be stacked on top of each other.
+    #        ax: matplotlib axis, if None a new figure is generated.
+    #        exchange_xy: True if the dos should be plotted on the x axis instead of y.
+    #        xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+    #               or scalar e.g. `left`. If left (right) is None, default values are used
 
-        Returns:
-            `matplotlib` figure
-        """
-        # TODO: To be tested.
-        if self.prtdos != 5 and self.nspinor != 2:
-            print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
-                % (self.prtdos, self.nspinor))
-            return None
+    #    Returns:
+    #        `matplotlib` figure
+    #    """
+    #    # TODO: To be tested.
+    #    if self.prtdos != 5 and self.nspinor != 2:
+    #        print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
+    #            % (self.prtdos, self.nspinor))
+    #        return None
 
-        try:
-            intg = self.get_dos_integrator(method, step, width)
-        except Exception:
-            msg = traceback.format_exc()
-            msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
-                    "Returning None\n")
-            print(msg)
-            return None
+    #    try:
+    #        intg = self.get_dos_integrator(method, step, width)
+    #    except Exception:
+    #        msg = traceback.format_exc()
+    #        msg += ("Error while trying to compute the DOS.\n"
+    #                "Verify that the k-points form a homogenous sampling of the BZ.\n"
+    #                "Returning None\n")
+    #        print(msg)
+    #        return None
 
-        # Get energy mesh from total DOS and define the zero of energy
-        # Note that the mesh is not not spin-dependent.
-        e0 = self.ebands.get_e0(e0)
-        mesh = intg.mesh.copy()
-        mesh -= e0
-        ebands = self.ebands
-        mybands = range(ebands.mband) if blist is None else blist
+    #    # Get energy mesh from total DOS and define the zero of energy
+    #    # Note that the mesh is not not spin-dependent.
+    #    e0 = self.ebands.get_e0(e0)
+    #    mesh = intg.mesh.copy()
+    #    mesh -= e0
+    #    ebands = self.ebands
+    #    mybands = range(ebands.mband) if blist is None else blist
 
-        # Read data from file.
-        # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
-        # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
-        w_sbk = self.reader.read_value("dos_fractions")
-        term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
+    #    # Read data from file.
+    #    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].
+    #    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)
+    #    w_sbk = self.reader.read_value("dos_fractions")
+    #    term2idx = {"up-up":0, "up-down":1, "down-up":2, "down-down":3, "sigma_x":4, "sigma_y":5, "sigma_z":6}
 
-        spin0 = 0
-        terms = list_strings(terms)
-        dos_terms = {term: np.zeros(len(mesh)) for term in terms}
-        weights = np.array([k.weight for k in ebands.kpoints])
-        for i, term in enumerate(terms):
-            idx = term2idx[term]
-            for band in mybands:
-                gaussians_dos(dos_terms[term], mesh, width,
-                              w_sbk[idx, spin0, band, :], ebands.eigens[spin0, :, band], weights)
+    #    spin0 = 0
+    #    terms = list_strings(terms)
+    #    dos_terms = {term: np.zeros(len(mesh)) for term in terms}
+    #    weights = np.array([k.weight for k in ebands.kpoints])
+    #    for i, term in enumerate(terms):
+    #        idx = term2idx[term]
+    #        for band in mybands:
+    #            gaussians_dos(dos_terms[term], mesh, width,
+    #                          w_sbk[idx, spin0, band, :], ebands.eigens[spin0, :, band], weights)
 
-        # Plot doses.
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        for term, yvals in dos_terms.items():
-            ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])
+    #    # Plot doses.
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    for term, yvals in dos_terms.items():
+    #        ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])
 
-        ax.grid(True)
-        ax.set_xlabel("Energy [eV]")
-        set_axlims(ax, xlims, "x")
-        ax.legend(loc="best")
+    #    ax.grid(True)
+    #    ax.set_xlabel("Energy [eV]")
+    #    set_axlims(ax, xlims, "x")
+    #    ax.legend(loc="best")
 
-        return fig
+    #    return fig
 
     def write_notebook(self, nbpath=None):
         """

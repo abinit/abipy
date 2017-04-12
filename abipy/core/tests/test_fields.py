@@ -24,8 +24,7 @@ class TestScalarField(AbipyTest):
 
         field = ScalarField(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
-        repr(field)
-        str(field)
+        repr(field); str(field)
         assert field.datar.ndim ==  4
         assert len(field) == nsppol
         assert field.shape == datar.shape
@@ -69,12 +68,12 @@ class TestScalarField(AbipyTest):
 
     def test_silicon_density(self):
         """Testing density object (spin unpolarized)."""
-        density = Density.from_file(abidata.ref_file("si_DEN.nc"))
-        repr(density)
-        str(density)
-        assert density.nspinor == 1 and density.nsppol == 1 and density.nspden == 1
-        assert density.is_collinear
-        assert density.structure.formula == "Si2"
+        si_den = Density.from_file(abidata.ref_file("si_DEN.nc"))
+        repr(si_den); str(si_den)
+        assert si_den.nspinor == 1 and si_den.nsppol == 1 and si_den.nspden == 1
+        assert si_den.is_collinear
+        assert si_den.structure.formula == "Si2"
+        assert si_den.mesh.shape == (18, 18, 18)
 
         # Read data directly from file.
         with ETSF_Reader(abidata.ref_file("si_DEN.nc")) as r:
@@ -82,50 +81,49 @@ class TestScalarField(AbipyTest):
 
         ne = 8
         assert ne == nelect_file
-        self.assert_almost_equal(density.get_nelect(), ne)
-        self.assert_almost_equal(density.total_rhor.sum() * density.structure.volume / density.mesh.size, ne)
-        self.assert_almost_equal(density.total_rhog[0, 0, 0] * density.structure.volume, ne)
+        self.assert_almost_equal(si_den.get_nelect(), ne)
+        self.assert_almost_equal(si_den.total_rhor.sum() * si_den.structure.volume / si_den.mesh.size, ne)
+        self.assert_almost_equal(si_den.total_rhog[0, 0, 0] * si_den.structure.volume, ne)
 
-        totden = density.total_rhor_as_density()
-        self.assert_equal(totden.datar.flatten(), density.total_rhor.flatten())
+        totden = si_den.total_rhor_as_density()
+        self.assert_equal(totden.datar.flatten(), si_den.total_rhor.flatten())
 
-        other = density - density
-        assert other.nspden == density.nspden
+        other = si_den - si_den
+        assert other.nspden == si_den.nspden
         self.assert_equal(other.datar, 0)
 
-        magfield = density.magnetization_field
-        assert magfield.shape == density.mesh.shape
+        magfield = si_den.magnetization_field
+        assert magfield.shape == si_den.mesh.shape
         self.assert_equal(magfield, 0)
-        assert density.magnetization == 0
+        assert si_den.magnetization == 0
 
-        nup, ndown = density.nelect_updown
+        nup, ndown = si_den.nelect_updown
         assert nup == ndown
         self.assert_almost_equal(nup, ne / 2)
-        self.assert_almost_equal(density.zeta, 0)
+        self.assert_almost_equal(si_den.zeta, 0)
 
         # Export to chgcar and re-read it.
         chgcar_path = self.get_tmpname(text=True)
-        chgcar = density.to_chgcar(filename=chgcar_path)
+        chgcar = si_den.to_chgcar(filename=chgcar_path)
         assert hasattr(chgcar, "structure")
         assert not chgcar.is_spin_polarized
 
         poscar_path = self.get_tmpname(text=True)
-        density.structure.to(fmt="poscar", filename=poscar_path)
+        si_den.structure.to(fmt="poscar", filename=poscar_path)
 
-        same_density = Density.from_chgcar_poscar(chgcar_path, poscar_path)
-        self.assert_almost_equal(same_density.datar, density.datar)
+        same_den = Density.from_chgcar_poscar(chgcar_path, poscar_path)
+        self.assert_almost_equal(same_den.datar, si_den.datar)
 
-        #if self.which("xcrysden") is not None:
         # Export data in xsf format.
-        visu = density.export(".xsf")
+        visu = si_den.export(".xsf")
         assert callable(visu)
 
         # Test CUBE files.
         tmp_cubefile = self.get_tmpname(text=True)
-        density.export_to_cube(tmp_cubefile, spin="total")
+        si_den.export_to_cube(tmp_cubefile, spin="total")
         total_den = Density.from_cube(tmp_cubefile)
 
-        assert total_den.structure == density.structure
+        assert total_den.structure == si_den.structure
         assert abs(total_den.get_nelect().sum() - ne) < 1e-3
 
         # TODO@DW
@@ -134,59 +132,56 @@ class TestScalarField(AbipyTest):
 
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""
-        density = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
-        repr(density)
-        str(density)
-        assert density.nspinor == 1 and density.nsppol == 2 and density.nspden == 2
-        assert density.is_collinear
-        assert density.structure.formula == "Ni1"
+        ni_den = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
+
+        repr(ni_den); str(ni_den)
+        assert ni_den.nspinor == 1 and ni_den.nsppol == 2 and ni_den.nspden == 2
+        assert ni_den.is_collinear
+        assert ni_den.structure.formula == "Ni1"
+        assert ni_den.mesh.shape == (27, 27, 27)
         ne = 18
-        self.assert_almost_equal(density.get_nelect(), ne)
-        self.assert_almost_equal(density.total_rhor.sum() * density.structure.volume / density.mesh.size, ne)
-        self.assert_almost_equal(density.total_rhog[0, 0, 0] * density.structure.volume, ne)
+        self.assert_almost_equal(ni_den.get_nelect(), ne)
+        self.assert_almost_equal(ni_den.total_rhor.sum() * ni_den.structure.volume / ni_den.mesh.size, ne)
+        self.assert_almost_equal(ni_den.total_rhog[0, 0, 0] * ni_den.structure.volume, ne)
 
-        totden = density.total_rhor_as_density()
-        self.assert_equal(totden.datar.flatten(), density.total_rhor.flatten())
+        totden = ni_den.total_rhor_as_density()
+        self.assert_equal(totden.datar.flatten(), ni_den.total_rhor.flatten())
 
-        other = density - density
-        assert other.nspden == density.nspden
+        other = ni_den - ni_den
+        assert other.nspden == ni_den.nspden
         self.assert_equal(other.datar, 0)
 
-        magfield = density.magnetization_field
-        assert magfield.shape == density.mesh.shape
-        #self.assert_equal(magfield, 0)
-        #assert density.magnetization == 0
+        magfield = ni_den.magnetization_field
+        assert magfield.shape == ni_den.mesh.shape
+        self.assert_equal(magfield, ni_den.datar[0] - ni_den.datar[1])
+        self.assert_almost_equal(ni_den.magnetization, 0.650144)
 
-        nup, ndown = density.nelect_updown
+        nup, ndown = ni_den.nelect_updown
         self.assert_almost_equal(nup, 9.32507195)
         self.assert_almost_equal(ndown, 8.674928)
-        #self.assert_almost_equal(density.zeta, 0)
+        self.assert_almost_equal(ni_den.zeta[3, 3, 3], 0.31311881970587324)
 
-        #if self.which("xcrysden") is not None:
         # Export data in xsf format.
-        visu = density.export(".xsf")
+        visu = ni_den.export(".xsf")
         assert callable(visu)
 
         # Test CUBE files.
         tmp_cubefile = self.get_tmpname(text=True)
-        density.export_to_cube(tmp_cubefile, spin="total")
+        ni_den.export_to_cube(tmp_cubefile, spin="total")
         total_den = Density.from_cube(tmp_cubefile)
 
-        assert total_den.structure == density.structure
+        assert total_den.structure == ni_den.structure
         assert abs(total_den.get_nelect().sum() - ne) < 1e-3
 
         # Export to chgcar and re-read it.
-        # FIXME nsppol is buggy
         chgcar_path = self.get_tmpname(text=True)
-        chgcar = density.to_chgcar(filename=chgcar_path)
+        chgcar = ni_den.to_chgcar(filename=chgcar_path)
         assert hasattr(chgcar, "structure")
         assert chgcar.is_spin_polarized
 
         poscar_path = self.get_tmpname(text=True)
-        density.structure.to(fmt="poscar", filename=poscar_path)
+        ni_den.structure.to(fmt="poscar", filename=poscar_path)
 
-        same_density = Density.from_chgcar_poscar(chgcar_path, poscar_path)
-        assert same_density.nspinor == 1 and same_density.nsppol == 2 and same_density.nspden == 2
-        #self.assert_almost_equal(same_density.datar[0], density.datar[0])
-        #self.assert_almost_equal(same_density.datar[1], density.datar[1])
-
+        same_den = Density.from_chgcar_poscar(chgcar_path, poscar_path)
+        assert same_den.nspinor == 1 and same_den.nsppol == 2 and same_den.nspden == 2
+        self.assert_almost_equal(same_den.datar, ni_den.datar, decimal=5)

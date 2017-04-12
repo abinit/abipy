@@ -18,17 +18,20 @@ with abilab.abiopen(abidata.ref_file("ni_kpath_GSR.nc")) as ncfile:
 # we are not interested in this energy region. Fermi level set to zero.
 elims = [-10, 2]
 
-ni_ebands_kpath.plot(ylims=elims, title="Ni band structure")
+#ni_ebands_kpath.plot(ylims=elims, title="Ni band structure")
 
 # Compute DOS with Gaussian method.
 ni_edos = ni_ebands_kmesh.get_edos()
 
 # TODO: Improve plots
-ni_edos.plot(xlims=elims)
-ni_edos.plot_dos_idos(xlims=elims)
-ni_edos.plot_up_minus_down(xlims=elims)
+#ni_edos.plot(xlims=elims)
+#ni_edos.plot_dos_idos(xlims=elims)
+#ni_edos.plot_up_minus_down(xlims=elims)
 
-ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, title="Ni band structure + DOS")
+#ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, title="Ni band structure + DOS")
+
+# Boxplot for 10 > band >= 5
+#ni_ebands_kpath.boxplot(brange=[5, 10], title="Boxplot for up and down spin and 10 > band >= 5")
 
 #plotter = abilab.ElectronBandsPlotter()
 #plotter.add_ebands("k-mesh", ni_ebands_kmesh)

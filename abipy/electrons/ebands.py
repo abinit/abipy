@@ -21,7 +21,7 @@ from monty.bisect import find_le, find_gt
 from monty.dev import deprecated
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.func1d import Function1D
-from abipy.core.mixins import NotebookWriter
+from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
     kmesh_from_mpdivs, Ktables, has_timrev_from_kptopt, map_bz2ibz)
 from abipy.core.structure import Structure
@@ -267,7 +267,7 @@ class ElectronBandsError(Exception):
     """Exceptions raised by ElectronBands."""
 
 
-class ElectronBands(object):
+class ElectronBands(Has_Structure):
     """
     This object stores the electronic band structure.
 
@@ -393,7 +393,7 @@ class ElectronBands(object):
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
         """
-        self.structure = structure
+        self._structure = structure
 
         # Eigenvalues and occupancies are stored in ndarrays ordered by [spin,kpt,band]
         self._eigens = np.atleast_3d(eigens)
@@ -420,6 +420,11 @@ class ElectronBands(object):
         # bands are computed on a BZ mesh with a NSCF run.
         #if self.kpoints.is_ibz: # and iscf < 0
         #    self.recalc_fermie()
+
+    @property
+    def structure(self):
+        """Crystalline structure."""
+        return self._structure
 
     @lazy_property
     def _auto_klabels(self):
@@ -585,10 +590,6 @@ class ElectronBands(object):
             for ik in self.kidxs:
                 for band in range(self.nband_sk[spin, ik]):
                     yield spin, ik, band
-
-    def show_bz(self, **kwargs):
-        """Call `matplotlib` to show the Brillouin zone."""
-        return self.structure.show_bz(**kwargs)
 
     def copy(self):
         """Shallow copy of self."""
@@ -804,7 +805,8 @@ class ElectronBands(object):
         """
         # Get the dataframe and select bands
         frame = self.to_dataframe(e0=e0)
-        if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
+        if brange is not None:
+            frame = frame[(frame.band >= brange[0]) & (frame.band < brange[1])]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -814,6 +816,7 @@ class ElectronBands(object):
         ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
             sns.swarmplot(x="band", y="eig", data=frame, hue=hue, color=".25", ax=ax)
+
         return fig
 
     def to_pymatgen(self):
@@ -1144,7 +1147,12 @@ class ElectronBands(object):
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         r"""
         Compute the join density of states at q == 0.
+
             :math:`\sum_{kbv} f_{vk} (1 - f_{ck}) \delta(\omega - E_{ck} + E_{vk})`
+
+        .. warning::
+
+            The present implementation assumes an energy gap
 
         Args:
             spin: Spin index.
@@ -1216,6 +1224,10 @@ class ElectronBands(object):
                      cumulative=True, ax=None, alpha=0.7, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
+
+        .. warning::
+
+            The present implementation assumes an energy gap
 
         Args:
             vrange: Int or `Iterable` with the indices of the valence bands to consider.
@@ -1456,12 +1468,12 @@ class ElectronBands(object):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, dos, klabels=None, axlist=None, e0="fermie", ylims=None, **kwargs):
+    def plot_with_edos(self, edos, klabels=None, axlist=None, e0="fermie", ylims=None, **kwargs):
         r"""
         Plot the band structure and the DOS.
 
         Args:
-            dos: An instance of :class:`ElectronDos`.
+            edos: An instance of :class:`ElectronDos`.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
@@ -1496,7 +1508,7 @@ class ElectronBands(object):
             ax1, ax2 = axlist
 
         # Define the zero of energy.
-        e0 = self.get_e0(e0) if e0 != "edos_fermie" else dos.fermie
+        e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the band structure
@@ -1514,14 +1526,14 @@ class ElectronBands(object):
 
         # Plot the DOS
         if self.nsppol == 1:
-            dos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
+            edos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
         else:
             for spin in self.spins:
                 if spin == 0:
                     opts = {"color": "black", "linewidth": 2.0}
                 else:
                     opts = {"color": "red", "linewidth": 2.0}
-                dos.plot_ax(ax2, e0, spin=spin, exchange_xy=True, **opts)
+                edos.plot_ax(ax2, e0, spin=spin, exchange_xy=True, **opts)
 
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
@@ -1614,7 +1626,8 @@ class ElectronBands(object):
         if not self.kpoints.is_ibz:
             eapp("Expecting an IBZ sampling for the Fermi surface but got %s" % type(ebands.kpoints))
         if not self.kpoints.is_mpmesh:
-            eapp("Monkhorst-Pack meshes are required for bxsf output.")
+            eapp("Monkhorst-Pack meshes are required for BXSF output.\nkpoints.ksampling: %s" %
+                 str(self.kpoints.ksampling))
 
         mpdivs, shifts = self.kpoints.mpdivs_shifts
         if shifts is not None and not np.all(shifts == 0.0):
@@ -2594,7 +2607,7 @@ class ElectronDos(object):
                 try:
                     return float(e0)
                 except:
-                    raise ValueError("Wrong value for e0: %s" % str(e0))
+                    raise TypeError("Wrong value for e0: %s" % str(e0))
         else:
             # Assume number
             return float(e0)
@@ -2634,7 +2647,7 @@ class ElectronDos(object):
     @add_fig_kwargs
     def plot(self, e0="fermie", spin=None, ax=None, xlims=None, **kwargs):
         """
-        Plot DOS
+        Plot electronic DOS
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -2668,18 +2681,18 @@ class ElectronDos(object):
         return fig
 
     @add_fig_kwargs
-    def plot_dos_idos(self, e0="fermie", spin=None, xlims=None, **kwargs):
+    def plot_dos_idos(self, e0="fermie", xlims=None, height_ratios=(1, 2), **kwargs):
         """
-        Plot DOS and IDOS.
+        Plot electronic DOS and Integrated DOS on two different subplots.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-            spin: Selects the spin component, None if total DOS is wanted.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
+            height_ratios:
             kwargs: options passed to plot_ax
 
         Returns:
@@ -2688,21 +2701,29 @@ class ElectronDos(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(2, 1, height_ratios=[1, 2])
+        gspec = GridSpec(2, 1, height_ratios=height_ratios)
         gspec.update(wspace=0.05)
         ax1 = plt.subplot(gspec[0])
-        ax2 = plt.subplot(gspec[1])
+        ax2 = plt.subplot(gspec[1], sharex=ax1)
 
         for ax in (ax1, ax2):
             ax.grid(True)
             set_axlims(ax, xlims, "x")
 
-        ax1.set_ylabel("TOT IDOS" if spin is None else "IDOS (spin %s)" % spin)
-        ax2.set_ylabel("TOT DOS" if spin is None else "DOS (spin %s)" % spin)
+        ax1.set_ylabel("TOT IDOS")
+        ax2.set_ylabel("TOT DOS")
         ax2.set_xlabel('Energy [eV]')
 
-        self.plot_ax(ax1, e0, spin=spin, what="i", **kwargs)
-        self.plot_ax(ax2, e0, spin=spin, what="d", **kwargs)
+        for spin in range(self.nsppol):
+            if spin == 0:
+                opts = {"color": "black", "linewidth": 1.0}
+            else:
+                opts = {"color": "red", "linewidth": 1.0}
+            # Plot Total dos if unpolarized.
+            if self.nsppol == 1: spin = None
+
+            self.plot_ax(ax1, e0, spin=spin, what="i", **opts)
+            self.plot_ax(ax2, e0, spin=spin, what="d", **opts)
 
         fig = plt.gcf()
         return fig
@@ -2741,6 +2762,7 @@ class ElectronDos(object):
 
         ax.grid(True)
         set_axlims(ax, xlims, "x")
+        #ax.set_xlabel('DOS (UP - DOWN)')
         ax.set_xlabel('Energy [eV]')
 
         return fig

@@ -16,10 +16,9 @@ from abipy.core.testing import AbipyTest
 class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
-        """Test ElectronsReader."""
-        filepath = abidata.ref_file("si_scf_WFK.nc")
+        """Test ElectronsReader with WFK file."""
 
-        with ElectronsReader(filepath) as r:
+        with ElectronsReader(abidata.ref_file("si_scf_WFK.nc")) as r:
             kpoints = r.read_kpoints()
             assert isinstance(kpoints, KpointList)
             #assert len(kpoints) == ??
@@ -28,170 +27,197 @@ class EbandsReaderTest(AbipyTest):
             eigens = r.read_eigenvalues()
             occfacts = r.read_occupations()
             fermie = r.read_fermie()
+            #assert fermie ==
             assert r.read_nelect() == 8
             #smearing = r.read_smearing()
 
 
 class ElectronBandsTest(AbipyTest):
 
-    def test_read_ebands_from_WFK(self):
-        """Read ElectronBands from WFK files."""
-        for ii, filename in enumerate(abidata.WFK_NCFILES):
-            ebands = ElectronBands.from_file(filename)
-            ebands.to_pymatgen()
-            ebands.to_pdframe()
-            assert ElectronBands.as_ebands(ebands) is ebands
-
-            self.serialize_with_pickle(ebands, test_eq=False)
-            ElectronBands.from_dict(ebands.as_dict())
-            self.assertMSONable(ebands, test_if_subclass=False)
-
-            if ii == 0:
-                if self.has_matplotlib():
-                    ebands.plot(show=False)
-                ebands.to_xmgrace(self.get_tmpname(text=True))
-
-    def test_read_ebands_from_GSR(self):
-        """Read ElectronBands from GSR files."""
-        for filename in abidata.GSR_NCFILES:
-            ebands = ElectronBands.from_file(filename)
-            ebands.to_pymatgen()
-            ebands.to_pdframe()
-
-            self.serialize_with_pickle(ebands, test_eq=False)
-            ElectronBands.from_dict(ebands.as_dict())
-            self.assertMSONable(ebands, test_if_subclass=False)
-
-    def test_ebands_spin(self):
-        """Test electron bands with nsppol == 2"""
+    def test_nickel_ebands_spin(self):
+        """Test Nickel electron bands with nsppol == 2"""
         ref_nelect = 18
-        gs_ebands = ElectronBands.from_file(abidata.ref_file("ni_666k_GSR.nc"))
-        #assert gs_ebands.smearing == "foo"
+        ni_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("ni_666k_GSR.nc"))
+        assert ElectronBands.as_ebands(ni_ebands_kmesh) is ni_ebands_kmesh
 
-        repr(gs_ebands); str(gs_ebands)
-        assert gs_ebands.nsppol == 2 and gs_ebands.nspinor == 1 and gs_ebands.nspden == 2
-        assert gs_ebands.nelect == ref_nelect
-        assert gs_ebands.kpoints.is_ibz
-        edos = gs_ebands.get_edos()
-        repr(edos); str(edos)
+        repr(ni_ebands_kmesh); str(ni_ebands_kmesh)
+        #assert ni_ebands_kmesh.smearing == "foo"
+        assert ni_ebands_kmesh.nsppol == 2 and ni_ebands_kmesh.nspinor == 1 and ni_ebands_kmesh.nspden == 2
+        assert ni_ebands_kmesh.nelect == ref_nelect
+        assert ni_ebands_kmesh.kpoints.is_ibz and ni_ebands_kmesh.has_bzmesh and not ni_ebands_kmesh.has_bzpath
+        assert ni_ebands_kmesh.has_timrev
+        ni_ebands_kmesh.copy()
+        ni_ebands_kmesh.deepcopy()
 
-        nscf_ebands = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
+        ni_edos = ni_ebands_kmesh.get_edos()
+        repr(ni_edos); str(ni_edos)
 
-        repr(gs_ebands); str(gs_ebands)
-        assert nscf_ebands.nsppol == 2 and nscf_ebands.nspinor == 1 and nscf_ebands.nspden == 2
-        assert nscf_ebands.nelect == ref_nelect
-        assert nscf_ebands.kpoints.is_path
-        assert nscf_ebands.fermie == gs_ebands.fermie
+        ni_ebands_kpath = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
 
-        nscf_ebands.to_xmgrace(self.get_tmpname(text=True))
+        repr(ni_ebands_kpath); str(ni_ebands_kpath)
+        assert ni_ebands_kpath.nsppol == 2 and ni_ebands_kpath.nspinor == 1 and ni_ebands_kpath.nspden == 2
+        assert ni_ebands_kpath.nelect == ref_nelect
+        assert ni_ebands_kpath.kpoints.is_path and not ni_ebands_kpath.has_bzmesh and ni_ebands_kpath.has_bzpath
+        assert ni_ebands_kpath.has_timrev
+        assert ni_ebands_kpath.fermie == ni_ebands_kmesh.fermie
+
+        # Serialization
+        self.serialize_with_pickle(ni_ebands_kpath, test_eq=False)
+        self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
+
+        df = ni_ebands_kpath.to_pdframe()
+        ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
+
+        # BXSF cannot be produced because.
+        #ngkpt    6 6 6
+        #nshiftk  4
+        #shiftk   1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
+        with self.assertRaises(ValueError):
+            ni_ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
         # Test plot methods
         if self.has_matplotlib():
             elims = [-10, 2]
-            nscf_ebands.plot(ylims=elims, show=False)
-            nscf_ebands.plot_with_edos(edos, ylims=elims, show=False)
-            edos.plot(xlims=elims, show=False)
-            edos.plot_dos_idos(xlims=elims, show=False)
-            edos.plot_up_minus_down(xlims=elims, show=False)
+            assert ni_ebands_kmesh.plot(show=False)
+            assert ni_ebands_kmesh.show_bz(show=False)
+            assert ni_ebands_kpath.plot(ylims=elims, show=False)
+            assert ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, show=False)
+            assert ni_ebands_kpath.show_bz()
+            assert ni_edos.plot(xlims=elims, show=False)
+            assert ni_edos.plot_dos_idos(xlims=elims, show=False)
+            assert ni_edos.plot_up_minus_down(xlims=elims, show=False)
 
+            #vrange, crange = range(0, 4), range(4, 5)
+            #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
+            #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
 
-    def test_edos(self):
-        """Test electron DOS methods."""
-        gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
-        assert not gs_bands.has_metallic_scheme
-        repr(gs_bands); str(gs_bands)
-        assert gs_bands.to_string(title="Title", with_structure=False, with_kpoints=True, verbose=1)
+            if self.has_seaborn():
+                assert ni_ebands_kmesh.boxplot(brange=[5, 10], show=False,
+                    title="Boxplot for up and down spin and 10 > band >= 5")
 
-        for spin, ik, band in gs_bands.skb_iter():
+        # Test Abipy --> Pymatgen converter.
+        # TODO: More tests
+        pmg_bands_kpath = ni_ebands_kpath.to_pymatgen()
+        pmg_bands_kmesh = ni_ebands_kmesh.to_pymatgen()
+
+    def test_silicon_ebands(self):
+        """Test electron bands with nsppol == 1"""
+        si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+        assert not si_ebands_kmesh.has_metallic_scheme
+        repr(si_ebands_kmesh); str(si_ebands_kmesh)
+        assert si_ebands_kmesh.to_string(title="Title",
+                with_structure=False, with_kpoints=True, verbose=1)
+
+        for spin, ik, band in si_ebands_kmesh.skb_iter():
             assert spin == 0
-            assert gs_bands.nkpt >= ik >= 0
-            assert gs_bands.nband_sk[spin, ik] >= band >= 0
+            assert si_ebands_kmesh.nkpt >= ik >= 0
+            assert si_ebands_kmesh.nband_sk[spin, ik] >= band >= 0
 
         # Test ElectronBands get_e0
-        assert gs_bands.get_e0("fermie") == gs_bands.fermie
-        assert gs_bands.get_e0(None) == 0.0
-        assert gs_bands.get_e0("None") == 0.0
-        assert gs_bands.get_e0(1.0) == 1.0
+        assert si_ebands_kmesh.get_e0("fermie") == si_ebands_kmesh.fermie
+        assert si_ebands_kmesh.get_e0(None) == 0.0
+        assert si_ebands_kmesh.get_e0("None") == 0.0
+        assert si_ebands_kmesh.get_e0(1.0) == 1.0
+        with self.assertRaises(ValueError):
+            si_ebands_kmesh.get_e0("foo")
 
-        dless_states = gs_bands.dispersionless_states()
+        dless_states = si_ebands_kmesh.dispersionless_states()
         assert not dless_states
 
-        estats = gs_bands.spacing()
+        estats = si_ebands_kmesh.spacing()
         self.assert_almost_equal(estats.mean, 2.3100587301616917)
         self.assert_almost_equal(estats.stdev, 2.164400652355628)
         self.assert_almost_equal(estats.min, 0)
         self.assert_almost_equal(estats.max, 11.855874158768694)
         print(estats)
 
-        edos = gs_bands.get_edos()
-        repr(edos); str(edos)
-        assert ElectronDos.as_edos(edos, {}) is edos
-        edos_samevals = ElectronDos.as_edos(gs_bands, {})
-        assert ElectronDos.as_edos(gs_bands, {}) == edos
-        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == edos
+        si_edos = si_ebands_kmesh.get_edos()
+        repr(si_edos); str(si_edos)
+        assert ElectronDos.as_edos(si_edos, {}) is si_edos
+        edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, {})
+        assert ElectronDos.as_edos(si_ebands_kmesh, {}) == si_edos
+        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == si_edos
+        with self.assertRaises(TypeError):
+            ElectronDos.as_edos({}, {})
 
-        mu = edos.find_mu(8)
-        imu = edos.tot_idos.find_mesh_index(mu)
-        self.assert_almost_equal(edos.tot_idos[imu][1], 8, decimal=2)
+        mu = si_edos.find_mu(8)
+        imu = si_edos.tot_idos.find_mesh_index(mu)
+        self.assert_almost_equal(si_edos.tot_idos[imu][1], 8, decimal=2)
 
-        d, i = edos.dos_idos(spin=0)
-        tot_d, tot_i = edos.dos_idos()
+        d, i = si_edos.dos_idos(spin=0)
+        tot_d, tot_i = si_edos.dos_idos()
         self.assert_almost_equal(2 * d.values, tot_d.values)
         self.assert_almost_equal(2 * i.values, tot_i.values)
 
         # Test ElectronDos get_e0
-        assert edos.get_e0("fermie") == edos.fermie
-        assert edos.get_e0(None) == 0.0
-        assert edos.get_e0("None") == 0.0
-        assert edos.get_e0(1.0) == 1.0
+        assert si_edos.get_e0("fermie") == si_edos.fermie
+        assert si_edos.get_e0(None) == 0.0
+        assert si_edos.get_e0("None") == 0.0
+        assert si_edos.get_e0(1.0) == 1.0
+        with self.assertRaises(TypeError):
+            si_edos.get_e0("foo")
 
-        self.serialize_with_pickle(edos, protocols=[-1], test_eq=False)
+        self.serialize_with_pickle(si_edos, protocols=[-1], test_eq=False)
 
         # Test plot methods
         if self.has_matplotlib():
-            edos.plot(show=False)
-            edos.plot_dos_idos(show=False)
-            edos.plot_up_minus_down(show=False)
-            gs_bands.plot_with_edos(dos=edos, show=False)
-            if self.has_seaborn(): gs_bands.boxplot(show=False)
+            klabels = {
+                (0,0,0): "$\Gamma$",
+                (0.375, 0.375, 0.7500): "K",
+                (0.5, 0.5, 1.0): "X",
+                (0.5, 0.5, 0.5): "L",
+                (0.5, 0.0, 0.5): "X",
+                (0.5, 0.25, 0.75): "W",
+            }
+
+            assert si_edos.plot(show=False)
+            assert si_edos.plot_dos_idos(show=False)
+            assert si_edos.plot_up_minus_down(show=False)
+            assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, show=False)
+
+            vrange, crange = range(0, 4), range(4, 5)
+            assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
+            assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
+            if self.has_seaborn():
+                assert si_ebands_kmesh.boxplot(swarm=True, show=False)
 
         if self.has_ipywidgets():
-            assert gs_bands.ipw_edos_widget() is not None
+            assert si_ebands_kmesh.ipw_edos_widget()
 
-    def test_jdos(self):
-        """Test JDOS methods."""
-        bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+        # Test Abipy --> Pymatgen converter.
+        #pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
+        pmg_bands_kmesh = si_ebands_kmesh.to_pymatgen()
 
+        # Test JDOS methods.
         spin = 0
         conduction = [4,]
-        for v in range(1,5):
+        for v in range(1, 5):
             valence = range(0, v)
-            jdos = bands.get_ejdos(spin, valence, conduction)
+            jdos = si_ebands_kmesh.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
 
         self.serialize_with_pickle(jdos, protocols=[-1])
 
-        nscf_ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
+        si_ebands_kpath = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
-        diffs = nscf_ebands.statdiff(nscf_ebands)
+        diffs = si_ebands_kpath.statdiff(si_ebands_kpath)
         assert diffs is not None
-        print(diffs)
+        str(diffs)
 
         # TODO: More tests
         # Test abipy-->pymatgen converter
-        pmg_bands = nscf_ebands.to_pymatgen()
+        pmg_bands = si_ebands_kpath.to_pymatgen()
 
         # Test the detection of denerate states.
-        degs = nscf_ebands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
-
+        degs = si_ebands_kpath.degeneracies(spin=0, kpoint=[0, 0, 0], bands_range=range(8))
         ref_degbands = [[0], [1, 2, 3], [4, 5, 6], [7]]
         for i, (e, deg_bands) in enumerate(degs):
             self.assertEqual(deg_bands, ref_degbands[i])
 
         # Test Electron
-        e1 = nscf_ebands._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
-        str(e1)
+        e1 = si_ebands_kpath._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
+        repr(e1); str(e1)
         e1_copy = e1.copy()
         assert isinstance(e1.as_dict(), dict)
         assert isinstance(e1.to_strdict(), dict)
@@ -201,7 +227,7 @@ class ElectronBandsTest(AbipyTest):
 
         # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
-            nscf_ebands.get_ejdos(spin, 0, 4)
+            si_ebands_kpath.get_ejdos(spin, 0, 4)
 
     def test_ebands_skw_interpolation(self):
         if sys.version[0:3] >= '3.4':
@@ -209,11 +235,13 @@ class ElectronBandsTest(AbipyTest):
                 "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
              )
 
-        bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
+        # TODO: interpolation with nsppol 2
+        si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
-        # Test interpolate.
+        # Test interpolation.
         vertices_names = [((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
-        r = bands.interpolate(lpratio=10, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
+        r = si_ebands_kmesh.interpolate(lpratio=10, vertices_names=vertices_names,
+                                        kmesh=[8, 8, 8], verbose=1)
         assert r.ebands_kpath is not None
         assert r.ebands_kpath.kpoints.is_path
         assert not r.ebands_kpath.kpoints.is_ibz
@@ -258,16 +286,13 @@ class ElectronBandsTest(AbipyTest):
         with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
 
-
-class FrameFromEbandsTest(AbipyTest):
-
     def test_frame_from_ebands(self):
         """Testing frame_from_ebands."""
-        gsr_scf_path = abidata.ref_file("si_scf_GSR.nc")
-        gs_ebands = ElectronBands.as_ebands(gsr_scf_path)
+        gsr_kmesh = abidata.ref_file("si_scf_GSR.nc")
+        si_ebands_kmesh = ElectronBands.as_ebands(gsr_kmesh)
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
-        df = frame_from_ebands([gsr_scf_path, gs_ebands, gsr_nscf_path], index=index, with_spglib=True)
+        df = frame_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
         #print(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
@@ -292,18 +317,18 @@ class ElectronBandsPlotterTest(AbipyTest):
         assert df is not None
 
         if self.has_matplotlib():
-            plotter.combiplot(title="Silicon band structure", show=False)
+            assert plotter.combiplot(title="Silicon band structure", show=False)
             if self.has_seaborn():
-                plotter.combiboxplot(title="Silicon band structure", show=False)
-            plotter.gridplot(title="Silicon band structure", show=False)
-            plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
-            plotter.animate(show=False)
+                plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
+            assert plotter.gridplot(title="Silicon band structure", show=False)
+            assert plotter.boxplot(title="Silicon band structure", swarm=True, show=False)
+            assert plotter.animate(show=False)
 
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
 
         if self.has_nbformat():
-            plotter.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert plotter.write_notebook(nbpath=self.get_tmpname(text=True))
 
         pickle_path = self.get_tmpname(text=True)
         plotter.pickle_dump(pickle_path)
@@ -318,20 +343,22 @@ class ElectronDosPlotterTest(AbipyTest):
         """Test ElelectronDosPlotter API."""
         gsr_path = abidata.ref_file("si_scf_GSR.nc")
         gs_bands = ElectronBands.from_file(gsr_path)
-        edos = gs_bands.get_edos()
+        si_edos = gs_bands.get_edos()
 
         plotter = ElectronDosPlotter()
-        plotter.add_edos("edos1", edos)
+        plotter.add_edos("edos1", si_edos)
+        with self.assertRaises(ValueError):
+            plotter.add_edos("edos1", si_edos)
         plotter.add_edos("edos2", gsr_path, edos_kwargs=dict(method="gaussian", step=0.2, width=0.4))
         assert len(plotter.edos_list) == 2
         assert not plotter._can_use_basenames_as_labels()
 
         if self.has_matplotlib():
-            plotter.combiplot(show=False)
-            plotter.gridplot(show=False)
+            assert plotter.combiplot(show=False)
+            assert plotter.gridplot(show=False)
 
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
 
         if self.has_nbformat():
-            plotter.write_notebook(nbpath=self.get_tmpname(text=True))
+            assert plotter.write_notebook(nbpath=self.get_tmpname(text=True))
