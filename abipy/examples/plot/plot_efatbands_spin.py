@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This example shows how to plot the L-projected fatbands of Ni
-stored in the FATBANDS.nc files produced by abinit with prtdos 3.
+using the results stored in the FATBANDS.nc files produced by abinit with prtdos 3.
 """
 import abipy.abilab as abilab
 import abipy.data as abidata
@@ -9,12 +9,18 @@ import abipy.data as abidata
 # Open the file (alternatively one can use the shell and `abiopen.py FILE -nb` to open the file in a jupyter notebook
 # This fatbands file has been produced on a k-path so it's not suitable for DOS calculations.
 fbnc_kpath = abilab.abiopen(abidata.ref_file("ni_kpath_FATBANDS.nc"))
+
+# NC files have contributions up to L=4 (g channel)
+# but here we are intererested in s,p,d terms only so we use the optional argument lmax
 lmax = 2
+
+# Energy limits in eV for plots. The pseudo contains semi-core states but
+# we are not interested in this energy region. Fermi level set to zero.
 elims = [-10, 2]
 
 # Print file info (dimensions, variables ...)
 # Note that prtdos = 3, so LM decomposition is not available.
-#print(fbnc_kpath)
+print(fbnc_kpath)
 
 # Plot the k-points belonging to the path.
 #fbnc_kpath.ebands.kpoints.plot()
@@ -27,8 +33,6 @@ fbnc_kpath.plot_fatbands_lview(ylims=elims, lmax=lmax, tight_layout=True)
 
 # Now we read another FATBANDS file produced on 18x18x18 k-mesh
 fbnc_kmesh = abilab.abiopen(abidata.ref_file("ni_666k_FATBANDS.nc"))
-#print(fbnc_kmesh)
-#fbnc_kmesh.ebands.kpoints.plot()
 
 # Plot the L-PJDOS grouped by atomic type.
 fbnc_kmesh.plot_pjdos_typeview(xlims=elims, lmax=lmax, tight_layout=True)
@@ -43,5 +47,6 @@ fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax
 # fatbands + PJDOS grouped by L
 fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax, view="lview", tight_layout=True)
 
+# Close files.
 fbnc_kpath.close()
 fbnc_kmesh.close()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This example shows how to plot a band structure
+This example shows how to plot the band structure of Nickel
 using the eigenvalues stored in the GSR file produced by abinit at the end of the GS run.
 """
 from abipy import abilab
@@ -14,7 +14,8 @@ with abilab.abiopen(abidata.ref_file("ni_666k_GSR.nc")) as ncfile:
 with abilab.abiopen(abidata.ref_file("ni_kpath_GSR.nc")) as ncfile:
     ni_ebands_kpath = ncfile.ebands
 
-# Energy limits in eV for plots.
+# Energy limits in eV for plots. The pseudo contains semi-core states but
+# we are not interested in this energy region. Fermi level set to zero.
 elims = [-10, 2]
 
 ni_ebands_kpath.plot(ylims=elims, title="Ni band structure")

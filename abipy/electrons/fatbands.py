@@ -648,9 +648,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         return fig
 
-    # TODO: lmax
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, axmat=None, ylims=None, blist=None, **kwargs):
+    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, axmat=None, ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type.
 
@@ -660,6 +659,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            lmax: Maximum L included in plot. None means full set available on file.
             axmat: Matrix of axis. None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -667,7 +667,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         Returns:
             `matplotlib` figure
+
         """
+        mylsize = self.lsize if lmax is None else lmax + 1
+
         # Get axmat and fig.
         import matplotlib.pyplot as plt
         if axmat is None:
@@ -697,7 +700,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 for band in mybands:
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
-                    for l in range(self.lmax_symbol[symbol]+1):
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         # Add width around each band.
                         w = wl_sbk[l, spin, band]
                         y1, y2 = yup + w, ydown - w
@@ -921,9 +924,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self._cached_dos_integrators[key] = intg
         return intg
 
-# TODO: lmax
     @add_fig_kwargs
-    def plot_pjdos_lview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
+    def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
                          with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
         """
@@ -934,6 +936,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            lmax: Maximum L included in plot. None means full set available on file.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -958,7 +961,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             msg += ("Error while trying to compute the DOS.\n"
                     "Verify that the k-points form a homogenous sampling of the BZ.\n"
                     "Returning None\n")
-            print(msg)
+            cprint(msg, "red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -969,12 +972,13 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         edos, symbols_lso = intg.edos, intg.symbols_lso
 
         # Get grid of axes.
+        mylsize = self.lsize if lmax is None else lmax + 1
         import matplotlib.pyplot as plt
         nrows = self.nsppol if not combined_spins else 1
         if axmat is None:
-            fig, axmat = plt.subplots(nrows=nrows, ncols=self.lsize, sharex=True, sharey=True, squeeze=False)
+            fig, axmat = plt.subplots(nrows=nrows, ncols=mylsize, sharex=True, sharey=True, squeeze=False)
         else:
-            axmat = np.reshape(axmat, (nrows, self.lsize))
+            axmat = np.reshape(axmat, (nrows, mylsize))
             fig = plt.gcf()
 
         # The code below expectes a matrix of axes of shape[nsppol, self.lsize]
@@ -992,7 +996,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 for spin in range(self.nsppol):
                     if with_spin_sign: spin_sign = +1 if spin == 0 else -1
                     # Loop over the columns of the grid.
-                    for l in range(self.lmax_symbol[symbol]+1):
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         ax = axmat[spin, l]
 
                         # Plot total DOS.
@@ -1016,7 +1020,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             ls_stackdos = intg.ls_stackdos
             spin_sign = +1
             zerodos = np.zeros(len(mesh))
-            for l in range(self.lsize):
+            for l in range(mylsize):
                 for spin in self.ebands.spins:
                     if with_spin_sign: spin_sign = +1 if spin == 0 else -1
                     ax = axmat[spin, l]
@@ -1044,7 +1048,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         for spin in range(self.nsppol):
             if aliased_axis and spin == 1: break # Don't repeat yourself!
 
-            for l in range(self.lsize):
+            for l in range(mylsize):
                 ax = axmat[spin, l]
                 if with_info:
                     if combined_spins:
@@ -1065,7 +1069,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                             ax.set_xlabel('DOS [states/eV]')
                         else:
                             ax.set_ylabel('DOS [states/eV]')
-                elif l == self.lsize - 1:
+                elif l == mylsize - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
                 else:
@@ -1079,7 +1083,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_typeview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
+    def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
                             with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
         """
@@ -1090,6 +1094,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            lmax: Maximum L included in plot. None means full set available on file.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -1107,6 +1112,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
+        mylsize = self.lsize if lmax is None else lmax + 1
+
         try:
             intg = self.get_dos_integrator(method, step, width)
         except Exception:
@@ -1114,7 +1121,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             msg += ("Error while trying to compute the DOS.\n"
                     "Verify that the k-points form a homogenous sampling of the BZ.\n"
                     "Returning None\n")
-            print(msg)
+            cprint(msg, "red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -1155,7 +1162,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                     label = "Tot" if (spin, isymb) == (0, 0) else None
                     ax.plot(x, y, color="k", label=label if with_info else None)
 
-                    for l in range(self.lmax_symbol[symbol]+1):
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
                         if exchange_xy: x, y = y, x
@@ -1184,7 +1191,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
-                    for l in range(self.lmax_symbol[symbol]+1):
+                    for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
                         label ="%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
@@ -1225,16 +1232,15 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 else:
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
-                    # also the other axes are affecred (likely due to sharey=True).
+                    # also the other axes are affected (likely due to sharey=True).
                     # ax.set_yticklabels([])
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label.set_fontsize(0)
 
         return fig
 
-# TODO: lmax
     @add_fig_kwargs
-    def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, blist=None, view="type",
+    def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
                                  ylims=None, **kwargs):
         """
@@ -1246,11 +1252,12 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            lmax: Maximum L included in plot. None means full set available on file.
             blist: List of band indices for the fatband plot. If None, all bands are included
             pjdosfile: FATBANDS file used to compute the PJDOS. If None, the PJDOS is taken from self.
             edos_kwargs:
-            stacked:
-            width_ratio:
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
 
@@ -1274,7 +1281,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
         # Define number of columns depending on view
-        ncols = dict(type=self.ntypat, lview=self.lsize)[view]
+        mylsize = self.lsize if lmax is None else lmax + 1
+        #ncols = dict(type=self.ntypat, lview=self.lsize)[view]
+        ncols = dict(type=self.ntypat, lview=mylsize)[view]
         gspec = GridSpec(nrows=self.nsppol, ncols=ncols)
         fatbands_axmat = np.empty((self.nsppol, ncols), dtype=object)
         pjdos_axmat = fatbands_axmat.copy()
@@ -1293,15 +1302,15 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
-            self.plot_fatbands_lview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
-            pjdosfile.plot_pjdos_lview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
+            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
+            pjdosfile.plot_pjdos_lview(e0=e0, lmax=lmax, axmat=pjdos_axmat, exchange_xy=True,
                                        stacked=stacked, combined_spins=False,
                                        with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                        **edos_kwargs)
 
         elif view == "type":
-            self.plot_fatbands_typeview(e0=e0, fact=fact, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
-            pjdosfile.plot_pjdos_typeview(e0=e0, axmat=pjdos_axmat, exchange_xy=True,
+            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, axmat=fatbands_axmat, ylims=ylims, show=False)
+            pjdosfile.plot_pjdos_typeview(e0=e0, lmax=lmax, axmat=pjdos_axmat, exchange_xy=True,
                                           stacked=stacked, combined_spins=False,
                                           with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                           **edos_kwargs)
@@ -1320,11 +1329,12 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_pawdos_terms(self, method="gaussian", step=0.1, width=0.2, xlims=None, *kwargs):
+    def plot_pawdos_terms(self, lmax=None, method="gaussian", step=0.1, width=0.2, xlims=None, *kwargs):
         """
         Plot ...
 
         Args:
+            lmax: Maximum L included in plot. None means full set available on file.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -1342,6 +1352,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             return None
         # TODO: More tests.
         #if self.pawprtdos != 0:
+
+        mylsize = self.lsize if lmax is None else lmax + 1
 
         # Onsite contributions.
         # fracts_paw1,(dtset%nkpt,dtset%mband,dtset%nsppol,new%ndosfraction))
@@ -1374,7 +1386,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                         gs = gaussian(mesh, width, center=eigens[spin,k,band])
                         for iatom in range(self.natom):
                             if not self.has_atom[iatom]: continue
-                            for l in range(self.lmax_atom[iatom]+1):
+                            for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):
                                 totdos_al[iatom, l, spin] += weight * gs * wal_sbk[iatom, l, spin, band, k]
                                 paw1dos_al[iatom, l, spin] += weight * gs * paw1_wal_sbk[iatom, l, spin, band, k]
                                 pawt1dos_al[iatom, l, spin] += weight * gs * pawt1_wal_sbk[iatom, l, spin, band, k]
@@ -1394,8 +1406,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         for iatom in range(self.natom):
             if not self.has_atom[iatom]: continue
             irow += 1
-            #for l in range(self.lmax_atom[iatom]+1):
-            for l in range(self.lsize):
+            #for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):
+            for l in range(min(self.lsize, mylsize)):
                 ax = axmat[irow, l]
                 if l >= self.lmax_atom[iatom]+1:
                     # don't show this plots and cycle
@@ -1443,7 +1455,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            stacked: True if DOS curves
+            stacked: True if DOS partial contributions should be stacked on top of each other.
             ax: matplotlib axis, if None a new figure is generated.
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`

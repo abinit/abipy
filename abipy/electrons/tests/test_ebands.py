@@ -47,7 +47,8 @@ class ElectronBandsTest(AbipyTest):
             self.assertMSONable(ebands, test_if_subclass=False)
 
             if ii == 0:
-                if self.has_matplotlib(): ebands.plot(show=False)
+                if self.has_matplotlib():
+                    ebands.plot(show=False)
                 ebands.to_xmgrace(self.get_tmpname(text=True))
 
     def test_read_ebands_from_GSR(self):
@@ -89,7 +90,7 @@ class ElectronBandsTest(AbipyTest):
             elims = [-10, 2]
             nscf_ebands.plot(ylims=elims, show=False)
             nscf_ebands.plot_with_edos(edos, ylims=elims, show=False)
-            edos.plot_dos(xlims=elims, show=False)
+            edos.plot(xlims=elims, show=False)
             edos.plot_dos_idos(xlims=elims, show=False)
             edos.plot_up_minus_down(xlims=elims, show=False)
 
@@ -98,8 +99,7 @@ class ElectronBandsTest(AbipyTest):
         """Test electron DOS methods."""
         gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         assert not gs_bands.has_metallic_scheme
-        repr(gs_bands)
-        str(gs_bands)
+        repr(gs_bands); str(gs_bands)
         assert gs_bands.to_string(title="Title", with_structure=False, with_kpoints=True, verbose=1)
 
         for spin, ik, band in gs_bands.skb_iter():
@@ -124,8 +124,7 @@ class ElectronBandsTest(AbipyTest):
         print(estats)
 
         edos = gs_bands.get_edos()
-        str(edos)
-        repr(edos)
+        repr(edos); str(edos)
         assert ElectronDos.as_edos(edos, {}) is edos
         edos_samevals = ElectronDos.as_edos(gs_bands, {})
         assert ElectronDos.as_edos(gs_bands, {}) == edos
@@ -158,8 +157,6 @@ class ElectronBandsTest(AbipyTest):
 
         if self.has_ipywidgets():
             assert gs_bands.ipw_edos_widget() is not None
-        else:
-            raise RuntimeError()
 
     def test_jdos(self):
         """Test JDOS methods."""
@@ -188,7 +185,7 @@ class ElectronBandsTest(AbipyTest):
         # Test the detection of denerate states.
         degs = nscf_ebands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
 
-        ref_degbands = [[0], [1,2,3], [4,5,6], [7]]
+        ref_degbands = [[0], [1, 2, 3], [4, 5, 6], [7]]
         for i, (e, deg_bands) in enumerate(degs):
             self.assertEqual(deg_bands, ref_degbands[i])
 
@@ -283,8 +280,7 @@ class ElectronBandsPlotterTest(AbipyTest):
         """Test ElelectronBandsPlotter API."""
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
-        str(plotter)
-        repr(plotter)
+        repr(plotter); str(plotter)
 
         assert len(plotter.ebands_list) == 2
         assert len(plotter.edoses_list) == 0

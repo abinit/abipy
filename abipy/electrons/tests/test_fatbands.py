@@ -58,7 +58,7 @@ class TestElectronFatbands(AbipyTest):
         fbnc_kmesh.close()
 
     def test_nickel_fatbands(self):
-        """Test MgB2 fatbands with prtdos 3."""
+        """Test Nickel fatbands with nsppol = 2 and prtdos 3."""
         lmax = 2
         elims = [-10, 2]
 
@@ -92,8 +92,12 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kmesh.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
-            assert fbnc_kmesh.plot_pjdos_typeview(xlims=elims, tight_layout=True, show=False)
-            assert fbnc_kmesh.plot_pjdos_lview(xlims=elims, tight_layout=True, show=False)
+            for combined_spins in [True, False]:
+                assert fbnc_kmesh.plot_pjdos_typeview(xlims=elims, combined_spins=combined_spins,
+                                                      tight_layout=True, show=False)
+                assert fbnc_kmesh.plot_pjdos_lview(xlims=elims, combined_spins=combined_spins,
+                                                   tight_layout=True, show=False)
+
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax,
                                                        view="type", tight_layout=True, show=False)
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax,
