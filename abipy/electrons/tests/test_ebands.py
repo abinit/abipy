@@ -61,6 +61,39 @@ class ElectronBandsTest(AbipyTest):
             ElectronBands.from_dict(ebands.as_dict())
             self.assertMSONable(ebands, test_if_subclass=False)
 
+    def test_ebands_spin(self):
+        """Test electron bands with nsppol == 2"""
+        ref_nelect = 18
+        gs_ebands = ElectronBands.from_file(abidata.ref_file("ni_666k_GSR.nc"))
+        #assert gs_ebands.smearing == "foo"
+
+        repr(gs_ebands); str(gs_ebands)
+        assert gs_ebands.nsppol == 2 and gs_ebands.nspinor == 1 and gs_ebands.nspden == 2
+        assert gs_ebands.nelect == ref_nelect
+        assert gs_ebands.kpoints.is_ibz
+        edos = gs_ebands.get_edos()
+        repr(edos); str(edos)
+
+        nscf_ebands = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
+
+        repr(gs_ebands); str(gs_ebands)
+        assert nscf_ebands.nsppol == 2 and nscf_ebands.nspinor == 1 and nscf_ebands.nspden == 2
+        assert nscf_ebands.nelect == ref_nelect
+        assert nscf_ebands.kpoints.is_path
+        assert nscf_ebands.fermie == gs_ebands.fermie
+
+        nscf_ebands.to_xmgrace(self.get_tmpname(text=True))
+
+        # Test plot methods
+        if self.has_matplotlib():
+            elims = [-10, 2]
+            nscf_ebands.plot(ylims=elims, show=False)
+            nscf_ebands.plot_with_edos(edos, ylims=elims, show=False)
+            edos.plot_dos(xlims=elims, show=False)
+            edos.plot_dos_idos(xlims=elims, show=False)
+            edos.plot_up_minus_down(xlims=elims, show=False)
+
+
     def test_edos(self):
         """Test electron DOS methods."""
         gs_bands = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
@@ -91,7 +124,8 @@ class ElectronBandsTest(AbipyTest):
         print(estats)
 
         edos = gs_bands.get_edos()
-        print(edos)
+        str(edos)
+        repr(edos)
         assert ElectronDos.as_edos(edos, {}) is edos
         edos_samevals = ElectronDos.as_edos(gs_bands, {})
         assert ElectronDos.as_edos(gs_bands, {}) == edos
@@ -141,21 +175,25 @@ class ElectronBandsTest(AbipyTest):
 
         self.serialize_with_pickle(jdos, protocols=[-1])
 
-        nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
+        nscf_ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
-        diffs = nscf_bands.statdiff(nscf_bands)
+        diffs = nscf_ebands.statdiff(nscf_ebands)
         assert diffs is not None
         print(diffs)
 
+        # TODO: More tests
+        # Test abipy-->pymatgen converter
+        pmg_bands = nscf_ebands.to_pymatgen()
+
         # Test the detection of denerate states.
-        degs = nscf_bands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
+        degs = nscf_ebands.degeneracies(spin=0, kpoint=[0,0,0], bands_range=range(8))
 
         ref_degbands = [[0], [1,2,3], [4,5,6], [7]]
         for i, (e, deg_bands) in enumerate(degs):
             self.assertEqual(deg_bands, ref_degbands[i])
 
         # Test Electron
-        e1 = nscf_bands._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
+        e1 = nscf_ebands._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
         str(e1)
         e1_copy = e1.copy()
         assert isinstance(e1.as_dict(), dict)
@@ -166,7 +204,7 @@ class ElectronBandsTest(AbipyTest):
 
         # JDOS requires a homogeneous sampling.
         with self.assertRaises(ValueError):
-            nscf_bands.get_ejdos(spin, 0, 4)
+            nscf_ebands.get_ejdos(spin, 0, 4)
 
     def test_ebands_skw_interpolation(self):
         if sys.version[0:3] >= '3.4':
@@ -196,11 +234,6 @@ class ElectronBandsTest(AbipyTest):
 
         # Export it in BXSF format.
         r.ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
-
-    def test_pymatgen_converter(self):
-        """Testing abipy-->pymatgen converter"""
-        nscf_bands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
-        pmg_bands = nscf_bands.to_pymatgen()
 
     def test_derivatives(self):
         """Testing computation of effective masses."""

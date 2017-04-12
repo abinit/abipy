@@ -1497,18 +1497,32 @@ class ElectronBands(object):
 
         # Define the zero of energy.
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else dos.fermie
-        if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
+        #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the band structure
         for spin in self.spins:
+            if spin == 0:
+                opts = {"color": "black", "linewidth": 2.0}
+            else:
+                opts = {"color": "red", "linewidth": 2.0}
+
             for band in range(self.mband):
-                self.plot_ax(ax1, e0, spin=spin, band=band, **kwargs)
+                self.plot_ax(ax1, e0, spin=spin, band=band, **opts)
 
         self.decorate_ax(ax1, klabels=klabels)
         set_axlims(ax1, ylims, "y")
 
         # Plot the DOS
-        dos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
+        if self.nsppol == 1:
+            dos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
+        else:
+            for spin in self.spins:
+                if spin == 0:
+                    opts = {"color": "black", "linewidth": 2.0}
+                else:
+                    opts = {"color": "red", "linewidth": 2.0}
+                dos.plot_ax(ax2, e0, spin=spin, exchange_xy=True, **opts)
+
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
@@ -2637,9 +2651,7 @@ class ElectronDos(object):
             matplotlib figure.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-        ax.set_xlabel('Energy [eV]')
-        set_axlims(ax, xlims, "x")
+
         e0 = self.get_e0(e0)
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 1.0}
@@ -2648,6 +2660,10 @@ class ElectronDos(object):
             spin_sign = +1 if spin == 0 else -1
             x, y = self.spin_dos[spin].mesh - e0, spin_sign * self.spin_dos[spin].values
             ax.plot(x, y, **kwargs)
+
+        ax.grid(True)
+        ax.set_xlabel('Energy [eV]')
+        set_axlims(ax, xlims, "x")
 
         return fig
 

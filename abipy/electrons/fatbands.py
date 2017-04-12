@@ -412,7 +412,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         )
 
     @add_fig_kwargs
-    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=2.0,
+    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=1.0,
                                ylims=None, blist=None, **kwargs):
         """
         Plot fatbands for each atom in the unit cell. By default, only the "inequivalent" atoms are shown.
@@ -499,7 +499,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_lview(self, e0="fermie", fact=2.0, axmat=None, lmax=None,
+    def plot_fatbands_lview(self, e0="fermie", fact=1.0, axmat=None, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by L.
@@ -510,7 +510,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
-            axmat: Matrix of axes, if None new figure is produce.
+            axmat: Matrix of axes, if None a new figure is produced.
             lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -567,7 +567,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_mview(self, iatom, e0="fermie", fact=6.0, lmax=None,
+    def plot_fatbands_mview(self, iatom, e0="fermie", fact=3.0, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by LM.
@@ -648,8 +648,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         return fig
 
+    # TODO: lmax
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=2.0, axmat=None, ylims=None, blist=None, **kwargs):
+    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, axmat=None, ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type.
 
@@ -659,7 +660,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
-            axmat:
+            axmat: Matrix of axis. None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -712,7 +713,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_spilling(self, e0="fermie", fact=5.0, axlist=None, ylims=None, blist=None, **kwargs):
+    def plot_spilling(self, e0="fermie", fact=1.0, axlist=None, ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands
 
@@ -722,6 +723,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             fact:  float used to scale the stripe size.
+            axlist: List of matplotlib axes for plot. If None, new figure is produced
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
@@ -776,7 +778,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=10,
+    def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=1,
                              ylims=None, blist=None, axlist=None, **kwargs):
         """
         Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.
@@ -799,7 +801,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Returns:
             `matplotlib` figure
         """
-        if self.prtdos != 5 and self.nspinor != 2:
+        if not (self.prtdos == 5 and self.nspinor == 2):
             print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
                 % (self.prtdos, self.nspinor))
             return None
@@ -919,6 +921,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         self._cached_dos_integrators[key] = intg
         return intg
 
+# TODO: lmax
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
@@ -1229,8 +1232,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
         return fig
 
+# TODO: lmax
     @add_fig_kwargs
-    def plot_fatbands_with_pjdos(self, e0="fermie", fact=2.0, blist=None, view="type",
+    def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
                                  ylims=None, **kwargs):
         """
