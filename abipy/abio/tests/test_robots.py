@@ -17,8 +17,7 @@ class RobotTest(AbipyTest):
         """Testing base robot class"""
         # With context.
         with Robot() as robot:
-            repr(robot)
-            str(robot)
+            repr(robot); str(robot)
             assert len(robot) == 0 and not robot.exceptions
 
         assert Robot.class_for_ext("DDB") is DdbRobot
@@ -32,8 +31,7 @@ class RobotTest(AbipyTest):
         robot.add_file("gsr0", gsr_path)
         assert len(robot.ncfiles) == 1
         assert robot.EXT == "GSR"
-        repr(robot)
-        str(robot)
+        repr(robot); str(robot)
 
 	# Cannot have same label
         with self.assertRaises(ValueError):
@@ -83,10 +81,9 @@ class RobotTest(AbipyTest):
                 assert p == os.path.relpath(p, start=start)
 
             assert robot.EXT == "SIGRES"
-            repr(robot)
-            str(robot)
+            repr(robot); str(robot)
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
-            qpdata = robot.get_qpgaps_dataframe()
+            qpdata = robot.get_qpgaps_dataframe(with_geo=True)
             if self.has_seaborn():
                 robot.plot_conv_qpgap(x_vars="sigma_nband")
 
@@ -105,8 +102,7 @@ class RobotTest(AbipyTest):
         robot = MdfRobot()
         robot.scan_dir(os.path.join(abidata.dirpath, "refs", "si_bse_kpoints"))
         assert len(robot) == 3
-        repr(robot)
-        str(robot)
+        repr(robot); str(robot)
 
         df = robot.get_dataframe(with_geo=True)
         assert df is not None
@@ -127,8 +123,7 @@ class RobotTest(AbipyTest):
     #    )
     #assert not DdbRobot.class_handles_filename(filepaths[0])
     #    assert len(filepaths) == 3
-    #    repr(robot)
-    #     str(robot)
+    #    repr(robot); str(robot)
     #     df = robot.get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
 
     #     phbands_plotter = robot.get_phbands_plotter()

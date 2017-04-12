@@ -1,6 +1,7 @@
 """Tests for electrons.bse module"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 
+import itertools
 import abipy.data as abidata
 
 from abipy import abilab
@@ -43,7 +44,8 @@ class TestElectronFatbands(AbipyTest):
 
         if self.has_matplotlib():
             assert fbnc_kmesh.plot_pjdos_typeview(tight_layout=True, show=False)
-            assert fbnc_kmesh.plot_pjdos_lview(tight_layout=True, show=False)
+            assert fbnc_kmesh.plot_pjdos_lview(tight_layout=True, stacked=True, show=False)
+            assert fbnc_kmesh.plot_pjdos_lview(tight_layout=True, stacked=False, show=False)
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", tight_layout=True, show=False)
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="lview", tight_layout=True, show=False)
 
@@ -92,11 +94,12 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kmesh.ebands.has_metallic_scheme
 
         if self.has_matplotlib():
-            for combined_spins in [True, False]:
+            for combined_spins, stacked in itertools.product([True, False], [True, False]):
                 assert fbnc_kmesh.plot_pjdos_typeview(xlims=elims, combined_spins=combined_spins,
-                                                      tight_layout=True, show=False)
+                                                      stacked=stacked, tight_layout=True, show=False)
+
                 assert fbnc_kmesh.plot_pjdos_lview(xlims=elims, combined_spins=combined_spins,
-                                                   tight_layout=True, show=False)
+                                                   stacked=stacked, tight_layout=True, show=False)
 
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, lmax=lmax,
                                                        view="type", tight_layout=True, show=False)

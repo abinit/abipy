@@ -66,14 +66,25 @@ class TestKpoint(AbipyTest):
         pgamma = Kpoint([1, 0, 1], lattice)
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
-        str(X)
-        repr(X)
+        repr(X); str(X)
 
         # TODO
         #assert np.all(np.array(X) == X.frac_coords)
 
         self.serialize_with_pickle(X, protocols=[-1])
         self.assert_almost_equal(X.versor().norm, 1.0)
+
+        other_gamma = Kpoint.gamma(lattice, weight=1)
+        assert other_gamma == [0, 0, 0]
+        assert other_gamma == gamma
+        assert gamma.versor() == gamma
+
+        X_outside = Kpoint([1.5, 0, 0], lattice)
+        assert X_outside.wrap_to_ws() == X
+        assert X_outside.wrap_to_ws() == [0.5, 0, 0]
+
+        X_outside = Kpoint([0.7, 0, 0], lattice)
+        assert X_outside.wrap_to_bz() == [-0.3, 0, 0]
 
         assert X[0] == 0.5
         self.assert_equal(pgamma[:2].tolist(), [1,0])
@@ -126,8 +137,7 @@ class TestKpointList(AbipyTest):
         weights = [0.1, 0.2, 0.7]
 
         klist = KpointList(lattice, frac_coords, weights=weights)
-        repr(klist)
-        str(klist)
+        repr(klist); str(klist)
 
         self.serialize_with_pickle(klist, protocols=[-1])
         self.assertMSONable(klist, test_if_subclass=False)
@@ -393,8 +403,7 @@ class TestKsamplingInfo(AbipyTest):
         self.assert_equal(ksi.shifts.flatten(), shifts)
         assert ksi.kptopt == kptopt
         assert ksi.is_homogeneous
-        repr(ksi)
-        str(ksi)
+        repr(ksi); str(ksi)
 
         # kptrlatt with non-zero off-diagonal elements.
         shifts = [0.5, 0.5, 0.5]

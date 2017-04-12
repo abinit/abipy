@@ -39,6 +39,8 @@ class ElectronBandsTest(AbipyTest):
         ref_nelect = 18
         ni_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("ni_666k_GSR.nc"))
         assert ElectronBands.as_ebands(ni_ebands_kmesh) is ni_ebands_kmesh
+        with self.assertRaises(TypeError):
+            ElectronBands.as_ebands(1)
 
         repr(ni_ebands_kmesh); str(ni_ebands_kmesh)
         #assert ni_ebands_kmesh.smearing == "foo"
@@ -46,6 +48,7 @@ class ElectronBandsTest(AbipyTest):
         assert ni_ebands_kmesh.nelect == ref_nelect
         assert ni_ebands_kmesh.kpoints.is_ibz and ni_ebands_kmesh.has_bzmesh and not ni_ebands_kmesh.has_bzpath
         assert ni_ebands_kmesh.has_timrev
+        assert ni_ebands_kmesh.has_metallic_scheme
         ni_ebands_kmesh.copy()
         ni_ebands_kmesh.deepcopy()
 
@@ -64,6 +67,7 @@ class ElectronBandsTest(AbipyTest):
         # Serialization
         self.serialize_with_pickle(ni_ebands_kpath, test_eq=False)
         self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
+        assert len(ni_ebands_kpath.to_json())
 
         df = ni_ebands_kpath.to_pdframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
@@ -121,6 +125,11 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             si_ebands_kmesh.get_e0("foo")
 
+        # Serialization
+        self.serialize_with_pickle(si_ebands_kmesh, test_eq=False)
+        self.assertMSONable(si_ebands_kmesh, test_if_subclass=False)
+        assert len(si_ebands_kmesh.to_json())
+
         dless_states = si_ebands_kmesh.dispersionless_states()
         assert not dless_states
 
@@ -131,7 +140,7 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.max, 11.855874158768694)
         print(estats)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
 
         si_edos = si_ebands_kmesh.get_edos()
@@ -177,10 +186,13 @@ class ElectronBandsTest(AbipyTest):
             assert si_edos.plot_dos_idos(show=False)
             assert si_edos.plot_up_minus_down(show=False)
             assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, show=False)
+            assert si_ebands_kmesh.kpoints.plot(show=False)
+
 
             vrange, crange = range(0, 4), range(4, 5)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
+            assert si_ebands_kmesh.kpoints.plot(show=False)
             if self.has_seaborn():
                 assert si_ebands_kmesh.boxplot(swarm=True, show=False)
 
@@ -188,7 +200,6 @@ class ElectronBandsTest(AbipyTest):
             assert si_ebands_kmesh.ipw_edos_widget()
 
         # Test Abipy --> Pymatgen converter.
-        #pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
         pmg_bands_kmesh = si_ebands_kmesh.to_pymatgen()
 
         # Test JDOS methods.
@@ -206,7 +217,17 @@ class ElectronBandsTest(AbipyTest):
 
         diffs = si_ebands_kpath.statdiff(si_ebands_kpath)
         assert diffs is not None
-        str(diffs)
+        repr(diffs); str(diffs)
+
+        dir_gap = si_ebands_kpath.direct_gaps[0]
+        fun_gap = si_ebands_kpath.fundamental_gaps[0]
+        assert dir_gap.is_direct
+        assert dir_gap.qpoint == [0, 0, 0]
+        self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
+        assert not fun_gap.is_direct
+        self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.,  0.4285714, 0.4285714])
+        assert fun_gap.energy <= dir_gap.energy
+        self.assert_almost_equal(fun_gap.energy, 0.52433967625601774)
 
         # TODO: More tests
         # Test abipy-->pymatgen converter

@@ -171,7 +171,7 @@ class Mesh3D(object):
             im = self.random(extra_dims=extra_dims)
             return re + 1j*im
         else:
-            raise ValueError("Wrong dtype = " + str(dtype))
+            raise ValueError("Wrong dtype: %s" % str(dtype))
 
     def crandom(self, extra_dims=()):
         """Returns random complex array for this domain with val in [0.0, 1.0)."""

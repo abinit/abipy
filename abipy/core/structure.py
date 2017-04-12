@@ -604,16 +604,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """True is the structure contains info on the spacegroup."""
         return self.abi_spacegroup is not None
 
-    #@property
-    #def fm_symmops(self):
-    #    """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
-    #    return self.abi_spacegroup.symmops(afm_sign=+1)
-
-    #@property
-    #def afm_symmops(self):
-    #    """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
-    #    return self.abi_spacegroup.symmops(afm_sign=-1)
-
     @lazy_property
     def hsym_kpath(self):
         """
@@ -651,7 +641,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
     def get_sorted_structure_z(self):
-        """Orders the structure according to increasing Z of the elements"""
+        """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint):

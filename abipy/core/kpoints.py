@@ -17,6 +17,7 @@ from pymatgen.serializers.json_coders import pmg_serialize
 from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.numtools import add_periodic_replicas
 
 import logging
 logger = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ def issamek(k1, k2, atol=None):
     >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
     >>> assert not issamek(0.00003, 1)
     """
-    return is_integer(np.asarray(k1)-np.asarray(k2), atol=atol)
+    return is_integer(np.asarray(k1) - np.asarray(k2), atol=atol)
 
 
 def wrap_to_ws(x):
@@ -106,7 +107,7 @@ def wrap_to_ws(x):
     Transforms x in its corresponding reduced number in the interval ]-1/2,1/2].
     """
     w = x % 1
-    return np.where(w > 0.5, w-1.0, w)
+    return np.where(w > 0.5, w - 1.0, w)
 
 
 def wrap_to_bz(x):
@@ -236,8 +237,8 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
 
     if pbc:
         # Add periodical replicas.
-        from abipy.tools.numtools import add_periodic_replicas
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
+
     bz2ibz = bzgrid2ibz.flatten()
 
     if np.any(bz2ibz == -1):
@@ -494,15 +495,15 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(self.frac_coords - other.frac_coords, self.lattice)
 
     def __eq__(self, other):
-        try:
+        if hasattr(other, "frac_coords"):
             # Comparison between two Kpoint objects
             return issamek(self.frac_coords, other.frac_coords)
-        except AttributeError:
+        else:
             # Kpoint vs iterable (e.g. list)
             return issamek(self.frac_coords, other)
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def __getitem__(self, slice):
         return self.frac_coords[slice]
@@ -541,9 +542,10 @@ class Kpoint(SlotPickleMixin):
     def versor(self):
         """Returns the versor i.e. ||k|| = 1"""
         cls = self.__class__
-        try:
+        if self.norm > 1e-12:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-        except ZeroDivisionError:
+        #except ZeroDivisionError:
+        else:
             return cls.gamma(self.lattice, weight=self.weight)
 
     def wrap_to_ws(self):
@@ -551,7 +553,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(wrap_to_ws(self.frac_coords), self.lattice,
                               name=self.name, weight=self.weight)
 
-    def wrapt_to_bz(self):
+    def wrap_to_bz(self):
         """Returns a new `Kpoint` in the first unit cell."""
         return self.__class__(wrap_to_bz(self.frac_coords), self.lattice,
                               name=self.name, weight=self.weight)
@@ -714,7 +716,7 @@ class KpointList(collections.Sequence):
         return True
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def index(self, kpoint):
         """

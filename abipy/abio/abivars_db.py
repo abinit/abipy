@@ -11,6 +11,7 @@ from collections import OrderedDict, defaultdict
 from six.moves import cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 
 
 # Unit names.
@@ -254,8 +255,8 @@ def get_abinit_variables():
                 with open(pickle_file, "rb") as fh:
                     __VARS_DATABASE = pickle.load(fh)
             except Exception as exc:
-                print("Error while trying to read variables from pickle file %s" % pickle_file)
-                print("Please remove the file and rerun.")
+                cprint("Error while trying to read variables from pickle file: %s" % pickle_file, "red")
+                cprint("Please remove the file and rerun.", "red")
                 raise exc
 
         else:

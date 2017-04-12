@@ -35,8 +35,7 @@ class TestSymmetries(AbipyTest):
         assert structure.has_abi_spacegroup
         assert structure.abi_spacegroup.is_symmorphic
         spgrp = structure.abi_spacegroup
-        repr(spgrp)
-        str(spgrp)
+        repr(spgrp); str(spgrp)
         self.serialize_with_pickle(spgrp, test_eq=True)
 
         # Classes cover the entire group.
@@ -110,8 +109,7 @@ class TestSymmetries(AbipyTest):
         # Test little group (first test wit Gamma point)
         ltg = spgrp.find_little_group(kpoint=[0, 0, 0])
         assert len(ltg) == len(spgrp)
-        repr(ltg)
-        str(ltg)
+        repr(ltg); str(ltg)
         for o1, (o2, g0) in zip(spgrp, ltg.iter_symmop_g0()):
             assert o1 == o2
             assert np.all(g0 == 0)
@@ -153,8 +151,7 @@ class BilbaoPointGroupTest(AbipyTest):
         for sch_symbol in sch_symbols:
             #print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
-            repr(ptg)
-            str(ptg)
+            repr(ptg); str(ptg)
             ptg.show_character_table()
             #for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)
             assert ptg.auto_test() == 0
@@ -178,8 +175,7 @@ class LittleGroupTest(AbipyTest):
 
             for ik, kpoint in enumerate(kpoints):
                 ltk = spgrp.find_little_group(kpoint)
-                repr(ltk)
-                str(ltk)
+                repr(ltk); str(ltk)
                 #if ik == 1:
                 #    assert ltk.onborder_and_nonsymmorphic
                 #else:

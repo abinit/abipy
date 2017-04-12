@@ -57,6 +57,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
         kidx: Index of the k-point in the initial array.
 
     .. note::
+
         Energies are in eV.
     """
     #def __eq__(self, other):
@@ -68,7 +69,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     #            )
 
     #def __ne__(self, other):
-    #    return not self == other
+    #    return not (self == other)
 
     def __str__(self):
         return "spin=%d, kpt=%s, band=%d, eig=%.3f, occ=%.3f" % (
@@ -174,6 +175,9 @@ class ElectronTransition(object):
         self.out_state = out_state
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -190,7 +194,7 @@ class ElectronTransition(object):
     #           self.out_state == other.out_state
 
     #def __ne__(self, other):
-    #    return not self == other
+    #    return not (self == other)
 
     #def __ge__(self, other):
     #    return self.energy >= other.energy
@@ -1133,7 +1137,7 @@ class ElectronBands(Has_Structure):
                         dos[spin] += weight * gaussian(mesh, width, center=e)
 
         else:
-            raise ValueError("Method %s is not supported" % method)
+            raise NotImplementedError("Method %s is not supported" % method)
 
         # Use fermie from Abinit if we are not using metallic scheme for occopt.
         fermie = None
@@ -1215,7 +1219,7 @@ class ElectronBands(Has_Structure):
                         jdos += fact * gaussian(mesh, width, center=ec-ev)
 
         else:
-            raise ValueError("Method %s is not supported" % method)
+            raise NotImplementedError("Method %s is not supported" % method)
 
         return Function1D(mesh, jdos)
 
@@ -1673,7 +1677,7 @@ class ElectronBands(Has_Structure):
             return ders_onlines
 
         else:
-            raise ValueError("Derivatives on homogeneous k-meshes are not supported yet")
+            raise NotImplementedError("Derivatives on homogeneous k-meshes are not supported yet")
 
     def effective_masses(self, spin, band, acc=4):
         """

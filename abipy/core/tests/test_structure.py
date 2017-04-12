@@ -110,9 +110,8 @@ class TestStructure(AbipyTest):
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():
             mgb2.abi_primitive()
-        # FIXME: This is buggy
-        #print(mgb2.get_sorted_mgb2())
-        #assert [site.species_string for site in mgb2.get_sorted_structure()] == ["B", "B", "Mg"]
+
+        assert [site.species_string for site in mgb2.get_sorted_structure_z()] == ["B", "B", "Mg"]
 
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
