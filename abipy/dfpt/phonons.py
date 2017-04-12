@@ -1280,7 +1280,7 @@ class PhononBands(object):
         """
         Return a pandas DataFrame with the following columns:
 
-          ['qidx', 'band', 'freq', 'qpoint']
+          ['qidx', 'mode', 'freq', 'qpoint']
 
         where:
 
@@ -1320,7 +1320,8 @@ class PhononBands(object):
         """
         # Get the dataframe and select bands
         frame = self.to_dataframe()
-        if mode_range is not None: frame = frame[mode_range[0] <= frame["mode"] < mode_range[1]]
+        if mode_range is not None:
+            frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -2493,13 +2494,13 @@ class PhononBandsPlotter(NotebookWriter):
         return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, show=False)
 
     @add_fig_kwargs
-    def boxplot(self, brange=None, units="eV", swarm=False, **kwargs):
+    def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
         """
         Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
 
         Args:
-            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keywork arguments passed to seaborn boxplot.
@@ -2517,7 +2518,7 @@ class PhononBandsPlotter(NotebookWriter):
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for (label, phbands), ax in zip(self.phbands_dict.items(), ax_list):
-            phbands.boxplot(ax=ax, units=units, show=False)
+            phbands.boxplot(ax=ax, units=units, mode_range=mode_range, show=False)
             ax.set_title(label)
 
         return fig
@@ -2539,7 +2540,8 @@ class PhononBandsPlotter(NotebookWriter):
         for label, phbands in self.phbands_dict.items():
             # Get the dataframe, select bands and add column with label
             frame = phbands.to_dataframe()
-            if mode_range is not None: frame = frame[mode_range[0] <= frame["mode"] < mode_range[1]]
+            if mode_range is not None:
+                frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
             frame["label"] = label
             frames.append(frame)
 

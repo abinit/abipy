@@ -11,7 +11,7 @@ from abipy.core.testing import AbipyTest
 class TestElectronFatbands(AbipyTest):
 
     def test_MgB2_fatbands(self):
-        """Test MgB2 fatbands with prtdos 3."""
+        """Testing MgB2 fatbands with prtdos 3."""
         fbnc_kpath = FatBandsFile(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
         repr(fbnc_kpath); str(fbnc_kpath)
         assert fbnc_kpath.ebands.kpoints.is_path
@@ -58,7 +58,7 @@ class TestElectronFatbands(AbipyTest):
         fbnc_kmesh.close()
 
     def test_nickel_fatbands(self):
-        """Test Nickel fatbands with nsppol = 2 and prtdos 3."""
+        """Testing Nickel fatbands with nsppol = 2 and prtdos 3."""
         lmax = 2
         elims = [-10, 2]
 
@@ -109,7 +109,8 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kpath.plot_pawdos_terms() is None
             #assert fbnc_kpath.plot_pjdos_spinor() is None
             # TODO
-            #assert fbnc_kpath.plot_fatbands_mview(iatom=0) is None
+            #assert fbnc_kmesh.plot_fatbands_mview(iatom=0, show=False) is not None
+            #assert fbnc_kpath.plot_fatbands_mview(iatom=0, show=False) is None
 
         fbnc_kpath.close()
         fbnc_kmesh.close()

@@ -11,7 +11,8 @@ import abipy.data as abidata
 filename = abidata.ref_file("si_nscf_GSR.nc")
 
 # Open the GSR file and extract the band structure.
-# (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb` to open the file in a jupyter notebook.
+# (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb` 
+# to open the file in a jupyter notebook.
 with abiopen(filename) as ncfile:
     ebands = ncfile.ebands
 

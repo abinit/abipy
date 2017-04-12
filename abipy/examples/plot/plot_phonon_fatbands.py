@@ -10,7 +10,7 @@ import abipy.data as abidata
 with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands
 
-# Mapping reduced coordinates -> labels
+# Mapping reduced coordinates -> labels (optional)
 #qlabels = {
 #    (0,0,0): "$\Gamma$",
 #    (0.375, 0.375, 0.75): "K",

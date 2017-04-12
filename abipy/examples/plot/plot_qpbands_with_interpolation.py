@@ -21,11 +21,13 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr_scf:
 
 ks_edos = ks_ebands_kmesh.get_edos()
 
-# Interpolate the QP corrections and use the interpolated values to correct the KS energies
-# stored in ks_ebands_kpath and ks_ebands_kmesh.
+# Interpolate the QP corrections and use the interpolated values to correct 
+# the KS energies stored in `ks_ebands_kpath` and `ks_ebands_kmesh`.
+#
 # The QP energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
 # Note that the KS energies are optional but this is the recommended approach
 # because the code will interpolate the corrections instead of the QP energies.
+
 r = sigres.interpolate(lpratio=5,
                        ks_ebands_kpath=ks_ebands_kpath,
                        ks_ebands_kmesh=ks_ebands_kmesh

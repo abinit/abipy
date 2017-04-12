@@ -492,19 +492,19 @@ class ElectronBands(Has_Structure):
         """True if we are using a metallic scheme for occupancies."""
         return self.smearing.has_metallic_scheme
 
-    def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
-        """
-        Recompute the Fermi level.
-        """
-        if nelect is None: nelect = self.nelect
-        edos = self.get_edos(method=method, step=step, width=width)
-        ef = edos.find_mu(nelect)
-        self.set_fermie(ef)
-        return ef
+    #def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
+    #    """
+    #    Recompute the Fermi level.
+    #    """
+    #    if nelect is None: nelect = self.nelect
+    #    edos = self.get_edos(method=method, step=step, width=width)
+    #    ef = edos.find_mu(nelect)
+    #    self.set_fermie(ef)
+    #    return ef
 
-    def set_fermie(self, fermie):
-        self.fermie = fermie
-        # TODO: Recalculate occupations.
+    #def set_fermie(self, fermie):
+    #    self.fermie = fermie
+    #    # TODO: Recalculate occupations.
 
     def get_dict4frame(self, with_spglib=True):
         """
@@ -806,7 +806,7 @@ class ElectronBands(Has_Structure):
         # Get the dataframe and select bands
         frame = self.to_dataframe(e0=e0)
         if brange is not None:
-            frame = frame[(frame.band >= brange[0]) & (frame.band < brange[1])]
+            frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -2231,7 +2231,7 @@ class ElectronBandsPlotter(NotebookWriter):
             # Get the dataframe, select bands and add column with label
             frame = ebands.to_dataframe(e0=e0)
             if brange is not None:
-                frame = frame[(frame.band >= brange[0]) & (frame.band < brange[1])]
+                frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
             frame["label"] = label
             frames.append(frame)
             if ebands.nsppol == 2: spin_polarized = True

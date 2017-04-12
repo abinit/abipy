@@ -3,6 +3,7 @@
 This example shows how to plot several phonon band structures on a grid.
 
 We use two files produced by anaddb:
+
     trf2_5.out_PHBST.nc: phonon frequencies on a q-path in the BZ (used to plot the band dispersion)
     trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.
 
@@ -23,8 +24,8 @@ plotter.gridplot(units="eV", title="GridPlot in eV")
 plotter.boxplot(units="cm-1", title="BoxPlot in cm-1")
 plotter.combiboxplot(units="Ha", title="CombiboxPlot in Ha")
 
-# To plot a grid with band structures + DOS, use the optional argument `phdos`of add_phbands
-# The first subplot will get the band dispersion from phbst_paths[0] and the dos from phdos_paths[0]
+# To plot a grid with band structures + DOS, use the optional argument `phdos` of add_phbands
+# The first subplot gets the band dispersion from phbst_paths[0] and the dos from phdos_paths[0]
 phbst_paths = 3 * [abidata.ref_file("trf2_5.out_PHBST.nc")]
 phdos_paths = 3 * [abidata.ref_file("trf2_5.out_PHDOS.nc")]
 

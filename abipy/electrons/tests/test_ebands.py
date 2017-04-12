@@ -131,6 +131,9 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.max, 11.855874158768694)
         print(estats)
 
+        with self.assertRaises(ValueError):
+            si_ebands_kmesh.get_edos(method="tetrahedron")
+
         si_edos = si_ebands_kmesh.get_edos()
         repr(si_edos); str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos

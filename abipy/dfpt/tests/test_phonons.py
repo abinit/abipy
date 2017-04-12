@@ -40,6 +40,8 @@ class PhononBandsTest(AbipyTest):
         str(phbands)
         assert phbands.to_string(title="Title", with_structure=False, with_qpoints=True, verbose=1)
         assert PhononBands.as_phbands(phbands) is phbands
+        with self.assertRaises(TypeError):
+            PhononBands.as_phbands({})
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
@@ -94,7 +96,7 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
-            assert phbands.boxplot(units="ev", show=False)
+            assert phbands.boxplot(units="ev", mode_range=[2, 4], show=False)
 
         # Cannot compute PHDOS with q-path
         with self.assertRaises(ValueError):
@@ -173,8 +175,7 @@ class PhononBandsPlotterTest(AbipyTest):
         plotter = PhononBandsPlotter()
         plotter.add_phbands("AlAs", phbst_paths[0], phdos=phdos_paths[0])
         plotter.add_phbands("Same-AlAs", phbst_paths[1], phdos=phdos_paths[1])
-        repr(plotter)
-        str(plotter)
+        repr(plotter); str(plotter)
 
         assert len(plotter.phbands_list) == 2
         assert len(plotter.phdoses_list) == 2
@@ -203,8 +204,8 @@ class PhononBandsPlotterTest(AbipyTest):
         if self.has_matplotlib():
             assert plotter.combiplot(units="EV", show=True)
             assert plotter.gridplot(units="MEV", show=True)
-            assert plotter.boxplot(units="cm^-1", show=True)
-            assert plotter.combiboxplot(units="THZ", show=True)
+            assert plotter.boxplot(units="cm^-1", mode_range=[0, 3], swarm=True, show=True)
+            assert plotter.combiboxplot(units="THZ", mode_range=[0, 3], show=True)
 
 
 class PhononDosTest(AbipyTest):
@@ -213,9 +214,11 @@ class PhononDosTest(AbipyTest):
         """Testing PhononDos API with fake data."""
         phdos = PhononDos(mesh=[1, 2, 3], values=[4, 5, 6])
         assert phdos.mesh.tolist() == [1, 2, 3] and phdos.h == 1 and phdos.values.tolist() == [4, 5, 6]
-        repr(phdos)
-        str(phdos)
+        repr(phdos); str(phdos)
         phdos.idos
+        with self.assertRaises(TypeError):
+            PhononDos.as_phdos({}, {})
+
         assert PhononDos.as_phdos(phdos, {}) is phdos
         assert phdos.iw0 == 0
 
@@ -334,4 +337,14 @@ class NonAnalyticalPhTest(AbipyTest):
         # no becs, so no splitting. The test only checks the parsing
         with DdbFile(os.path.join(test_dir, "ZnO_gamma_becs_DDB")) as ddb:
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
-            phbands.non_anal_phfreqs
+
+            assert phbands.non_anal_ph is not None
+            str(phbands.non_anal_ph)
+            assert phbands.structure == phbands.non_anal_ph.structure
+            #assert phbands.non_anal_ph.has_direction(direction= cartesian=False)
+
+            # TODO should check numerical values (?)
+            assert phbands.non_anal_phfreqs is not None
+            assert phbands.non_anal_directions is not None
+            assert phbands.non_anal_phdispl_cart is not None
+            assert phbands.non_anal_dyn_mat_eigenvect is not None

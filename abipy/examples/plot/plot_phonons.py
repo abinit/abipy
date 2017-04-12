@@ -7,7 +7,8 @@ from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Open PHBST file produced by anaddb and extract the phonon bands object.
-# (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb` to open the file in a jupyter notebook.
+# (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb` 
+# to open the file in a jupyter notebook.
 with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands
 
