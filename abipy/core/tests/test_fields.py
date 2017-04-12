@@ -154,7 +154,7 @@ class TestScalarField(AbipyTest):
         magfield = ni_den.magnetization_field
         assert magfield.shape == ni_den.mesh.shape
         self.assert_equal(magfield, ni_den.datar[0] - ni_den.datar[1])
-        self.assert_almost_equal(ni_den.magnetization, 0.650144)
+        self.assert_almost_equal(ni_den.magnetization, 0.650144, decimal=5)
 
         nup, ndown = ni_den.nelect_updown
         self.assert_almost_equal(nup, 9.32507195)

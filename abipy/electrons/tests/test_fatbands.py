@@ -48,10 +48,10 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="lview", tight_layout=True, show=False)
 
             # These calls should return None
-            assert fbnc_kpath.plot_fatbands_spinor() is None
+            #assert fbnc_kpath.plot_fatbands_spinor() is None
             assert fbnc_kpath.plot_pjdos_lview() is None
             assert fbnc_kpath.plot_pawdos_terms() is None
-            assert fbnc_kpath.plot_pjdos_spinor() is None
+            #assert fbnc_kpath.plot_pjdos_spinor() is None
             assert fbnc_kpath.plot_fatbands_mview(iatom=0) is None
 
         fbnc_kpath.close()
@@ -104,10 +104,10 @@ class TestElectronFatbands(AbipyTest):
                                                        view="lview", tight_layout=True, show=False)
 
             # These calls should return None
-            assert fbnc_kpath.plot_fatbands_spinor() is None
+            #assert fbnc_kpath.plot_fatbands_spinor() is None
             assert fbnc_kpath.plot_pjdos_lview() is None
             assert fbnc_kpath.plot_pawdos_terms() is None
-            assert fbnc_kpath.plot_pjdos_spinor() is None
+            #assert fbnc_kpath.plot_pjdos_spinor() is None
             # TODO
             #assert fbnc_kpath.plot_fatbands_mview(iatom=0) is None
 

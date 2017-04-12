@@ -2002,7 +2002,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, e0="fermie", ylims=None, **kwargs):
+    def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
         Use `gridplot` to plot band structures on different figures.
@@ -2021,6 +2021,9 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+                Used when DOS are stored in the plotter.
+
         Returns:
             matplotlib figure.
         """
@@ -2029,7 +2032,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         if self.edoses_dict:
             # Build grid with two axes.
-            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec = GridSpec(1, 2, width_ratios=width_ratios)
             gspec.update(wspace=0.05)
             # bands and DOS will share the y-axis
             ax1 = plt.subplot(gspec[0])
@@ -2200,8 +2203,9 @@ class ElectronBandsPlotter(NotebookWriter):
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for (label, ebands), ax in zip(self.ebands_dict.items(), ax_list):
-            ebands.boxplot(ax=ax, show=False)
+            ebands.boxplot(ax=ax, brange=brange, show=False)
             ax.set_title(label)
+
         return fig
 
     @add_fig_kwargs
@@ -2226,7 +2230,8 @@ class ElectronBandsPlotter(NotebookWriter):
         for label, ebands in self.ebands_dict.items():
             # Get the dataframe, select bands and add column with label
             frame = ebands.to_dataframe(e0=e0)
-            if brange is not None: frame = frame[brange[0] <= frame["band"] < brange[1]]
+            if brange is not None:
+                frame = frame[(frame.band >= brange[0]) & (frame.band < brange[1])]
             frame["label"] = label
             frames.append(frame)
             if ebands.nsppol == 2: spin_polarized = True
@@ -2244,6 +2249,7 @@ class ElectronBandsPlotter(NotebookWriter):
             if swarm:
                 sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
         else:
+            # Generate two subplots for spin-up / spin-down channels.
             if ax is not None:
                 raise NotImplementedError("ax == None not implemented when nsppol==2")
             fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)

@@ -33,7 +33,11 @@ ni_edos = ni_ebands_kmesh.get_edos()
 # Boxplot for 10 > band >= 5
 #ni_ebands_kpath.boxplot(brange=[5, 10], title="Boxplot for up and down spin and 10 > band >= 5")
 
-#plotter = abilab.ElectronBandsPlotter()
-#plotter.add_ebands("k-mesh", ni_ebands_kmesh)
-#plotter.add_ebands("k-path", ni_ebands_kpath)
-#plotter.combiboxplot(hue="spin")
+plotter = abilab.ElectronBandsPlotter()
+plotter.add_ebands("k-mesh", ni_ebands_kmesh)
+plotter.add_ebands("k-path", ni_ebands_kpath)
+ylims = [-10, 5]
+#plotter.combiplot(ylims=ylims)
+#plotter.gridplot(ylims=ylims)
+plotter.boxplot(brange=[5, 10])
+plotter.combiboxplot(brange=[5, 10])

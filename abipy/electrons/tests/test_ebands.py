@@ -301,8 +301,8 @@ class ElectronBandsTest(AbipyTest):
 
 class ElectronBandsPlotterTest(AbipyTest):
 
-    def test_api(self):
-        """Test ElelectronBandsPlotter API."""
+    def test_ebands_plotter(self):
+        """Test ElelectronBandsPlotter."""
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
         repr(plotter); str(plotter)

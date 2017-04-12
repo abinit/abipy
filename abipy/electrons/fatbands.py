@@ -435,8 +435,9 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # ax2natom[1:num_plots] --> iatom index in structure.
         # TODO: ebands.used_magnetic_symmetries?
         if view == "inequivalent" and (self.nspden == 2 and self.nsppol == 1) or (self.nspinor == 2 and self.nspden != 4):
-            print("The system contains magnetic symmetries but the spglib API used by pymg does not handle them.")
-            print("Setting view to `all`")
+            cprint("The system with magnetic symmetries but the spglib API used by pymatgen does not support them.", "yellow")
+            cprint("    nsppol: %s, nspden: %s, nspinor: %s" % (self.nsppol, self.nspden, self.nspinor), "yellow")
+            cprint("Setting view to `all`", "yellow")
             view = "all"
 
         # TODO: spin
