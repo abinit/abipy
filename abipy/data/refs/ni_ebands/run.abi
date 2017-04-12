@@ -1,26 +1,28 @@
 # Nickel ferromagnetic fcc structure with ONCVPSP pseudo including semi-core states.
 
-# === Print partial DOS
-ndtset 2
-iomode 3
+ndtset    2
+nsppol  2
+iomode    3
+
+# Print partial DOS
 prtdos    3
 prtdosm2  1
 
 #pawprtdos 0
 #pawprtdos 2
 #pawfatbnd 1
+#pawecutdg 15
 #prtebands 2
 
-nsppol  2
-
 # DATASET 1
+# Print potentials for tests and examples.
 prtpot1 1
 prtvha1 1 
-prtvhxc 1 
-prtvxc  1
+prtvhxc1 1 
+prtvxc1  1
 
 # DATASET 1
-# path in reduced coordinates:
+# NSC run along path in reduced coordinates:
 iscf2 -2
 getden2 -1
 ndivsm2 5
@@ -43,7 +45,6 @@ kptbounds2
 
 # Nickel ferromagnetic fcc structure. ONCVPSP pseudo with valence density.
 ecut      35
-#pawecutdg 15
 nband     12
 spinat    0. 0. 4.
 
@@ -71,5 +72,3 @@ natom   1
 typat   1
 xred    0.0  0.0  0.0
 znucl   28
-
-

@@ -14,15 +14,15 @@ class MyGenerator(AbinitFilesGenerator):
     # Mapping old_name --> new_name for the output files that must be preserved.
     files_to_save = {
         "run.abo": "run.abo",
-        "o_DS1_DEN.nc": "ni_DEN.nc",
-        "o_DS1_GSR.nc": "ni_666k_GSR.nc",
-        "o_DS1_POT.nc": "ni_666k_POT.nc",
-        "o_DS1_VHA.nc": "ni_666k_VHA.nc",
-        "o_DS1_VHXC.nc": "ni_666k_VHXC.nc",
-        "o_DS1_VXC.nc": "ni_666k_VHC.nc",
-        "o_DS1_FATBANDS.nc": "ni_666k_FATBANDS.nc",
-        "o_DS2_GSR.nc": "ni_kpath_GSR.nc",
-        "o_DS2_FATBANDS.nc": "ni_kpath_FATBANDS.nc",
+        "out_DS1_DEN.nc": "ni_666k_DEN.nc",
+        "out_DS1_GSR.nc": "ni_666k_GSR.nc",
+        "out_DS1_POT.nc": "ni_666k_POT.nc",
+        "out_DS1_VHA.nc": "ni_666k_VHA.nc",
+        "out_DS1_VHXC.nc": "ni_666k_VHXC.nc",
+        "out_DS1_VXC.nc": "ni_666k_VXC.nc",
+        "out_DS1_FATBANDS.nc": "ni_666k_FATBANDS.nc",
+        "out_DS2_GSR.nc": "ni_kpath_GSR.nc",
+        "out_DS2_FATBANDS.nc": "ni_kpath_FATBANDS.nc",
     }
 
 

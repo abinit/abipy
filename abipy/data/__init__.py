@@ -48,7 +48,7 @@ def pyscript(basename):
         _SCRIPTS = {}
         for p in pypaths:
             k = os.path.basename(p)
-            # Ingnore e.g. __init__.py and private scripts.
+            # Ignore e.g. __init__.py and private scripts.
             if k.startswith("_"): continue
             if k in _SCRIPTS:
                 raise ValueError("Fond duplicated basenames with name %s\nPrevious %s" % (k, _SCRIPTS[k]))
@@ -179,8 +179,7 @@ def get_mp_structures_dict():
 
 def structure_from_mpid(mpid):
     """
-    Return an Abipy Structure from the `mpid` identifier.
-    See mpdata/mp_structure.json
+    Return an Abipy Structure from the `mpid` identifier. See mpdata/mp_structure.json
     """
     d = get_mp_structures_dict()
     if mpid not in d:
@@ -287,7 +286,7 @@ class AbinitFilesGenerator(FilesGenerator):
         self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
     def make_filesfile_str(self):
-        return "\n".join(["run.abi", "run.abo", "in", "out","tmp"] + self.pseudos)
+        return "\n".join(["run.abi", "run.abo", "in", "out", "tmp"] + self.pseudos)
 
 
 class AnaddbFilesGenerator(FilesGenerator):

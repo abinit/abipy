@@ -663,7 +663,7 @@ class Density(ScalarField):
         """
         myrhor = self.datar * self.structure.volume
         data_dict = {"total": myrhor[0]}
-        if self.nsppol == 2: {"diff": myrhor[0] - myrhor[1]}
+        if self.nsppol == 2: data_dict["diff"] = myrhor[0] - myrhor[1]
         if self.nspinor == 2:
             raise NotImplementedError("pymatgen Chgcar does not implement nspinor == 2")
 
