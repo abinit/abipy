@@ -37,7 +37,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             print(fb.structure)
             fb.plot_fatbands_lview()
 
-    Alternatively, one can use the abiopen.py script to open the file in an ipython notebook with
+    Alternatively, one can use the `abiopen.py` script to open the file in an ipython notebook with
 
     .. code-block:: shell
 
@@ -54,14 +54,20 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     # Markers used for up/down bands (collinear spin)
     marker_spin = {0: "^", 1: "v"}
 
+    # \U starts an eight-character Unicode escape. raw strings do not work in python2.7
+    # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
+
     # Mapping spin --> title used in subplots that depend on (collinear) spin.
-    spin2tex = {0: r"$\sigma=\\uparrow$", 1: r"$\sigma=\\downarrow$"}
+    spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
 
     # Mappings used for non-collinear spins.
-    spinors2tex = {"up-up": r"$\\uparrow,\\uparrow$", "up-down": r"$\\uparrow,\\downarrow$",
-                   "down-up": r"$\\downarrow,\\uparrow$", "down-down": r"$\\downarrow,\\downarrow$",
+    spinors2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
+        {"up-up": r"$\myuparrow,\myuparrow$", "up-down": r"$\myuparrow,\downarrow$",
+                   "down-up": r"$\downarrow,\myuparrow$", "down-down": r"$\downarrow,\downarrow$",
                    "sigma_x": r"$\sigma_{x}$", "sigma_y": r"$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
-                  }
+                  }.items()}
+
     spinors2color = {"up-up": "black", "up-down": "brown",
                      "down-up": "violet", "down-down": "yellow",
                      "sigma_x": "green", "sigma_y": "blue", "sigma_z": "red",

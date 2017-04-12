@@ -68,16 +68,17 @@ class TestScalarField(AbipyTest):
             field._check_space("foo")
 
     def test_silicon_density(self):
-        """Testing density object."""
+        """Testing density object (spin unpolarized)."""
         density = Density.from_file(abidata.ref_file("si_DEN.nc"))
         repr(density)
         str(density)
         assert density.nspinor == 1 and density.nsppol == 1 and density.nspden == 1
         assert density.is_collinear
         assert density.structure.formula == "Si2"
-        self.assert_almost_equal(density.get_nelect(), 8)
-        self.assert_almost_equal(density.total_rhor.sum() * density.structure.volume / density.mesh.size, 8)
-        self.assert_almost_equal(density.total_rhog[0, 0, 0] * density.structure.volume, 8)
+        ne = 8
+        self.assert_almost_equal(density.get_nelect(), ne)
+        self.assert_almost_equal(density.total_rhor.sum() * density.structure.volume / density.mesh.size, ne)
+        self.assert_almost_equal(density.total_rhog[0, 0, 0] * density.structure.volume, ne)
 
         totden = density.total_rhor_as_density()
         self.assert_equal(totden.datar.flatten(), density.total_rhor.flatten())
@@ -93,7 +94,7 @@ class TestScalarField(AbipyTest):
 
         nup, ndown = density.nelect_updown
         assert nup == ndown
-        self.assert_almost_equal(nup, 8 / 2)
+        self.assert_almost_equal(nup, ne / 2)
         self.assert_almost_equal(density.zeta, 0)
 
         # Export to chgcar and re-read it.
@@ -135,7 +136,7 @@ class TestScalarField(AbipyTest):
 
             # Diff between nelect computed and the one written on file.
             self.assert_almost_equal(nelect_calc, nelect_file)
-            self.assert_almost_equal(rhog_tot[0,0,0] * structure.volume, nelect_file)
+            self.assert_almost_equal(rhog_tot[0, 0, 0] * structure.volume, nelect_file)
 
             if self.which("xcrysden") is not None:
                 # Export data in xsf format.
@@ -149,3 +150,45 @@ class TestScalarField(AbipyTest):
 
             assert total_den.structure == den.structure
             assert abs(total_den.get_nelect().sum() - nelect_file) < 1e-3
+
+        #def test_ni_density(self):
+        #    """Testing density object (spin polarized, collinear)."""
+        #    density = Density.from_file(abidata.ref_file("ni_DEN.nc"))
+        #    repr(density)
+        #    str(density)
+        #    assert density.nspinor == 1 and density.nsppol == 2 and density.nspden == 2
+        #    assert density.is_collinear
+        #    assert density.structure.formula == "Ni"
+        #    ne = 18
+        #    self.assert_almost_equal(density.get_nelect(), ne)
+        #    self.assert_almost_equal(density.total_rhor.sum() * density.structure.volume / density.mesh.size, ne)
+        #    self.assert_almost_equal(density.total_rhog[0, 0, 0] * density.structure.volume, ne)
+
+        #    totden = density.total_rhor_as_density()
+        #    self.assert_equal(totden.datar.flatten(), density.total_rhor.flatten())
+
+        #    other = density - density
+        #    assert other.nspden == density.nspden
+        #    self.assert_equal(other.datar, 0)
+
+        #    magfield = density.magnetization_field
+        #    assert magfield.shape == density.mesh.shape
+        #    #self.assert_equal(magfield, 0)
+        #    #assert density.magnetization == 0
+
+        #    nup, ndown = density.nelect_updown
+        #    #self.assert_almost_equal(nup, 8 / 2)
+        #    #self.assert_almost_equal(ndown, 8 / 2)
+        #    #self.assert_almost_equal(density.zeta, 0)
+
+        #    # Export to chgcar and re-read it.
+        #    chgcar_path = self.get_tmpname(text=True)
+        #    chgcar = density.to_chgcar(filename=chgcar_path)
+        #    assert hasattr(chgcar, "structure")
+        #    assert chgcar.is_spin_polarized
+
+        #    poscar_path = self.get_tmpname(text=True)
+        #    density.structure.to(fmt="poscar", filename=poscar_path)
+
+        #    same_density = Density.from_chgcar_poscar(chgcar_path, poscar_path)
+        #    self.assert_almost_equal(same_density.datar, density.datar)
