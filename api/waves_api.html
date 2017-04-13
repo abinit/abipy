@@ -201,7 +201,7 @@ the data stored in the WFK file produced by ABINIT.</p>
 <span class="c1"># Plot band energies.</span>
 <span class="n">wfk</span><span class="o">.</span><span class="n">plot_ebands</span><span class="p">()</span>
 
-<span class="c1"># Visualize u(r)**2 with vesta.</span>
+<span class="c1"># Visualize crystalline structure with vesta.</span>
 <span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_structure_with</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
 <span class="n">visu</span><span class="p">()</span>
 
@@ -210,7 +210,7 @@ the data stored in the WFK file produced by ABINIT.</p>
 <span class="n">visu</span><span class="p">()</span>
 
 <span class="c1"># Get a wavefunction.</span>
-<span class="n">wave</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">wave</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="method">

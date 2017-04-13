@@ -95,7 +95,7 @@
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">is_abivar</span><span class="p">,</span> <span class="n">is_anaddb_var</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.input_tags</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">ParalHintsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">AnaddbTask</span><span class="p">,</span> <span class="n">ParalHintsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk.abiinspect</span> <span class="k">import</span> <span class="n">yaml_read_irred_perts</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">abiobjects</span> <span class="k">as</span> <span class="n">aobj</span>
 
@@ -243,7 +243,7 @@
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">aobj</span> <span class="ow">in</span> <span class="n">abi_objects</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">aobj</span><span class="p">,</span> <span class="s2">&quot;to_abivars&quot;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> does not have `to_abivars` method&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">aobj</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">aobj</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> does not have `to_abivars` method&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">aobj</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">aobj</span><span class="p">)))</span>
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">aobj</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
@@ -309,9 +309,6 @@
 <span class="sd">                retcode: Return code. 0 if OK.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            `RuntimeError` if executable is not in $PATH.</span>
 <span class="sd">        &quot;&quot;&quot;</span></div></div>
 
 
@@ -478,26 +475,6 @@
     <span class="c1">#def __ne__(self, other)</span>
     <span class="c1">#    return not self.__eq__(other)</span>
 
-    <span class="c1">#@abc.property</span>
-    <span class="c1">#def runlevel(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;String defining the Runlevel. See _runl2optdriver.&quot;&quot;&quot;</span>
-    <span class="c1"># Mapping runlevel --&gt; optdriver variable</span>
-    <span class="c1">#_runl2optdriver = {</span>
-    <span class="c1">#    &quot;scf&quot;: 0,</span>
-    <span class="c1">#    &quot;nscf&quot;: 0,</span>
-    <span class="c1">#    &quot;relax&quot;: 0,</span>
-    <span class="c1">#    &quot;dfpt&quot;: 1,</span>
-    <span class="c1">#    &quot;screening&quot;: 3,</span>
-    <span class="c1">#    &quot;sigma&quot;: 4,</span>
-    <span class="c1">#    &quot;bse&quot;: 99,</span>
-    <span class="c1">#}</span>
-    <span class="c1">#    # Find the value of optdriver (firt in self, then in globals finally use default value.</span>
-    <span class="c1">#    optdriver = self.get(&quot;optdriver&quot;)</span>
-    <span class="c1">#    if optdriver is None: optdriver = self.dt0.get(&quot;optdriver&quot;)</span>
-    <span class="c1">#    if optdriver is None: optdriver = 0</span>
-
-    <span class="c1">#    # At this point we have to understand the type of calculation.</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">runlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -589,7 +566,7 @@
         <span class="sd">&quot;&quot;&quot;True if spell checking is activated.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># This is to maintain compatibility with pickle</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># TODO: This is to maintain compatibility with pickle</span>
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="AbinitInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -920,8 +897,8 @@
 
         <span class="n">varnames</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">items</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">varnames</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">varnames</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;The number of variables must equal the number of lists&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;The number of variables must equal the number of lists</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;varnames: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">values </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">varnames</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
 
         <span class="c1"># TODO: group varnames and varvalues!</span>
         <span class="c1">#varnames = [t[0] for t in items]</span>
@@ -951,6 +928,10 @@
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new</span></div>
 
+    <span class="c1">#def new_with_supercell(self, scdims):</span>
+    <span class="c1">#    sucell = self.structure * scdims</span>
+    <span class="c1">#    return new_with_structure(sucell, scdims)</span>
+
 <div class="viewcode-block" id="AbinitInput.new_with_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_structure">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">scdims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a new :class:`AbinitInput` with a different structure</span>
@@ -972,7 +953,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check structure</span>
         <span class="k">if</span> <span class="n">scdims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Same value of natom and typat</span>
+            <span class="c1"># Assume same value of natom and typat</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structures must have same value of natom&quot;</span><span class="p">)</span>
             <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
@@ -990,15 +971,14 @@
 
             <span class="n">numcells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="n">numcells</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
-                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Number of atoms in input structure should be </span><span class="si">%d</span><span class="s2"> * </span><span class="si">%d</span><span class="s2"> but found </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Number of atoms in the input structure should be </span><span class="si">%d</span><span class="s2"> * </span><span class="si">%d</span><span class="s2"> but found </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">numcells</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">numcells</span> <span class="o">*</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">],</span>
                                   <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]):</span>
-                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Wrong supercell&quot;</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
-            <span class="c1"># TODO CHeck angles and lengths</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong supercell&quot;</span><span class="p">)</span>
+            <span class="c1"># TODO Check angles and lengths</span>
 
         <span class="c1"># Build new input</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">abi_args</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
@@ -1031,21 +1011,25 @@
 
             <span class="k">if</span> <span class="s2">&quot;ngkpt&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">scdims</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new new:&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new ngkpt:&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span>
 
             <span class="c1"># TODO</span>
-            <span class="c1">#elif &quot;kptrlatt&quot; in new:</span>
-            <span class="c1">#   new[&quot;kptrlatt&quot;] = (np.rint(np.array(new[&quot;kptrlatt&quot;]) / iscale)).astype(int)</span>
-            <span class="c1">#else:</span>
-            <span class="c1">#   &quot;&quot;&quot;Single k-point&quot;&quot;&quot;</span>
+            <span class="k">elif</span> <span class="s2">&quot;kptrlatt&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;kptrlatt in new_with_structure&quot;</span><span class="p">)</span>
+                <span class="c1">#new[&quot;kptrlatt&quot;] = (np.rint(np.array(new[&quot;kptrlatt&quot;]) / iscale)).astype(int)</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="c1"># Single k-point</span>
+               <span class="k">pass</span>
+
+            <span class="c1"># Add chkprim if not yet done.</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">chkprim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="AbinitInput.new_with_decorators"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_decorators">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_decorators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decorators</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,</span>
-<span class="sd">        applyes the decorators to the input and returns a new :class:`AbinitInput` object.</span>
-<span class="sd">        self is not changed.</span>
+<span class="sd">        applies the decorators to the input and returns a new :class:`AbinitInput` object. self is not changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">decorators</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">decorators</span> <span class="o">=</span> <span class="p">[</span><span class="n">decorators</span><span class="p">]</span>
 
@@ -1065,7 +1049,7 @@
 
 <div class="viewcode-block" id="AbinitInput.pop_irdvars"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.pop_irdvars">[docs]</a>    <span class="k">def</span> <span class="nf">pop_irdvars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Remove all the ird variables present in self.</span>
+<span class="sd">        Remove all the `ird*` variables present in self.</span>
 <span class="sd">        Return dictionary with the variables that have been removed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_vars</span><span class="p">(</span><span class="n">_IRDVARS</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
@@ -1073,11 +1057,10 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">scf_tolvar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the tolerance variable and value relative to the scf convergence.</span>
+<span class="sd">        Returns the tolerance variable and value relative to the SCF convergence.</span>
 <span class="sd">        If more than one is present raise an error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">tolvar</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">tolvar</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">_TOLVARS_SCF</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">t</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">tolvar</span><span class="p">:</span>
@@ -1090,7 +1073,7 @@
 <div class="viewcode-block" id="AbinitInput.make_ph_inputs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">make_ph_inputs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This functions builds and returns a list of input files</span>
-<span class="sd">        for the calculation of phonons at the given q-point `qpt.</span>
+<span class="sd">        for the calculation of phonons at the given q-point `qpt`.</span>
 <span class="sd">        It should be called with an input the represents a GS run.</span>
 
 <span class="sd">        Args:</span>
@@ -1234,14 +1217,14 @@
             <span class="k">for</span> <span class="n">rfdir</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dde_rfdirs</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
                 <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
                     <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>  <span class="c1"># Direction of the per ddk.</span>
-                    <span class="n">prepanl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Prepare Non-linear RF calculations.</span>
+                    <span class="n">prepanl</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>    <span class="c1"># Prepare Non-linear RF calculations.</span>
                 <span class="p">)</span>
 
         <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-            <span class="n">rfelfd</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>  <span class="c1"># Activate the calculation of the electric field perturbation</span>
-            <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># One wavevector is to be considered</span>
+            <span class="n">rfelfd</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>       <span class="c1"># Activate the calculation of the electric field perturbation</span>
+            <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         <span class="c1"># One wavevector is to be considered</span>
             <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># q-wavevector.</span>
-            <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># Take into account time-reversal symmetry.</span>
+            <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>       <span class="c1"># Take into account time-reversal symmetry.</span>
         <span class="p">)</span>
 
         <span class="n">multi</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
@@ -1249,27 +1232,37 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_dte_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dte_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dte_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_dte_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dte_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dte_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return inputs for the DDK calculation.</span>
-<span class="sd">        This functions should be called with an input the represents a GS run.</span>
+<span class="sd">        Return inputs for the DTE calculation.</span>
+<span class="sd">        This functions should be called with an input that represents a GS run.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            phonon_pert: is True also the phonon perturbations will be considered. Default False.</span>
+<span class="sd">            skip_permutations: Since the current version of abinit always performs all the permutations</span>
+<span class="sd">                of the perturbations, even if only one is asked, if True avoids the creation of inputs that</span>
+<span class="sd">                will produce duplicated outputs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-20</span><span class="p">}</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TOLVARS</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="s2">&quot;tolvrs&quot;</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;tolvrs should not be used in a DDK calculation&quot;</span><span class="p">)</span>
-
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_dteperts</span><span class="p">()</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_dteperts</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">phonon_pert</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">skip_permutations</span><span class="p">:</span>
+            <span class="n">perts_to_skip</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">reduced_perts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pert</span> <span class="ow">in</span> <span class="n">perts</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="p">((</span><span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">i1dir</span><span class="p">),</span> <span class="p">(</span><span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2dir</span><span class="p">),</span> <span class="p">(</span><span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3dir</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">perts_to_skip</span><span class="p">:</span>
+                    <span class="n">reduced_perts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pert</span><span class="p">)</span>
+                    <span class="n">perts_to_skip</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+
+            <span class="n">perts</span> <span class="o">=</span> <span class="n">reduced_perts</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
 
         <span class="c1"># See tutorespfn/Input/tnlo_2.in</span>
+
+        <span class="n">na</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pert</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perts</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
             <span class="n">rfdir1</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1279,13 +1272,21 @@
             <span class="n">rfdir3</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">rfdir3</span><span class="p">[</span><span class="n">pert</span><span class="o">.</span><span class="n">i3dir</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
+            <span class="c1"># atpol if needed. Since there can be only one spatial perturbation</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span><span class="p">,</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span><span class="p">)</span>
+            <span class="n">atpol</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="k">if</span> <span class="n">m</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="kc">None</span>
+
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-                <span class="n">d3e_pert1_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Activate the calculation of the electric field perturbation</span>
-                <span class="n">d3e_pert2_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                <span class="n">d3e_pert3_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">d3e_pert1_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Activate the calculation of the electric field perturbation</span>
+                <span class="n">d3e_pert2_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">d3e_pert3_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert1_dir</span><span class="o">=</span><span class="n">rfdir1</span><span class="p">,</span>  <span class="c1"># Direction of the dte perturbation.</span>
                 <span class="n">d3e_pert2_dir</span><span class="o">=</span><span class="n">rfdir2</span><span class="p">,</span>
                 <span class="n">d3e_pert3_dir</span><span class="o">=</span><span class="n">rfdir3</span><span class="p">,</span>
+                <span class="n">d3e_pert1_phon</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">d3e_pert2_phon</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">d3e_pert3_phon</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">d3e_pert1_atpol</span> <span class="o">=</span> <span class="n">atpol</span><span class="p">,</span>
                 <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># One wavevector is to be considered</span>
                 <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># q-wavevector.</span>
                 <span class="n">optdriver</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>  <span class="c1"># non-linear response functions, using the 2n+1 theorem.</span>
@@ -1293,7 +1294,6 @@
             <span class="p">)</span>
 
             <span class="n">inp</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
-            <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
@@ -1389,23 +1389,9 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.pycheck"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.pycheck">[docs]</a>    <span class="k">def</span> <span class="nf">pycheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">eapp</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">append</span>
-
-        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
-        <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">volume</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;The triple product of the lattice vector is negative. Use structure abi_sanitize.&quot;</span><span class="p">)</span>
-
-        <span class="c1">#if sel.ispaw and &quot;pawecutdg not in self</span>
-        <span class="c1">#if errors: raise self.Error(&quot;\n&quot;.join(errors))</span>
-
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">warnings</span><span class="o">=</span><span class="n">warnings</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="AbinitInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run ABINIT in dry mode to validate the input file.</span>
+<span class="sd">        Run ABINIT in dry-run mode to validate the input file.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
@@ -1417,9 +1403,6 @@
 <span class="sd">                retcode: Return code. 0 if OK.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            `RuntimeError` if executable is not in $PATH.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exec_args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--dry-run&quot;</span><span class="p">])</span>
@@ -1467,10 +1450,51 @@
                            <span class="n">weights</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kpoint_weights&quot;</span><span class="p">))</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="c1"># Try to understand if it&#39;s a problem with the Abinit input.</span>
-            <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">report</span> <span class="ow">and</span> <span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span> <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">))</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Problem in temp Task executed in </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_handle_task_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">prev_exc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called when we have executed a temporary task but we encounter</span>
+<span class="sd">        an exception when we try to extract data from the output results produced by Abinit</span>
+<span class="sd">        It tries to extract information about the error and finally raises self.Error.</span>
+
+<span class="sd">        .. example::</span>
+
+<span class="sd">            try:</span>
+
+<span class="sd">                do_something_with_the_output_files_produced_by_the_task</span>
+
+<span class="sd">            except Exception as exc:</span>
+
+<span class="sd">                self._handle_task_exception(task, exc)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if there are errors in the log file.</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">report</span> <span class="ow">and</span> <span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">))</span>
+
+        <span class="c1"># Weird condition. Possible explanations:</span>
+        <span class="c1"># 1) Abinit cannot be executed or runtime errors due e.g to libraries</span>
+        <span class="c1"># 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.</span>
+        <span class="c1"># Try to return as much iformation as possible to aid debugging</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Problem in temp Task executed in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>  <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span>
+                  <span class="s2">&quot;Previous exception </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">prev_exc</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Last 50 line from </span><span class="si">%s</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+            <span class="n">log_lines</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">50</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># TODO: in principle task.debug() but I have to change pymatgen.io.abinit</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">debug</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_abiget_irred_perts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">perts_vars</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1523,10 +1547,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yaml_read_irred_perts</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="c1"># Try to understand if it&#39;s a problem with the Abinit input.</span>
-            <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">report</span> <span class="ow">and</span> <span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span> <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">))</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Problem in temp Task executed in </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AbinitInput.abiget_irred_phperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_phperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_phperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1586,7 +1607,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abiget_irred_perts</span><span class="p">(</span><span class="n">ddeperts_vars</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>
                                         <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbinitInput.abiget_irred_dteperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_dteperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_dteperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.abiget_irred_dteperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_dteperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_dteperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function, computes the list of irreducible perturbations for DFPT.</span>
 <span class="sd">        It should be called with an input file that contains all the mandatory variables required by ABINIT.</span>
@@ -1597,6 +1619,7 @@
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
 <span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            phonon_pert: if True also the phonon perturbations will be considered. Default False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
@@ -1606,9 +1629,10 @@
 <span class="sd">                 {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">dteperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">d3e_pert1_phon</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>           <span class="c1"># No phonon-type perturbation</span>
+        <span class="n">dteperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">d3e_pert1_phon</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">phonon_pert</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>           <span class="c1"># phonon-type perturbation</span>
                              <span class="n">d3e_pert2_phon</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                              <span class="n">d3e_pert3_phon</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">d3e_pert1_atpol</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)]</span> <span class="k">if</span> <span class="n">phonon_pert</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                              <span class="n">d3e_pert1_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>           <span class="c1"># Electric field perturbation</span>
                              <span class="n">d3e_pert2_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                              <span class="n">d3e_pert3_elfd</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1692,10 +1716,7 @@
             <span class="n">pconfs</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">pconfs</span>
         <span class="k">except</span> <span class="n">parser</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="c1"># Try to understand if it&#39;s a problem with the Abinit input.</span>
-            <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">report</span> <span class="ow">and</span> <span class="n">report</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span> <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="p">))</span>
-            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Problem in temp Task executed in </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">exc</span><span class="p">))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitInput.add_tags"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.add_tags">[docs]</a>    <span class="k">def</span> <span class="nf">add_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1743,6 +1764,15 @@
 
 <span class="sd">         multi.set_vars(ecut=1)</span>
 
+<span class="sd">        multi.get(&quot;ecut&quot;) returns a list of values. It&#39;s equivalent to:</span>
+
+<span class="sd">            [inp[&quot;ecut&quot;] for inp in multi]</span>
+
+<span class="sd">        Note that if &quot;ecut&quot; is not present in one of the input of multi, the corresponding entry is set to None.</span>
+<span class="sd">        A default value can be specified with:</span>
+
+<span class="sd">            multi.get(&quot;paral_kgb&quot;, 0)</span>
+
 <span class="sd">    .. warning::</span>
 
 <span class="sd">        MultiDataset does not support calculations done with different sets of pseudopotentials.</span>
@@ -1753,6 +1783,7 @@
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="MultiDataset.from_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.from_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">from_inputs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build object from a list of :class:`AbinitInput` objects.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pseudos must be consistent when from_inputs is invoked.&quot;</span><span class="p">)</span>
@@ -1760,6 +1791,7 @@
         <span class="c1"># Build MultiDataset from input structures and pseudos and add inputs.</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="p">[</span><span class="n">inp</span><span class="o">.</span><span class="n">structure</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">],</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
 
+        <span class="c1"># Add variables, decorators and tags.</span>
         <span class="k">for</span> <span class="n">inp</span><span class="p">,</span> <span class="n">new_inp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
             <span class="n">new_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
             <span class="n">new_inp</span><span class="o">.</span><span class="n">_decorators</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">decorators</span>
@@ -1831,6 +1863,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pseudos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pseudopotential objects.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span>
 
     <span class="nd">@property</span>
@@ -1878,6 +1911,7 @@
         <span class="k">return</span> <span class="n">on_all</span>
 
     <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self + other&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">):</span>
             <span class="n">new_mds</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">new_mds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
@@ -1887,7 +1921,7 @@
             <span class="n">new_mds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">new_mds</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">NotImplemented</span>
+            <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">):</span>
@@ -1897,7 +1931,7 @@
             <span class="n">new_mds</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
             <span class="n">new_mds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">NotImplemented</span>
+            <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiDataset.append"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinit_input</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a :class:`AbinitInput` to the list.&quot;&quot;&quot;</span>
@@ -1915,9 +1949,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">abinit_inputs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiDataset.addnew_from"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.addnew_from">[docs]</a>    <span class="k">def</span> <span class="nf">addnew_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtindex</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a new entry in the multidataset by copying the input with index `dtindex`.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">dtindex</span><span class="p">]</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="MultiDataset.split_datasets"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.split_datasets">[docs]</a>    <span class="k">def</span> <span class="nf">split_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return list of AbinitInput files.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span></div>
 
 <div class="viewcode-block" id="MultiDataset.deepcopy"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1966,6 +2002,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            tags: A single tag or list/tuple/set of tags</span>
 <span class="sd">            exclude_tags: A single tag or list/tuple/set of tags that should be excluded</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            A :class:`MultiDataset` containing the inputs containing all the requested tags</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2013,6 +2050,9 @@
             <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">remove_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiDataset.filter_by_runlevel"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.filter_by_runlevel">[docs]</a>    <span class="k">def</span> <span class="nf">filter_by_runlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runlevel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return new MultiDataset object in which only the inputs with the given runlevel are selected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">runlevel</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
             <span class="n">runlevel</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">runlevel</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">runlevel</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
@@ -2029,7 +2069,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">ext</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;DS</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="n">ext</span>
             <span class="n">inp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">p</span><span class="p">)</span></div></div>
 
 
@@ -2144,6 +2184,7 @@
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="AnaddbInput.piezo_elastic"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.piezo_elastic">[docs]</a>    <span class="k">def</span> <span class="nf">piezo_elastic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations.&quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for piezoelectric and elastic tensor calculation&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
@@ -2218,7 +2259,7 @@
                 <span class="n">value</span><span class="p">,</span> <span class="n">eunit</span> <span class="o">=</span> <span class="n">dos_method</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
                 <span class="n">dossmear</span> <span class="o">=</span> <span class="n">Energy</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">eunit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Wrong value for dos_method: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dos_method</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Wrong value for dos_method: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dos_method</span><span class="p">))</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for phonon bands and DOS&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
@@ -2246,10 +2287,11 @@
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
                     <span class="c1"># anaddb expects cartesian coordinates for the qph2l list</span>
-                    <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">directions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice_crystallographic</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
                         <span class="n">directions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="n">directions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice_crystallographic</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
                         <span class="n">directions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -2269,6 +2311,8 @@
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build an anaddb input file for the computation of phonon bands and phonon DOS.</span>
+<span class="sd">        Note: This method is deprecated because now it&#39;s possible to compute Thermodynamical</span>
+<span class="sd">        properties from PhDos</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            structure: :class:`Structure` object</span>
@@ -2492,10 +2536,24 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ng2qpt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AnaddbInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run ANADDB in dry-run mode to validate the input file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            `namedtuple` with the following attributes:</span>
+
+<span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
+<span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="s2">&quot;fake_DDB&quot;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="c1"># TODO: Anaddb does not support --dry-run</span>
-        <span class="c1">#task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)</span>
         <span class="c1">#retcode = task.start_and_wait(autoparal=False, exec_args=[&quot;--dry-run&quot;])</span>
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">stderr_file</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="OpticVar"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar">[docs]</a><span class="k">class</span> <span class="nc">OpticVar</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;OpticVar&quot;</span><span class="p">,</span> <span class="s2">&quot;name default group help&quot;</span><span class="p">)):</span>
@@ -2511,7 +2569,7 @@
 
 <div class="viewcode-block" id="OpticInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput">[docs]</a><span class="k">class</span> <span class="nc">OpticInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Input file for optic.</span>
+<span class="sd">    Input file for optic executable</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &amp;FILES</span>
@@ -2675,8 +2733,23 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="OpticInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run OPTIC in dry-run mode to validate the input file.</span>
+<span class="sd">        Note: This method is a stub, it always return retcode 0</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            `namedtuple` with the following attributes:</span>
+
+<span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
+<span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Optic does not support --dry-run</span>
-        <span class="c1">#task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)</span>
+        <span class="c1">#task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)</span>
         <span class="c1">#retcode = task.start_and_wait(autoparal=False, exec_args=[&quot;--dry-run&quot;])</span>
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
 
@@ -2713,7 +2786,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Infile path and options should be provided&quot;</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span></div>
 
     <span class="nd">@classmethod</span>
@@ -2874,8 +2947,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">d</span></div>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Cut3DInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>

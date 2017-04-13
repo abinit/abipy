@@ -79,6 +79,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
 <span class="c1">#from monty.functools import lazy_property</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.eos</span> <span class="k">import</span> <span class="n">EOS</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
@@ -134,9 +135,13 @@
     <span class="c1"># 2) should __iter__  return (label, ncfile) or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!</span>
     <span class="c1"># 3) replace ncfiles with files just to be consistent since we have DdbRobot!</span>
 
+    <span class="c1"># filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        args is a list of tuples (label, filepath)</span>
+<span class="sd">        Args:</span>
+<span class="sd">            args is a list of tuples (label, filepath)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_close</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(),</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exceptions</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
@@ -175,7 +180,6 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_open_files_in_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open files in directory tree starting from `top`. Return list of Abinit files.&quot;&quot;&quot;</span>
-        <span class="n">top</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
         <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">walk</span><span class="p">:</span>
@@ -199,9 +203,7 @@
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Robot.from_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_files">[docs]</a>    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a Robot from a list of files.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build a Robot from a list of `filenames`.&quot;&quot;&quot;</span>
         <span class="n">filenames</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
         <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span> <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">class_handles_filename</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
@@ -233,7 +235,7 @@
 <span class="sd">            `Robot` subclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="n">all_opts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">]</span>
+        <span class="n">all_opts</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">outdirs</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
             <span class="n">tokens</span> <span class="o">=</span> <span class="n">all_opts</span>
@@ -280,7 +282,7 @@
 
 <div class="viewcode-block" id="Robot.scan_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.scan_dir">[docs]</a>    <span class="k">def</span> <span class="nf">scan_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Scan directory tree starting from top. Add files to the robot.</span>
+<span class="sd">        Scan directory tree starting from `top`. Add files to the robot instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            top (str): Root directory</span>
@@ -308,6 +310,7 @@
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">ncfile</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="n">ncfile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+            <span class="c1"># Open file here --&gt; have to close it.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_do_close</span><span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">:</span>
@@ -315,8 +318,25 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncfile</span></div>
 
-<div class="viewcode-block" id="Robot.pop"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Remove file with the given `label` and close it.&quot;&quot;&quot;</span>
+    <span class="c1">#def pop_filepath(self, filepath):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Remove the file with the given `filepath` and close it.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    if label, ncfile in self._ncfiles.items():</span>
+    <span class="c1">#        if ncfile.filepath != filepath: continue</span>
+    <span class="c1">#        self._ncfiles.pop(label)</span>
+    <span class="c1">#        if self._do_close.pop(ncfile.filepath, False):</span>
+    <span class="c1">#            try:</span>
+    <span class="c1">#                ncfile.close()</span>
+    <span class="c1">#            except Exception as exc:</span>
+    <span class="c1">#                print(&quot;Exception while closing: &quot;, ncfile.filepath)</span>
+    <span class="c1">#                print(exc)</span>
+    <span class="c1">#                #raise</span>
+
+<div class="viewcode-block" id="Robot.pop_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.pop_label">[docs]</a>    <span class="k">def</span> <span class="nf">pop_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove file with the given `label` and close it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">:</span>
             <span class="n">ncfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_close</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
@@ -326,6 +346,34 @@
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception while closing: &quot;</span><span class="p">,</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span></div>
                     <span class="c1">#raise</span>
+
+<div class="viewcode-block" id="Robot.change_labels"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.change_labels">[docs]</a>    <span class="k">def</span> <span class="nf">change_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Robot has </span><span class="si">%d</span><span class="s2"> files while len(new_labels) = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+
+        <span class="n">old_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">old_ncfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;old [</span><span class="si">%s</span><span class="s2">] --&gt; new [</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">new</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_ncfiles</span><span class="p">[</span><span class="n">old</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Robot.trim_paths"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.trim_paths">[docs]</a>    <span class="k">def</span> <span class="nf">trim_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace absolute filepaths in the robot with relative paths wrt to `start` directory.</span>
+<span class="sd">        If start is None, os.getcwd() is used. Set `self.start` attribute, return self.start.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
+        <span class="n">old_paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">old_new_paths</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">old_paths</span><span class="p">]</span>
+
+        <span class="n">old_ncfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">old_new_paths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">new</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_ncfiles</span><span class="p">[</span><span class="n">old</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">exceptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -339,6 +387,7 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># self[key]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -357,24 +406,19 @@
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoked by repr(obj)&quot;&quot;&quot;</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">relpath</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">relpath</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">else</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  [</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">repr</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;Invoked by str.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Robot.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
@@ -401,7 +445,7 @@
 <div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.</span>
-<span class="sd">        nids is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
+<span class="sd">        `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">has_dirpath</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
@@ -426,6 +470,17 @@
             <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nids cannot be used when obj is a directory.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
+    <span class="c1">#def get_attributes(self, attr_name, obj=None, retdict=False):</span>
+    <span class="c1">#    od = OrderedDict()</span>
+    <span class="c1">#    for label, ncfile in self:</span>
+    <span class="c1">#        obj = ncfile if obj is None else getattr(ncfile, obj)</span>
+    <span class="c1">#        od[label] = getattr(obj, attr_name)</span>
+
+    <span class="c1">#    if retdict:</span>
+    <span class="c1">#        return od</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        return list(od.values())</span>
+
     <span class="k">def</span> <span class="nf">_exec_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute list of callable functions. Each function receives arg as argument.</span>
@@ -439,6 +494,49 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">d</span></div>
+
+    <span class="c1">#def get_structure_dataframe(self):</span>
+    <span class="c1">#    from abipy.core.structure import frames_from_structures</span>
+    <span class="c1">#    index = list(self.keys())</span>
+    <span class="c1">#    frames_from_structures(self.ncfiles, index=None, with_spglib=True, cart_coords=False)</span>
+
+    <span class="c1">#def get_ebands_dataframe(self):</span>
+    <span class="c1">#    from abipy.electrons.ebands import frames_from_ebands</span>
+    <span class="c1">#    for abifile in self.ncfiles:</span>
+    <span class="c1">#    index = list(self.keys())</span>
+    <span class="c1">#    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)</span>
+
+    <span class="c1">#def ncread_and_plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Ex:</span>
+    <span class="c1">#        plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    title = kwargs.pop(&quot;title&quot;, None)</span>
+    <span class="c1">#    show = kwargs.pop(&quot;show&quot;, True)</span>
+    <span class="c1">#    savefig = kwargs.pop(&quot;savefig&quot;, None)</span>
+
+    <span class="c1">#    # Read the value of varname from the files.</span>
+    <span class="c1">#    xx, yy = [], []</span>
+    <span class="c1">#    for filepath in self.filepaths:</span>
+    <span class="c1">#        with GsrReader(filepath) as r:</span>
+    <span class="c1">#            xx.append(r.read_value(varname_x))</span>
+    <span class="c1">#            yy.append(r.read_value(varname_y))</span>
+
+    <span class="c1">#    import matplotlib.pyplot as plt</span>
+    <span class="c1">#    fig = plt.figure()</span>
+    <span class="c1">#    ax = fig.add_subplot(1,1,1)</span>
+
+    <span class="c1">#    ax.plot(xx, yy, &quot;o-&quot;, **kwargs)</span>
+
+    <span class="c1">#    if hspan is not None:</span>
+    <span class="c1">#        last = yy[-1]</span>
+    <span class="c1">#        ax.axhspan(last - hspan, last + hspan, facecolor=&#39;0.5&#39;, alpha=0.5)</span>
+
+    <span class="c1">#    if title is not None: fig.suptitle(title)</span>
+    <span class="c1">#    if show: plt.show()</span>
+    <span class="c1">#    if savefig is not None: fig.savefig(savefig)</span>
+
+    <span class="c1">#    return fig</span>
 
 
 <div class="viewcode-block" id="GsrRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot">[docs]</a><span class="k">class</span> <span class="nc">GsrRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -463,8 +561,8 @@
 <span class="sd">                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)</span>
 <span class="sd">                where key is a string with the name of column and value is the value to be inserted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO add more columns</span>
         <span class="c1"># Add attributes specified by the users</span>
+        <span class="c1"># TODO add more columns</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">,</span>
             <span class="s2">&quot;ecut&quot;</span><span class="p">,</span> <span class="s2">&quot;pawecutdg&quot;</span><span class="p">,</span>
@@ -488,7 +586,7 @@
             <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-            <span class="c1"># Execute funcs.</span>
+            <span class="c1"># Execute functions</span>
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">gsr</span><span class="p">))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
@@ -555,6 +653,7 @@
 
             <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">EOS</span><span class="o">.</span><span class="n">MODELS</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
             <span class="k">return</span> <span class="n">fits</span><span class="p">,</span> <span class="n">frame</span></div>
+            <span class="c1">#return dict2namedtuple(fits=fits, frame=frame)</span>
 
 <div class="viewcode-block" id="GsrRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -566,20 +665,16 @@
         <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.GsrRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.GsrRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
 
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;frame = plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(frame)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df = plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(df)&quot;</span><span class="p">),</span>
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter = robot.get_ebands_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ebands_plotter.gridplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ebands_plotter.combiplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ebands_plotter.boxplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ebands_plotter.combiboxplot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#anim = ebands_plotter.animate()&quot;</span><span class="p">),</span>
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos_plotter = robot.get_edos_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = plotter.combiplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = plotter.gridplot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -638,7 +733,7 @@
             <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigres</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-            <span class="c1"># Execute funcs.</span>
+            <span class="c1"># Execute functions.</span>
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">sigres</span><span class="p">))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
@@ -669,10 +764,9 @@
         <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.SigresRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.SigresRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)&quot;),</span>
             <span class="c1">#nbv.new_code_cell(&quot;plotter = robot.get_ebands_plotter()&quot;),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = plotter.gridplot()&quot;),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = plotter.combiboxplot()&quot;),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -685,6 +779,9 @@
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;MDF&quot;</span>
 
 <div class="viewcode-block" id="MdfRobot.get_multimdf_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot.get_multimdf_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_multimdf_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.electrons.bse</span> <span class="k">import</span> <span class="n">MultipleMdfPlotter</span>
         <span class="n">plotter</span> <span class="o">=</span> <span class="n">MultipleMdfPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
 
@@ -695,10 +792,11 @@
 
 <div class="viewcode-block" id="MdfRobot.get_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build and return Pandas dataframe with the most import BSE results.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            funcs:</span>
 <span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
+<span class="sd">            funcs:</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            pandas DataFrame</span>
@@ -721,7 +819,7 @@
             <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mdf</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-            <span class="c1"># Execute funcs.</span>
+            <span class="c1"># Execute functions.</span>
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">mdf</span><span class="p">))</span>
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
@@ -755,7 +853,7 @@
         <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.MdfRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.MdfRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#df = robot.get_dataframe(with_geo=False&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = robot.get_multimdf_plotter()&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s1">&#39;fig = plotter.plot(mdf_type=&quot;exc&quot;, qview=&quot;avg&quot;, xlim=None, ylim=None)&#39;</span><span class="p">),</span>
@@ -836,7 +934,7 @@
             <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-            <span class="c1"># Execute funcs.</span>
+            <span class="c1"># Execute functions.</span>
             <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">ddb</span><span class="p">))</span>
 
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
@@ -864,50 +962,36 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
     <span class="c1"># TODO Test</span>
-<div class="viewcode-block" id="DdbRobot.get_phbands_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_phbands_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_phbands_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_phdos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbRobot.get_phonon_plotters"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_phonon_plotters">[docs]</a>    <span class="k">def</span> <span class="nf">get_phonon_plotters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.</span>
-<span class="sd">        Collect results and return `PhononBandsPlotter` object.</span>
+<span class="sd">        Collect results and return `namedtuple` with the following attributes:</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            with_phdos: True to compute phonon DOS</span>
-<span class="sd">            cls:</span>
+<span class="sd">            phbands_plotter: `PhononBandsPlotter` object.</span>
+<span class="sd">            phdos_plotter: `PhononDosPlotter` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;workdir&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot specify `workdir` when multiple DDB file are executed.&quot;</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBandsPlotter</span>
-        <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhononDosPlotter</span>
+        <span class="n">phbands_plotter</span><span class="p">,</span> <span class="n">phdos_plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">(),</span> <span class="n">PhononDosPlotter</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># Invoke anaddb to get phonon bands and DOS.</span>
             <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="p">)</span>
+
+            <span class="c1"># Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc</span>
+            <span class="c1"># Those results should be fetched from there and added to the phonon bands.</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">anaddb_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">phbst_file</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
+                <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">read_non_anal_from_file</span><span class="p">(</span><span class="n">anaddb_path</span><span class="p">)</span>
+
+            <span class="n">phbands_plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="p">)</span>
+            <span class="n">phdos_plotter</span><span class="o">.</span><span class="n">add_phdos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span><span class="p">)</span>
             <span class="n">phbst_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="n">phdos_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">plotter</span></div>
-
-    <span class="c1"># TODO Test</span>
-<div class="viewcode-block" id="DdbRobot.get_phdos_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_phdos_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_phdos_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.</span>
-<span class="sd">        Collect results and return `PhononDosPlotter` object.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            cls:</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;workdir&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot specify `workdir` when multiple DDB file are executed.&quot;</span><span class="p">)</span>
-
-        <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononDosPlotter</span>
-        <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononDosPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">add_phdos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span><span class="p">)</span>
-            <span class="n">phbst_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">phdos_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">plotter</span></div>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">phbands_plotter</span><span class="o">=</span><span class="n">phbands_plotter</span><span class="p">,</span> <span class="n">phdos_plotter</span><span class="o">=</span><span class="n">phdos_plotter</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DdbRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -916,16 +1000,26 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
+        <span class="n">get_phonon_plotters_kwargs</span> <span class="o">=</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method=&quot;tetra&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">lo_to_splitting=False, ngqpt=None, qptbounds=None,</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">anaddb_kwargs=None, verbose=0&#39;</span><span class="p">)</span>
+
         <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.DdbRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands_plotter = robot.get_phbands_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands_plotter.gridplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands_plotter.combiboxplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phdos_plotter = robot.get_phdos_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phdos_plotter.gridplot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phdos_plotter.plot_harmonic_thermo()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.DdbRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#dfq = robot.get_dataframe_at_qpoint(qpoint=None)&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r = robot.get_phonon_plotters(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">get_phonon_plotters_kwargs</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phbands_plotter.get_phbands_frame()&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phbands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phdos_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phdos_plotter.ipw_harmonic_thermo()&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>

@@ -81,6 +81,7 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span><span class="p">,</span> <span class="n">tree</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">get_ncpus</span><span class="p">,</span> <span class="n">deprecated</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">AnaddbTask</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">TextFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
@@ -91,7 +92,12 @@
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AnaddbInput</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononDosPlotter</span><span class="p">,</span> <span class="n">InteratomicForceConstants</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.tensors</span> <span class="k">import</span> <span class="n">DielectricTensor</span>
+<span class="kn">from</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">import</span> <span class="n">Ha_cmm1</span>
 <span class="kn">from</span> <span class="nn">pymatgen.analysis.elasticity.elastic</span> <span class="k">import</span> <span class="n">ElasticTensor</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">eV_to_Ha</span><span class="p">,</span> <span class="n">bohr_to_angstrom</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">Marker</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span>
+
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -136,7 +142,7 @@
         <span class="sd">&quot;&quot;&quot;Needed for the `AbinitFile` abstract interface.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">read_blocks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DdbFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_header</span><span class="p">()</span>
@@ -150,18 +156,12 @@
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_qpoints</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qpoints</span> <span class="o">=</span> <span class="n">KpointList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">read_blocks</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_blocks</span><span class="p">()</span>
-
-<div class="viewcode-block" id="DdbFile.close"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Needed for the `AbinitFile` abstract interface.&quot;&quot;&quot;</span></div>
-
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="DdbFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DdbFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span><span class="p">,</span> <span class="n">extend</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">,</span> <span class="n">lines</span><span class="o">.</span><span class="n">extend</span>
         <span class="c1">#extend(super(DdbFile, self).__str__().splitlines())</span>
@@ -180,7 +180,18 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Abipy Structure.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">natom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of atoms in structure&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;DDB Version number (integer).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -284,6 +295,15 @@
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qpoints</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="DdbFile.blocks"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.blocks">[docs]</a>    <span class="k">def</span> <span class="nf">blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        DDB blocks. List of dictionaries, Each dictionary contains &quot;qpt&quot;</span>
+<span class="sd">        with the reduced coordinates of the q-point and &quot;data&quot; that is a list of strings</span>
+<span class="sd">        with the entries of the dynamical matrix for this q-point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_blocks</span><span class="p">()</span></div>
+
     <span class="k">def</span> <span class="nf">_read_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -317,6 +337,8 @@
             <span class="k">if</span> <span class="s2">&quot;qpt&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                 <span class="n">qpt</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]))</span>
 
+        <span class="c1"># TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --&gt; element</span>
+
         <span class="k">return</span> <span class="n">blocks</span>
 
     <span class="nd">@property</span>
@@ -326,7 +348,7 @@
 
 <div class="viewcode-block" id="DdbFile.qindex"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.qindex">[docs]</a>    <span class="k">def</span> <span class="nf">qindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The index of the q-point in the internal list of k-points.</span>
+<span class="sd">        The index of the q-point in the internal list of q-points.</span>
 <span class="sd">        Accepts: :class:`Kpoint` instance or integer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -385,11 +407,31 @@
     <span class="c1">#def has_phonon_terms(self, qpoint)</span>
     <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the phonon perturbation.&quot;&quot;&quot;</span>
 
-    <span class="c1">#def has_emacro_terms(self)</span>
-    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the electric-field perturnation.&quot;&quot;&quot;</span>
+    <span class="c1">#def has_emacro_terms(self, ij=&quot;at_least_one&quot;):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    True if the DDB file contains info on the electric-field perturbation.</span>
 
-    <span class="c1">#def has_bec_terms(self)</span>
-    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains info on the Born effective charges.&quot;&quot;&quot;</span>
+    <span class="c1">#        Args:</span>
+    <span class="c1">#            ij: Possible values in [&quot;at_least_one&quot;, &quot;all&quot;] or tuple e.g. (0, 1)</span>
+    <span class="c1">#            If ij == &quot;at_least_one&quot;, we check if there&#39;s at least one entry associated to the electric field.</span>
+    <span class="c1">#            and we assume that anaddb will be able to reconstruct the full tensor by symmetry.</span>
+    <span class="c1">#            If ij == &quot;all&quot;, all tensor components must be present in the DDB file.</span>
+    <span class="c1">#            If ij == (0, 1), the method returns False if the (0, 1) component of the tensor is not present in the DDB.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="c1">#def has_bec_terms(self, ij=&quot;at_least_one&quot;):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    True if the DDB file contains info on the Born effective charges.</span>
+    <span class="c1">#    By default, we check if there&#39;s at least one entry associated to electric field.</span>
+    <span class="c1">#    and we assume that anaddb will be able to reconstruct the full tensor by symmetry</span>
+
+    <span class="c1">#    Args:</span>
+    <span class="c1">#            ij: &quot;at_least_one&quot;, &quot;all&quot;, (1,2)</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+    <span class="c1">#def has_lo_to_data(self)</span>
+    <span class="c1">#    &quot;&quot;&quot;True if the DDB file contains data requires to compute LO-TO splitting.&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.has_bec_terms() and self.has_emacro_terms()</span>
 
 <div class="viewcode-block" id="DdbFile.anaget_phmodes_at_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phmodes_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -423,6 +465,9 @@
         <span class="k">except</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;input qpoint </span><span class="si">%s</span><span class="s2"> not in ddb.qpoints:</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">))</span>
 
+        <span class="c1">#if lo_to_splitting and not self.has_lo_to_data:</span>
+        <span class="c1">#    cprint(&quot;lo_to_splitting set to True but Emacro and Becs are not available in DDB:&quot; % self.filepath</span>
+
         <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">modes_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>
                                           <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">,</span>
                                           <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
@@ -452,8 +497,8 @@
     <span class="c1">#                      workdir=None, manager=None, verbose=0, **kwargs):</span>
 
 <div class="viewcode-block" id="DdbFile.anaget_phbst_and_phdos_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span>
-                                     <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                     <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                     <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute anaddb to compute the phonon band structure and the phonon DOS</span>
 
@@ -464,14 +509,14 @@
 <span class="sd">            asr, chneut, dipdip: Anaddb input variable. See official documentation.</span>
 <span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
 <span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
-<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
-<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
-<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
-<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
 <span class="sd">            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
 <span class="sd">            qptbounds: Boundaries of the path. If None, the path is generated from an internal database</span>
 <span class="sd">                depending on the input structure.</span>
 <span class="sd">            anaddb_kwargs: additional kwargs for anaddb</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            :class:`PhbstFile` with the phonon band structure.</span>
@@ -479,8 +524,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ngqpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">guessed_ngqpt</span>
 
+        <span class="c1">#if lo_to_splitting and not self.has_lo_to_data:</span>
+        <span class="c1">#    cprint(&quot;lo_to_splitting set to True but Emacro and Becs are not available in DDB:&quot; % self.filepath</span>
+
         <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">phbands_and_dos</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span>
             <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span>
             <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
@@ -504,15 +552,19 @@
         <span class="k">return</span> <span class="n">phbst</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">open_phdos</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DdbFile.anacompare_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.anacompare_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">anacompare_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmalls</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">num_cpus</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+                         <span class="n">num_cpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix</span>
+<span class="sd">        reported in the DDB file will be Fourier-interpolated on the list of qmeshes specified</span>
+<span class="sd">        by `nqsmalls. Useful to perform covergence studies.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives</span>
 <span class="sd">            the number of divisions to be used to sample the smallest reciprocal lattice vector.</span>
 <span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
 <span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
 <span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
-<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</span>
+<span class="sd">            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)</span>
 <span class="sd">            num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.</span>
 <span class="sd">            stream: File-like object used for printing.</span>
 
@@ -520,9 +572,10 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 
 <span class="sd">                phdoses: List of :class:`PhononDos` objects</span>
-<span class="sd">                plotter: :class:`PhononDosPlotter` object. Use plotter.plot() to visualize the results.</span>
+<span class="sd">                plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`</span>
+<span class="sd">                    to visualize the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">get_ncpus</span><span class="p">()</span> <span class="k">if</span> <span class="n">num_cpus</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">num_cpus</span>
+        <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">get_ncpus</span><span class="p">()</span> <span class="o">//</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">num_cpus</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">num_cpus</span>
         <span class="k">if</span> <span class="n">num_cpus</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num_cpus</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">num_cpus</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">num_cpus</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nqsmalls</span><span class="p">))</span>
 
@@ -661,9 +714,6 @@
 <span class="sd">        Requires the blocks data.</span>
 <span class="sd">        Only the information stored in self.header.lines and in self.blocks will be used to produce the file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
-
         <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
 
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; **** Database of total energy derivatives ****&quot;</span><span class="p">)</span>
@@ -686,10 +736,10 @@
 
 <div class="viewcode-block" id="DdbFile.get_block_for_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.get_block_for_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">get_block_for_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information</span>
+<span class="sd">        Extracts the block data for the selected qpoint.</span>
+<span class="sd">        Returns a list of lines containing the block information</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">):</span> <span class="n">qpt</span> <span class="o">=</span> <span class="n">qpt</span><span class="o">.</span><span class="n">frac_coords</span>
 
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">],</span> <span class="n">qpt</span><span class="p">):</span>
@@ -697,16 +747,21 @@
 
 <div class="viewcode-block" id="DdbFile.replace_block_for_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.replace_block_for_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">replace_block_for_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extracts the block data for the selected qpoint. Returns a list of lines containing the block information.</span>
-<span class="sd">        data should be a list of strings representing the whole data block.</span>
+<span class="sd">        Change the block data for the selected qpoint. Object is modified in-place.</span>
+<span class="sd">        Data should be a list of strings representing the whole data block.</span>
 <span class="sd">        Note that the DDB file should be written and reopened in order to call methods that run anaddb.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            True if qpt has been found and data has been replaced.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Blocks information are required to write the DDB file&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="s2">&quot;frac_coords&quot;</span><span class="p">):</span> <span class="n">qpt</span> <span class="o">=</span> <span class="n">qpt</span><span class="o">.</span><span class="n">frac_coords</span>
 
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;qpt&#39;</span><span class="p">],</span> <span class="n">qpt</span><span class="p">):</span>
-                <span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span></div>
+                <span class="n">b</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="DdbFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -725,16 +780,32 @@
 <span class="s2">                                   qptbounds=None, anaddb_kwargs=None)</span>
 <span class="s2">phbands, phdos = bstfile.phbands, phdosfile.phdos&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_with_phdos(phdos)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_fatbands(phdos_file=phdosfile)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fig = phbands.plot_colored_matched()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fig = phdosfile.plot_pjdos_type()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fig = phdosfile.plot_pjdos_redirs_type()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fig = phdosfile.plot_pjdos_redirs_site()&quot;</span><span class="p">),</span>
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">emacro, becs = ddb.anaget_emacro_and_becs()</span>
-<span class="s2">print(emacro)</span>
-<span class="s2">print(becs)</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">),</span>
+<span class="s2">c = None</span>
+<span class="s2">if False:</span>
+<span class="s2">    c = ddb.anacompare_phdos(nqsmalls=[20, 30], asr=2, chneut=1, dipdip=1,</span>
+<span class="s2">            dos_method=&quot;tetra&quot;, ngqpt=None, num_cpus=1)&quot;&quot;&quot;</span><span class="p">),</span>
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">),</span>
+<span class="s2">if c is not None:</span>
+<span class="s2">    c.plotter.ipw_select_plot()</span>
+<span class="s2">    #for phdos in c.phdoses&quot;&quot;&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">if False:</span>
+<span class="s2">    emacro, becs = ddb.anaget_emacro_and_becs()</span>
+<span class="s2">    print(emacro)</span>
+<span class="s2">    print(becs)&quot;&quot;&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">if False:</span>
+<span class="s2">    ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)&quot;&quot;&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -886,9 +957,169 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts to a pymatgen ElasticTensor object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">return</span> <span class="n">ElasticTensor</span><span class="o">.</span><span class="n">from_voigt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elastic_tensor</span><span class="p">)</span></div></div>
 
+
+<div class="viewcode-block" id="DielectricTensorGenerator"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator">[docs]</a><span class="k">class</span> <span class="nc">DielectricTensorGenerator</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object used to generate frequency dependent dielectric tensors as obtained</span>
+<span class="sd">    from DFPT calculations. The values are calculated on the fly</span>
+<span class="sd">    based on the phonon frequencies at gamma and oscillator strengths.</span>
+<span class="sd">    The first three frequencies would be considered as acoustic modes and</span>
+<span class="sd">    ignored in the calculation. No checks would be performed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">,</span> <span class="n">oscillator_strength</span><span class="p">,</span> <span class="n">emacro</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">             phfreqs: a numpy array containing the 3*(num atoms) phonon frequencies at gamma</span>
+<span class="sd">             oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units</span>
+<span class="sd">             emacro: a numpy array containing the dielectric tensor without frequency dependence</span>
+<span class="sd">                (at infinite frequency)</span>
+<span class="sd">             structure: a pymatgen Structure of the system considered</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="o">=</span> <span class="n">phfreqs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oscillator_strength</span> <span class="o">=</span> <span class="n">oscillator_strength</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emacro</span> <span class="o">=</span> <span class="n">emacro</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DielectricTensorGenerator.from_files"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.from_files">[docs]</a>    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phbst_filepath</span><span class="p">,</span> <span class="n">anaddbnc_filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the object from the files that contain the phonon frequencies, oscillator strength and</span>
+<span class="sd">        static dielectric tensor, i.e. the PHBST and anaddb netcdf files, respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">phbst_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader_phbst</span><span class="p">:</span>
+            <span class="n">qpts</span> <span class="o">=</span> <span class="n">reader_phbst</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;qpoints&quot;</span><span class="p">)</span>
+            <span class="n">full_phfreqs</span> <span class="o">=</span> <span class="n">reader_phbst</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;phfreqs&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qpts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The PHBST does not containg the frequencies at gamma&#39;</span><span class="p">)</span>
+
+        <span class="n">phfreqs</span> <span class="o">=</span> <span class="n">full_phfreqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">anaddbnc_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader_anaddbnc</span><span class="p">:</span>
+            <span class="n">emacro</span> <span class="o">=</span> <span class="n">reader_anaddbnc</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;emacro_cart&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">oscillator_strength</span> <span class="o">=</span> <span class="n">reader_anaddbnc</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;oscillator_strength&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to read from file.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="s2">&quot;Verify that dieflag == 1, 3 or 4 in anaddb</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">reader_anaddbnc</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">phfreqs</span><span class="p">,</span> <span class="n">oscillator_strength</span><span class="p">,</span> <span class="n">emacro</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DielectricTensorGenerator.from_objects"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.from_objects">[docs]</a>    <span class="k">def</span> <span class="nf">from_objects</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phbands</span><span class="p">,</span> <span class="n">anaddbnc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the object from the objects PhononBands and AnaddbNcFile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gamma_index</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">qindex</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">phfreqs</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="n">gamma_index</span><span class="p">]</span>
+
+        <span class="n">emacro</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">emacro</span><span class="o">.</span><span class="n">cartesian_tensor</span>
+        <span class="n">oscillator_strength</span> <span class="o">=</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">oscillator_strength</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">phfreqs</span><span class="p">,</span> <span class="n">oscillator_strength</span><span class="p">,</span> <span class="n">emacro</span><span class="p">,</span> <span class="n">anaddbnc</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DielectricTensorGenerator.tensor_at_frequency"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">tensor_at_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a DielectricTensor object representing</span>
+<span class="sd">        the dielectric tensor in atomic units at the specified frequency w.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            w: frequency</span>
+<span class="sd">            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;eV&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;Ha&#39;</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">eV_to_Ha</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;cm-1&#39;</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">Ha_cmm1</span> <span class="o">/</span> <span class="n">eV_to_Ha</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown units </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">)):</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oscillator_strength</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">real</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">w</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span> <span class="o">/</span> <span class="n">bohr_to_angstrom</span> <span class="o">**</span> <span class="mi">3</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">t</span><span class="o">/</span><span class="n">vol</span><span class="o">/</span><span class="n">eV_to_Ha</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="n">t</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emacro</span>
+
+        <span class="k">return</span> <span class="n">DielectricTensor</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="DielectricTensorGenerator.plot_vs_w"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DielectricTensorGenerator.plot_vs_w">[docs]</a>    <span class="k">def</span> <span class="nf">plot_vs_w</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w_min</span><span class="p">,</span> <span class="n">w_max</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s1">&#39;diago&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the selected components of the dielectric tensor as a function of the frequency</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            w_min: minimum frequency</span>
+<span class="sd">            w_max: maximum frequqncy</span>
+<span class="sd">            num: number of values of the frequencies between w_min and w_max</span>
+<span class="sd">            component: determine which components of the tensor will be displayed. Can be a list/tuple of two</span>
+<span class="sd">                elements, indicating the indices [i, j] of the desired component or a string among</span>
+<span class="sd">                &#39;diag&#39;: plots the elements on diagonal</span>
+<span class="sd">                &#39;all&#39;: plots all the components</span>
+<span class="sd">                &#39;diag_av&#39;: plots the average of the components on the diagonal</span>
+<span class="sd">            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">w_min</span><span class="p">,</span> <span class="n">w_max</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">w_range</span><span class="p">):</span>
+            <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_at_frequency</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;linewidth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;eV&#39;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;Ha&#39;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [Ha]&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;cm-1&#39;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Frequency [cm$^{-1}$]&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\varepsilon$&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w_range</span><span class="p">,</span> <span class="n">t</span><span class="p">[:,</span><span class="n">component</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">component</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">component</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s1">&#39;diag&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w_range</span><span class="p">,</span> <span class="n">t</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w_range</span><span class="p">,</span> <span class="n">t</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">component</span> <span class="o">==</span> <span class="s1">&#39;diag_av&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w_range</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">axis1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis2</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unkwnown component </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">component</span><span class="p">))</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
 </pre></div>
 
           </div>

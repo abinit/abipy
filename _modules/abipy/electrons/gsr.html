@@ -91,7 +91,6 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;GsrFile&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;GsrPlotter&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -248,40 +247,33 @@
 <div class="viewcode-block" id="GsrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="GsrFile.get_computed_entry"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.get_computed_entry">[docs]</a>    <span class="k">def</span> <span class="nf">get_computed_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inc_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GsrFile.get_computed_entry"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.get_computed_entry">[docs]</a>    <span class="k">def</span> <span class="nf">get_computed_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inc_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a pymatgen :class:`ComputedStructureEntry` from the GSR file.</span>
 <span class="sd">        Same API as the one used in vasp_output.get_computed_entry.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            inc_structure (bool): Set to True if you want</span>
-<span class="sd">                ComputedStructureEntries to be returned instead of</span>
-<span class="sd">                ComputedEntries.</span>
+<span class="sd">                ComputedStructureEntries to be returned instead of ComputedEntries.</span>
 <span class="sd">            parameters (list): Input parameters to include. It has to be one of</span>
 <span class="sd">                the properties supported by the GSR object. If</span>
-<span class="sd">                parameters == None, a default set of parameters that are</span>
+<span class="sd">                parameters is None, a default set of parameters that are</span>
 <span class="sd">                necessary for typical post-processing will be set.</span>
 <span class="sd">            data (list): Output data to include. Has to be one of the properties</span>
 <span class="sd">                supported by the GSR object.</span>
 
 <span class="sd">        Returns:</span>
+
 <span class="sd">            ComputedStructureEntry/ComputedEntry</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#raise NotImplementedError(&quot;&quot;)</span>
         <span class="c1"># TODO</span>
         <span class="c1">#param_names = {&quot;is_hubbard&quot;, &quot;hubbards&quot;, &quot;potcar_symbols&quot;, &quot;run_type&quot;}</span>
-        <span class="c1">#if parameters:</span>
-        <span class="c1">#    param_names.update(parameters)</span>
-        <span class="c1">#params = {p: getattr(self, p) for p in param_names}</span>
-        <span class="c1">#data = {p: getattr(self, p) for p in data} if data is not None else {}</span>
-        <span class="n">params</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
-
         <span class="k">if</span> <span class="n">inc_structure</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ComputedStructureEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
-                                          <span class="n">parameters</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+                                          <span class="n">correction</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ComputedEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
-                                 <span class="n">parameters</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+                                 <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GsrFile.as_dict"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># TODO: Add info depending on the run_type e.g. max_resid is NSCF</span>
@@ -429,206 +421,6 @@
         <span class="n">convert</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">EnergyTerms</span><span class="o">.</span><span class="n">ALL_KEYS</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">EnergyTerms</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>
-
-
-<span class="c1"># TODO: Remove and/or merge with robots.</span>
-<div class="viewcode-block" id="GsrPlotter"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter">[docs]</a><span class="k">class</span> <span class="nc">GsrPlotter</span><span class="p">(</span><span class="n">Iterable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object receives a list of `GsrFile` objects and provides</span>
-<span class="sd">    methods to inspect/analyze the results (useful for convergence studies)</span>
-
-<span class="sd">    Usage example:</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        plotter = GsrPlotter()</span>
-<span class="sd">        plotter.add_file(&quot;foo_GSR.nc&quot;)</span>
-<span class="sd">        plotter.add_file(&quot;bar_GSR.nc&quot;)</span>
-<span class="sd">        plotter.plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">files</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="o">*</span><span class="n">files</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gsr</span><span class="p">)</span> <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span>
-
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. It automatically closes the file.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-<div class="viewcode-block" id="GsrPlotter.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">gsr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span></div>
-
-<div class="viewcode-block" id="GsrPlotter.add_files"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.add_files">[docs]</a>    <span class="k">def</span> <span class="nf">add_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepaths</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a list of filenames to the plotter&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filepaths</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="GsrPlotter.add_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a filename to the plotter&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
-        <span class="n">gsr</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="p">[</span><span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span>
-
-        <span class="c1"># Initialize/check useful quantities.</span>
-        <span class="c1">#</span>
-        <span class="c1"># 1) Number of spins</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;nsppol&quot;</span><span class="p">):</span>  <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="n">gsr</span><span class="o">.</span><span class="n">nsppol</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="n">gsr</span><span class="o">.</span><span class="n">nsppol</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">filepaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Filepaths of the GSR files.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">param_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The name of the parameter whose value is checked for convergence.&quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span>
-
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_param_name</span><span class="p">(</span><span class="n">param_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span>
-
-    <span class="k">def</span> <span class="nf">_get_param_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a dictionary with the values of the parameters extracted from the GSR files.&quot;&quot;&quot;</span>
-        <span class="n">param_list</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="n">gsr</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">param_list</span><span class="p">[</span><span class="n">pname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">pname</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">param_list</span>
-
-<div class="viewcode-block" id="GsrPlotter.set_param_name"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.set_param_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_param_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the name of the parameter whose value is checked for convergence.</span>
-<span class="sd">        if param_name is None, we try to find its name by inspecting</span>
-<span class="sd">        the values in the gsr.params dictionaries.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span> <span class="o">=</span> <span class="n">param_name</span></div>
-
-<div class="viewcode-block" id="GsrPlotter.prepare_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.prepare_plot">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This method must be called before plotting data.</span>
-<span class="sd">        It tries to figure the name of parameter we are converging</span>
-<span class="sd">        by looking at the set of parameters used to compute the different GSR files.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">param_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_param_list</span><span class="p">()</span>
-
-        <span class="n">param_name</span><span class="p">,</span> <span class="n">problem</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value_list</span> <span class="ow">in</span> <span class="n">param_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">!=</span> <span class="n">value_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">param_name</span> <span class="o">=</span> <span class="n">key</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">problem</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot perform automatic detection of convergence parameter.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                                   <span class="s2">&quot;Found multiple parameters with different values. Will use filepaths as plot labels.&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_param_name</span><span class="p">(</span><span class="n">param_name</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Could not figure the name of the parameter.</span>
-            <span class="n">xvalues</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">xvalues</span> <span class="o">=</span> <span class="n">param_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span>
-
-            <span class="c1"># Sort xvalues and rearrange the files.</span>
-            <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">iv</span> <span class="k">for</span> <span class="n">iv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
-
-            <span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-
-            <span class="n">newd</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
-                <span class="n">gsr</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">newd</span><span class="p">[</span><span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="n">gsr</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gsr_files</span> <span class="o">=</span> <span class="n">newd</span>
-
-            <span class="c1"># Use sorted xvalues for the plot.</span>
-            <span class="n">param_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_param_list</span><span class="p">()</span>
-            <span class="n">xvalues</span> <span class="o">=</span> <span class="n">param_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_xvalues</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">xvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The values used for the X-axis.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xvalues</span>
-
-<div class="viewcode-block" id="GsrPlotter.set_xvalues"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.set_xvalues">[docs]</a>    <span class="k">def</span> <span class="nf">set_xvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xvalues</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;xvalues setter.&quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">xvalues</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xvalues</span> <span class="o">=</span> <span class="n">xvalues</span></div>
-
-<div class="viewcode-block" id="GsrPlotter.decorate_ax"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.decorate_ax">[docs]</a>    <span class="k">def</span> <span class="nf">decorate_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">)</span>
-
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
-
-        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
-
-        <span class="c1"># Set ticks and labels.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Could not figure the name of the parameter ==&gt; Use the basename of the files</span>
-            <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xvalues</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
-
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="GsrPlotter.plot_variables"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrPlotter.plot_variables">[docs]</a>    <span class="k">def</span> <span class="nf">plot_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varname_x</span><span class="p">,</span> <span class="n">varname_y</span><span class="p">,</span> <span class="n">hspan</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Ex:</span>
-<span class="sd">            plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">show</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">savefig</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;savefig&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-        <span class="c1"># Read the value of varname from the files.</span>
-        <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">GsrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
-                <span class="n">xx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">varname_x</span><span class="p">))</span>
-                <span class="n">yy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">varname_y</span><span class="p">))</span>
-
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="s2">&quot;o-&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">hspan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">last</span> <span class="o">=</span> <span class="n">yy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">axhspan</span><span class="p">(</span><span class="n">last</span><span class="o">-</span><span class="n">hspan</span><span class="p">,</span> <span class="n">last</span><span class="o">+</span><span class="n">hspan</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;0.5&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">savefig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefig</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">fig</span></div></div>
 </pre></div>
 
           </div>

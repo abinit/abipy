@@ -106,7 +106,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_reduced_tensor</span> <span class="o">=</span> <span class="n">red_tensor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span> <span class="o">=</span> <span class="n">lattice</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">space</span>
-      
+
         <span class="k">if</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_is_real_space</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">elif</span> <span class="n">space</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span>
@@ -116,7 +116,7 @@
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduced_tensor</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">reduced_tensor</span><span class="p">)</span> <span class="ow">and</span> 
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduced_tensor</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">reduced_tensor</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">lattice</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
 
@@ -124,7 +124,7 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span> 
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -176,6 +176,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">real_lattice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
 
+        <span class="c1"># I guess this is the reason why tensor.symmetrize (omega) is so slow!</span>
         <span class="n">real_finder</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
         <span class="n">real_symmops</span> <span class="o">=</span> <span class="n">real_finder</span><span class="o">.</span><span class="n">get_point_group_operations</span><span class="p">(</span><span class="n">cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -198,10 +199,11 @@
 
 <div class="viewcode-block" id="SymmetricTensor"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.tensor.SymmetricTensor">[docs]</a><span class="k">class</span> <span class="nc">SymmetricTensor</span><span class="p">(</span><span class="n">Tensor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Representation of a 3x3 symmetric tensor&quot;&quot;&quot;</span>
+
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="SymmetricTensor.from_directions"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.tensor.SymmetricTensor.from_directions">[docs]</a>    <span class="k">def</span> <span class="nf">from_directions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a `SymmetricTensor` from the values computed along 6 directions. </span>
+<span class="sd">        Build a `SymmetricTensor` from the values computed along 6 directions.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qpoints: fractional coordinates of 6 independent q-directions</span>

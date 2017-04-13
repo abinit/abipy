@@ -106,7 +106,7 @@
 <span class="sd">            print(fb.structure)</span>
 <span class="sd">            fb.plot_fatbands_lview()</span>
 
-<span class="sd">    Alternatively, one can use the abiopen.py script to open the file in an ipython notebook with</span>
+<span class="sd">    Alternatively, one can use the `abiopen.py` script to open the file in an ipython notebook with</span>
 
 <span class="sd">    .. code-block:: shell</span>
 
@@ -123,14 +123,20 @@
     <span class="c1"># Markers used for up/down bands (collinear spin)</span>
     <span class="n">marker_spin</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;v&quot;</span><span class="p">}</span>
 
+    <span class="c1"># \U starts an eight-character Unicode escape. raw strings do not work in python2.7</span>
+    <span class="c1"># and we need a latex symbol to avoid errors in matplotlib --&gt; replace myuparrow --&gt; uparrow</span>
+
     <span class="c1"># Mapping spin --&gt; title used in subplots that depend on (collinear) spin.</span>
-    <span class="n">spin2tex</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">}</span>
+    <span class="n">spin2tex</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;myuparrow&quot;</span><span class="p">,</span> <span class="s2">&quot;uparrow&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span>
+            <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\myuparrow$&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma=\downarrow$&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="c1"># Mappings used for non-collinear spins.</span>
-    <span class="n">spinors2tex</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">uparrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">uparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$</span><span class="se">\\</span><span class="s2">downarrow,</span><span class="se">\\</span><span class="s2">downarrow$&quot;</span><span class="p">,</span>
+    <span class="n">spinors2tex</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;myuparrow&quot;</span><span class="p">,</span> <span class="s2">&quot;uparrow&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span>
+        <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\myuparrow,\myuparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\myuparrow,\downarrow$&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\downarrow,\myuparrow$&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\downarrow,\downarrow$&quot;</span><span class="p">,</span>
                    <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{x}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{y}</span><span class="s2">$&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\sigma_</span><span class="si">{z}</span><span class="s2">$&quot;</span><span class="p">,</span>
-                  <span class="p">}</span>
+                  <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
     <span class="n">spinors2color</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span> <span class="s2">&quot;brown&quot;</span><span class="p">,</span>
                      <span class="s2">&quot;down-up&quot;</span><span class="p">:</span> <span class="s2">&quot;violet&quot;</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span> <span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
                      <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">,</span>
@@ -242,7 +248,7 @@
 <span class="sd">        Numpy array of shape [natom, mbesslang**2, nsppol, mband, nkpt]</span>
 <span class="sd">        with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_walm_sbk</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;dos_fractions&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_walm_sbk</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;dos_fractions_m&quot;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_read_wal_sbk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;dos_fractions&quot;</span><span class="p">):</span>
         <span class="c1"># Read dos_fraction_m from file and build wal_sbk array of shape</span>
@@ -352,6 +358,9 @@
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FatBandsFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
@@ -379,7 +388,7 @@
                 <span class="p">])</span>
             <span class="n">app</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.get_wl_atom"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.get_wl_atom">[docs]</a>    <span class="k">def</span> <span class="nf">get_wl_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -472,7 +481,7 @@
         <span class="p">)</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_siteview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_siteview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot fatbands for each atom in the unit cell. By default, only the &quot;inequivalent&quot; atoms are shown.</span>
@@ -495,8 +504,9 @@
         <span class="c1"># ax2natom[1:num_plots] --&gt; iatom index in structure.</span>
         <span class="c1"># TODO: ebands.used_magnetic_symmetries?</span>
         <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;inequivalent&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The system contains magnetic symmetries but the spglib API used by pymg does not handle them.&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting view to `all`&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;The system with magnetic symmetries but the spglib API used by pymatgen does not support them.&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;    nsppol: </span><span class="si">%s</span><span class="s2">, nspden: </span><span class="si">%s</span><span class="s2">, nspinor: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Setting view to `all`&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="n">view</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span>
 
         <span class="c1"># TODO: spin</span>
@@ -505,24 +515,10 @@
 
         <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;inequivalent&quot;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calling spglib to find inequivalent sites.&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Note that magnetic symmetries are not taken into account&quot;</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
-            <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
-            <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
-            <span class="n">equivalent_atoms</span> <span class="o">=</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;equivalent_atoms&quot;</span><span class="p">]</span>
-            <span class="n">ax2iatom</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">eqmap</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">eqpos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">equivalent_atoms</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="n">eqpos</span><span class="p">:</span> <span class="n">ax2iatom</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-                <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
-            <span class="n">ax2iatom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ax2iatom</span><span class="p">)</span>
-            <span class="n">num_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax2iatom</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> inequivalent position(s).&quot;</span> <span class="o">%</span> <span class="n">num_plots</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">eqmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Irred_Site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]))</span>
-                <span class="k">for</span> <span class="n">eqind</span> <span class="ow">in</span> <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]:</span>
-                    <span class="k">if</span> <span class="n">eqind</span> <span class="o">==</span> <span class="n">irr_pos</span><span class="p">:</span> <span class="k">continue</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">SymEq: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">eqind</span><span class="p">]))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Note that `symafm` magnetic symmetries (if any) are not taken into account.&quot;</span><span class="p">)</span>
+            <span class="n">ea</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">spget_equivalent_atoms</span><span class="p">(</span><span class="n">printout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">num_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ea</span><span class="o">.</span><span class="n">irred_pos</span><span class="p">)</span>
+            <span class="n">ax2iatom</span> <span class="o">=</span> <span class="n">ea</span><span class="o">.</span><span class="n">irred_pos</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for view: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">view</span><span class="p">))</span>
 
@@ -568,12 +564,12 @@
 
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-        <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by L.</span>
@@ -584,7 +580,8 @@
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
-<span class="sd">            axmat: Matrix of axes, if None new figure is produce.</span>
+<span class="sd">            axmat: Matrix of axes, if None a new figure is produced.</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
@@ -640,7 +637,7 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_mview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_mview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_mview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_mview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by LM.</span>
@@ -652,6 +649,7 @@
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
@@ -660,8 +658,8 @@
 <span class="sd">            `matplotlib` figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;To be tested with spin&quot;</span><span class="p">)</span>
+        <span class="c1">#if self.nsppol == 2:</span>
+        <span class="c1">#    raise NotImplementedError(&quot;To be tested with spin&quot;)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdosm</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Fatbands plots with LM-character require `prtdos = 3 and prtdosm != 0`&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
@@ -677,6 +675,8 @@
         <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">)</span>
         <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
+        <span class="c1"># Build plot grid (L along the column, each L has 2L+1 subplots).</span>
+        <span class="c1"># ax_lim[(l, im)] gives the axis.</span>
         <span class="n">ax_lim</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrows</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">):</span>
@@ -686,6 +686,7 @@
                 <span class="k">if</span> <span class="n">im</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">*</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="c1">#ax.set_title(&quot;l=%d, m=%d&quot; % (l, im - l))</span>
                     <span class="n">ax_lim</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">ax</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
 
@@ -706,6 +707,7 @@
 
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">mybands</span><span class="p">:</span>
+                    <span class="c1">#print(&quot;band:&quot;, band)</span>
                     <span class="n">yup</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span>
                     <span class="n">ydown</span> <span class="o">=</span> <span class="n">yup</span>
 
@@ -721,8 +723,7 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                               <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by atomic type.</span>
 
@@ -732,14 +733,18 @@
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
-<span class="sd">            axmat:</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
+<span class="sd">            axmat: Matrix of axis. None if a new figure should be created.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `matplotlib` figure</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
+
         <span class="c1"># Get axmat and fig.</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -765,11 +770,11 @@
                 <span class="k">if</span> <span class="n">itype</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-                <span class="c1"># Plot fatbands for give (symbol, spin) and all angular momenta.</span>
+                <span class="c1"># Plot fatbands for given (symbol, spin) and all angular momenta.</span>
                 <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">mybands</span><span class="p">:</span>
                     <span class="n">yup</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span>
                     <span class="n">ydown</span> <span class="o">=</span> <span class="n">yup</span>
-                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                         <span class="c1"># Add width around each band.</span>
                         <span class="n">w</span> <span class="o">=</span> <span class="n">wl_sbk</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">]</span>
                         <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">yup</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">ydown</span> <span class="o">-</span> <span class="n">w</span>
@@ -785,7 +790,7 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_spilling"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_spilling">[docs]</a>    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_spilling"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_spilling">[docs]</a>    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands</span>
 
@@ -795,6 +800,7 @@
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
+<span class="sd">            axlist: List of matplotlib axes for plot. If None, new figure is produced</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
@@ -848,136 +854,138 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_spinor"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_spinor">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_spinor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;sigma_z&quot;</span><span class="p">,),</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-                             <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.</span>
+    <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
+    <span class="c1">#@add_fig_kwargs</span>
+    <span class="c1">#def plot_fatbands_spinor(self, terms=(&quot;sigma_z&quot;,), e0=&quot;fermie&quot;, fact=1,</span>
+    <span class="c1">#                         ylims=None, blist=None, axlist=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            terms: List of strings defining the quantities to plot. Possible values in:</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        terms: List of strings defining the quantities to plot. Possible values in:</span>
 
-<span class="sd">                {&quot;up-up&quot;, &quot;up-down&quot;, &quot;down-up&quot;, &quot;down-down&quot;, &quot;sigma_x&quot;, &quot;sigma_y&quot;, &quot;sigma_z&quot;}</span>
+    <span class="c1">#            {&quot;up-up&quot;, &quot;up-down&quot;, &quot;down-up&quot;, &quot;down-down&quot;, &quot;sigma_x&quot;, &quot;sigma_y&quot;, &quot;sigma_z&quot;}</span>
 
-<span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
-<span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
-<span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
-<span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
-<span class="sd">            fact:  float used to scale the marker size.</span>
-<span class="sd">            axlist: List of matplotlib axes for plot. If None, new figure is produced</span>
-<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
-<span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
+    <span class="c1">#        e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+    <span class="c1">#            - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
+    <span class="c1">#            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+    <span class="c1">#            -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+    <span class="c1">#        fact:  float used to scale the marker size.</span>
+    <span class="c1">#        axlist: List of matplotlib axes for plot. If None, new figure is produced</span>
+    <span class="c1">#        ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+    <span class="c1">#               or scalar e.g. `left`. If left (right) is None, default values are used</span>
+    <span class="c1">#        blist: List of band indices for the fatband plot. If None, all bands are included</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">!=</span> <span class="mi">5</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This method assumes prtdos=5 and nspinor=2 but file has prtdos=</span><span class="si">%s</span><span class="s2"> and nspinor=</span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1">#    Returns:</span>
+    <span class="c1">#        `matplotlib` figure</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    if not (self.prtdos == 5 and self.nspinor == 2):</span>
+    <span class="c1">#        print(&quot;This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s&quot;</span>
+    <span class="c1">#            % (self.prtdos, self.nspinor))</span>
+    <span class="c1">#        return None</span>
 
-        <span class="c1"># Build axlist</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="k">if</span> <span class="n">axlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axlist</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">),</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">axlist</span> <span class="o">=</span> <span class="n">axlist</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axlist</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">)))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+    <span class="c1">#    # Build axlist</span>
+    <span class="c1">#    import matplotlib.pyplot as plt</span>
+    <span class="c1">#    if axlist is None:</span>
+    <span class="c1">#        fig, axlist = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)</span>
+    <span class="c1">#        axlist = axlist.ravel()</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        axlist = np.reshape(axlist, (1, len(terms))).ravel()</span>
+    <span class="c1">#        fig = plt.gcf()</span>
 
-        <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
-        <span class="n">e0</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
-        <span class="n">xvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span>
-        <span class="n">mybands</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">ebands</span><span class="o">.</span><span class="n">mband</span><span class="p">)</span> <span class="k">if</span> <span class="n">blist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">blist</span>
-        <span class="n">spin0</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#    ebands = self.ebands</span>
+    <span class="c1">#    e0 = ebands.get_e0(e0)</span>
+    <span class="c1">#    xvals = np.arange(self.nkpt)</span>
+    <span class="c1">#    mybands = range(ebands.mband) if blist is None else blist</span>
+    <span class="c1">#    spin0 = 0</span>
 
-        <span class="c1"># Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].</span>
-        <span class="c1"># where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)</span>
-        <span class="n">w_sbk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;dos_fractions&quot;</span><span class="p">)</span>
-        <span class="n">term2idx</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;down-up&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span><span class="mi">6</span><span class="p">}</span>
+    <span class="c1">#    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].</span>
+    <span class="c1">#    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)</span>
+    <span class="c1">#    w_sbk = self.reader.read_value(&quot;dos_fractions&quot;)</span>
+    <span class="c1">#    term2idx = {&quot;up-up&quot;:0, &quot;up-down&quot;:1, &quot;down-up&quot;:2, &quot;down-down&quot;:3, &quot;sigma_x&quot;:4, &quot;sigma_y&quot;:5, &quot;sigma_z&quot;:6}</span>
 
-        <span class="c1"># TODO: To be tested.</span>
-        <span class="n">terms</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">terms</span><span class="p">,</span> <span class="n">axlist</span><span class="p">)):</span>
-            <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">linecolor</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">linewidth</span><span class="p">)</span>
-            <span class="n">ebands</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">term</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="c1"># Only the first column show labels.</span>
-                <span class="c1"># Trick: Don&#39;t change the labels but set their fontsize to 0 otherwise</span>
-                <span class="c1"># also the other axes are affecred (likely due to sharey=True).</span>
-                <span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
-                    <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#    # TODO: To be tested.</span>
+    <span class="c1">#    terms = list_strings(terms)</span>
+    <span class="c1">#    for i, (term, ax) in enumerate(zip(terms, axlist)):</span>
+    <span class="c1">#        ebands.plot_ax(ax, e0, spin=spin0, color=self.linecolor, linewidth=self.linewidth)</span>
+    <span class="c1">#        ebands.decorate_ax(ax, title=term)</span>
+    <span class="c1">#        if i != 0:</span>
+    <span class="c1">#            ax.set_ylabel(&quot;&quot;)</span>
+    <span class="c1">#            # Only the first column show labels.</span>
+    <span class="c1">#            # Trick: Don&#39;t change the labels but set their fontsize to 0 otherwise</span>
+    <span class="c1">#            # also the other axes are affecred (likely due to sharey=True).</span>
+    <span class="c1">#            for tick in ax.yaxis.get_major_ticks():</span>
+    <span class="c1">#                tick.label.set_fontsize(0)</span>
 
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">term2idx</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spinors2color</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
-            <span class="c1"># Rescale weights in [0, 1]</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">w_sbk</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">spin0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">data</span> <span class="o">-=</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-            <span class="n">dmax</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">dmax</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span> <span class="n">data</span> <span class="o">/=</span> <span class="n">dmax</span>
-            <span class="c1">#print(data)</span>
+    <span class="c1">#        idx = term2idx[term]</span>
+    <span class="c1">#        color = self.spinors2color[term]</span>
+    <span class="c1">#        # Rescale weights in [0, 1]</span>
+    <span class="c1">#        data = w_sbk[idx, spin0, :, :].copy()</span>
+    <span class="c1">#        data -= data.min()</span>
+    <span class="c1">#        dmax = data.max()</span>
+    <span class="c1">#        if dmax != 0.0: data /= dmax</span>
+    <span class="c1">#        #print(data)</span>
 
-            <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mybands</span><span class="p">):</span>
-                <span class="n">yvals</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">band</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
-                           <span class="c1">#edgecolor=plt.get_cmap(&#39;jet&#39;)(data[band]),</span>
-                           <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spinors2tex</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="k">if</span> <span class="n">ib</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1">#        for ib, band in enumerate(mybands):</span>
+    <span class="c1">#            yvals = ebands.eigens[spin0, :, band] - e0</span>
+    <span class="c1">#            ax.scatter(xvals, yvals, c=data[band], s=20, alpha=self.alpha,</span>
+    <span class="c1">#                       #edgecolor=plt.get_cmap(&#39;jet&#39;)(data[band]),</span>
+    <span class="c1">#                       marker=&quot;o&quot;, label=self.spinors2tex[term] if ib == 0 else None)</span>
 
-                <span class="c1">#ws = w_sbk[idx, spin0, band, :] * fact</span>
-                <span class="c1">#pos_inds, neg_inds = np.where(ws &gt;= 0), np.where(ws &lt; 0)</span>
-                <span class="c1">#ax.scatter(xvals[pos_inds], yvals[pos_inds], c=color, s=ws[pos_inds],</span>
-                <span class="c1">#           marker=&quot;^&quot;, label=term if ib == 0 else None)</span>
-                <span class="c1">#ax.scatter(xvals[neg_inds], yvals[neg_inds], c=color, s=np.abs(ws[neg_inds]),</span>
-                <span class="c1">#           marker=&quot;v&quot;, label=term if ib == 0 else None)</span>
+    <span class="c1">#            #ws = w_sbk[idx, spin0, band, :] * fact</span>
+    <span class="c1">#            #pos_inds, neg_inds = np.where(ws &gt;= 0), np.where(ws &lt; 0)</span>
+    <span class="c1">#            #ax.scatter(xvals[pos_inds], yvals[pos_inds], c=color, s=ws[pos_inds],</span>
+    <span class="c1">#            #           marker=&quot;^&quot;, label=term if ib == 0 else None)</span>
+    <span class="c1">#            #ax.scatter(xvals[neg_inds], yvals[neg_inds], c=color, s=np.abs(ws[neg_inds]),</span>
+    <span class="c1">#            #           marker=&quot;v&quot;, label=term if ib == 0 else None)</span>
 
-            <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+    <span class="c1">#        set_axlims(ax, ylims, &quot;y&quot;)</span>
 
-        <span class="n">axlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fig</span></div>
+    <span class="c1">#    axlist[0].legend(loc=&quot;best&quot;)</span>
+    <span class="c1">#    return fig</span>
 
-<div class="viewcode-block" id="FatBandsFile.nelect_in_spheres"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.nelect_in_spheres">[docs]</a>    <span class="k">def</span> <span class="nf">nelect_in_spheres</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_energy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_energy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Print the number of electrons inside each atom-centered sphere.</span>
-<span class="sd">        Note that this is a very crude estimate of the charge density distribution.</span>
+    <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
+    <span class="c1">#def nelect_in_spheres(self, start_energy=None, stop_energy=None,</span>
+    <span class="c1">#                     method=&quot;gaussian&quot;, step=0.1, width=0.2):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Print the number of electrons inside each atom-centered sphere.</span>
+    <span class="c1">#    Note that this is a very crude estimate of the charge density distribution.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.</span>
-<span class="sd">            stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.</span>
-<span class="sd">            method: String defining the method for the computation of the DOS.</span>
-<span class="sd">            step: Energy step (eV) of the linear mesh.</span>
-<span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">intg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_integrator</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">site_edos</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">site_edos</span>
-        <span class="k">if</span> <span class="n">stop_energy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">stop_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">fermie</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.</span>
+    <span class="c1">#        stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.</span>
+    <span class="c1">#        method: String defining the method for the computation of the DOS.</span>
+    <span class="c1">#        step: Energy step (eV) of the linear mesh.</span>
+    <span class="c1">#        width: Standard deviation (eV) of the gaussian.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    intg = self.get_dos_integrator(method, step, width)</span>
+    <span class="c1">#    raise NotImplementedError(&quot;&quot;)</span>
+    <span class="c1">#    site_edos = intg.site_edos</span>
+    <span class="c1">#    if stop_energy is None: stop_energy = self.ebands.fermie</span>
 
-        <span class="c1"># find_mesh_indes returns the first point in the mesh whose value is &gt;= value. -1 if not found</span>
-        <span class="n">edos</span> <span class="o">=</span> <span class="n">site_edos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">start_spin</span><span class="p">,</span> <span class="n">stop_spin</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
-            <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">if</span> <span class="n">start_energy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">start</span> <span class="o">=</span> <span class="n">edos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">find_mesh_index</span><span class="p">(</span><span class="n">start_energy</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For spin </span><span class="si">%d</span><span class="s2">: cannot find index in mesh such that mesh[i] &gt;= start.&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">start</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="n">start_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+    <span class="c1">#    # find_mesh_indes returns the first point in the mesh whose value is &gt;= value. -1 if not found</span>
+    <span class="c1">#    edos = site_edos[0]</span>
+    <span class="c1">#    start_spin, stop_spin = {}, {}</span>
+    <span class="c1">#    for spin in self.spins:</span>
+    <span class="c1">#        start = 0</span>
+    <span class="c1">#        if start_energy is not None:</span>
+    <span class="c1">#            start = edos[spin].find_mesh_index(start_energy)</span>
+    <span class="c1">#        if start == -1:</span>
+    <span class="c1">#            raise ValueError(&quot;For spin %d: cannot find index in mesh such that mesh[i] &gt;= start.&quot; % spin)</span>
+    <span class="c1">#        if start &gt; 0: start -= 1</span>
+    <span class="c1">#        start_spin[spin] = start</span>
 
-            <span class="n">stop</span> <span class="o">=</span> <span class="n">edos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">find_mesh_index</span><span class="p">(</span><span class="n">stop_energy</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">stop</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For spin </span><span class="si">%d</span><span class="s2">: cannot find index in mesh such that mesh[i] &gt;= energy.&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
-            <span class="n">stop_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span>
+    <span class="c1">#        stop = edos[spin].find_mesh_index(stop_energy)</span>
+    <span class="c1">#        if stop == -1:</span>
+    <span class="c1">#            raise ValueError(&quot;For spin %d: cannot find index in mesh such that mesh[i] &gt;= energy.&quot; % spin)</span>
+    <span class="c1">#        stop_spin[spin] = stop</span>
 
-        <span class="k">for</span> <span class="n">iatm</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
-            <span class="n">edos</span> <span class="o">=</span> <span class="n">site_edos</span><span class="p">[</span><span class="n">iatm</span><span class="p">]</span>
-            <span class="n">nel_spin</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
-                <span class="n">nel_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="o">=</span> <span class="n">edos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">integral</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;iatom&quot;</span><span class="p">,</span> <span class="n">iatm</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">nel_spin</span><span class="p">)</span></div>
+    <span class="c1">#    for iatm, site in enumerate(self.structure):</span>
+    <span class="c1">#        edos = site_edos[iatm]</span>
+    <span class="c1">#        nel_spin = {}</span>
+    <span class="c1">#        for spin in self.spins:</span>
+    <span class="c1">#            nel_spin[spin] = edos[spin].integral(start=start_spin[spin], stop=stop_spin[spin])</span>
+    <span class="c1">#        print(&quot;iatom&quot;, iatm, &quot;site&quot;, site, nel_spin)</span>
 
 <div class="viewcode-block" id="FatBandsFile.get_dos_integrator"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.get_dos_integrator">[docs]</a>    <span class="k">def</span> <span class="nf">get_dos_integrator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -993,7 +1001,7 @@
         <span class="k">return</span> <span class="n">intg</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pjdos_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pjdos_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
                          <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                          <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1004,10 +1012,11 @@
 <span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            method: String defining the method for the computation of the DOS.</span>
 <span class="sd">            step: Energy step (eV) of the linear mesh.</span>
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
-<span class="sd">            stacked: True if DOS curves</span>
+<span class="sd">            stacked: True if DOS partial contributions should be stacked on top of each other.</span>
 <span class="sd">            combined_spins: Define how up/down DOS components should be plotted when nsppol==2.</span>
 <span class="sd">                If True, up/down DOSes are plotted on the same figure (positive values for up,</span>
 <span class="sd">                negative values for down component)</span>
@@ -1028,7 +1037,7 @@
             <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to compute the DOS.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;Verify that the k-points form a homogenous sampling of the BZ.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;Returning None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Get energy mesh from total DOS and define the zero of energy</span>
@@ -1039,12 +1048,13 @@
         <span class="n">edos</span><span class="p">,</span> <span class="n">symbols_lso</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">edos</span><span class="p">,</span> <span class="n">intg</span><span class="o">.</span><span class="n">symbols_lso</span>
 
         <span class="c1"># Get grid of axes.</span>
+        <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="n">nrows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">combined_spins</span> <span class="k">else</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">mylsize</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">))</span>
+            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">))</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
         <span class="c1"># The code below expectes a matrix of axes of shape[nsppol, self.lsize]</span>
@@ -1062,7 +1072,7 @@
                 <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
                     <span class="c1"># Loop over the columns of the grid.</span>
-                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                         <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
 
                         <span class="c1"># Plot total DOS.</span>
@@ -1086,7 +1096,7 @@
             <span class="n">ls_stackdos</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">ls_stackdos</span>
             <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
             <span class="n">zerodos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mylsize</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
                     <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
@@ -1114,7 +1124,7 @@
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">aliased_axis</span> <span class="ow">and</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="k">break</span> <span class="c1"># Don&#39;t repeat yourself!</span>
 
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mylsize</span><span class="p">):</span>
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">combined_spins</span><span class="p">:</span>
@@ -1135,7 +1145,7 @@
                             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">l</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">l</span> <span class="o">==</span> <span class="n">mylsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1149,7 +1159,7 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pjdos_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pjdos_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
                             <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                             <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1160,10 +1170,11 @@
 <span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            method: String defining the method for the computation of the DOS.</span>
 <span class="sd">            step: Energy step (eV) of the linear mesh.</span>
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
-<span class="sd">            stacked: True if DOS curves</span>
+<span class="sd">            stacked: True if DOS partial contributions should be stacked on top of each other.</span>
 <span class="sd">            combined_spins: Define how up/down DOS components should be plotted when nsppol==2.</span>
 <span class="sd">                If True, up/down DOSes are plotted on the same figure (positive values for up,</span>
 <span class="sd">                negative values for down component)</span>
@@ -1177,6 +1188,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            `matplotlib` figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">intg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_integrator</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -1184,7 +1197,7 @@
             <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to compute the DOS.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;Verify that the k-points form a homogenous sampling of the BZ.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;Returning None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Get energy mesh from total DOS and define the zero of energy</span>
@@ -1225,7 +1238,7 @@
                     <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Tot&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">isymb</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span> <span class="k">if</span> <span class="n">with_info</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
-                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                         <span class="c1"># Plot PJ-DOS(l, spin)</span>
                         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">spin_sign</span> <span class="o">*</span> <span class="n">symbols_lso</span><span class="p">[</span><span class="n">symbol</span><span class="p">][</span><span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span>
                         <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span>
@@ -1254,7 +1267,7 @@
 
                     <span class="c1"># Plot cumulative PJ-DOS(l, spin)</span>
                     <span class="n">stack</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">get_lstack_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">spin</span><span class="p">)</span> <span class="o">*</span> <span class="n">spin_sign</span>
-                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                         <span class="n">yup</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
                         <span class="n">ydown</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">l</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">zerodos</span>
                         <span class="n">label</span> <span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (stacked)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2tex</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">isymb</span><span class="p">,</span> <span class="n">spin</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
@@ -1295,7 +1308,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Plots in the middle: don&#39;t show labels.</span>
                     <span class="c1"># Trick: Don&#39;t change the labels but set their fontsize to 0 otherwise</span>
-                    <span class="c1"># also the other axes are affecred (likely due to sharey=True).</span>
+                    <span class="c1"># also the other axes are affected (likely due to sharey=True).</span>
                     <span class="c1"># ax.set_yticklabels([])</span>
                     <span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
                         <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -1303,7 +1316,7 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_with_pjdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_with_pjdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
                                  <span class="n">pjdosfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                                  <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1315,11 +1328,12 @@
 <span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
 <span class="sd">            pjdosfile: FATBANDS file used to compute the PJDOS. If None, the PJDOS is taken from self.</span>
 <span class="sd">            edos_kwargs:</span>
-<span class="sd">            stacked:</span>
-<span class="sd">            width_ratio:</span>
+<span class="sd">            stacked: True if DOS partial contributions should be stacked on top of each other.</span>
+<span class="sd">            width_ratios: Defines the ratio between the band structure plot and the dos plot.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 
@@ -1343,7 +1357,9 @@
         <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span><span class="p">,</span> <span class="n">GridSpecFromSubplotSpec</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="c1"># Define number of columns depending on view</span>
-        <span class="n">ncols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">,</span> <span class="n">lview</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">)[</span><span class="n">view</span><span class="p">]</span>
+        <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1">#ncols = dict(type=self.ntypat, lview=self.lsize)[view]</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">,</span> <span class="n">lview</span><span class="o">=</span><span class="n">mylsize</span><span class="p">)[</span><span class="n">view</span><span class="p">]</span>
         <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">)</span>
         <span class="n">fatbands_axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">ncols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
         <span class="n">pjdos_axmat</span> <span class="o">=</span> <span class="n">fatbands_axmat</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -1362,15 +1378,15 @@
 
         <span class="c1"># Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.</span>
         <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;lview&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                        <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                        <span class="n">with_info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span>
                                        <span class="o">**</span><span class="n">edos_kwargs</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                           <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                           <span class="n">with_info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span>
                                           <span class="o">**</span><span class="n">edos_kwargs</span><span class="p">)</span>
@@ -1389,11 +1405,12 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pawdos_terms"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pawdos_terms">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pawdos_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pawdos_terms"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pawdos_terms">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pawdos_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot ...</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            method: String defining the method for the computation of the DOS.</span>
 <span class="sd">            step: Energy step (eV) of the linear mesh.</span>
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
@@ -1411,6 +1428,8 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># TODO: More tests.</span>
         <span class="c1">#if self.pawprtdos != 0:</span>
+
+        <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
 
         <span class="c1"># Onsite contributions.</span>
         <span class="c1"># fracts_paw1,(dtset%nkpt,dtset%mband,dtset%nsppol,new%ndosfraction))</span>
@@ -1443,7 +1462,7 @@
                         <span class="n">gs</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">band</span><span class="p">])</span>
                         <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">natom</span><span class="p">):</span>
                             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]:</span> <span class="k">continue</span>
-                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                                 <span class="n">totdos_al</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">gs</span> <span class="o">*</span> <span class="n">wal_sbk</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
                                 <span class="n">paw1dos_al</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">gs</span> <span class="o">*</span> <span class="n">paw1_wal_sbk</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
                                 <span class="n">pawt1dos_al</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">gs</span> <span class="o">*</span> <span class="n">pawt1_wal_sbk</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
@@ -1463,8 +1482,8 @@
         <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">natom</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]:</span> <span class="k">continue</span>
             <span class="n">irow</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="c1">#for l in range(self.lmax_atom[iatom]+1):</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">):</span>
+            <span class="c1">#for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">irow</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmax_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
                     <span class="c1"># don&#39;t show this plots and cycle</span>
@@ -1492,86 +1511,87 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pjdos_spinor"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_spinor">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_spinor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;sigma_x&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">),</span>
-                          <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                          <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="c1">#stacked=True,</span>
-                         <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="c1">#with_info=True,</span>
-                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the PJ-DOS on a linear mesh.</span>
+    <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
+    <span class="c1">#@add_fig_kwargs</span>
+    <span class="c1">#def plot_pjdos_spinor(self, terms=(&quot;sigma_x&quot;, &quot;sigma_y&quot;, &quot;sigma_z&quot;),</span>
+    <span class="c1">#                      e0=&quot;fermie&quot;, method=&quot;gaussian&quot;, step=0.1, width=0.2,</span>
+    <span class="c1">#                      blist=None,</span>
+    <span class="c1">#                      #stacked=True,</span>
+    <span class="c1">#                      ax=None, exchange_xy=False, xlims=None,</span>
+    <span class="c1">#                      #with_info=True,</span>
+    <span class="c1">#                      **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Plot the PJ-DOS on a linear mesh.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            terms:</span>
-<span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
-<span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
-<span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
-<span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
-<span class="sd">            method: String defining the method for the computation of the DOS.</span>
-<span class="sd">            step: Energy step (eV) of the linear mesh.</span>
-<span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
-<span class="sd">            stacked: True if DOS curves</span>
-<span class="sd">            ax:</span>
-<span class="sd">            exchange_xy: True if the dos should be plotted on the x axis instead of y.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        terms:</span>
+    <span class="c1">#        e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+    <span class="c1">#            - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.</span>
+    <span class="c1">#            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+    <span class="c1">#            -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+    <span class="c1">#        method: String defining the method for the computation of the DOS.</span>
+    <span class="c1">#        step: Energy step (eV) of the linear mesh.</span>
+    <span class="c1">#        width: Standard deviation (eV) of the gaussian.</span>
+    <span class="c1">#        stacked: True if DOS partial contributions should be stacked on top of each other.</span>
+    <span class="c1">#        ax: matplotlib axis, if None a new figure is generated.</span>
+    <span class="c1">#        exchange_xy: True if the dos should be plotted on the x axis instead of y.</span>
+    <span class="c1">#        xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
+    <span class="c1">#               or scalar e.g. `left`. If left (right) is None, default values are used</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: To be tested.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">!=</span> <span class="mi">5</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This method assumes prtdos=5 and nspinor=2 but file has prtdos=</span><span class="si">%s</span><span class="s2"> and nspinor=</span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1">#    Returns:</span>
+    <span class="c1">#        `matplotlib` figure</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    # TODO: To be tested.</span>
+    <span class="c1">#    if self.prtdos != 5 and self.nspinor != 2:</span>
+    <span class="c1">#        print(&quot;This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s&quot;</span>
+    <span class="c1">#            % (self.prtdos, self.nspinor))</span>
+    <span class="c1">#        return None</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">intg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dos_integrator</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;Error while trying to compute the DOS.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="s2">&quot;Verify that the k-points form a homogenous sampling of the BZ.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="s2">&quot;Returning None</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1">#    try:</span>
+    <span class="c1">#        intg = self.get_dos_integrator(method, step, width)</span>
+    <span class="c1">#    except Exception:</span>
+    <span class="c1">#        msg = traceback.format_exc()</span>
+    <span class="c1">#        msg += (&quot;Error while trying to compute the DOS.\n&quot;</span>
+    <span class="c1">#                &quot;Verify that the k-points form a homogenous sampling of the BZ.\n&quot;</span>
+    <span class="c1">#                &quot;Returning None\n&quot;)</span>
+    <span class="c1">#        print(msg)</span>
+    <span class="c1">#        return None</span>
 
-        <span class="c1"># Get energy mesh from total DOS and define the zero of energy</span>
-        <span class="c1"># Note that the mesh is not not spin-dependent.</span>
-        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
-        <span class="n">mesh</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">mesh</span> <span class="o">-=</span> <span class="n">e0</span>
-        <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
-        <span class="n">mybands</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">ebands</span><span class="o">.</span><span class="n">mband</span><span class="p">)</span> <span class="k">if</span> <span class="n">blist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">blist</span>
+    <span class="c1">#    # Get energy mesh from total DOS and define the zero of energy</span>
+    <span class="c1">#    # Note that the mesh is not not spin-dependent.</span>
+    <span class="c1">#    e0 = self.ebands.get_e0(e0)</span>
+    <span class="c1">#    mesh = intg.mesh.copy()</span>
+    <span class="c1">#    mesh -= e0</span>
+    <span class="c1">#    ebands = self.ebands</span>
+    <span class="c1">#    mybands = range(ebands.mband) if blist is None else blist</span>
 
-        <span class="c1"># Read data from file.</span>
-        <span class="c1"># Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].</span>
-        <span class="c1"># where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)</span>
-        <span class="n">w_sbk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;dos_fractions&quot;</span><span class="p">)</span>
-        <span class="n">term2idx</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;up-up&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;up-down&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;down-up&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;down-down&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;sigma_x&quot;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;sigma_y&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;sigma_z&quot;</span><span class="p">:</span><span class="mi">6</span><span class="p">}</span>
+    <span class="c1">#    # Read data from file.</span>
+    <span class="c1">#    # Dos fractions contains: [ndosfraction, nsppol, mband, nkpt].</span>
+    <span class="c1">#    # where the first dimension stores: (up,up  up,down  down,up  down,down  sigma_x sigma_y sigma_z)</span>
+    <span class="c1">#    w_sbk = self.reader.read_value(&quot;dos_fractions&quot;)</span>
+    <span class="c1">#    term2idx = {&quot;up-up&quot;:0, &quot;up-down&quot;:1, &quot;down-up&quot;:2, &quot;down-down&quot;:3, &quot;sigma_x&quot;:4, &quot;sigma_y&quot;:5, &quot;sigma_z&quot;:6}</span>
 
-        <span class="n">spin0</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">terms</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span>
-        <span class="n">dos_terms</span> <span class="o">=</span> <span class="p">{</span><span class="n">term</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="p">))</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">}</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">weight</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">terms</span><span class="p">):</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">term2idx</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">mybands</span><span class="p">:</span>
-                <span class="n">gaussians_dos</span><span class="p">(</span><span class="n">dos_terms</span><span class="p">[</span><span class="n">term</span><span class="p">],</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span>
-                              <span class="n">w_sbk</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">spin0</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:],</span> <span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">],</span> <span class="n">weights</span><span class="p">)</span>
+    <span class="c1">#    spin0 = 0</span>
+    <span class="c1">#    terms = list_strings(terms)</span>
+    <span class="c1">#    dos_terms = {term: np.zeros(len(mesh)) for term in terms}</span>
+    <span class="c1">#    weights = np.array([k.weight for k in ebands.kpoints])</span>
+    <span class="c1">#    for i, term in enumerate(terms):</span>
+    <span class="c1">#        idx = term2idx[term]</span>
+    <span class="c1">#        for band in mybands:</span>
+    <span class="c1">#            gaussians_dos(dos_terms[term], mesh, width,</span>
+    <span class="c1">#                          w_sbk[idx, spin0, band, :], ebands.eigens[spin0, :, band], weights)</span>
 
-        <span class="c1"># Plot doses.</span>
-        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">term</span><span class="p">,</span> <span class="n">yvals</span> <span class="ow">in</span> <span class="n">dos_terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spinors2color</span><span class="p">[</span><span class="n">term</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spinors2tex</span><span class="p">[</span><span class="n">term</span><span class="p">])</span>
+    <span class="c1">#    # Plot doses.</span>
+    <span class="c1">#    ax, fig, plt = get_ax_fig_plt(ax=ax)</span>
+    <span class="c1">#    for term, yvals in dos_terms.items():</span>
+    <span class="c1">#        ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
-        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+    <span class="c1">#    ax.grid(True)</span>
+    <span class="c1">#    ax.set_xlabel(&quot;Energy [eV]&quot;)</span>
+    <span class="c1">#    set_axlims(ax, xlims, &quot;x&quot;)</span>
+    <span class="c1">#    ax.legend(loc=&quot;best&quot;)</span>
 
-        <span class="k">return</span> <span class="n">fig</span></div>
+    <span class="c1">#    return fig</span>
 
 <div class="viewcode-block" id="FatBandsFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1671,7 +1691,7 @@
                         <span class="n">weight</span> <span class="o">=</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">weight</span>
                         <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ebands</span><span class="o">.</span><span class="n">nband_sk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">]):</span>
                             <span class="n">e</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">band</span><span class="p">]</span>
-                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lmax</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                                 <span class="n">lso</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span> <span class="o">+=</span> <span class="n">wlsbk</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">*</span>\
                                                 <span class="n">weight</span> <span class="o">*</span> <span class="n">gaussian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
                 <span class="n">symbols_lso</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">lso</span>

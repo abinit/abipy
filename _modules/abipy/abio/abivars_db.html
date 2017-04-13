@@ -80,6 +80,7 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 
 
 <span class="c1"># Unit names.</span>
@@ -323,8 +324,8 @@
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                     <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error while trying to read variables from pickle file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pickle_file</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please remove the file and rerun.&quot;</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Error while trying to read variables from pickle file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pickle_file</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Please remove the file and rerun.&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="n">exc</span>
 
         <span class="k">else</span><span class="p">:</span>

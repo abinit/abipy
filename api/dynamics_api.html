@@ -115,29 +115,6 @@
 <dd><p>numpy array with total energies in eV at the different steps.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="abipy.dynamics.hist.HistFile.export">
-<code class="descname">export</code><span class="sig-paren">(</span><em>filename</em>, <em>visu=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.export" title="Permalink to this definition">¶</a></dt>
-<dd><p>Export the crystalline structure on file filename.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> &#8211; String specifying the file path and the file format.
-The format is defined by the file extension. filename=&#8221;prefix.xsf&#8221;, for example,
-will produce a file in XSF format. An <em>empty</em> prefix, e.g. &#8221;.xsf&#8221; makes the code use a temporary file.</li>
-<li><strong>visu</strong> &#8211; <cite>Visualizer</cite> subclass. By default, this method returns the first available
-visualizer that supports the given file format. If visu is not None, an
-instance of visu is returned. See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Returns: Instance of <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code></p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="abipy.dynamics.hist.HistFile.final_structure">
 <code class="descname">final_structure</code><a class="headerlink" href="#abipy.dynamics.hist.HistFile.final_structure" title="Permalink to this definition">¶</a></dt>

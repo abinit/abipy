@@ -179,7 +179,7 @@
         <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The object provided is not handled&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;The object provided is not handled: type&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">_stopping_criterion</span><span class="p">(</span><span class="n">runlevel</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">):</span>
@@ -252,7 +252,7 @@
 <span class="sd">        centered otherwise.</span>
 
 <span class="sd">    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the</span>
-<span class="sd">        chksymbreak.</span>
+<span class="sd">        `chksymbreak` condition (Abinit input variable).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">shift_mode</span> <span class="o">==</span> <span class="n">ShiftMode</span><span class="o">.</span><span class="n">GammaCentered</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -613,7 +613,7 @@
                 <span class="n">diff_abivars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
                 <span class="n">diff_abivars</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
                 <span class="k">if</span> <span class="n">pseudos</span><span class="o">.</span><span class="n">allpaw</span> <span class="ow">and</span> <span class="n">var</span> <span class="o">==</span> <span class="s1">&#39;ecut&#39;</span><span class="p">:</span>
-                    <span class="n">diff_abivars</span><span class="p">[</span><span class="s1">&#39;pawecutdg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_abivars</span><span class="p">[</span><span class="s1">&#39;ecut&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span>
+                    <span class="n">diff_abivars</span><span class="p">[</span><span class="s1">&#39;pawecutdg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_abivars</span><span class="p">[</span><span class="s1">&#39;ecut&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
                 <span class="n">scf_diffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diff_abivars</span><span class="p">)</span>
 
     <span class="n">extra_abivars_all</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -627,7 +627,7 @@
     <span class="n">extra_abivars_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">extra_abivars</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">pseudos</span><span class="o">.</span><span class="n">allpaw</span><span class="p">:</span>
-        <span class="n">extra_abivars_all</span><span class="p">[</span><span class="s1">&#39;pawecutdg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extra_abivars_all</span><span class="p">[</span><span class="s1">&#39;ecut&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span>
+        <span class="n">extra_abivars_all</span><span class="p">[</span><span class="s1">&#39;pawecutdg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extra_abivars_all</span><span class="p">[</span><span class="s1">&#39;ecut&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
 
     <span class="n">extra_abivars_gw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">inclvkb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
@@ -942,11 +942,11 @@
 <span class="sd">            input as the phonons. This will allow to determine the BECs.</span>
 <span class="sd">            Automatically sets with_ddk=True and with_dde=False.</span>
 <span class="sd">        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and</span>
-<span class="sd">            its value. Default from AbinitInput.make_ph_inputs_qpoint: {&quot;tolvrs&quot;: 1.0e-10}.</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
 <span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and</span>
-<span class="sd">            its value. Default from AbinitInput.make_ddk_inputs: {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-22}.</span>
 <span class="sd">        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and</span>
-<span class="sd">            its value. Default from AbinitInput.make_dde_inputs: {&quot;tolvrs&quot;: 1.0e-10}.</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-10}.</span>
 <span class="sd">        wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of</span>
 <span class="sd">            the WFQ and its value. Default {&quot;tolwfr&quot;: 1.0e-22}.</span>
 <span class="sd">        qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.</span>
@@ -1172,71 +1172,6 @@
 
     <span class="k">return</span> <span class="n">multi</span></div>
 
-    <span class="c1"># gs_inp = AbinitInput(structure=structure, pseudos=pseudos)</span>
-    <span class="c1">#</span>
-    <span class="c1"># # Set the cutoff energies.</span>
-    <span class="c1"># gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))</span>
-    <span class="c1">#</span>
-    <span class="c1"># ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))</span>
-    <span class="c1"># gs_inp.set_vars(ksampling.to_abivars())</span>
-    <span class="c1"># gs_inp.set_vars(tolvrs=1.0e-18)</span>
-    <span class="c1">#</span>
-    <span class="c1"># scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,</span>
-    <span class="c1">#                                charge=charge, nband=None, fband=None)</span>
-    <span class="c1">#</span>
-    <span class="c1"># if scf_electrons.nband is None:</span>
-    <span class="c1">#     scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)</span>
-    <span class="c1"># gs_inp.set_vars(scf_electrons.to_abivars())</span>
-
-    <span class="c1">#</span>
-    <span class="c1"># # Add the ddk input</span>
-    <span class="c1"># ddk_inp = gs_inp.deepcopy()</span>
-    <span class="c1">#</span>
-    <span class="c1"># ddk_inp.set_vars(</span>
-    <span class="c1">#             rfelfd=2,             # Activate the calculation of the d/dk perturbation</span>
-    <span class="c1">#             rfdir=(1,1,1),        # All directions</span>
-    <span class="c1">#             nqpt=1,               # One wavevector is to be considered</span>
-    <span class="c1">#             qpt=(0, 0, 0),        # q-wavevector.</span>
-    <span class="c1">#             kptopt=2,             # Take into account time-reversal symmetry.</span>
-    <span class="c1">#             iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way</span>
-    <span class="c1">#         )</span>
-    <span class="c1"># if ddk_tol is None:</span>
-    <span class="c1">#     ddk_tol = {&quot;tolwfr&quot;: 1.0e-20}</span>
-    <span class="c1">#</span>
-    <span class="c1"># if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):</span>
-    <span class="c1">#     raise ValueError(&quot;Invalid tolerance: {}&quot;.format(ddk_tol))</span>
-    <span class="c1"># ddk_inp.pop_tolerances()</span>
-    <span class="c1"># ddk_inp.set_vars(ddk_tol)</span>
-    <span class="c1">#</span>
-    <span class="c1"># ddk_inp.add_tags(DDK)</span>
-    <span class="c1"># all_inps.append(ddk_inp)</span>
-    <span class="c1">#</span>
-    <span class="c1"># # Add the Response Function calculation</span>
-    <span class="c1"># rf_inp = gs_inp.deepcopy()</span>
-    <span class="c1">#</span>
-    <span class="c1"># rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation</span>
-    <span class="c1">#                 rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms</span>
-    <span class="c1">#                 rfstrs=3,                          # Do the strain perturbations</span>
-    <span class="c1">#                 rfdir=(1,1,1),                     # All directions</span>
-    <span class="c1">#                 nqpt=1,                            # One wavevector is to be considered</span>
-    <span class="c1">#                 qpt=(0, 0, 0),                     # q-wavevector.</span>
-    <span class="c1">#                 kptopt=2,                          # Take into account time-reversal symmetry.</span>
-    <span class="c1">#                 iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way</span>
-    <span class="c1">#                 )</span>
-    <span class="c1">#</span>
-    <span class="c1"># if rf_tol is None:</span>
-    <span class="c1">#     rf_tol = {&quot;tolvrs&quot;: 1.0e-12}</span>
-    <span class="c1">#</span>
-    <span class="c1"># if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):</span>
-    <span class="c1">#     raise ValueError(&quot;Invalid tolerance: {}&quot;.format(rf_tol))</span>
-    <span class="c1"># rf_inp.pop_tolerances()</span>
-    <span class="c1"># rf_inp.set_vars(rf_tol)</span>
-    <span class="c1">#</span>
-    <span class="c1"># rf_inp.add_tags([DFPT, STRAIN])</span>
-    <span class="c1"># all_inps.append(rf_inp)</span>
-    <span class="c1">#</span>
-    <span class="c1"># return MultiDataset.from_inputs(all_inps)</span>
-
 
 <span class="k">def</span> <span class="nf">scf_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
               <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1314,7 +1249,7 @@
 
     <span class="k">if</span> <span class="n">pdos</span><span class="p">:</span>
         <span class="c1"># FIXME</span>
-        <span class="k">pass</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">dos_input</span>
 
@@ -1383,13 +1318,81 @@
     <span class="k">if</span> <span class="n">smearing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">nval</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
         <span class="n">nval</span> <span class="o">-=</span> <span class="n">abiinput</span><span class="p">[</span><span class="s1">&#39;charge&#39;</span><span class="p">]</span>
-        <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nval</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">nbdbuf</span><span class="p">)</span>
+        <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nval</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">nbdbuf</span><span class="p">)</span>
         <span class="n">abiinput</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">nband</span><span class="p">)</span>
 
     <span class="c1"># enforce symmetries and add a buffer of bands to ease convergence with tolwfr</span>
     <span class="n">abiinput</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">chksymbreak</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nbdbuf</span><span class="o">=</span><span class="n">nbdbuf</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-22</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">abiinput</span>
+
+
+<span class="k">def</span> <span class="nf">dte_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">use_phonons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dte_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">skip_dte_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform calculations of non-linear properties, based on</span>
+<span class="sd">    a ground state AbinitInput.</span>
+
+<span class="sd">    The inputs have the following tags, according to their function: &quot;ddk&quot;, &quot;dde&quot;, &quot;ph_q_pert&quot; and &quot;dte&quot;.</span>
+<span class="sd">    All of them have the tag &quot;dfpt&quot;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.</span>
+<span class="sd">        use_phonons: determine wether the phonon perturbations at gamma should be included or not</span>
+<span class="sd">        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-22}.</span>
+<span class="sd">        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-22}.</span>
+<span class="sd">        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-22}.</span>
+<span class="sd">        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and</span>
+<span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-20}.</span>
+<span class="sd">        skip_dte_permutations:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+    <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">ph_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ph_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">ddk_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ddk_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">dde_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dde_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">dte_tol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dte_tol</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-20</span><span class="p">}</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">multi_ddk</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ddk_inputs</span><span class="p">(</span><span class="n">ddk_tol</span><span class="p">)</span>
+    <span class="n">multi_ddk</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDK</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ddk</span><span class="p">)</span>
+    <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">multi_dde</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDE</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dde</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_phonons</span><span class="p">:</span>
+        <span class="n">multi_ph</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ph_tol</span><span class="p">)</span>
+        <span class="n">multi_ph</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">PH_Q_PERT</span><span class="p">)</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ph</span><span class="p">)</span>
+
+    <span class="c1"># non-linear calculations do not accept more bands than those in the valence. Set the correct values.</span>
+    <span class="c1"># Do this as last, so not to intrfere with the the generation of the other steps.</span>
+    <span class="n">nval</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">gs_inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
+    <span class="n">nval</span> <span class="o">-=</span> <span class="n">gs_inp</span><span class="p">[</span><span class="s1">&#39;charge&#39;</span><span class="p">]</span>
+    <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nval</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">nband</span><span class="p">)</span>
+    <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;nbdbuf&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">multi_dte</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dte_inputs</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">use_phonons</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="n">skip_dte_permutations</span><span class="p">)</span>
+    <span class="n">multi_dte</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DTE</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dte</span><span class="p">)</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">multi</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DFPT</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">multi</span>
 
 
 <span class="c1">#FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,</span>

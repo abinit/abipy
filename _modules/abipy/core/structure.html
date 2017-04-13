@@ -294,8 +294,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            pseudo: Pseudopotential object.</span>
-<span class="sd">            cart_coords: Cartesian coordinates</span>
-<span class="sd">            acell: Lengths of the box in *Bohr*</span>
+<span class="sd">            cart_coords: Cartesian coordinates in Angstrom</span>
+<span class="sd">            acell: Lengths of the box in *Bohr* (Abinit input variable)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">boxed_molecule</span><span class="p">([</span><span class="n">pseudo</span><span class="p">],</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">acell</span><span class="o">=</span><span class="n">acell</span><span class="p">)</span></div>
 
@@ -555,6 +555,51 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">matrix</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for space: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">space</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="Structure.spget_equivalent_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">spget_equivalent_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call spglib to find the inequivalent atoms and build symmetry tables.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            printout: True to print symmetry tables.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            namedtuple with the following attributes: irred_pos, eqmap, spgdata</span>
+
+<span class="sd">            irred_pos: array giving the position of the i-th irred atom in the structure.</span>
+<span class="sd">                The number of irred atoms is len(irred_pos)</span>
+<span class="sd">            eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
+<span class="sd">            spgdata: spglib dataset with additional data reported by spglib.</span>
+
+<span class="sd">        .. example::</span>
+
+<span class="sd">            for irr_pos in irred_pos:</span>
+<span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
+        <span class="n">equivalent_atoms</span> <span class="o">=</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;equivalent_atoms&quot;</span><span class="p">]</span>
+        <span class="n">irred_pos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">eqmap</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">eqpos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">equivalent_atoms</span><span class="p">):</span>
+            <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="c1"># Add it to irred_pos if it&#39;s irreducible.</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="n">eqpos</span><span class="p">:</span> <span class="n">irred_pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="c1"># Convert to numpy arrays</span>
+        <span class="n">irred_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">eqpos</span> <span class="ow">in</span> <span class="n">eqmap</span><span class="p">:</span>
+            <span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eqmap</span><span class="p">[</span><span class="n">eqpos</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">printout</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> inequivalent position(s).&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_pos</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">eqmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Irred_Site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">eqind</span> <span class="ow">in</span> <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">eqind</span> <span class="o">==</span> <span class="n">irr_pos</span><span class="p">:</span> <span class="k">continue</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">SymEq: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">eqind</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_pos</span><span class="o">=</span><span class="n">irred_pos</span><span class="p">,</span> <span class="n">eqmap</span><span class="o">=</span><span class="n">eqmap</span><span class="p">,</span> <span class="n">spgdata</span><span class="o">=</span><span class="n">spgdata</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Structure.spglib_summary"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spglib_summary">[docs]</a>    <span class="k">def</span> <span class="nf">spglib_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with full information about crystalline structure i.e.</span>
@@ -628,16 +673,6 @@
         <span class="sd">&quot;&quot;&quot;True is the structure contains info on the spacegroup.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-    <span class="c1">#@property</span>
-    <span class="c1">#def fm_symmops(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;Tuple with ferromagnetic symmetries (time-reversal is included, if present).&quot;&quot;&quot;</span>
-    <span class="c1">#    return self.abi_spacegroup.symmops(afm_sign=+1)</span>
-
-    <span class="c1">#@property</span>
-    <span class="c1">#def afm_symmops(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present).&quot;&quot;&quot;</span>
-    <span class="c1">#    return self.abi_spacegroup.symmops(afm_sign=-1)</span>
-
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Structure.hsym_kpath"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_kpath">[docs]</a>    <span class="k">def</span> <span class="nf">hsym_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -675,7 +710,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">kpoint</span><span class="o">.</span><span class="n">compute_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Structure.get_sorted_structure_z"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_sorted_structure_z">[docs]</a>    <span class="k">def</span> <span class="nf">get_sorted_structure_z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Orders the structure according to increasing Z of the elements&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Order the structure according to increasing Z of the elements&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">site</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Structure.findname_in_hsym_stars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.findname_in_hsym_stars">[docs]</a>    <span class="k">def</span> <span class="nf">findname_in_hsym_stars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
@@ -840,16 +875,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Structure.write_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.write_structure">[docs]</a>    <span class="k">def</span> <span class="nf">write_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write structure fo file.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot write a structure to a netcdf file yet&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
+    <span class="c1">#def write_structure(self, filename):</span>
+    <span class="c1">#    &quot;&quot;&quot;Write structure fo file.&quot;&quot;&quot;</span>
+    <span class="c1">#    if filename.endswith(&quot;.nc&quot;):</span>
+    <span class="c1">#        raise NotImplementedError(&quot;Cannot write a structure to a netcdf file yet&quot;)</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        self.to(filename=filename)</span>
 
-<div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the Abinit structure to CIF, POSCAR, CSSR  and pymatgen&#39;s JSON serialized structures (json, mson)</span>
+<span class="sd">        Convert the Abinit structure to CIF, POSCAR, CSSR and pymatgen&#39;s JSON serialized structures (json, mson)</span>
+<span class="sd">        Return string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prefix_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;POSCAR&quot;</span><span class="p">:</span> <span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span>
@@ -865,14 +901,14 @@
             <span class="s2">&quot;mson&quot;</span><span class="p">:</span> <span class="s2">&quot;.mson&quot;</span><span class="p">,</span>
         <span class="p">}</span>
 
-        <span class="k">if</span> <span class="nb">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prefix_dict</span> <span class="ow">and</span> <span class="nb">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">suffix_dict</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown format </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">format</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prefix_dict</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">suffix_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown format </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fmt</span><span class="p">)</span>
 
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
-        <span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">tmp_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_structure</span><span class="p">(</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">tmp_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">tmp_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
@@ -1051,6 +1087,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">low</span> <span class="o">+=</span> <span class="n">z</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="n">arange</span> <span class="o">=</span> <span class="n">range_vec</span><span class="p">(</span><span class="mi">0</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">brange</span> <span class="o">=</span> <span class="n">range_vec</span><span class="p">(</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">crange</span> <span class="o">=</span> <span class="n">range_vec</span><span class="p">(</span><span class="mi">2</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
@@ -1246,82 +1283,82 @@
         <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Structure.ksampling_from_jhudb"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.ksampling_from_jhudb">[docs]</a>    <span class="k">def</span> <span class="nf">ksampling_from_jhudb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">precalc</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
-                             <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate k-point grid for Brillouin zone integration.</span>
+    <span class="c1">#def ksampling_from_jhudb(self, precalc, format=&quot;vasp&quot;,</span>
+    <span class="c1">#                         url=&quot;http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet&quot;):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Generate k-point grid for Brillouin zone integration.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.</span>
-<span class="sd">                AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.</span>
-<span class="sd">            MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.</span>
-<span class="sd">            HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written</span>
-<span class="sd">                to the header of the file. The default is SIMPLE.</span>
-<span class="sd">            MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.</span>
-<span class="sd">            KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.</span>
-<span class="sd">                The use of this parameter for systems with less than three periodic dimensions is not recommended.</span>
-<span class="sd">            GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,</span>
-<span class="sd">                and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided</span>
-<span class="sd">                structure, the k-point density in the corresponding direction will be reduced accordingly.</span>
-<span class="sd">                The default value is 7 Å.</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.</span>
+    <span class="c1">#            AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.</span>
+    <span class="c1">#        MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.</span>
+    <span class="c1">#        HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written</span>
+    <span class="c1">#            to the header of the file. The default is SIMPLE.</span>
+    <span class="c1">#        MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.</span>
+    <span class="c1">#        KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.</span>
+    <span class="c1">#            The use of this parameter for systems with less than three periodic dimensions is not recommended.</span>
+    <span class="c1">#        GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,</span>
+    <span class="c1">#            and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided</span>
+    <span class="c1">#            structure, the k-point density in the corresponding direction will be reduced accordingly.</span>
+    <span class="c1">#            The default value is 7 Å.</span>
 
-<span class="sd">        Note:</span>
-<span class="sd">            If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or</span>
-<span class="sd">            KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.</span>
+    <span class="c1">#    Note:</span>
+    <span class="c1">#        If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or</span>
+    <span class="c1">#        KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.</span>
 
-<span class="sd">        Returns:</span>
+    <span class="c1">#    Returns:</span>
 
-<span class="sd">        See also:</span>
-<span class="sd">            http://muellergroup.jhu.edu/K-Points.html</span>
+    <span class="c1">#    See also:</span>
+    <span class="c1">#        http://muellergroup.jhu.edu/K-Points.html</span>
 
-<span class="sd">            Efficient generation of generalized Monkhorst-Pack grids through the use of informatics</span>
-<span class="sd">            Pandu Wisesa, Kyle A. McGill, and Tim Mueller</span>
-<span class="sd">            Phys. Rev. B 93, 155109</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">StringIO</span>
+    <span class="c1">#        Efficient generation of generalized Monkhorst-Pack grids through the use of informatics</span>
+    <span class="c1">#        Pandu Wisesa, Kyle A. McGill, and Tim Mueller</span>
+    <span class="c1">#        Phys. Rev. B 93, 155109</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    from six.moves import StringIO</span>
 
-        <span class="c1"># Prepare PRECALC file.</span>
-        <span class="n">precalc_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="s2">&quot;INCLUDEGAMMA&quot;</span><span class="p">,</span> <span class="s2">&quot;MINDISTANCE&quot;</span><span class="p">,</span> <span class="s2">&quot;HEADER&quot;</span><span class="p">,</span> <span class="s2">&quot;MINTOTALKPOINTS&quot;</span><span class="p">,</span> <span class="s2">&quot;KPPRA&quot;</span><span class="p">,</span> <span class="s2">&quot;GAPDISTANCE&quot;</span><span class="p">))</span>
-        <span class="n">wrong_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">precalc</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">precalc_names</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">wrong_vars</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The following keys are not valid PRECALC variables:</span><span class="se">\n</span><span class="s2">  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">wrong_vars</span><span class="p">)</span>
+    <span class="c1">#    # Prepare PRECALC file.</span>
+    <span class="c1">#    precalc_names = set((&quot;INCLUDEGAMMA&quot;, &quot;MINDISTANCE&quot;, &quot;HEADER&quot;, &quot;MINTOTALKPOINTS&quot;, &quot;KPPRA&quot;, &quot;GAPDISTANCE&quot;))</span>
+    <span class="c1">#    wrong_vars = [k for k in precalc if k not in precalc_names]</span>
+    <span class="c1">#    if wrong_vars:</span>
+    <span class="c1">#        raise ValueError(&quot;The following keys are not valid PRECALC variables:\n  %s&quot; % wrong_vars)</span>
 
-        <span class="n">precalc_fobj</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-        <span class="n">precalc_fobj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MINDISTANCE=28.1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">precalc</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">precalc_fobj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
-        <span class="n">precalc_fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#    precalc_fobj = StringIO()</span>
+    <span class="c1">#    precalc_fobj.write(&quot;MINDISTANCE=28.1\n&quot;)</span>
+    <span class="c1">#    for k, v in precalc.items():</span>
+    <span class="c1">#        precalc_fobj.write(&quot;%s=%s&quot; % (k, v))</span>
+    <span class="c1">#    precalc_fobj.seek(0)</span>
 
-        <span class="c1"># Get string with structure in POSCAR format.</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">)</span>
-        <span class="n">poscar_fobj</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-        <span class="n">poscar_fobj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
-        <span class="n">poscar_fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#    # Get string with structure in POSCAR format.</span>
+    <span class="c1">#    string = self.convert(format=&quot;POSCAR&quot;)</span>
+    <span class="c1">#    poscar_fobj = StringIO()</span>
+    <span class="c1">#    poscar_fobj.write(string)</span>
+    <span class="c1">#    poscar_fobj.seek(0)</span>
 
-        <span class="c1">#KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet</span>
-        <span class="c1">#       --form &quot;fileupload=@PRECALC&quot; --form &quot;fileupload=@POSCAR&quot;)</span>
+    <span class="c1">#    #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet</span>
+    <span class="c1">#    #       --form &quot;fileupload=@PRECALC&quot; --form &quot;fileupload=@POSCAR&quot;)</span>
 
-        <span class="c1"># See http://docs.python-requests.org/en/latest/user/advanced/#advanced</span>
-        <span class="kn">import</span> <span class="nn">requests</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;fileupload&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;PRECALC&#39;</span><span class="p">,</span> <span class="n">precalc_fobj</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s1">&#39;fileupload&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">,</span> <span class="n">poscar_fobj</span><span class="p">)),</span>
-        <span class="p">]</span>
+    <span class="c1">#    # See http://docs.python-requests.org/en/latest/user/advanced/#advanced</span>
+    <span class="c1">#    import requests</span>
+    <span class="c1">#    files = [</span>
+    <span class="c1">#        (&#39;fileupload&#39;, (&#39;PRECALC&#39;, precalc_fobj)),</span>
+    <span class="c1">#        (&#39;fileupload&#39;, (&#39;POSCAR&#39;, poscar_fobj)),</span>
+    <span class="c1">#    ]</span>
 
-        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">)</span>
-        <span class="c1">#print(r.url, r.request)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1">#    r = requests.post(url, files=files)</span>
+    <span class="c1">#    #print(r.url, r.request)</span>
+    <span class="c1">#    print(r.text)</span>
 
-        <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Request status code: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+    <span class="c1">#    r.raise_for_status()</span>
+    <span class="c1">#    if r.status_code != requests.codes.ok:</span>
+    <span class="c1">#        raise RuntimeError(&quot;Request status code: %s&quot; % r.status_code)</span>
 
-        <span class="c1"># Parse Vasp Kpoints</span>
-        <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Kpoints</span>
-        <span class="n">vasp_kpoints</span> <span class="o">=</span> <span class="n">Kpoints</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span></div>
-        <span class="c1">#print(vasp_kpoints.style)</span>
-        <span class="c1">#return kptrlatt, shiftk</span>
-        <span class="c1">#return ksamp</span>
+    <span class="c1">#    # Parse Vasp Kpoints</span>
+    <span class="c1">#    from pymatgen.io.vasp.inputs import Kpoints</span>
+    <span class="c1">#    vasp_kpoints = Kpoints.from_string(r.text)</span>
+    <span class="c1">#    #print(vasp_kpoints.style)</span>
+    <span class="c1">#    #return kptrlatt, shiftk</span>
+    <span class="c1">#    #return ksamp</span>
 
 <div class="viewcode-block" id="Structure.calc_ksampling"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ksampling">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ksampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1422,7 +1459,6 @@
                     <span class="c1"># BCC</span>
                     <span class="n">shiftk</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span>  <span class="mf">0.25</span><span class="p">,</span>  <span class="mf">0.25</span><span class="p">,</span>
                              <span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">]</span>
-
                     <span class="c1">#shiftk = [0.5, 0.5, 05])</span>
 
             <span class="k">elif</span> <span class="n">lattice_type</span> <span class="o">==</span> <span class="s2">&quot;hexagonal&quot;</span><span class="p">:</span>
@@ -1449,7 +1485,7 @@
             <span class="c1"># Use default value.</span>
             <span class="n">shiftk</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Structure.num_valence_electrons"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.num_valence_electrons">[docs]</a>    <span class="k">def</span> <span class="nf">num_valence_electrons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

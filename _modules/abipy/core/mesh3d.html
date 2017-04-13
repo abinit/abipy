@@ -151,10 +151,21 @@
         <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">iy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">iz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">):</span>
-                    <span class="k">yield</span> <span class="n">ix</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvz</span>
+                    <span class="k">yield</span> <span class="n">ix</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvz</span>
+
+<div class="viewcode-block" id="Mesh3D.iter_ixyz_r"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.iter_ixyz_r">[docs]</a>    <span class="k">def</span> <span class="nf">iter_ixyz_r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iterator returning (ixyz, rr) where ixyz gives the index of the point and r is the point on the grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">iy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">iz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">):</span>
+                    <span class="n">rr</span> <span class="o">=</span> <span class="n">ix</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvz</span>
+                    <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">rr</span></div>
 
 <div class="viewcode-block" id="Mesh3D.rpoint"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.rpoint">[docs]</a>    <span class="k">def</span> <span class="nf">rpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ix</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dvz</span></div>
+        <span class="sd">&quot;&quot;&quot;The vector corresponding to the (ix, iy, iz) indices&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ix</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvz</span></div>
 
 <div class="viewcode-block" id="Mesh3D.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;: nx=</span><span class="si">%d</span><span class="s2">, ny=</span><span class="si">%d</span><span class="s2">, nz=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
@@ -175,9 +186,9 @@
         <span class="sd">&quot;&quot;&quot;Number of points along z.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">inv_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">)</span>
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Mesh3D.inv_vectors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.inv_vectors">[docs]</a>    <span class="k">def</span> <span class="nf">inv_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
@@ -229,7 +240,7 @@
             <span class="n">im</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">re</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">im</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong dtype = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong dtype: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Mesh3D.crandom"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.crandom">[docs]</a>    <span class="k">def</span> <span class="nf">crandom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Returns random complex array for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
@@ -293,28 +304,28 @@
 
         <span class="k">return</span> <span class="n">fr</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span></div>
 
-<div class="viewcode-block" id="Mesh3D.fourier_interp"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fourier_interp">[docs]</a>    <span class="k">def</span> <span class="nf">fourier_interp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">new_mesh</span><span class="p">,</span> <span class="n">inspace</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fourier interpolation of data.</span>
+    <span class="c1">#def fourier_interp(self, data, new_mesh, inspace=&quot;r&quot;):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Fourier interpolation of data.</span>
 
-<span class="sd">        Args:</span>
+    <span class="c1">#    Args:</span>
 
-<span class="sd">            data: Input array defined on this mesh</span>
-<span class="sd">            new_mesh: Mesh where data is interpolated</span>
-<span class="sd">            inspace: string specifying if data is given in real space &quot;r&quot; or in reciprocal space &quot;g&quot;.</span>
+    <span class="c1">#        data: Input array defined on this mesh</span>
+    <span class="c1">#        new_mesh: Mesh where data is interpolated</span>
+    <span class="c1">#        inspace: string specifying if data is given in real space &quot;r&quot; or in reciprocal space &quot;g&quot;.</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            Numpy array in real space on the new_mesh</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;gtransfer is missing&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">inspace</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">)</span>
+    <span class="c1">#    Return:</span>
+    <span class="c1">#        Numpy array in real space on the new_mesh</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    raise NotImplementedError(&quot;gtransfer is missing&quot;)</span>
+    <span class="c1">#    assert inspace in (&quot;r&quot;, &quot;g&quot;)</span>
 
-        <span class="c1"># Insert data in the FFT box of new mesh.</span>
-        <span class="k">if</span> <span class="n">inspace</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_r2g</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">intp_datag</span> <span class="o">=</span> <span class="n">new_mesh</span><span class="o">.</span><span class="n">gtransfer_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="c1">#    # Insert data in the FFT box of new mesh.</span>
+    <span class="c1">#    if inspace == &quot;r&quot;: data = self.fft_r2g(data)</span>
+    <span class="c1">#    intp_datag = new_mesh.gtransfer_from(self, data)</span>
 
-        <span class="c1"># FFT transform G --&gt; R.</span>
-        <span class="k">return</span> <span class="n">new_mesh</span><span class="o">.</span><span class="n">fft_g2r</span><span class="p">(</span><span class="n">intp_datag</span><span class="p">)</span></div>
+    <span class="c1">#    # FFT transform G --&gt; R.</span>
+    <span class="c1">#    return new_mesh.fft_g2r(intp_datag)</span>
 
 <div class="viewcode-block" id="Mesh3D.integrate"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.integrate">[docs]</a>    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Integrate array(s) fr.&quot;&quot;&quot;</span>
@@ -366,101 +377,108 @@
     <span class="c1">#                    0:1:1/self.ny,</span>
     <span class="c1">#                    0:1:1/self.nz]</span>
 
-<div class="viewcode-block" id="Mesh3D.line_inds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.line_inds">[docs]</a>    <span class="k">def</span> <span class="nf">line_inds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns an ogrid with the indices associated to the specified line.</span>
+    <span class="c1">#def line_inds(self, line):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Returns an ogrid with the indices associated to the specified line.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            line:</span>
-<span class="sd">                String specifying the type of line (in reduced coordinates),</span>
-<span class="sd">                e.g. &quot;x&quot;, &quot;y&quot;, &quot;z&quot;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        line:</span>
+    <span class="c1">#            String specifying the type of line (in reduced coordinates),</span>
+    <span class="c1">#            e.g. &quot;x&quot;, &quot;y&quot;, &quot;z&quot;.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    line = line.lower()</span>
 
-        <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong line </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line</span><span class="p">)</span></div>
+    <span class="c1">#    if line == &quot;x&quot;:</span>
+    <span class="c1">#        return np.ogrid[0:self.nx, 0:1, 0:1]</span>
+    <span class="c1">#    elif line == &quot;y&quot;:</span>
+    <span class="c1">#        return np.ogrid[0:1, 0:self.ny, 0:1]</span>
+    <span class="c1">#    elif line == &quot;z&quot;:</span>
+    <span class="c1">#        return np.ogrid[0:1, 0:1, 0:self.nz]</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise ValueError(&quot;Wrong line %s&quot; % line)</span>
 
-<div class="viewcode-block" id="Mesh3D.plane_inds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.plane_inds">[docs]</a>    <span class="k">def</span> <span class="nf">plane_inds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns an ogrid with the indices associated to the specified plane.</span>
+    <span class="c1">#def plane_inds(self, plane, h):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Returns an ogrid with the indices associated to the specified plane.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            plane:</span>
-<span class="sd">                String specifying the type of plane (in reduced coordinates),</span>
-<span class="sd">                e.g. &quot;xy&quot; &quot;xz&quot; ...</span>
-<span class="sd">            h:</span>
-<span class="sd">                Index giving the position of the plane along the perpendicular.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">plane</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        plane:</span>
+    <span class="c1">#            String specifying the type of plane (in reduced coordinates),</span>
+    <span class="c1">#            e.g. &quot;xy&quot; &quot;xz&quot; ...</span>
+    <span class="c1">#        h:</span>
+    <span class="c1">#            Index giving the position of the plane along the perpendicular.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    plane = plane.lower()</span>
+    <span class="c1">#    nx, ny, nz = self.nx, self.ny, self.nz</span>
 
-        <span class="k">if</span> <span class="n">plane</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="s2">&quot;yx&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">ny</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">plane</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;zx&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nz</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">plane</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;zy&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="n">h</span><span class="p">:</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">ny</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">nz</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong plane </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane</span><span class="p">)</span></div>
+    <span class="c1">#    if plane in (&quot;xy&quot;, &quot;yx&quot;):</span>
+    <span class="c1">#        return np.ogrid[0:nx, 0:ny, h:h+1]</span>
+    <span class="c1">#    elif plane in (&quot;xz&quot;, &quot;zx&quot;):</span>
+    <span class="c1">#        return np.ogrid[0:nx, h:h+1, 0:nz]</span>
+    <span class="c1">#    elif plane in (&quot;yz&quot;, &quot;zy&quot;):</span>
+    <span class="c1">#        return np.ogrid[h:h+1, 0:ny, 0:nz]</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise ValueError(&quot;Wrong plane %s&quot; % plane)</span>
 
-<div class="viewcode-block" id="Mesh3D.irottable"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.irottable">[docs]</a>    <span class="k">def</span> <span class="nf">irottable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symmops</span><span class="p">):</span>
-        <span class="n">nsym</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">symmops</span><span class="p">)</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span>
+    <span class="c1">#def irottable(self, symmops):</span>
+    <span class="c1">#    nsym = len(symmops)</span>
+    <span class="c1">#    nx, ny, nz = self.nx, self.ny, self.nz</span>
 
-        <span class="n">red2fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">])</span>
-        <span class="n">fft2red</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="o">/</span><span class="n">nx</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">ny</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">nz</span><span class="p">])</span>
+    <span class="c1">#    red2fft = np.diag([nx, ny, nz])</span>
+    <span class="c1">#    fft2red = np.diag([1/nx, 1/ny, 1/nz])</span>
 
-        <span class="c1"># For a fully compatible mesh, each mat in rotsm1_fft should be integer</span>
-        <span class="n">rotsm1_fft</span><span class="p">,</span> <span class="n">tnons_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsym</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsym</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="c1">#    # For a fully compatible mesh, each mat in rotsm1_fft should be integer</span>
+    <span class="c1">#    rotsm1_fft, tnons_fft = np.empty((nsym, 3, 3)), np.empty((nsym, 3))</span>
 
-        <span class="k">for</span> <span class="n">isym</span><span class="p">,</span> <span class="n">symmop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">symmops</span><span class="p">):</span>
-            <span class="n">rotm1_r</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">symmop</span><span class="o">.</span><span class="n">rotm1_r</span><span class="p">,</span> <span class="n">symmop</span><span class="o">.</span><span class="n">tau</span>
-            <span class="n">rotsm1_fft</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">red2fft</span><span class="p">,</span> <span class="n">rotm1_r</span><span class="p">),</span> <span class="n">fft2red</span><span class="p">)</span>
-            <span class="n">tnons_fft</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">red2fft</span><span class="p">,</span> <span class="n">tau</span><span class="p">)</span>
+    <span class="c1">#    for isym, symmop in enumerate(symmops):</span>
+    <span class="c1">#        rotm1_r, tau = symmop.rotm1_r, symmop.tau</span>
+    <span class="c1">#        rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)</span>
+    <span class="c1">#        tnons_fft[isym] = np.dot(red2fft, tau)</span>
 
-        <span class="c1"># Indeces of $R^{-1}(r-\tau)$ in the FFT box.</span>
-        <span class="n">irottable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsym</span><span class="p">,</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="o">*</span><span class="n">nz</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="c1">#    # Indeces of $R^{-1}(r-\tau)$ in the FFT box.</span>
+    <span class="c1">#    irottable = np.empty((nsym, nx*ny*nz), dtype=np.int)</span>
 
-        <span class="c1">#max_err = 0.0</span>
-        <span class="n">nxyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">isym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsym</span><span class="p">):</span>
-            <span class="n">rm1_fft</span> <span class="o">=</span> <span class="n">rotsm1_fft</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span>
-            <span class="n">tau_fft</span> <span class="o">=</span> <span class="n">tnons_fft</span><span class="p">[</span><span class="n">isym</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">ifft</span><span class="p">,</span> <span class="n">p1_fft</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iproduct</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">))):</span>
-                <span class="c1"># Form R^-1 (r-\tau) in the FFT basis.</span>
-                <span class="n">p1_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p1_fft</span><span class="p">)</span>
-                <span class="n">prot_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rm1_fft</span><span class="p">,</span> <span class="n">p1_fft</span> <span class="o">-</span> <span class="n">tau_fft</span><span class="p">)</span>
-                <span class="c1">#err = ABS(prot_fft - (ix, iy, iz)) / (nx, ny, nz)</span>
-                <span class="n">prot_fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">prot_fft</span><span class="p">)</span>
-                <span class="n">jx</span><span class="p">,</span> <span class="n">jy</span><span class="p">,</span> <span class="n">jz</span> <span class="o">=</span> <span class="n">prot_fft</span> <span class="o">%</span> <span class="n">nxyz</span>
-                <span class="n">irottable</span><span class="p">[</span><span class="n">isym</span><span class="p">,</span> <span class="n">ifft</span><span class="p">]</span> <span class="o">=</span> <span class="n">jz</span> <span class="o">+</span> <span class="p">(</span><span class="n">jy</span> <span class="o">*</span> <span class="n">nz</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">jx</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="c1">#    #max_err = 0.0</span>
+    <span class="c1">#    nxyz = np.array((nx, ny, nz), np.int)</span>
+    <span class="c1">#    for isym in range(nsym):</span>
+    <span class="c1">#        rm1_fft = rotsm1_fft[isym]</span>
+    <span class="c1">#        tau_fft = tnons_fft[isym]</span>
+    <span class="c1">#        for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):</span>
+    <span class="c1">#            # Form R^-1 (r-\tau) in the FFT basis.</span>
+    <span class="c1">#            p1_fft = np.array(p1_fft)</span>
+    <span class="c1">#            prot_fft = np.dot(rm1_fft, p1_fft - tau_fft)</span>
+    <span class="c1">#            #err = ABS(prot_fft - (ix, iy, iz)) / (nx, ny, nz)</span>
+    <span class="c1">#            prot_fft = np.round(prot_fft)</span>
+    <span class="c1">#            jx, jy, jz = prot_fft % nxyz</span>
+    <span class="c1">#            irottable[isym, ifft] = jz + (jy * nz) + (jx * nx * ny)</span>
 
-        <span class="c1"># Test</span>
-        <span class="c1">#for isym in range(nsym):</span>
-        <span class="c1">#    irottable[isym, ifft]</span>
-        <span class="c1">#    rm1_fft = rotsm1_fft[isym]</span>
-        <span class="c1">#    tau_fft = tnons_fft[isym]</span>
-        <span class="c1">#    for ifft, p1_fft in enumerate(itertools.product(range(nx), range(ny), range(nz))):</span>
-        <span class="c1">#        irot_fft == irottable[isym, ifft]</span>
+    <span class="c1">#    # Test</span>
+    <span class="c1">#    #for isym in range(nsym):</span>
+    <span class="c1">#    #    irottable[isym, ifft]</span>
+    <span class="c1">#    #    rm1_fft = rotsm1_fft[isym]</span>
+    <span class="c1">#    #    tau_fft = tnons_fft[isym]</span>
+    <span class="c1">#    #    for ifft, p1_fft in enumerate(itertools.product(range(nx), range(ny), range(nz))):</span>
+    <span class="c1">#    #        irot_fft == irottable[isym, ifft]</span>
 
-        <span class="k">return</span> <span class="n">irottable</span></div>
+    <span class="c1">#    return irottable</span>
 
 <div class="viewcode-block" id="Mesh3D.i_closest_gridpoints"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.i_closest_gridpoints">[docs]</a>    <span class="k">def</span> <span class="nf">i_closest_gridpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a list of points, this function return a numpy array with the indices of the closest gridpoint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">inv_vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span>
         <span class="n">fcoords</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">inv_vectors</span><span class="p">)</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">pc</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">ii</span><span class="p">])),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">fcoords</span><span class="p">]</span></div>
+        <span class="n">inds</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">pc</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">ii</span><span class="p">])),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">fcoords</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span></div>
+
         <span class="c1"># return [(int(np.rint(pc[ii]*self.nx)), int(np.rint(pc[0]*self.nx)),int(np.rint(pc[0]*self.nx))) for pc in coords]</span>
         <span class="c1"># ix = int(np.rint(coords[0]*self.nx))</span>
         <span class="c1"># iy = int(np.rint(coords[1]*self.ny))</span>
         <span class="c1"># iz = int(np.rint(coords[2]*self.nz))</span>
         <span class="c1"># return (ix, iy, iz)</span>
 
+    <span class="c1"># @DW TODO Add test.</span>
 <div class="viewcode-block" id="Mesh3D.dist_gridpoints_in_spheres"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.dist_gridpoints_in_spheres">[docs]</a>    <span class="k">def</span> <span class="nf">dist_gridpoints_in_spheres</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
         <span class="c1"># c_ab = np.cross(self.vectors[0], self.vectors[1])</span>
         <span class="c1"># c_bc = np.cross(self.vectors[1], self.vectors[2])</span>

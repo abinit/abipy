@@ -80,7 +80,7 @@
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">InteratomicForceConstants</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">Becs</span>
-
+<span class="kn">from</span> <span class="nn">abipy.dfpt.tensors</span> <span class="k">import</span> <span class="n">NLOpticalSusceptibilityTensor</span>
 
 <div class="viewcode-block" id="AnaddbNcFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile">[docs]</a><span class="k">class</span> <span class="nc">AnaddbNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -129,9 +129,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_cartesian_tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;emacro_cart&quot;</span><span class="p">),</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">),</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AnaddbNcFile.emacro_rlx"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx">[docs]</a>    <span class="k">def</span> <span class="nf">emacro_rlx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Relaxed ion Macroscopic dielectric tensor. None if the file does not contain this information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">from_cartesian_tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;emacro_cart_rlx&quot;</span><span class="p">),</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires dieflag &gt; 0&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
     <span class="nd">@lazy_property</span>
@@ -158,6 +170,55 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Interatomic force constants have not been calculated. Returning None&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AnaddbNcFile.dchide"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchide">[docs]</a>    <span class="k">def</span> <span class="nf">dchide</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Non-linear optical susceptibility tensor.</span>
+<span class="sd">        Returns a NLOpticalSusceptibilityTensor or None if the file does not contain this information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NLOpticalSusceptibilityTensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;dchide&quot;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires nlflag &gt; 0&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AnaddbNcFile.dchidt"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchidt">[docs]</a>    <span class="k">def</span> <span class="nf">dchidt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First-order change in the linear dielectric susceptibility.</span>
+<span class="sd">        Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).</span>
+<span class="sd">        The [i][j] element of the list contains the Tensor representing the change due to the</span>
+<span class="sd">         displacement of the ith atom in the jth direction.</span>
+<span class="sd">        None if the file does not contain this information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;dchidt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">dchidt</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Tensor</span><span class="o">.</span><span class="n">from_cartesian_tensor</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">))</span>
+                <span class="n">dchidt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">dchidt</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires 0 &lt; nlflag &lt; 3&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AnaddbNcFile.oscillator_strength"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">[docs]</a>    <span class="k">def</span> <span class="nf">oscillator_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A complex numpy array containing the oscillator strengths with shape (number of phonon modes, 3, 3),</span>
+<span class="sd">        in a.u. (1 a.u.=253.2638413 m3/s2).</span>
+<span class="sd">        None if the file does not contain this information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;oscillator_strength&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires dieflag == 1, 3 or 4&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="AnaddbNcFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

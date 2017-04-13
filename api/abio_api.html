@@ -634,11 +634,11 @@ the DDE. Automatically sets with_ddk=True.</li>
 input as the phonons. This will allow to determine the BECs.
 Automatically sets with_ddk=True and with_dde=False.</li>
 <li><strong>ph_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the phonon calculations and
-its value. Default from AbinitInput.make_ph_inputs_qpoint: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
+its value. Default: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
 <li><strong>ddk_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the DDK calculations and
-its value. Default from AbinitInput.make_ddk_inputs: {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
+its value. Default: {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
 <li><strong>dde_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the DDE calculations and
-its value. Default from AbinitInput.make_dde_inputs: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
+its value. Default: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
 <li><strong>wfq_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
 the WFQ and its value. Default {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
 <li><strong>qpoints_to_skip</strong> &#8211; a list of coordinates of q points in reduced coordinates that will be skipped.
@@ -1005,7 +1005,7 @@ It should be called with an input file that contains all the mandatory variables
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.abiget_irred_dteperts">
-<code class="descname">abiget_irred_dteperts</code><span class="sig-paren">(</span><em>ngkpt=None</em>, <em>shiftk=None</em>, <em>kptopt=None</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_dteperts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_dteperts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">abiget_irred_dteperts</code><span class="sig-paren">(</span><em>ngkpt=None</em>, <em>shiftk=None</em>, <em>kptopt=None</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>phonon_pert=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_irred_dteperts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_irred_dteperts" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function, computes the list of irreducible perturbations for DFPT.
 It should be called with an input file that contains all the mandatory variables required by ABINIT.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1018,6 +1018,7 @@ It should be called with an input file that contains all the mandatory variables
 <li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
 <li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>phonon_pert</strong> &#8211; if True also the phonon perturbations will be considered. Default False.</li>
 </ul>
 </td>
 </tr>
@@ -1104,7 +1105,7 @@ It should be called with an input file that contains all the mandatory variables
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.abivalidate">
 <code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abivalidate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run ABINIT in dry mode to validate the input file.</p>
+<dd><p>Run ABINIT in dry-run mode to validate the input file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1120,10 +1121,7 @@ log_file:  log file of the Abinit run, use log_file.read() to access its content
 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><cite>namedtuple</cite> with the following attributes</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><cite>RuntimeError</cite> if executable is not in $PATH.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
 </td>
 </tr>
 </tbody>
@@ -1282,16 +1280,30 @@ Defaults to {&#8220;tolwfr&#8221;: 1.0e-22}.</td>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.make_dte_inputs">
-<code class="descname">make_dte_inputs</code><span class="sig-paren">(</span><em>tolerance=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_dte_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_dte_inputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return inputs for the DDK calculation.
-This functions should be called with an input the represents a GS run.</p>
+<code class="descname">make_dte_inputs</code><span class="sig-paren">(</span><em>phonon_pert=False</em>, <em>skip_permutations=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_dte_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_dte_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return inputs for the DTE calculation.
+This functions should be called with an input that represents a GS run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>phonon_pert</strong> &#8211; is True also the phonon perturbations will be considered. Default False.</li>
+<li><strong>skip_permutations</strong> &#8211; Since the current version of abinit always performs all the permutations
+of the perturbations, even if only one is asked, if True avoids the creation of inputs that
+will produce duplicated outputs.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">
 <code class="descname">make_ph_inputs_qpoint</code><span class="sig-paren">(</span><em>qpt</em>, <em>tolerance=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_ph_inputs_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>This functions builds and returns a list of input files
-for the calculation of phonons at the given q-point <a href="#id2"><span class="problematic" id="id3">`</span></a>qpt.
+for the calculation of phonons at the given q-point <cite>qpt</cite>.
 It should be called with an input the represents a GS run.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1332,8 +1344,7 @@ to generate WFQ files.</p>
 <dt id="abipy.abio.inputs.AbinitInput.new_with_decorators">
 <code class="descname">new_with_decorators</code><span class="sig-paren">(</span><em>decorators</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.new_with_decorators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.new_with_decorators" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function receives a list of <code class="xref py py-class docutils literal"><span class="pre">AbinitInputDecorator</span></code> objects or just a single object,
-applyes the decorators to the input and returns a new <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> object.
-self is not changed.</p>
+applies the decorators to the input and returns a new <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> object. self is not changed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1382,7 +1393,7 @@ as argument.</p>
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.pop_irdvars">
 <code class="descname">pop_irdvars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.pop_irdvars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.pop_irdvars" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove all the ird variables present in self.
+<dd><p>Remove all the <cite>ird*</cite> variables present in self.
 Return dictionary with the variables that have been removed.</p>
 </dd></dl>
 
@@ -1416,11 +1427,6 @@ Return dictionary with the variables that have been removed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.abio.inputs.AbinitInput.pycheck">
-<code class="descname">pycheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.pycheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.pycheck" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.register_decorator">
 <code class="descname">register_decorator</code><span class="sig-paren">(</span><em>decorator</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.register_decorator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.register_decorator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a <code class="xref py py-class docutils literal"><span class="pre">AbinitInputDecorator</span></code>.</p>
@@ -1449,7 +1455,7 @@ Return dictionary with the variables that have been removed.</p>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.AbinitInput.scf_tolvar">
 <code class="descname">scf_tolvar</code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.scf_tolvar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the tolerance variable and value relative to the scf convergence.
+<dd><p>Returns the tolerance variable and value relative to the SCF convergence.
 If more than one is present raise an error</p>
 </dd></dl>
 
@@ -1680,10 +1686,7 @@ log_file:  log file of the Abinit run, use log_file.read() to access its content
 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><cite>namedtuple</cite> with the following attributes</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><cite>RuntimeError</cite> if executable is not in $PATH.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
 </td>
 </tr>
 </tbody>
@@ -1791,7 +1794,28 @@ Return dict with the variables added to the input.</p>
 <dl class="method">
 <dt id="abipy.abio.inputs.AnaddbInput.abivalidate">
 <code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.abivalidate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Run ANADDB in dry-run mode to validate the input file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+log_file:  log file of the Abinit run, use log_file.read() to access its content.
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.AnaddbInput.ifc">
@@ -1916,7 +1940,8 @@ In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.AnaddbInput.piezo_elastic">
 <em class="property">classmethod </em><code class="descname">piezo_elastic</code><span class="sig-paren">(</span><em>structure</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em>, <em>stress_correction=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.piezo_elastic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.piezo_elastic" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AnaddbInput.set_autoqmesh">
@@ -1971,7 +1996,9 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.AnaddbInput.thermo">
 <em class="property">classmethod </em><code class="descname">thermo</code><span class="sig-paren">(</span><em>structure</em>, <em>ngqpt</em>, <em>nqsmall</em>, <em>q1shft=(0</em>, <em>0</em>, <em>0)</em>, <em>nchan=1250</em>, <em>nwchan=5</em>, <em>thmtol=0.5</em>, <em>ntemper=199</em>, <em>temperinc=5</em>, <em>tempermin=5.0</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ngrids=10</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.thermo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build an anaddb input file for the computation of phonon bands and phonon DOS.</p>
+<dd><p>Build an anaddb input file for the computation of phonon bands and phonon DOS.
+Note: This method is deprecated because now it&#8217;s possible to compute Thermodynamical
+properties from PhDos</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2279,7 +2306,16 @@ want to set <cite>ecut</cite> to 1 in both dictionaries. The direct approach wou
 </div></blockquote>
 <p>MultiDataset provides its own implementaion of __getattr__ so that one can simply use:</p>
 <blockquote>
+<div><blockquote>
 <div>multi.set_vars(ecut=1)</div></blockquote>
+<p>multi.get(&#8220;ecut&#8221;) returns a list of values. It&#8217;s equivalent to:</p>
+<blockquote>
+<div>[inp[&#8220;ecut&#8221;] for inp in multi]</div></blockquote>
+<p>Note that if &#8220;ecut&#8221; is not present in one of the input of multi, the corresponding entry is set to None.
+A default value can be specified with:</p>
+<blockquote>
+<div>multi.get(&#8220;paral_kgb&#8221;, 0)</div></blockquote>
+</div></blockquote>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">MultiDataset does not support calculations done with different sets of pseudopotentials.
@@ -2313,7 +2349,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.addnew_from">
 <code class="descname">addnew_from</code><span class="sig-paren">(</span><em>dtindex</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.addnew_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.addnew_from" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Add a new entry in the multidataset by copying the input with index <cite>dtindex</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.append">
@@ -2336,7 +2373,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.filter_by_runlevel">
 <code class="descname">filter_by_runlevel</code><span class="sig-paren">(</span><em>runlevel</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.filter_by_runlevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.filter_by_runlevel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return new MultiDataset object in which only the inputs with the given runlevel are selected</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.filter_by_tags">
@@ -2362,7 +2400,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.MultiDataset.from_inputs">
 <em class="property">classmethod </em><code class="descname">from_inputs</code><span class="sig-paren">(</span><em>inputs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.from_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.from_inputs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Build object from a list of <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> objects.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.abio.inputs.MultiDataset.has_same_structures">
@@ -2390,7 +2429,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.MultiDataset.pseudos">
 <code class="descname">pseudos</code><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.pseudos" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Pseudopotential objects.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.remove_tags">
@@ -2419,7 +2459,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.split_datasets">
 <code class="descname">split_datasets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.split_datasets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.split_datasets" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return list of AbinitInput files.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.MultiDataset.write">
@@ -2441,7 +2482,7 @@ is constructed from the dataset index e.g. run0.abi</p>
 <dt id="abipy.abio.inputs.OpticInput">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">OpticInput</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></p>
-<p>Input file for optic.</p>
+<p>Input file for optic executable</p>
 <p class="rubric">Example</p>
 <dl class="docutils">
 <dt>&amp;FILES</dt>
@@ -2477,7 +2518,29 @@ num_nonlin2_comp = 0,</div></blockquote>
 <dl class="method">
 <dt id="abipy.abio.inputs.OpticInput.abivalidate">
 <code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput.abivalidate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Run OPTIC in dry-run mode to validate the input file.
+Note: This method is a stub, it always return retcode 0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+log_file:  log file of the Abinit run, use log_file.read() to access its content.
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.OpticInput.as_dict">
@@ -2682,37 +2745,13 @@ by the robot and the given anaddb input arguments. Build and return a pandas dat
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.get_phbands_plotter">
-<code class="descname">get_phbands_plotter</code><span class="sig-paren">(</span><em>with_phdos=True</em>, <em>cls=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_phbands_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_phbands_plotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invoke anaddb to compute phonon bands and DOS using the arguments passed via <a href="#id4"><span class="problematic" id="id5">**</span></a>kwargs.
-Collect results and return <cite>PhononBandsPlotter</cite> object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>with_phdos</strong> &#8211; True to compute phonon DOS</li>
-<li><strong>cls</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.get_phdos_plotter">
-<code class="descname">get_phdos_plotter</code><span class="sig-paren">(</span><em>cls=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_phdos_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_phdos_plotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invoke anaddb to compute phonon bands and DOS using the arguments passed via <a href="#id6"><span class="problematic" id="id7">**</span></a>kwargs.
-Collect results and return <cite>PhononDosPlotter</cite> object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cls</strong> &#8211; </td>
-</tr>
-</tbody>
-</table>
+<dt id="abipy.abio.robots.DdbRobot.get_phonon_plotters">
+<code class="descname">get_phonon_plotters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_phonon_plotters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_phonon_plotters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke anaddb to compute phonon bands and DOS using the arguments passed via <a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs.
+Collect results and return <cite>namedtuple</cite> with the following attributes:</p>
+<blockquote>
+<div>phbands_plotter: <cite>PhononBandsPlotter</cite> object.
+phdos_plotter: <cite>PhononDosPlotter</cite> object.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -2830,13 +2869,14 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.abio.robots.MdfRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Build and return Pandas dataframe with the most import BSE results.</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>funcs</strong> &#8211; </li>
 <li><strong>with_geo</strong> &#8211; True if structure info should be added to the dataframe</li>
+<li><strong>funcs</strong> &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -2850,7 +2890,8 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.abio.robots.MdfRobot.get_multimdf_plotter">
 <code class="descname">get_multimdf_plotter</code><span class="sig-paren">(</span><em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot.get_multimdf_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot.get_multimdf_plotter" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.MdfRobot.write_notebook">
@@ -2897,6 +2938,11 @@ raised if label is already present.</li>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.change_labels">
+<code class="descname">change_labels</code><span class="sig-paren">(</span><em>new_labels</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.change_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.change_labels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.class_for_ext">
@@ -2952,7 +2998,7 @@ This method should be invoked with a concrete robot class, for example:</p>
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_files">
 <em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>filenames</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a Robot from a list of files.</p>
+<dd><p>Build a Robot from a list of <cite>filenames</cite>.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -2997,19 +3043,19 @@ Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li
 <dt id="abipy.abio.robots.Robot.open">
 <em class="property">classmethod </em><code class="descname">open</code><span class="sig-paren">(</span><em>obj</em>, <em>nids=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flexible constructor. obj can be a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> or a string with the directory containing the Flow.
-nids is an optional list of <code class="xref py py-class docutils literal"><span class="pre">Node</span></code> identifiers used to filter the set of <code class="xref py py-class docutils literal"><span class="pre">Task</span></code> in the Flow.</p>
+<cite>nids</cite> is an optional list of <code class="xref py py-class docutils literal"><span class="pre">Node</span></code> identifiers used to filter the set of <code class="xref py py-class docutils literal"><span class="pre">Task</span></code> in the Flow.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.abio.robots.Robot.pop">
-<code class="descname">pop</code><span class="sig-paren">(</span><em>label</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.pop" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.abio.robots.Robot.pop_label">
+<code class="descname">pop_label</code><span class="sig-paren">(</span><em>label</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.pop_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.pop_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove file with the given <cite>label</cite> and close it.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.scan_dir">
 <code class="descname">scan_dir</code><span class="sig-paren">(</span><em>top</em>, <em>walk=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.scan_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.scan_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scan directory tree starting from top. Add files to the robot.</p>
+<dd><p>Scan directory tree starting from <cite>top</cite>. Add files to the robot instance.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3032,10 +3078,22 @@ nids is an optional list of <code class="xref py py-class docutils literal"><spa
 <code class="descname">show_files</code><span class="sig-paren">(</span><em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.show_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.show_files" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.abio.robots.Robot.start">
+<code class="descname">start</code><em class="property"> = None</em><a class="headerlink" href="#abipy.abio.robots.Robot.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.trim_paths">
+<code class="descname">trim_paths</code><span class="sig-paren">(</span><em>start=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.trim_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.trim_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace absolute filepaths in the robot with relative paths wrt to <cite>start</cite> directory.
+If start is None, os.getcwd() is used. Set <cite>self.start</cite> attribute, return self.start.</p>
 </dd></dl>
 
 </dd></dl>

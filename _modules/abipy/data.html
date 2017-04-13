@@ -117,7 +117,7 @@
         <span class="n">_SCRIPTS</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pypaths</span><span class="p">:</span>
             <span class="n">k</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-            <span class="c1"># Ingnore e.g. __init__.py and private scripts.</span>
+            <span class="c1"># Ignore e.g. __init__.py and private scripts.</span>
             <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span> <span class="k">continue</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_SCRIPTS</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fond duplicated basenames with name </span><span class="si">%s</span><span class="se">\n</span><span class="s2">Previous </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">_SCRIPTS</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
@@ -129,6 +129,11 @@
 <div class="viewcode-block" id="cif_file"><a class="viewcode-back" href="../../api/data_api.html#abipy.data.cif_file">[docs]</a><span class="k">def</span> <span class="nf">cif_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the absolute path of the CIF file in tests/data/cifs.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_CIF_DIRPATH</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">cif_files</span><span class="p">(</span><span class="o">*</span><span class="n">filenames</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the absolute path of the CIF files in tests/data/cifs.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">cif_file</span><span class="p">,</span> <span class="n">filenames</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">structure_from_cif</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
@@ -243,8 +248,7 @@
 
 <span class="k">def</span> <span class="nf">structure_from_mpid</span><span class="p">(</span><span class="n">mpid</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return an Abipy Structure from the `mpid` identifier.</span>
-<span class="sd">    See mpdata/mp_structure.json</span>
+<span class="sd">    Return an Abipy Structure from the `mpid` identifier. See mpdata/mp_structure.json</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">get_mp_structures_dict</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">mpid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
@@ -309,7 +313,7 @@
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.files&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.files&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_filesfile_str</span><span class="p">())</span>
 
         <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span> <span class="o">+</span> <span class="s2">&quot; &lt; run.files &gt; run.log&quot;</span>
@@ -351,7 +355,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_PSEUDOS_DIRPATH</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span> <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">make_filesfile_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;run.abi&quot;</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">,</span><span class="s2">&quot;tmp&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;run.abi&quot;</span><span class="p">,</span> <span class="s2">&quot;run.abo&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">,</span> <span class="s2">&quot;tmp&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">AnaddbFilesGenerator</span><span class="p">(</span><span class="n">FilesGenerator</span><span class="p">):</span>

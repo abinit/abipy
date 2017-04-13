@@ -338,6 +338,8 @@
 <div class="viewcode-block" id="AbipyTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyTest</span><span class="p">(</span><span class="n">PymatgenTest</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extends PymatgenTest with Abinit-specific methods &quot;&quot;&quot;</span>
 
+    <span class="n">SkipTest</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span>
+
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.which"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.which">[docs]</a>    <span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">program</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns full path to a executable. None if not found or not executable.&quot;&quot;&quot;</span>
@@ -384,6 +386,14 @@
         <span class="k">return</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.tmpfileindir"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.tmpfileindir">[docs]</a>    <span class="k">def</span> <span class="nf">tmpfileindir</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the absolute path of a temporary file with basename `basename` created in a temporary directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.get_tmpname"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_tmpname">[docs]</a>    <span class="k">def</span> <span class="nf">get_tmpname</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoke mkstep with kwargs, return the name of a temporary file.&quot;&quot;&quot;</span>
         <span class="n">fd</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -394,6 +404,15 @@
         <span class="sd">&quot;&quot;&quot;Return True if nbformat is available and we can test the generation of ipython notebooks.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">nbformat</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.has_ipywidgets"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_ipywidgets">[docs]</a>    <span class="k">def</span> <span class="nf">has_ipywidgets</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;Return True if ipywidgets is available.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
@@ -454,9 +473,63 @@
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.skip_if_not_abinit"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_abinit">[docs]</a>    <span class="k">def</span> <span class="nf">skip_if_not_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise SkipTest if the specified version of abinit is not installed.</span>
+<span class="sd">        Use `version` and `op` to ask for a specific version</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires abinit&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires abinit version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.get_mock_module"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">[docs]</a>    <span class="k">def</span> <span class="nf">get_mock_module</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_mock_module</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="n">get_mock_module</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AbipyTest.abivalidate_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_input">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinput</span><span class="p">,</span> <span class="n">must_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invoke Abinit to test validity of an Input object</span>
+<span class="sd">        Print info to stdout if failuer before raising AssertionError.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">abinput</span><span class="o">.</span><span class="n">abivalidate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">must_fail</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">v</span><span class="o">.</span><span class="n">retcode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">retcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">abinput</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">abinput</span><span class="p">)</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">50</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Last 50 line from logfile:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+
+            <span class="k">assert</span> <span class="n">v</span><span class="o">.</span><span class="n">retcode</span> <span class="o">==</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="AbipyTest.abivalidate_multi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_multi">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invoke Abinit to test validity of a `MultiDataset` or a list of input objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">multi</span><span class="p">,</span> <span class="s2">&quot;split_datasets&quot;</span><span class="p">):</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">multi</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">abivalidate_input</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div></div>
 
 
 <div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>

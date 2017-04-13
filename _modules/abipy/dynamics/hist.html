@@ -159,29 +159,29 @@
         <span class="sd">&quot;&quot;&quot;numpy array with total energies in eV at the different steps.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_eterms</span><span class="p">()</span><span class="o">.</span><span class="n">etotals</span></div>
 
-<div class="viewcode-block" id="HistFile.export"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Export the crystalline structure on file filename.</span>
+    <span class="c1">#def export(self, filename, visu=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Export the crystalline structure to file filename.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            filename: String specifying the file path and the file format.</span>
-<span class="sd">                The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
-<span class="sd">                will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
-<span class="sd">            visu: `Visualizer` subclass. By default, this method returns the first available</span>
-<span class="sd">                visualizer that supports the given file format. If visu is not None, an</span>
-<span class="sd">                instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.</span>
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        filename: String specifying the file path and the file format.</span>
+    <span class="c1">#            The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
+    <span class="c1">#            will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
+    <span class="c1">#        visu: `Visualizer` subclass. By default, this method returns the first available</span>
+    <span class="c1">#            visualizer that supports the given file format. If visu is not None, an</span>
+    <span class="c1">#            instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.</span>
 
-<span class="sd">        Returns: Instance of :class:`Visualizer`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: work in progress&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;typat is missing in HIST --&gt; wrong structures&quot;</span><span class="p">)</span>
+    <span class="c1">#    Returns: Instance of :class:`Visualizer`</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    print(&quot;Warning: work in progress&quot;)</span>
+    <span class="c1">#    raise NotImplementedError(&quot;typat is missing in HIST --&gt; wrong structures&quot;)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot detect extension in filename </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="c1">#    if &quot;.&quot; not in filename:</span>
+    <span class="c1">#        raise ValueError(&quot;Cannot detect extension in filename %s: &quot; % filename)</span>
 
-        <span class="kn">from</span> <span class="nn">abipy.iotools.xsf</span> <span class="k">import</span> <span class="n">xsf_write_structure</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">)</span></div>
+    <span class="c1">#    from abipy.iotools.xsf import xsf_write_structure</span>
+    <span class="c1">#    with open(filename, &quot;w&quot;) as fh:</span>
+    <span class="c1">#        xsf_write_structure(fh, self.structures)</span>
 
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="HistFile.plot"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
