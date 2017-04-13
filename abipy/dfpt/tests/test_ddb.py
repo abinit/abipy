@@ -132,7 +132,7 @@ class DdbTest(AbipyTest):
 
         if self.has_matplotlib():
             assert phbands.plot_with_phdos(phdos, show=False,
-                title="Phonon bands and DOS of %s" % phbands.structure.formula,
+                title="Phonon bands and DOS of %s" % phbands.structure.formula)
 
         # Get emacro and becs
         emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)

@@ -36,8 +36,7 @@ class PhononBandsTest(AbipyTest):
         """Base tests for PhononBands"""
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         phbands = PhononBands.from_file(filename)
-        repr(phbands)
-        str(phbands)
+        repr(phbands); str(phbands)
         assert phbands.to_string(title="Title", with_structure=False, with_qpoints=True, verbose=1)
         assert PhononBands.as_phbands(phbands) is phbands
         with self.assertRaises(TypeError):
@@ -232,8 +231,7 @@ class PhononDosTest(AbipyTest):
     def test_from_phdosfile(self):
         """Test PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
-        repr(ncfile)
-        str(ncfile)
+        repr(ncfile); str(ncfile)
         assert hasattr(ncfile, "structure")
         phdos = ncfile.phdos
 
@@ -278,8 +276,7 @@ class PhononDosPlotterTest(AbipyTest):
         plotter = PhononDosPlotter()
         plotter.add_phdos("AlAs", phdos_paths[0])
         plotter.add_phdos("Same-AlAs", phdos_paths[1])
-        repr(plotter)
-        str(plotter)
+        repr(plotter); str(plotter)
         assert len(plotter.phdos_list) == 2
 
         if self.has_matplotlib():
