@@ -57,7 +57,12 @@ class DielectricTensor(object):
         self._all_tensors = all_tensors
 
     def to_array(self, red_coords=True):
+        """
+        Return numpy array with a copy of the data.
 
+        Args:
+            red_coords: True for tensors in reduced coordinates else Cartesian.
+        """
         table = []
         for tensor in self._all_tensors:
             if red_coords:
@@ -68,14 +73,16 @@ class DielectricTensor(object):
         return np.array(table)
 
     def symmetrize(self, structure):
-
+        """
+        Symmetrize the tensor using the symmetry operations in structure.
+        Change the object in place.
+        """
         for tensor in self._all_tensors:
             tensor.symmetrize(structure)
 
     def to_func1d(self, red_coords=True):
-
+        """Return list of Function."""
         table = self.to_array(red_coords)
-
         all_funcs = []
 
         for i in np.arange(3):
@@ -561,7 +568,7 @@ class MdfPlotter(object):
         self._mdfs[label] = mdf
 
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlim=None, ylim=None, **kwargs):
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
 
@@ -571,9 +578,9 @@ class MdfPlotter(object):
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
             qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
-            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylim: Same meaning as `ylim` but for the y-axis
+            ylims: Same meaning as `ylims` but for the y-axis
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
@@ -594,8 +601,8 @@ class MdfPlotter(object):
 
         # Set legends.
         ax.legend(lines, legends, loc='best', shadow=False)
-        set_axlims(ax, xlim, "x")
-        set_axlims(ax, ylim, "y")
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
 
         return fig
 
@@ -690,7 +697,7 @@ class MultipleMdfPlotter(object):
                 self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
 
     @add_fig_kwargs
-    def plot(self, mdf_type="exc", qview="avg", xlim=None, ylim=None, **kwargs):
+    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, **kwargs):
         """
         Plot all macroscopic dielectric functions (MDF) stored in the plotter
 
@@ -700,9 +707,9 @@ class MultipleMdfPlotter(object):
                 "rpa" for RPA with KS energies.
                 "gwrpa" for RPA with GW (or KS-corrected) results.
             qview: "avg" to plot the results averaged over q-points. "all" to plot q-point dependence.
-            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylim: Same meaning as `ylim` but for the y-axis
+            ylims: Same meaning as `ylims` but for the y-axis
 
         Return: matplotlib figure
         """
@@ -720,18 +727,18 @@ class MultipleMdfPlotter(object):
 
         if qview == "avg":
             # Plot averaged values
-            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlim=xlim, ylim=ylim,
+            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlims=xlims, ylims=ylims,
                                    with_legend=True, show=False)
-            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlim=xlim, ylim=ylim,
+            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlims=xlims, ylims=ylims,
                                    with_legend=False, show=False)
         elif qview == "all":
             # Plot MDF(q)
             nqpt = len(qpoints)
             for iq, qpt in enumerate(qpoints):
                 islast = (iq == nqpt - 1)
-                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlim=xlim, ylim=ylim,
+                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlims=xlims, ylims=ylims,
                                        with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
-                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlim=xlim, ylim=ylim,
+                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlims=xlims, ylims=ylims,
                                        with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
         else:
@@ -743,13 +750,13 @@ class MultipleMdfPlotter(object):
         return fig
 
     #@add_fig_kwargs
-    #def plot_mdftypes(self, qview="avg", xlim=None, ylim=None, **kwargs):
+    #def plot_mdftypes(self, qview="avg", xlims=None, ylims=None, **kwargs):
     #    """
 
     #    Args:
     #        qview:
-    #        xlim
-    #        ylim
+    #        xlims
+    #        ylims
 
     #    Return: matplotlib figure
     #    """
@@ -768,9 +775,9 @@ class MultipleMdfPlotter(object):
     #    if qview == "avg":
     #        # Plot averaged values
     #        for mdf_type in self.MDF_TYPES:
-    #            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlim=xlim, ylim=ylim,
+    #            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlims=xlims, ylims=ylims,
     #                                   with_legend=True, show=False)
-    #            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlim=xlim, ylim=ylim,
+    #            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlims=xlims, ylims=ylims,
     #                                   with_legend=False, show=False)
     #    elif qview == "all":
     #        # Plot MDF(q)
@@ -778,9 +785,9 @@ class MultipleMdfPlotter(object):
     #        for iq, qpt in enumerate(qpoints):
     #            islast = (iq == nqpt - 1)
     #            for mdf_type in self.MDF_TYPES:
-    #                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlim=xlim, ylim=ylim,
+    #                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlims=xlims, ylims=ylims,
     #                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
-    #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlim=xlim, ylim=ylim,
+    #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlims=xlims, ylims=ylims,
     #                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
     #    else:
@@ -793,7 +800,7 @@ class MultipleMdfPlotter(object):
 
     @add_fig_kwargs
     def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None,
-                          xlim=None, ylim=None, with_legend=True, with_xlabel=True, with_ylabel=True, **kwargs):
+                          xlims=None, ylims=None, with_legend=True, with_xlabel=True, with_ylabel=True, **kwargs):
         """
         Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
 
@@ -803,9 +810,9 @@ class MultipleMdfPlotter(object):
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
             qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
-            xlim: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylim: Same meaning as `ylim` but for the y-axis
+            ylims: Same meaning as `ylims` but for the y-axis
             with_legend: True if legend should be added
             with_xlabel:
             with_ylabel:
@@ -835,8 +842,8 @@ class MultipleMdfPlotter(object):
 
             legends.append(r"%s: %s, %s $\varepsilon$" % (cplx_mode, qtag, label))
 
-        set_axlims(ax, xlim, "x")
-        set_axlims(ax, ylim, "y")
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
 
         # Set legends.
         if with_legend:

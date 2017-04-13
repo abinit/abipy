@@ -18,11 +18,10 @@ class DdbTest(AbipyTest):
     def test_alas_ddb_1qpt_phonons(self):
         """Testing DDB with one q-point"""
         with DdbFile(os.path.join(test_dir, "AlAs_1qpt_DDB")) as ddb:
-            repr(ddb)
-            print(ddb)
+            repr(ddb); print(ddb)
             # Test qpoints.
-            assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert len(ddb.qpoints) == 1
+            assert np.all(ddb.qpoints[0] == [0.25, 0, 0])
             assert ddb.natom == len(ddb.structure)
 
             # Test header
@@ -98,10 +97,10 @@ class DdbTest(AbipyTest):
     def test_alas_ddb_444_nobecs(self):
         """Testing DDB for AlAs on a 4x4x4x q-mesh without Born effective charges."""
         ddb = DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
-        repr(ddb)
-        str(ddb)
+        repr(ddb); str(ddb)
         print(ddb.header)
 
+        # TODO
         #assert ddb.has_phonon_terms()
         #assert not ddb.has_bec_terms()
         #assert not ddb.has_emacro_terms()
@@ -132,24 +131,24 @@ class DdbTest(AbipyTest):
         phbands, phdos = phbands_file.phbands, phdos_file.phdos
 
         if self.has_matplotlib():
-            phbands.plot_with_phdos(phdos, title="Phonon bands and DOS of %s" % phbands.structure.formula, show=False)
+            assert phbands.plot_with_phdos(phdos, show=False,
+                title="Phonon bands and DOS of %s" % phbands.structure.formula,
 
         # Get emacro and becs
         emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
         assert np.all(becs.values == 0)
         assert np.all(becs.becs == 0)
-        repr(becs)
-        str(becs)
+        repr(becs); str(becs)
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()
         phdos_file.close()
 
         # Test DOS computation via anaddb.
-        c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=None)
+        c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=1)
         assert c.phdoses and c.plotter is not None
         if self.has_matplotlib():
-            c.plotter.combiplot(show=False)
+            assert c.plotter.combiplot(show=False)
 
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
@@ -157,9 +156,9 @@ class DdbTest(AbipyTest):
         assert ifc.number_of_atoms == len(ddb.structure)
 
         if self.has_matplotlib():
-            ifc.plot_longitudinal_ifc(show=False)
-            ifc.plot_longitudinal_ifc_short_range(show=False)
-            ifc.plot_longitudinal_ifc_ewald(show=False)
+            assert ifc.plot_longitudinal_ifc(show=False)
+            assert ifc.plot_longitudinal_ifc_short_range(show=False)
+            assert ifc.plot_longitudinal_ifc_ewald(show=False)
 
         ddb.close()
 
@@ -181,4 +180,4 @@ class DielectricTensorGeneratorTest(AbipyTest):
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
 
         if self.has_matplotlib():
-            d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)
+            assert d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)

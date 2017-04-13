@@ -221,13 +221,13 @@ class ElectronBandsTest(AbipyTest):
 
         dir_gap = si_ebands_kpath.direct_gaps[0]
         fun_gap = si_ebands_kpath.fundamental_gaps[0]
-        assert dir_gap.is_direct
-        assert dir_gap.qpoint == [0, 0, 0]
-        self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
-        assert not fun_gap.is_direct
-        self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.,  0.4285714, 0.4285714])
         assert fun_gap.energy <= dir_gap.energy
+        assert dir_gap.qpoint == [0, 0, 0]
+        assert dir_gap.is_direct
+        self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
+        self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.,  0.4285714, 0.4285714])
         self.assert_almost_equal(fun_gap.energy, 0.52433967625601774)
+        assert not fun_gap.is_direct
 
         # TODO: More tests
         # Test abipy-->pymatgen converter
