@@ -27,7 +27,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_ederivatives.py" href="plot_ederivatives.html" />
+    <link rel="next" title="plot example code: plot_ebands_spin.py" href="plot_ebands_spin.html" />
     <link rel="prev" title="plot example code: plot_ebands_edos.py" href="plot_ebands_edos.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -49,7 +49,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
       <li>Previous: <a href="plot_ebands_edos.html" title="previous chapter">plot example code: plot_ebands_edos.py</a></li>
-      <li>Next: <a href="plot_ederivatives.html" title="next chapter">plot example code: plot_ederivatives.py</a></li>
+      <li>Next: <a href="plot_ebands_spin.html" title="next chapter">plot example code: plot_ebands_spin.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -93,6 +93,7 @@
 <span class="sd">This example shows how to plot several band structures on a grid</span>
 
 <span class="sd">We use two GSR files:</span>
+
 <span class="sd">    si_scf_GSR.n: energies on a homogeneous sampling of the BZ (can be used to compute DOS)</span>
 <span class="sd">    si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion)</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -112,8 +113,8 @@
 <span class="c1">#plotter.animate()</span>
 
 <span class="c1"># To plot a grid with band structures + DOS, use the optional argument `edos_objects`</span>
-<span class="c1"># The first subplot will get the band dispersion from eb_objects[0] and the DOS from edos_objects[0]</span>
-<span class="c1"># edos_kwargs is an optional dictionary with the arguments that will be passed to `get_dos` to compute the DOS.</span>
+<span class="c1"># The first subplot gets the band dispersion from eb_objects[0] and the DOS from edos_objects[0]</span>
+<span class="c1"># edos_kwargs is an optional dictionary passed to `get_dos` to compute the DOS.</span>
 <span class="n">eb_objects</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">)]</span>
 <span class="n">edos_objects</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">)]</span>
 

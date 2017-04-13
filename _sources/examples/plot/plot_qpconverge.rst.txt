@@ -31,10 +31,11 @@ plot example code: plot_qpconverge.py
     plotter.add_files(filepaths)
     
     # Plot the convergence of the QP gaps.
-    #plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05)
+    plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05)
     
     # Plot the convergence of the QP energies.
-    ###plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05)
+    plotter.plot_qpenes(spin=0, kpoint=[0, 0, 0],
+                        title="QP energies vs sigma_nband", hspan=0.05)
     
     plotter.plot_qps_vs_e0(tight_layout=True)
     

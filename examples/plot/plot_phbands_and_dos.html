@@ -93,8 +93,6 @@
 <span class="sd">This example shows how to plot the phonon band structure of AlAs.</span>
 <span class="sd">See tutorial/lesson_rf2.html</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="c1"># FIXME: LO-TO splitting and phonon displacements instead of eigenvectors.</span>
 <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
@@ -106,17 +104,20 @@
 <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
     <span class="n">phdos</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phdos</span>
 
-<span class="c1"># plot phonon bands and DOS.</span>
+<span class="c1"># plot phonon bands and DOS with LO-TO.</span>
+<span class="c1"># `plot_phonons_lo_to.py` shows how to treat the LO-TO splitting.</span>
 <span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands and DOS in eV&quot;</span><span class="p">)</span>
 
 <span class="c1"># plot phonon bands with DOS.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands + DOS in cm-1&quot;</span><span class="p">)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_with_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span>
+                        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs Phonon bands + DOS in cm-1&quot;</span><span class="p">)</span>
 
 <span class="c1"># plot phonon DOS.</span>
 <span class="n">phdos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon DOS and IDOS in cm-1&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the phonon band structure with different color for each line.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_colored_matched</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs with different color for each line.&quot;</span><span class="p">)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_colored_matched</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span>
+                            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs with different color for each line.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

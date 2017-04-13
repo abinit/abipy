@@ -101,7 +101,8 @@
 <span class="n">filename</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">)</span>
 
 <span class="c1"># Open the GSR file and extract the band structure.</span>
-<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb` to open the file in a jupyter notebook.</span>
+<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook.</span>
 <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
     <span class="n">ebands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span>
 

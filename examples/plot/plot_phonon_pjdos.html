@@ -79,9 +79,14 @@
             
   <div class="section" id="plot-example-code-plot-phonon-pjdos-py">
 <span id="plot-plot-phonon-pjdos"></span><h1>plot example code: plot_phonon_pjdos.py<a class="headerlink" href="#plot-example-code-plot-phonon-pjdos-py" title="Permalink to this headline">¶</a></h1>
-<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../../_images/plot_phonon_pjdos.png" src="../../_images/plot_phonon_pjdos.png" />
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos.py">Source code</a>)</p>
+<div class="figure" id="id1">
+<img alt="../../_images/plot_phonon_pjdos_00.png" src="../../_images/plot_phonon_pjdos_00.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_00.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_00.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_00.pdf">pdf</a>)</span></p>
+</div>
+<div class="figure" id="id2">
+<img alt="../../_images/plot_phonon_pjdos_01.png" src="../../_images/plot_phonon_pjdos_01.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phonon_pjdos_01.pdf">pdf</a>)</span></p>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -91,10 +96,20 @@
 <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="c1"># Read the Phonon DOS from the netcd file produced by anaddb with prtdos 2 and plot the data</span>
-<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb` to open the file in a jupyter notebook.</span>
+<span class="c1"># Read the Phonon DOS from the netcdf file produced by anaddb with prtdos 2</span>
+<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook.</span>
 <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">phdos_file</span><span class="p">:</span>
-    <span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_type</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs type-projected phonon DOS&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot PJDOS.</span>
+    <span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_type</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs type-projected phonon DOS&quot;</span><span class="p">)</span>
+
+    <span class="c1"># To have the projection along the reduced directions.</span>
+    <span class="n">phdos_file</span><span class="o">.</span><span class="n">plot_pjdos_redirs_type</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Thz&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Type-projected ph-DOS decomposed along the three reduced directions.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># To plot the PJDOS for the inequivalent sites.</span>
+    <span class="c1">#phdos_file.plot_pjdos_redirs_site(view=&quot;inequivalent&quot;)</span>
 </pre></div>
 </div>
 </div>

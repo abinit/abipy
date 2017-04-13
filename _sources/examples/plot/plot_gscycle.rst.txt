@@ -18,7 +18,8 @@ plot example code: plot_gscycle.py
     import abipy.data as abidata
     
     # Open the output file with GS calculation (Note the .abo extension).
-    # Alternatively, one can use `abiopen.py run.abo -nb` to generate a jupyter notebook.
+    # Alternatively, one can use `abiopen.py run.abo -nb`
+    # to generate a jupyter notebook.
     abo = abiopen(abidata.ref_file("refs/si_ebands/run.abo"))
     
     # Plot all SCF-GS sections found in the output file.

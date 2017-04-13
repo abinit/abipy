@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>plot example code: plot_efatbands_lm.py &#8212; abipy 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="plot example code: plot_efatbands_spin.py" href="plot_efatbands_spin.html" />
+    <link rel="prev" title="plot example code: plot_efatbands.py" href="plot_efatbands.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">plot Examples</a><ul>
+      <li>Previous: <a href="plot_efatbands.html" title="previous chapter">plot example code: plot_efatbands.py</a></li>
+      <li>Next: <a href="plot_efatbands_spin.html" title="next chapter">plot example code: plot_efatbands_spin.py</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/examples/plot/plot_efatbands_lm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="plot-example-code-plot-efatbands-lm-py">
+<span id="plot-plot-efatbands-lm"></span><h1>plot example code: plot_efatbands_lm.py<a class="headerlink" href="#plot-example-code-plot-efatbands-lm-py" title="Permalink to this headline">¶</a></h1>
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_efatbands_lm.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_efatbands_lm.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_efatbands_lm.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_efatbands_lm.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../../_images/plot_efatbands_lm.png" src="../../_images/plot_efatbands_lm.png" />
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This example shows how to plot the LM-projected fatbands.</span>
+<span class="sd">The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+
+<span class="n">fbnc_kpath</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
+
+<span class="c1"># NC files have contributions up to L = 4 (g channel)</span>
+<span class="c1"># but here we are intererested in s,p,d terms only so we use the optional argument lmax</span>
+<span class="n">lmax</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># we are not interested in a small energy window around the Fermi level.</span>
+<span class="n">elims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># and a subset of bands (remember that in python we start to count from 0)</span>
+<span class="n">blist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="c1"># Plot fatbands with LM character up to lmax.</span>
+<span class="c1"># The grid contains (lmax + 1) columns, each column has (2l + 1) subplots</span>
+<span class="c1"># corresponding to the LM character for M in [-l, -l-1, ... 0, 1, +l].</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_mview</span><span class="p">(</span><span class="n">iatom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span>
+                               <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+                               <span class="n">title</span><span class="o">=</span><span class="s2">&quot;LM fatbands for atom index 0&quot;</span><span class="p">)</span>
+
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, The AbiPy group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../../_sources/examples/plot/plot_efatbands_lm.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

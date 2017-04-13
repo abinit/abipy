@@ -109,21 +109,22 @@
 
 <span class="c1"># Plot the imaginary part of the macroscopic</span>
 <span class="c1"># dielectric function (EXC, RPA, GWRPA) between 2 and 5 eV.</span>
-<span class="n">xlim</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si absorption spectrum: EXC vs RPA (averaged over small q-points)&quot;</span>
-<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">)</span>
+<span class="n">xlims</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">xlims</span><span class="p">,</span>
+                   <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Si absorption spectrum: EXC vs RPA (averaged over small q-points)&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the real part for the first q-point --&gt; 0</span>
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Real part for the first q-point: EXC vs RPA&quot;</span>
-<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">)</span>
+<span class="n">mdf_file</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="n">xlims</span><span class="p">,</span>
+                   <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Real part for the first q-point: EXC vs RPA&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the 6 different components of the macroscopic dielectric tensor</span>
 <span class="n">tensor_exc</span> <span class="o">=</span> <span class="n">mdf_file</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="s2">&quot;exc&quot;</span><span class="p">)</span>
 <span class="n">tensor_exc</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">(</span><span class="n">mdf_file</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
 <span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Si macroscopic dielectric tensor (Reduced coord)&quot;</span><span class="p">)</span>
 
-<span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Si macroscopic dielectric tensor (Cartesian coord)&quot;</span>
-<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">red_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">tensor_exc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">red_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Si macroscopic dielectric tensor (Cartesian coord)&quot;</span><span class="p">)</span>
 
 <span class="n">mdf_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>

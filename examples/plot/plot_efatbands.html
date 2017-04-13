@@ -27,7 +27,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_ejdos.py" href="plot_ejdos.html" />
+    <link rel="next" title="plot example code: plot_efatbands_lm.py" href="plot_efatbands_lm.html" />
     <link rel="prev" title="plot example code: plot_edos_vs_broad.py" href="plot_edos_vs_broad.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -49,7 +49,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
       <li>Previous: <a href="plot_edos_vs_broad.html" title="previous chapter">plot example code: plot_edos_vs_broad.py</a></li>
-      <li>Next: <a href="plot_ejdos.html" title="next chapter">plot example code: plot_ejdos.py</a></li>
+      <li>Next: <a href="plot_efatbands_lm.html" title="next chapter">plot example code: plot_efatbands_lm.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -117,40 +117,50 @@
 <span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="k">as</span> <span class="nn">abilab</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
-<span class="c1"># Open the file (alternatively one can use the shell and `abiopen.py FILE -nb` to open the file in a jupyter notebook</span>
-<span class="c1"># This fatbands file has been produced on a k-path so it&#39;s not suitable for DOS calculations.</span>
+<span class="c1"># Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook</span>
+<span class="c1"># This file has been produced on a k-path so it&#39;s not suitable for DOS calculations.</span>
 <span class="n">fbnc_kpath</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;mgb2_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># Print file info (dimensions, variables ...)</span>
 <span class="c1"># Note that prtdos = 3, so LM decomposition is not available.</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
 
+
 <span class="c1"># Plot the k-points belonging to the path.</span>
 <span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 
+<span class="c1"># NC files have contributions up to L=4 (g channel)</span>
+<span class="c1"># but here we are intererested in s,p,d terms only so</span>
+<span class="c1"># we use the optional argument lmax</span>
+<span class="n">lmax</span> <span class="o">=</span> <span class="mi">2</span>
+
 <span class="c1"># Plot the electronic fatbands grouped by atomic type.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Plot the electronic fatbands grouped by L.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Now we read another FATBANDS file produced on 18x18x18 k-mesh</span>
 <span class="n">fbnc_kmesh</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;mgb2_kmesh181818_FATBANDS.nc&quot;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">fbnc_kmesh</span><span class="p">)</span>
 <span class="c1">#fbnc_kmesh.ebands.kpoints.plot()</span>
 
 <span class="c1"># Plot the L-PJDOS grouped by atomic type.</span>
-<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Plot the L-PJDOS grouped by L.</span>
-<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.</span>
 <span class="c1"># The data for the DOS is taken from pjdosfile.</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span>
+                                    <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># fatbands + PJDOS grouped by L</span>
-<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span>
+                                    <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>

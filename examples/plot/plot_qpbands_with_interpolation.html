@@ -119,11 +119,13 @@
 
 <span class="n">ks_edos</span> <span class="o">=</span> <span class="n">ks_ebands_kmesh</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
 
-<span class="c1"># Interpolate the QP corrections and use the interpolated values to correct the KS energies</span>
-<span class="c1"># stored in ks_ebands_kpath and ks_ebands_kmesh.</span>
+<span class="c1"># Interpolate the QP corrections and use the interpolated values to correct</span>
+<span class="c1"># the KS energies stored in `ks_ebands_kpath` and `ks_ebands_kmesh`.</span>
+<span class="c1">#</span>
 <span class="c1"># The QP energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.</span>
 <span class="c1"># Note that the KS energies are optional but this is the recommended approach</span>
 <span class="c1"># because the code will interpolate the corrections instead of the QP energies.</span>
+
 <span class="n">r</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">lpratio</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                        <span class="n">ks_ebands_kpath</span><span class="o">=</span><span class="n">ks_ebands_kpath</span><span class="p">,</span>
                        <span class="n">ks_ebands_kmesh</span><span class="o">=</span><span class="n">ks_ebands_kmesh</span>
@@ -142,8 +144,8 @@
 <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;GW (interpolated)&quot;</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">qp_ebands_kpath</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="n">qp_edos</span><span class="p">)</span>
 
 <span class="c1"># Get pandas dataframe with band structure parameters.</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="c1">#df = plotter.get_ebands_frame()</span>
+<span class="c1">#print(df)</span>
 
 <span class="c1"># By default, the two band energies are shifted wrt to *their* fermi level.</span>
 <span class="c1"># Use e=0 if you don&#39;t want to shift the eigenvalus</span>

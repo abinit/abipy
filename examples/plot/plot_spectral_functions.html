@@ -94,8 +94,10 @@
 <span class="c1"># Open the file with the GW results</span>
 <span class="n">sigma_file</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;al_g0w0_sigmaw_SIGRES.nc&quot;</span><span class="p">))</span>
 
-<span class="c1"># Plot A(w) for the first spin, the gamma point, and bands in [0,1,2,3]</span>
-<span class="n">sigma_file</span><span class="o">.</span><span class="n">plot_spectral_functions</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">bands</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="c1"># Plot A(w) for the first spin, the gamma point, and bands in [0, 1, 2, 3]</span>
+<span class="n">sigma_file</span><span class="o">.</span><span class="n">plot_spectral_functions</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">bands</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">sigma_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>

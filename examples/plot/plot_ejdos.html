@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="plot example code: plot_funcs.py" href="plot_funcs.html" />
-    <link rel="prev" title="plot example code: plot_efatbands.py" href="plot_efatbands.html" />
+    <link rel="prev" title="plot example code: plot_efatbands_spin.py" href="plot_efatbands_spin.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -48,7 +48,7 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
-      <li>Previous: <a href="plot_efatbands.html" title="previous chapter">plot example code: plot_efatbands.py</a></li>
+      <li>Previous: <a href="plot_efatbands_spin.html" title="previous chapter">plot example code: plot_efatbands_spin.py</a></li>
       <li>Next: <a href="plot_funcs.html" title="next chapter">plot example code: plot_funcs.py</a></li>
   </ul></li>
   </ul></li>
@@ -102,12 +102,13 @@
 
 <span class="c1"># Select the valence and conduction bands to include in the JDOS</span>
 <span class="c1"># Here we include valence bands from 0 to 3 and the first conduction band (4).</span>
-<span class="n">vrange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">crange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">vrange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">crange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
-<span class="c1"># Plot data.</span>
+<span class="c1"># Plot joint-DOS.</span>
 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ejdosvc</span><span class="p">(</span><span class="n">vrange</span><span class="p">,</span> <span class="n">crange</span><span class="p">)</span>
 
+<span class="c1"># Plot decomposition of joint-DOS in terms of v --&gt; c transitions</span>
 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ejdosvc</span><span class="p">(</span><span class="n">vrange</span><span class="p">,</span> <span class="n">crange</span><span class="p">,</span> <span class="n">cumulative</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>

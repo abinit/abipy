@@ -27,7 +27,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_phthermo.py" href="plot_phthermo.html" />
+    <link rel="next" title="plot example code: plot_phonons_lo_to.py" href="plot_phonons_lo_to.html" />
     <link rel="prev" title="plot example code: plot_phonon_pjdos.py" href="plot_phonon_pjdos.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -49,7 +49,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
       <li>Previous: <a href="plot_phonon_pjdos.html" title="previous chapter">plot example code: plot_phonon_pjdos.py</a></li>
-      <li>Next: <a href="plot_phthermo.html" title="next chapter">plot example code: plot_phthermo.py</a></li>
+      <li>Next: <a href="plot_phonons_lo_to.html" title="next chapter">plot example code: plot_phonons_lo_to.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -92,7 +92,8 @@
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># Open PHBST file produced by anaddb and extract the phonon bands object.</span>
-<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb` to open the file in a jupyter notebook.</span>
+<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook.</span>
 <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
     <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
 

@@ -27,7 +27,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_phmarkers.py" href="plot_phmarkers.html" />
+    <link rel="next" title="plot example code: plot_phonon_fatbands.py" href="plot_phonon_fatbands.html" />
     <link rel="prev" title="plot example code: plot_phbands_and_dos.py" href="plot_phbands_and_dos.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -49,7 +49,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
       <li>Previous: <a href="plot_phbands_and_dos.html" title="previous chapter">plot example code: plot_phbands_and_dos.py</a></li>
-      <li>Next: <a href="plot_phmarkers.html" title="next chapter">plot example code: plot_phmarkers.py</a></li>
+      <li>Next: <a href="plot_phonon_fatbands.html" title="next chapter">plot example code: plot_phonon_fatbands.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -101,6 +101,7 @@
 <span class="sd">This example shows how to plot several phonon band structures on a grid.</span>
 
 <span class="sd">We use two files produced by anaddb:</span>
+
 <span class="sd">    trf2_5.out_PHBST.nc: phonon frequencies on a q-path in the BZ (used to plot the band dispersion)</span>
 <span class="sd">    trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</span>
 
@@ -121,8 +122,8 @@
 <span class="n">plotter</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;BoxPlot in cm-1&quot;</span><span class="p">)</span>
 <span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Ha&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;CombiboxPlot in Ha&quot;</span><span class="p">)</span>
 
-<span class="c1"># To plot a grid with band structures + DOS, use the optional argument `phdos`of add_phbands</span>
-<span class="c1"># The first subplot will get the band dispersion from phbst_paths[0] and the dos from phdos_paths[0]</span>
+<span class="c1"># To plot a grid with band structures + DOS, use the optional argument `phdos` of add_phbands</span>
+<span class="c1"># The first subplot gets the band dispersion from phbst_paths[0] and the dos from phdos_paths[0]</span>
 <span class="n">phbst_paths</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">)]</span>
 <span class="n">phdos_paths</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">)]</span>
 

@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="plot example code: plot_qpbands_with_interpolation.py" href="plot_qpbands_with_interpolation.html" />
-    <link rel="prev" title="plot example code: plot_phonons.py" href="plot_phonons.html" />
+    <link rel="prev" title="plot example code: plot_phonons_lo_to.py" href="plot_phonons_lo_to.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -48,7 +48,7 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
-      <li>Previous: <a href="plot_phonons.html" title="previous chapter">plot example code: plot_phonons.py</a></li>
+      <li>Previous: <a href="plot_phonons_lo_to.html" title="previous chapter">plot example code: plot_phonons_lo_to.py</a></li>
       <li>Next: <a href="plot_qpbands_with_interpolation.html" title="next chapter">plot example code: plot_qpbands_with_interpolation.py</a></li>
   </ul></li>
   </ul></li>
@@ -79,14 +79,9 @@
             
   <div class="section" id="plot-example-code-plot-phthermo-py">
 <span id="plot-plot-phthermo"></span><h1>plot example code: plot_phthermo.py<a class="headerlink" href="#plot-example-code-plot-phthermo-py" title="Permalink to this headline">¶</a></h1>
-<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phthermo.py">Source code</a>)</p>
-<div class="figure" id="id1">
-<img alt="../../_images/plot_phthermo_00.png" src="../../_images/plot_phthermo_00.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_00.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_00.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_00.pdf">pdf</a>)</span></p>
-</div>
-<div class="figure" id="id2">
-<img alt="../../_images/plot_phthermo_01.png" src="../../_images/plot_phthermo_01.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo_01.pdf">pdf</a>)</span></p>
+<p>(<a class="reference external" href="../../../abipy/examples/plot/plot_phthermo.py">Source code</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_phthermo.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../../_images/plot_phthermo.png" src="../../_images/plot_phthermo.png" />
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -108,9 +103,10 @@
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Zero point energy:&quot;</span><span class="p">,</span> <span class="n">zpe</span><span class="p">,</span> <span class="n">zpe</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;J&quot;</span><span class="p">),</span> <span class="n">zpe</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">))</span>
 
 <span class="c1"># Compute free energy from 2 to 300 K (20 points)</span>
-<span class="c1"># By default, energies are is eV and thermodynamic quantities are given on a per-unit-cell basis.</span>
+<span class="c1"># By default, energies are is eV and thermodynamic quantities are given</span>
+<span class="c1"># on a per-unit-cell basis.</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">phdos</span><span class="o">.</span><span class="n">get_free_energy</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-<span class="n">f</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="c1">#f.plot()</span>
 
 <span class="c1"># Plot U, F, S, Cv as a function of T.</span>
 <span class="c1"># Use J/mol units, results are divided by formula_units.</span>

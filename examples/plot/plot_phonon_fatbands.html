@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="plot example code: plot_phonon_pjdos.py" href="plot_phonon_pjdos.html" />
-    <link rel="prev" title="plot example code: plot_phmarkers.py" href="plot_phmarkers.html" />
+    <link rel="prev" title="plot example code: plot_phbands_grid.py" href="plot_phbands_grid.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -48,7 +48,7 @@
 <ul>
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
-      <li>Previous: <a href="plot_phmarkers.html" title="previous chapter">plot example code: plot_phmarkers.py</a></li>
+      <li>Previous: <a href="plot_phbands_grid.html" title="previous chapter">plot example code: plot_phbands_grid.py</a></li>
       <li>Next: <a href="plot_phonon_pjdos.html" title="next chapter">plot example code: plot_phonon_pjdos.py</a></li>
   </ul></li>
   </ul></li>
@@ -95,18 +95,23 @@
 <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHBST.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
     <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
 
-<span class="c1"># Mapping reduced coordinates -&gt; labels</span>
-<span class="n">qlabels</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">):</span> <span class="s2">&quot;$\Gamma$&quot;</span><span class="p">,</span>
-    <span class="p">(</span><span class="mf">0.375</span><span class="p">,</span> <span class="mf">0.375</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">):</span> <span class="s2">&quot;K&quot;</span><span class="p">,</span>
-    <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span>
-    <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">):</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span>
-    <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">):</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span>
-    <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">):</span> <span class="s2">&quot;W&quot;</span><span class="p">,</span>
-<span class="p">}</span>
+<span class="c1"># Mapping reduced coordinates -&gt; labels (optional)</span>
+<span class="c1">#qlabels = {</span>
+<span class="c1">#    (0,0,0): &quot;$\Gamma$&quot;,</span>
+<span class="c1">#    (0.375, 0.375, 0.75): &quot;K&quot;,</span>
+<span class="c1">#    (0.5, 0.5, 1.0): &quot;X&quot;,</span>
+<span class="c1">#    (0.5, 0.5, 0.5): &quot;L&quot;,</span>
+<span class="c1">#    (0.5, 0.0, 0.5): &quot;X&quot;,</span>
+<span class="c1">#    (0.5, 0.25, 0.75): &quot;W&quot;,</span>
+<span class="c1">#}</span>
 
 <span class="c1"># Plot the phonon band structure.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">)</span> <span class="c1">#, qlabels=qlabels)</span>
+
+<span class="c1"># Plot the phonon band structure + PJDOS</span>
+<span class="n">phdos_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Thz&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="n">phdos_path</span><span class="p">,</span>
+                      <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands with PJDOS&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
