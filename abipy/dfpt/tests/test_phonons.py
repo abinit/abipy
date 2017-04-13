@@ -56,7 +56,7 @@ class PhononBandsTest(AbipyTest):
         same_phbands = PhononBands.as_phbands(tmp_path)
         self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
 
-        self.assertEqual(phbands.minfreq, 0.0)
+        assert phbands.minfreq == 0.0
         #self.assertEqual(phbands.maxfreq, 30)
 
         # Test XYZ vib
@@ -168,6 +168,7 @@ class PhbstFileTest(AbipyTest):
 class PhononBandsPlotterTest(AbipyTest):
 
     def test_phbands_plotter(self):
+        """Testing phbands plotter."""
         phbst_paths = 2 * [abidata.ref_file("trf2_5.out_PHBST.nc")]
         phdos_paths = 2 * [abidata.ref_file("trf2_5.out_PHDOS.nc")]
 
@@ -229,7 +230,7 @@ class PhononDosTest(AbipyTest):
         same_phdos == phdos
 
     def test_from_phdosfile(self):
-        """Test PHDOS from netcdf file."""
+        """Testing PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
         repr(ncfile); str(ncfile)
         assert hasattr(ncfile, "structure")
@@ -271,6 +272,7 @@ class PhononDosTest(AbipyTest):
 class PhononDosPlotterTest(AbipyTest):
 
     def test_phdos_plotter(self):
+        """Testing PhononDosPlotter."""
         phdos_paths = 2 * [abidata.ref_file("trf2_5.out_PHDOS.nc")]
 
         plotter = PhononDosPlotter()
@@ -318,7 +320,7 @@ class InteratomicForceConstantsTest(AbipyTest):
         self.assert_equal(np.shape(data), (56, 3, 3))
 
     def test_plot(self):
-        """Test IFC plot."""
+        """Testing IFC plot."""
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib missing")
 
@@ -330,7 +332,7 @@ class InteratomicForceConstantsTest(AbipyTest):
 class NonAnalyticalPhTest(AbipyTest):
 
     def test_read_from_file(self):
-        """Test non-analytical."""
+        """Testing non-analytical terms."""
         # no becs, so no splitting. The test only checks the parsing
         with DdbFile(os.path.join(test_dir, "ZnO_gamma_becs_DDB")) as ddb:
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)

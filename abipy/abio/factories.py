@@ -1103,71 +1103,6 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
 
     return multi
 
-    # gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
-    #
-    # # Set the cutoff energies.
-    # gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
-    #
-    # ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
-    # gs_inp.set_vars(ksampling.to_abivars())
-    # gs_inp.set_vars(tolvrs=1.0e-18)
-    #
-    # scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-    #                                charge=charge, nband=None, fband=None)
-    #
-    # if scf_electrons.nband is None:
-    #     scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
-    # gs_inp.set_vars(scf_electrons.to_abivars())
-
-    #
-    # # Add the ddk input
-    # ddk_inp = gs_inp.deepcopy()
-    #
-    # ddk_inp.set_vars(
-    #             rfelfd=2,             # Activate the calculation of the d/dk perturbation
-    #             rfdir=(1,1,1),        # All directions
-    #             nqpt=1,               # One wavevector is to be considered
-    #             qpt=(0, 0, 0),        # q-wavevector.
-    #             kptopt=2,             # Take into account time-reversal symmetry.
-    #             iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
-    #         )
-    # if ddk_tol is None:
-    #     ddk_tol = {"tolwfr": 1.0e-20}
-    #
-    # if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-    #     raise ValueError("Invalid tolerance: {}".format(ddk_tol))
-    # ddk_inp.pop_tolerances()
-    # ddk_inp.set_vars(ddk_tol)
-    #
-    # ddk_inp.add_tags(DDK)
-    # all_inps.append(ddk_inp)
-    #
-    # # Add the Response Function calculation
-    # rf_inp = gs_inp.deepcopy()
-    #
-    # rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
-    #                 rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
-    #                 rfstrs=3,                          # Do the strain perturbations
-    #                 rfdir=(1,1,1),                     # All directions
-    #                 nqpt=1,                            # One wavevector is to be considered
-    #                 qpt=(0, 0, 0),                     # q-wavevector.
-    #                 kptopt=2,                          # Take into account time-reversal symmetry.
-    #                 iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
-    #                 )
-    #
-    # if rf_tol is None:
-    #     rf_tol = {"tolvrs": 1.0e-12}
-    #
-    # if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-    #     raise ValueError("Invalid tolerance: {}".format(rf_tol))
-    # rf_inp.pop_tolerances()
-    # rf_inp.set_vars(rf_tol)
-    #
-    # rf_inp.add_tags([DFPT, STRAIN])
-    # all_inps.append(rf_inp)
-    #
-    # return MultiDataset.from_inputs(all_inps)
-
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
@@ -1245,7 +1180,7 @@ def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=Fals
 
     if pdos:
         # FIXME
-        pass
+        raise NotImplementedError()
 
     return dos_input
 

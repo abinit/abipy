@@ -28,10 +28,11 @@ class DdbTest(AbipyTest):
             h = ddb.header
             assert h.version == 100401 and h.ecut == 3
             assert "ecut" in h and h["ecut"] == h.ecut
+            assert "ixc" in ddb.params
+            assert ddb.params["ixc"] == 7
             assert h.occ == 4 * [2]
             assert h.xred.shape == (h.natom, 3) and h.kpt.shape == (h.nkpt, 3)
-            print(h.znucl)
-            assert "ecut" in ddb.params
+            self.assert_equal(h.znucl, [13, 33])
             assert ddb.version == 100401
 
             assert np.all(h.symrel[1].T.ravel() == [0, -1, 1, 0, -1, 0, 1, -1, 0])
@@ -69,7 +70,7 @@ class DdbTest(AbipyTest):
             if self.has_nbformat():
                 ddb.write_notebook(nbpath=self.get_tmpname(text=True))
 
-            # Test blocks parsing.
+            # Test block parsing.
             blocks = ddb._read_blocks()
             assert len(blocks) == 1
             assert blocks[0]["qpt"] == [0.25, 0, 0]
@@ -152,6 +153,7 @@ class DdbTest(AbipyTest):
 
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
+        str(ifc); repr(ifc)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
@@ -166,11 +168,12 @@ class DdbTest(AbipyTest):
 class DielectricTensorGeneratorTest(AbipyTest):
 
     def test_base(self):
-        """Base tests for DielectricTensor"""
+        """Testing DielectricTensor"""
         anaddbnc_fname = abidata.ref_file("AlAs_nl_dte_anaddb.nc")
         phbstnc_fname = abidata.ref_file("AlAs_nl_dte_PHBST.nc")
 
         d = DielectricTensorGenerator.from_files(phbstnc_fname, anaddbnc_fname)
+        repr(d); str(d)
 
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
 

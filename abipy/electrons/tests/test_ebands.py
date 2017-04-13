@@ -16,7 +16,7 @@ from abipy.core.testing import AbipyTest
 class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
-        """Test ElectronsReader with WFK file."""
+        """Testing ElectronsReader with WFK file."""
 
         with ElectronsReader(abidata.ref_file("si_scf_WFK.nc")) as r:
             kpoints = r.read_kpoints()
@@ -35,7 +35,7 @@ class EbandsReaderTest(AbipyTest):
 class ElectronBandsTest(AbipyTest):
 
     def test_nickel_ebands_spin(self):
-        """Test Nickel electron bands with nsppol == 2"""
+        """Testing Nickel electron bands with nsppol == 2"""
         ref_nelect = 18
         ni_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("ni_666k_GSR.nc"))
         assert ElectronBands.as_ebands(ni_ebands_kmesh) is ni_ebands_kmesh
@@ -105,7 +105,7 @@ class ElectronBandsTest(AbipyTest):
         pmg_bands_kmesh = ni_ebands_kmesh.to_pymatgen()
 
     def test_silicon_ebands(self):
-        """Test electron bands with nsppol == 1"""
+        """Testing electron bands with nsppol == 1"""
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         assert not si_ebands_kmesh.has_metallic_scheme
         repr(si_ebands_kmesh); str(si_ebands_kmesh)
@@ -254,6 +254,7 @@ class ElectronBandsTest(AbipyTest):
             si_ebands_kpath.get_ejdos(spin, 0, 4)
 
     def test_ebands_skw_interpolation(self):
+        """Testing SKW interpolation."""
         if sys.version[0:3] >= '3.4':
             raise unittest.SkipTest(
                 "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
@@ -326,7 +327,7 @@ class ElectronBandsTest(AbipyTest):
 class ElectronBandsPlotterTest(AbipyTest):
 
     def test_ebands_plotter(self):
-        """Test ElelectronBandsPlotter."""
+        """Testing ElelectronBandsPlotter."""
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
         repr(plotter); str(plotter)
@@ -364,7 +365,7 @@ class ElectronBandsPlotterTest(AbipyTest):
 class ElectronDosPlotterTest(AbipyTest):
 
     def test_api(self):
-        """Test ElelectronDosPlotter API."""
+        """Testing ElelectronDosPlotter API."""
         gsr_path = abidata.ref_file("si_scf_GSR.nc")
         gs_bands = ElectronBands.from_file(gsr_path)
         si_edos = gs_bands.get_edos()

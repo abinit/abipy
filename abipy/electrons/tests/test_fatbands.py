@@ -69,7 +69,8 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.ebands.kpoints.is_path
         assert not fbnc_kpath.ebands.kpoints.is_ibz
         assert fbnc_kpath.prtdos == 3
-        #assert fbnc_kpath.prtdosm == 0
+        assert fbnc_kpath.prtdosm == 1
+
         assert fbnc_kpath.mbesslang == 5
         assert fbnc_kpath.pawprtdos == 0
         assert fbnc_kpath.usepaw == 0
@@ -92,6 +93,7 @@ class TestElectronFatbands(AbipyTest):
         repr(fbnc_kmesh); str(fbnc_kmesh)
         assert fbnc_kmesh.ebands.kpoints.is_ibz
         assert fbnc_kmesh.ebands.has_metallic_scheme
+        assert fbnc_kmesh.prtdosm == 0
 
         if self.has_matplotlib():
             for combined_spins, stacked in itertools.product([True, False], [True, False]):
@@ -112,8 +114,9 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kpath.plot_pawdos_terms() is None
             #assert fbnc_kpath.plot_pjdos_spinor() is None
             # TODO
-            #assert fbnc_kmesh.plot_fatbands_mview(iatom=0, show=False) is not None
-            #assert fbnc_kpath.plot_fatbands_mview(iatom=0, show=False) is None
+            assert fbnc_kmesh.plot_fatbands_mview(iatom=0, show=False) is None
+            assert fbnc_kpath.plot_fatbands_mview(iatom=0, lmax=2, fact=1.5,
+                ylims=[-1.5, +1.0], blist=list(range(4, 10)), show=False) is not None
 
         fbnc_kpath.close()
         fbnc_kmesh.close()

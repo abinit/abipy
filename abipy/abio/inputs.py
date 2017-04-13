@@ -406,26 +406,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     #def __ne__(self, other)
     #    return not self.__eq__(other)
 
-    #@abc.property
-    #def runlevel(self):
-    #    """String defining the Runlevel. See _runl2optdriver."""
-    # Mapping runlevel --> optdriver variable
-    #_runl2optdriver = {
-    #    "scf": 0,
-    #    "nscf": 0,
-    #    "relax": 0,
-    #    "dfpt": 1,
-    #    "screening": 3,
-    #    "sigma": 4,
-    #    "bse": 99,
-    #}
-    #    # Find the value of optdriver (firt in self, then in globals finally use default value.
-    #    optdriver = self.get("optdriver")
-    #    if optdriver is None: optdriver = self.dt0.get("optdriver")
-    #    if optdriver is None: optdriver = 0
-
-    #    # At this point we have to understand the type of calculation.
-
     @property
     def runlevel(self):
         """
@@ -517,7 +497,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """True if spell checking is activated."""
         try:
             return self._spell_check
-        except AttributeError: # This is to maintain compatibility with pickle
+        except AttributeError: # TODO: This is to maintain compatibility with pickle
             return False
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
@@ -2020,7 +2000,7 @@ class MultiDataset(object):
         """
         root, ext = os.path.splitext(filepath)
         for i, inp in enumerate(self):
-            p = root + str(i) + ext
+            p = root + "DS%d" % i + ext
             inp.write(filepath=p)
 
 
@@ -2210,7 +2190,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 value, eunit = dos_method[i+1:].split()
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
-            raise cls.Error("Wrong value for dos_method: %s" % str(dos_method))
+            raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)

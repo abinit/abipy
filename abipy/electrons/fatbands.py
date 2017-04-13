@@ -179,7 +179,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         Numpy array of shape [natom, mbesslang**2, nsppol, mband, nkpt]
         with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0
         """
-        return self._read_walm_sbk(key="dos_fractions")
+        return self._read_walm_sbk(key="dos_fractions_m")
 
     def _read_wal_sbk(self, key="dos_fractions"):
         # Read dos_fraction_m from file and build wal_sbk array of shape
@@ -568,7 +568,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_mview(self, iatom, e0="fermie", fact=3.0, lmax=None,
+    def plot_fatbands_mview(self, iatom, e0="fermie", fact=1.0, lmax=None,
                             ylims=None, blist=None, **kwargs):
         """
         Plot the electronic fatbands grouped by LM.
@@ -589,8 +589,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             `matplotlib` figure
         """
         # TODO
-        if self.nsppol == 2:
-            raise NotImplementedError("To be tested with spin")
+        #if self.nsppol == 2:
+        #    raise NotImplementedError("To be tested with spin")
 
         if not (self.prtdos == 3 and self.prtdosm != 0):
             cprint("Fatbands plots with LM-character require `prtdos = 3 and prtdosm != 0`", "red")
@@ -606,6 +606,8 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         gspec = GridSpec(nrows=nrows, ncols=ncols)
         gspec.update(wspace=0.1, hspace=0.1)
 
+        # Build plot grid (L along the column, each L has 2L+1 subplots).
+        # ax_lim[(l, im)] gives the axis.
         ax_lim = {}
         for im in range(nrows):
             for l in range(ncols):
@@ -615,6 +617,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 if im < 2*l + 1:
                     #ax.set_title("l=%d, m=%d" % (l, im - l))
                     ax_lim[k] = ax
+                    ax.grid(True)
                 else:
                     ax.axis("off")
 
@@ -635,6 +638,7 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
 
             for spin in range(self.nsppol):
                 for band in mybands:
+                    #print("band:", band)
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
 
@@ -871,47 +875,48 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
     #    axlist[0].legend(loc="best")
     #    return fig
 
-    def nelect_in_spheres(self, start_energy=None, stop_energy=None,
-                         method="gaussian", step=0.1, width=0.2):
-        """
-        Print the number of electrons inside each atom-centered sphere.
-        Note that this is a very crude estimate of the charge density distribution.
+    # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
+    #def nelect_in_spheres(self, start_energy=None, stop_energy=None,
+    #                     method="gaussian", step=0.1, width=0.2):
+    #    """
+    #    Print the number of electrons inside each atom-centered sphere.
+    #    Note that this is a very crude estimate of the charge density distribution.
 
-        Args:
-            start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.
-            stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.
-            method: String defining the method for the computation of the DOS.
-            step: Energy step (eV) of the linear mesh.
-            width: Standard deviation (eV) of the gaussian.
-        """
-        intg = self.get_dos_integrator(method, step, width)
-        raise NotImplementedError("")
-        site_edos = intg.site_edos
-        if stop_energy is None: stop_energy = self.ebands.fermie
+    #    Args:
+    #        start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.
+    #        stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.
+    #        method: String defining the method for the computation of the DOS.
+    #        step: Energy step (eV) of the linear mesh.
+    #        width: Standard deviation (eV) of the gaussian.
+    #    """
+    #    intg = self.get_dos_integrator(method, step, width)
+    #    raise NotImplementedError("")
+    #    site_edos = intg.site_edos
+    #    if stop_energy is None: stop_energy = self.ebands.fermie
 
-        # find_mesh_indes returns the first point in the mesh whose value is >= value. -1 if not found
-        edos = site_edos[0]
-        start_spin, stop_spin = {}, {}
-        for spin in self.spins:
-            start = 0
-            if start_energy is not None:
-                start = edos[spin].find_mesh_index(start_energy)
-            if start == -1:
-                raise ValueError("For spin %d: cannot find index in mesh such that mesh[i] >= start." % spin)
-            if start > 0: start -= 1
-            start_spin[spin] = start
+    #    # find_mesh_indes returns the first point in the mesh whose value is >= value. -1 if not found
+    #    edos = site_edos[0]
+    #    start_spin, stop_spin = {}, {}
+    #    for spin in self.spins:
+    #        start = 0
+    #        if start_energy is not None:
+    #            start = edos[spin].find_mesh_index(start_energy)
+    #        if start == -1:
+    #            raise ValueError("For spin %d: cannot find index in mesh such that mesh[i] >= start." % spin)
+    #        if start > 0: start -= 1
+    #        start_spin[spin] = start
 
-            stop = edos[spin].find_mesh_index(stop_energy)
-            if stop == -1:
-                raise ValueError("For spin %d: cannot find index in mesh such that mesh[i] >= energy." % spin)
-            stop_spin[spin] = stop
+    #        stop = edos[spin].find_mesh_index(stop_energy)
+    #        if stop == -1:
+    #            raise ValueError("For spin %d: cannot find index in mesh such that mesh[i] >= energy." % spin)
+    #        stop_spin[spin] = stop
 
-        for iatm, site in enumerate(self.structure):
-            edos = site_edos[iatm]
-            nel_spin = {}
-            for spin in self.spins:
-                nel_spin[spin] = edos[spin].integral(start=start_spin[spin], stop=stop_spin[spin])
-            print("iatom", iatm, "site", site, nel_spin)
+    #    for iatm, site in enumerate(self.structure):
+    #        edos = site_edos[iatm]
+    #        nel_spin = {}
+    #        for spin in self.spins:
+    #            nel_spin[spin] = edos[spin].integral(start=start_spin[spin], stop=stop_spin[spin])
+    #        print("iatom", iatm, "site", site, nel_spin)
 
     def get_dos_integrator(self, method, step, width):
         """
