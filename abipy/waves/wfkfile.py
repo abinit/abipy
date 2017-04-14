@@ -227,7 +227,7 @@ class WFK_Reader(ElectronsReader):
         self.istwfk = self.read_value("istwfk")
         self.npwarr = self.read_value("number_of_coefficients")
 
-        # Gvectors
+        # G-vectors
         self._kg = self.read_value("reduced_coordinates_of_plane_waves")
 
         # Wavefunctions (complex array)

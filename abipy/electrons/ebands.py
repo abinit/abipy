@@ -63,7 +63,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     #def __eq__(self, other):
     #    return (self.spin = other.spin and
     #            self.kpoint == other.kpoint and
-    #            self.band == other.band and
+    #            self.band == other.band and  # ??
     #            self.eig == other.eig
                  # and self.occ == other.occ
     #            )
@@ -722,25 +722,6 @@ class ElectronBands(Has_Structure):
                     dless_states.append(state)
 
         return dless_states
-
-    #def raw_print(self, stream=sys.stdout):
-    #    """Print k-points and energies on stream."""
-    #    stream.write("# Band structure energies in Ev.\n")
-    #    stream.write("# idx   kpt_red(1:3)  ene(b1) ene(b2) ...\n")
-
-    #    fmt_k = lambda k: " %.6f" % k
-    #    fmt_e = lambda e: " %.6f" % e
-    #    for spin in self.spins:
-    #        stream.write("# spin = " + str(spin) + "\n")
-    #        for k, kpoint in enumerate(self.kpoints):
-    #            nb = self.nband_sk[spin,k]
-    #            ene_sk = self.eigens[spin,k,:nb]
-    #            st = str(k+1)
-    #            for c in kpoint: st += fmt_k(c)
-    #            for e in ene_sk: st += fmt_e(e)
-    #            stream.write(st+"\n")
-
-    #    stream.flush()
 
     def to_dataframe(self, e0="fermie"):
         """
@@ -2421,12 +2402,16 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             )
 
     def read_nband_sk(self):
-        """Array with the number of bands indexed by [s,k]."""
+        """Array with the number of bands indexed by [s, k]."""
         return self.read_value("number_of_states")
 
     def read_nspinor(self):
         """Number of spinors."""
         return self.read_dimvalue("number_of_spinor_components")
+
+    def read_nsppol(self):
+        """Number of independent spins (collinear case)."""
+        return self.read_dimvalue("number_of_spins")
 
     def read_nspden(self):
         """Number of spin-density components"""
@@ -2460,7 +2445,10 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             scheme = "".join(c for c in self.read_value("smearing_scheme"))
             scheme = scheme.strip()
         except TypeError as exc:
-            scheme = None
+            #cprint("Error while trying to read `smearing_scheme`. Set scheme to None")
+            #scheme = None
+            scheme = "".join(c.decode("utf-8") for c in self.read_value("smearing_scheme"))
+            scheme = scheme.strip()
 
         return Smearing(
             scheme=scheme,

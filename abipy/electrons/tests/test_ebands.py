@@ -7,7 +7,6 @@ import unittest
 import abipy.data as abidata
 import pymatgen.core.units as units
 
-from abipy.core.kpoints import KpointList
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
     ElectronsReader, frame_from_ebands)
 from abipy.core.testing import AbipyTest
@@ -19,17 +18,41 @@ class EbandsReaderTest(AbipyTest):
         """Testing ElectronsReader with WFK file."""
 
         with ElectronsReader(abidata.ref_file("si_scf_WFK.nc")) as r:
+            nsppol = r.read_nsppol()
+            nspden = r.read_nspden()
+            nspinor = r.read_nspinor()
+            assert nsppol == 1 and nspden == 1 and nspinor == 1
             kpoints = r.read_kpoints()
-            assert isinstance(kpoints, KpointList)
-            #assert len(kpoints) == ??
-            #self.assert_all_equal(self.read_nband_sk == ??))
+            assert kpoints.is_ibz and not kpoints.is_path
+            assert kpoints.weights.sum() == 1
+            nkpt = len(kpoints)
+            assert nkpt == 29
+            assert kpoints.to_array().shape == (nkpt, 3)
+            assert kpoints.ksampling.kptopt == 1
+
+            mband = 8
+            nband_sk = r.read_nband_sk()
+            self.assert_equal(nband_sk, mband)
+            assert nband_sk.shape == (1, nkpt)
 
             eigens = r.read_eigenvalues()
+            assert eigens.shape == (nsppol, nkpt, mband)
+            assert str(eigens.unit) == "eV"
             occfacts = r.read_occupations()
+            assert occfacts.shape == (nsppol, nkpt, mband)
             fermie = r.read_fermie()
-            #assert fermie ==
+            self.assert_almost_equal(fermie.to("Ha"), 0.205739364929578)
             assert r.read_nelect() == 8
-            #smearing = r.read_smearing()
+            smearing = r.read_smearing()
+            repr(smearing); str(smearing)
+            assert smearing.occopt == 1
+            self.assert_almost_equal(smearing.tsmear_ev.to("Ha"), 0.01)
+            assert not smearing.has_metallic_scheme
+            assert smearing.scheme == "none"
+
+            self.assertMSONable(smearing, test_if_subclass=False)
+            assert len(smearing.to_json())
+
 
 
 class ElectronBandsTest(AbipyTest):
@@ -43,12 +66,17 @@ class ElectronBandsTest(AbipyTest):
             ElectronBands.as_ebands(1)
 
         repr(ni_ebands_kmesh); str(ni_ebands_kmesh)
-        #assert ni_ebands_kmesh.smearing == "foo"
         assert ni_ebands_kmesh.nsppol == 2 and ni_ebands_kmesh.nspinor == 1 and ni_ebands_kmesh.nspden == 2
         assert ni_ebands_kmesh.nelect == ref_nelect
         assert ni_ebands_kmesh.kpoints.is_ibz and ni_ebands_kmesh.has_bzmesh and not ni_ebands_kmesh.has_bzpath
         assert ni_ebands_kmesh.has_timrev
         assert ni_ebands_kmesh.has_metallic_scheme
+        smearing = ni_ebands_kmesh.smearing
+        assert smearing.has_metallic_scheme
+        assert smearing.occopt == 7
+        self.assert_almost_equal(smearing.tsmear_ev.to("Ha"), 0.0075)
+        assert smearing.scheme == "gaussian"
+
         ni_ebands_kmesh.copy()
         ni_ebands_kmesh.deepcopy()
 
@@ -91,6 +119,7 @@ class ElectronBandsTest(AbipyTest):
             assert ni_edos.plot_dos_idos(xlims=elims, show=False)
             assert ni_edos.plot_up_minus_down(xlims=elims, show=False)
 
+            # TODO Generaliza jdos to metals.
             #vrange, crange = range(0, 4), range(4, 5)
             #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
             #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
@@ -100,9 +129,17 @@ class ElectronBandsTest(AbipyTest):
                     title="Boxplot for up and down spin and 10 > band >= 5")
 
         # Test Abipy --> Pymatgen converter.
-        # TODO: More tests
         pmg_bands_kpath = ni_ebands_kpath.to_pymatgen()
+        assert hasattr(pmg_bands_kpath, "get_branch")   # Should be BandStructureSymmLine
+        assert pmg_bands_kpath.efermi == ni_ebands_kpath.fermie
+        assert pmg_bands_kpath.is_spin_polarized
+        assert pmg_bands_kpath.is_metal()
+
         pmg_bands_kmesh = ni_ebands_kmesh.to_pymatgen()
+        #assert hasattr(pmg_bands_kmesh, "get_branch")   # Should be BandStructure
+        assert pmg_bands_kmesh.efermi == ni_ebands_kmesh.fermie
+        assert pmg_bands_kmesh.is_spin_polarized
+        assert pmg_bands_kmesh.is_metal()
 
     def test_silicon_ebands(self):
         """Testing electron bands with nsppol == 1"""
@@ -138,7 +175,7 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.stdev, 2.164400652355628)
         self.assert_almost_equal(estats.min, 0)
         self.assert_almost_equal(estats.max, 11.855874158768694)
-        print(estats)
+        str(estats)
 
         with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
@@ -188,7 +225,6 @@ class ElectronBandsTest(AbipyTest):
             assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
-
             vrange, crange = range(0, 4), range(4, 5)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
@@ -225,6 +261,7 @@ class ElectronBandsTest(AbipyTest):
         assert homo.kpoint == [0, 0, 0]
         assert si_ebands_kpath.kpoints[homo.kidx] == homo.kpoint
         self.assert_almost_equal(homo.eig, 5.5983129712050665)
+        assert "eig" in homo.__class__.get_fields()
 
         lumo = si_ebands_kpath.lumos[0]
         assert lumo.spin == 0 and lumo.occ == 0.0 and lumo.band == 4
@@ -244,9 +281,16 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(fun_gap.energy, 0.52433967625601774)
         assert not fun_gap.is_direct
 
-        # TODO: More tests
+        e1 = si_ebands_kpath.lomo_sk(spin=0, kpoint=0)
+        e2 = si_ebands_kpath.lomo_sk(spin=0, kpoint=si_ebands_kpath.kpoints[0])
+        assert e1.eig == e2.eig
+
         # Test abipy-->pymatgen converter
-        pmg_bands = si_ebands_kpath.to_pymatgen()
+        pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
+        assert hasattr(pmg_bands_kpath, "get_branch")  # Should be BandStructureSymmLine
+        assert pmg_bands_kpath.efermi == si_ebands_kpath.fermie
+        assert not pmg_bands_kpath.is_spin_polarized
+        assert not pmg_bands_kpath.is_metal()
 
         # Test the detection of denerate states.
         degs = si_ebands_kpath.degeneracies(spin=0, kpoint=[0, 0, 0], bands_range=range(8))

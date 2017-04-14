@@ -31,4 +31,6 @@ omit =
     abipy/htc/*
     abipy/gui/*
     abipy/gw/*
+    abipy/extensions/*
+    abipy/gw/*
     ./docs/
