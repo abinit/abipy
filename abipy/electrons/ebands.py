@@ -43,6 +43,15 @@ __all__ = [
 ]
 
 
+def is_intlike(obj):
+    """Return true if obj represents an integer (float such as 1.0 are included as well)."""
+    # isinstance(i, numbers.Integral)
+    try:
+        return int(obj) == obj
+    except (ValueError, TypeError):
+        return False
+
+
 class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     """
     Single-particle state.
@@ -81,7 +90,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
         return self.spin, self.kpoint, self.band
 
     def copy(self):
-        return Electron(**{f: copy.copy(getattr(self, f)) for f in self._fields})
+        return self.__class__(**{f: copy.copy(getattr(self, f)) for f in self._fields})
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -577,10 +586,21 @@ class ElectronBands(Has_Structure):
         The index of the k-point in the internal list of k-points.
         Accepts: :class:`Kpoint` instance or integer.
         """
-        if isinstance(kpoint, int):
-            return kpoint
+        #if isinstance(kpoint, int):
+        if is_intlike(kpoint):
+            #print("kindex with int", kpoint)
+            return int(kpoint)
         else:
+            #print("kindex with kpoint", kpoint)
             return self.kpoints.index(kpoint)
+
+        #if hasattr(kpoint, "frac_coords"):
+        #    print("kindex with kpoint", kpoint)
+        #    return self.kpoints.index(kpoint)
+        #else:
+        #    # Assume int-like object.
+        #    assert int(kpoint) == kpoint
+        #    return int(kpoint)
 
     #def sb_iter(self, ik):
     #    """Iterator over (spin, band) indices."""
@@ -854,6 +874,7 @@ class ElectronBands(Has_Structure):
         """
         Build an instance of :class:`Electron` from the spin, kpoint and band index"""
         kidx = self.kindex(kpoint)
+        #print("kidx", kidx)
         eig = self.eigens[spin, kidx, band]
         return Electron(spin=spin,
                         kpoint=self.kpoints[kidx],
@@ -944,12 +965,16 @@ class ElectronBands(Has_Structure):
             blist, enes = [], []
             for k in self.kidxs:
                 # Find leftmost value greater than fermie.
-                b = find_gt(self.eigens[spin,k,:], self.fermie + self.pad_fermie)
+                b = find_gt(self.eigens[spin, k, :], self.fermie + self.pad_fermie)
                 blist.append(b)
-                enes.append(self.eigens[spin,k,b])
+                enes.append(self.eigens[spin, k, b])
 
+            #print("enes", enes)
             lumo_kidx = np.array(enes).argmin()
+            #print("blist:", blist)
             lumo_band = blist[lumo_kidx]
+            #print("lumo_band:", lumo_band)
+            #print("type: lumo_kidx", type(lumo_kidx))
 
             # Build Electron instance.
             lumos[spin] = self._electron_state(spin, lumo_kidx, lumo_band)

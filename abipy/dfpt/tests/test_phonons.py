@@ -151,7 +151,7 @@ class PhbstFileTest(AbipyTest):
             assert frame.qpoint == qpoint
 
             mode0 = ncfile.get_phmode(qpoint, 0)
-            print(mode0)
+            repr(mode0); str(mode0)
             mode0.to_string(with_displ=True)
             assert mode0.qpoint == qpoint
 
@@ -254,7 +254,6 @@ class PhononDosTest(AbipyTest):
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
             assert ncfile.plot_pjdos_redirs_type(units="Thz", stacked=True, show=False)
             assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
-            assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=False, alpha=0.5, show=False)
             assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=True, alpha=0.5, show=False)
 
@@ -268,6 +267,7 @@ class PhononDosTest(AbipyTest):
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
         ncfile.close()
+
 
 class PhononDosPlotterTest(AbipyTest):
 

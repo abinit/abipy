@@ -149,7 +149,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a "MAPI_KEY" in
+                If this is None, the code will check if there is a `PMG_MAPI_KEY` in
                 your .pmgrc.yaml. If so, it will use that environment
                 This makes easier for heavy users to simply add
                 this environment variable to their setups and MPRester can
@@ -166,7 +166,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             api_key = SETTINGS.get("PMG_MAPI_KEY")
             if api_key is None:
                 raise RuntimeError(
-                    "Cannot find MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
+                    "Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
                 )
 
         # Get pytmatgen structure and convert it to abipy structure

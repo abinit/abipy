@@ -219,11 +219,26 @@ class ElectronBandsTest(AbipyTest):
         assert diffs is not None
         repr(diffs); str(diffs)
 
+        homo = si_ebands_kpath.homos[0]
+        repr(homo); str(homo)
+        assert homo.spin == 0 and homo.occ == 2.0 and homo.band == 3
+        assert homo.kpoint == [0, 0, 0]
+        assert si_ebands_kpath.kpoints[homo.kidx] == homo.kpoint
+        self.assert_almost_equal(homo.eig, 5.5983129712050665)
+
+        lumo = si_ebands_kpath.lumos[0]
+        assert lumo.spin == 0 and lumo.occ == 0.0 and lumo.band == 4
+        self.assert_almost_equal(lumo.kpoint.frac_coords, [0.,  0.4285714, 0.4285714])
+        assert si_ebands_kpath.kpoints[lumo.kidx] == lumo.kpoint
+        self.assert_almost_equal(lumo.eig, 6.1226526474610843)
+
         dir_gap = si_ebands_kpath.direct_gaps[0]
         fun_gap = si_ebands_kpath.fundamental_gaps[0]
         assert fun_gap.energy <= dir_gap.energy
         assert dir_gap.qpoint == [0, 0, 0]
         assert dir_gap.is_direct
+        #print("repr_fun_gap", repr(fun_gap), id(fun_gap), id(fun_gap.qpoint))
+        #print("repr_dir_gap", repr(dir_gap), id(dir_gap), id(dir_gap.qpoint))
         self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
         self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.,  0.4285714, 0.4285714])
         self.assert_almost_equal(fun_gap.energy, 0.52433967625601774)
