@@ -1,6 +1,6 @@
 # coding: utf-8
 """Mock objects for unit tests."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import print_function, division, unicode_literals, absolute_import
 
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.tasks import AbinitTask

@@ -75,6 +75,7 @@ def flow_main(main):
 
     return wrapper
 
+
 def build_flow_main_parser():
     """Build the parser used in the abipy/data/runs scripts."""
     import argparse

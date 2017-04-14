@@ -7,6 +7,7 @@ import os
 import six
 import collections
 import tempfile
+import pickle
 
 from time import ctime
 from monty.os.path import which
@@ -105,6 +106,7 @@ class _File(object):
     #        self.close()
     #    finally:
     #        super(_File, self).__close__(self)
+
 
 class TextFile(_File):
 
@@ -474,3 +476,28 @@ from abipy import abilab""")
         with io.open(nbpath, 'wt', encoding="utf8") as fh:
             nbformat.write(nb, fh)
             return nbpath
+
+    @classmethod
+    def pickle_load(cls, filepath):
+        """
+        Loads the object from a pickle file
+        """
+        with open(filepath, "rb") as fh:
+            new = pickle.load(fh)
+            #assert cls is new.__class__
+            return new
+
+    def pickle_dump(self, filepath=None):
+        """
+        Save the status of the object in pickle format.
+        If filepath is None, a temporary file is created.
+
+        Return:
+            name of the pickle file.
+        """
+        if filepath is None:
+            _, filepath = tempfile.mkstemp(suffix='.pickle')
+
+        with open(filepath, "wb") as fh:
+            pickle.dump(self, fh)
+            return filepath

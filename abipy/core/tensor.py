@@ -37,7 +37,7 @@ class Tensor(object):
         self._reduced_tensor = red_tensor
         self._lattice = lattice
         self.space = space
-      
+
         if space == "g":
             self._is_real_space = False
         elif space == "r":
@@ -47,7 +47,7 @@ class Tensor(object):
 
     def __eq__(self, other):
         if other is None:  return False
-        return (np.allclose(self.reduced_tensor, other.reduced_tensor) and 
+        return (np.allclose(self.reduced_tensor, other.reduced_tensor) and
                 self.lattice == other.lattice and
                 self.space == other.space)
 
@@ -55,7 +55,7 @@ class Tensor(object):
         return not self == other
 
     def __repr__(self):
-        return self.to_string() 
+        return self.to_string()
 
     def __str__(self):
         return repr(self)
@@ -107,6 +107,7 @@ class Tensor(object):
         else:
             real_lattice = self._lattice.reciprocal_lattice
 
+        # I guess this is the reason why tensor.symmetrize (omega) is so slow!
         real_finder = SpacegroupAnalyzer(structure)
 
         real_symmops = real_finder.get_point_group_operations(cartesian=True)
@@ -129,10 +130,11 @@ class Tensor(object):
 
 class SymmetricTensor(Tensor):
     """Representation of a 3x3 symmetric tensor"""
+
     @classmethod
     def from_directions(cls, qpoints, values, lattice, space):
         """
-        Build a `SymmetricTensor` from the values computed along 6 directions. 
+        Build a `SymmetricTensor` from the values computed along 6 directions.
 
         Args:
             qpoints: fractional coordinates of 6 independent q-directions

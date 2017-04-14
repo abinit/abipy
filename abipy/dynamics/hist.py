@@ -90,29 +90,29 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """numpy array with total energies in eV at the different steps."""
         return self.reader.read_eterms().etotals
 
-    def export(self, filename, visu=None):
-        """
-        Export the crystalline structure on file filename.
+    #def export(self, filename, visu=None):
+    #    """
+    #    Export the crystalline structure to file filename.
 
-        Args:
-            filename: String specifying the file path and the file format.
-                The format is defined by the file extension. filename="prefix.xsf", for example,
-                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            visu: `Visualizer` subclass. By default, this method returns the first available
-                visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
+    #    Args:
+    #        filename: String specifying the file path and the file format.
+    #            The format is defined by the file extension. filename="prefix.xsf", for example,
+    #            will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+    #        visu: `Visualizer` subclass. By default, this method returns the first available
+    #            visualizer that supports the given file format. If visu is not None, an
+    #            instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
 
-        Returns: Instance of :class:`Visualizer`
-        """
-        print("Warning: work in progress")
-        raise NotImplementedError("typat is missing in HIST --> wrong structures")
+    #    Returns: Instance of :class:`Visualizer`
+    #    """
+    #    print("Warning: work in progress")
+    #    raise NotImplementedError("typat is missing in HIST --> wrong structures")
 
-        if "." not in filename:
-            raise ValueError("Cannot detect extension in filename %s: " % filename)
+    #    if "." not in filename:
+    #        raise ValueError("Cannot detect extension in filename %s: " % filename)
 
-        from abipy.iotools.xsf import xsf_write_structure
-        with open(filename, "w") as fh:
-            xsf_write_structure(fh, self.structures)
+    #    from abipy.iotools.xsf import xsf_write_structure
+    #    with open(filename, "w") as fh:
+    #        xsf_write_structure(fh, self.structures)
 
     @add_fig_kwargs
     def plot(self, axlist=None, **kwargs):

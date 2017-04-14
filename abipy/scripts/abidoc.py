@@ -28,15 +28,15 @@ def print_vlist(vlist, options):
 @prof_main
 def main():
     def str_examples():
-        examples = """\
+        return """\
 Usage example:
+
     abidoc.py man ecut        --> Show documentation for ecut input variable.
     abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw
     abidoc.py list            --> Print full list of variables
     abidoc.py withdim natom   --> Print arrays depending on natom.
 """
-        return examples
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -46,8 +46,7 @@ Usage example:
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
-
+    parser.add_argument('-V', '--version', action='version', version=__version__)
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -66,7 +65,8 @@ Usage example:
     p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
 
     # Subparser for apropos.
-    p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser], help="Find variables related to varname.")
+    p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser],
+                                      help="Find variables related to varname.")
 
     # Subparser for find.
     p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],

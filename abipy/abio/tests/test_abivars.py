@@ -7,10 +7,8 @@ import unittest
 
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.abio.abivars import AbinitInputFile, AbinitInputParser
-
-#AbinitInputFile.verbose = 1
 
 
 class TestAbinitInputParser(AbipyTest):

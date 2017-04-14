@@ -9,6 +9,7 @@ __all__ = [
     "structure_from_ucell",
 ]
 
+
 # Public API
 def ucell_names():
     """List with the name of the entries."""
@@ -25,7 +26,7 @@ def structure_from_ucell(name):
     try:
         return Structure.from_abivars(ucell(name))
     except KeyError:
-        raise KeyError("Cannot find key %s in:\n %s" % (name, _UCELLS.keys()))
+        raise KeyError("Cannot find key %s in:\n %s" % (name, list(_UCELLS.keys())))
 
 
 _UCELLS = {

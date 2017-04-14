@@ -10,7 +10,6 @@ import abc
 import sys
 import six
 import wx
-
 import wx.lib.mixins.listctrl as listmix
 import numpy as np
 

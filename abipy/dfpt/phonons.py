@@ -9,30 +9,68 @@ import pickle
 import os
 import six
 import json
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from monty.string import is_string, list_strings
+from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict
 from monty.functools import lazy_property
-from pymatgen.core.units import Ha_to_eV, eV_to_Ha, Energy
+from monty.termcolor import cprint
+from monty.dev import deprecated
+from pymatgen.core.units import eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian
-from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt
-from abipy.core.abinit_units import amu_emass, Bohr_Ang, kb_eVK, e_Cb, Avogadro, Ha_cmm1
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 
 
 __all__ = [
+    "frame_from_phbands",
     "PhononBands",
     "PhononBandsPlotter",
     "PhbstFile",
     "PhononDos",
+    "PhononDosPlotter",
     "PhdosReader",
     "PhdosFile",
 ]
+
+def _factor_ev2units(units):
+    """
+    Return conversion factor eV --> units (case-insensitive)
+    """
+    eV_to_cm1 = 8065.5440044136285
+    d = {"ev": 1, "mev": 1000, "ha": eV_to_Ha,
+         "cm-1": eV_to_cm1, 'cm^-1': eV_to_cm1, "thz": abu.eV_to_THz,
+         }
+    try:
+        return d[units.lower()]
+    except KeyError:
+        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+
+def _unit_tag(units):
+    d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
+         "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
+         }
+    try:
+        return d[units.lower()]
+    except KeyError:
+        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+
+def _dos_label_from_units(units):
+    d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
+         "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
+         "thz": '[states/Thz]',
+         }
+    try:
+        return d[units.lower()]
+    except KeyError:
+        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
 @functools.total_ordering
@@ -117,11 +155,14 @@ class PhononBands(object):
                                  weights=r.read_qweights(),
                                  names=None)
 
+            # Read amu
             amu_list = r.read_amu()
             if amu_list is not None:
                 atom_species = r.read_value("atomic_numbers")
                 amu = {at: a for at, a in zip(atom_species, amu_list)}
             else:
+                cprint("Warning: file %s does not contain atomic_numbers.\nParticular methods need them!" %
+                        filepath, "red")
                 amu = None
 
             return cls(structure=structure,
@@ -142,6 +183,7 @@ class PhononBands(object):
         """
         if isinstance(obj, cls):
             return obj
+
         elif is_string(obj):
             # path?
             if obj.endswith(".pickle"):
@@ -151,6 +193,7 @@ class PhononBands(object):
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.phbands
+
         elif hasattr(obj, "phbands"):
             # object with phbands
             return obj.phbands
@@ -164,37 +207,30 @@ class PhononBands(object):
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, markers=None, widths=None, non_anal_ph=None,
-                 amu=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None):
         """
         Args:
             structure: :class:`Structure` object.
             qpoints: :class:`KpointList` instance.
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: Displacement in Cartesian coordinates.
-            markers: Optional dictionary containing markers labelled by a string.
-                Each marker is a list of tuple(x, y, s) where x,and y are the position
-                in the graph and s is the size of the marker.
-                Used for plotting purpose e.g. QP data, energy derivatives...
-            widths: Optional dictionary containing data used for the so-called fatbands
-                Each entry is an array of shape [nsppol, nkpt, mband] giving the width
-                of the band at that particular point. Used for plotting purpose e.g. fatbands.
-            non_anal_ph: :class: NonAnalyticalPh containing the information of the non analytical contribution
+            non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
+                None if contribution is not present
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation
         """
         self.structure = structure
 
-        #: :class:`KpointList` with the q-points
+        # `KpointList` with the q-points
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
-        #: numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
+        # numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
         self.phfreqs = phfreqs
 
-        #: phonon displacements in Cartesian coordinates.
-        #: `ndarray` of shape (nqpt, 3*natom, 3*natom).
-        #: The last dimension stores the cartesian components.
+        # phonon displacements in Cartesian coordinates.
+        # `ndarray` of shape (nqpt, 3*natom, 3*natom).
+        # The last dimension stores the cartesian components.
         self.phdispl_cart = phdispl_cart
 
         # Handy variables used to loop.
@@ -202,44 +238,55 @@ class PhononBands(object):
         self.num_branches = 3 * self.num_atoms
         self.branches = range(self.num_branches)
 
-        if markers is not None:
-            for key, xys in markers.items():
-                self.set_marker(key, xys)
-
-        if widths is not None:
-            for key, width in widths.items():
-                self.set_width(key, width)
-
         self.non_anal_ph = non_anal_ph
         self.amu = amu
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, prtvol=0):
-        """String representation."""
-        lines = []
-        app = lines.append
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
+        """
+        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
-        for key, value in self.__dict__.items():
-            if key.startswith("_"): continue
-            if prtvol == 0 and isinstance(value, np.ndarray):
-                continue
-            app("%s = %s" % (key, value))
+        Args:
+            with_structure: False if structural info shoud not be displayed.
+            with_qpoints: False if q-point info shoud not be displayed.
+            verbose: Verbosity level.
+        """
+        tos = str if verbose else repr
+        lines = []; app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
+
+        if with_structure:
+            app(tos(self.structure))
+            app("")
+
+        app("Number of q-points: %d" % self.num_qpoints)
+        app("Atomic mass units: %s" % str(self.amu))
+        has_dipdip = self.non_anal_ph is not None
+        app("Has non-analytical contribution for q --> 0: %s" % has_dipdip)
+        if verbose and has_dipdip:
+            app(str(self.non_anal_ph))
+
+        if with_qpoints:
+            app(marquee("Q-points", mark="="))
+            app(tos(self.qpoints))
+            app("")
 
         return "\n".join(lines)
 
-    def displ_of_specie(self, specie):
-        """Returns the displacement vectors for the given specie."""
-        # TODO recheck the ordering
-        # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
-        #raise NotImplementedError("")
-        displ_specie = []
-        for (i, site) in enumerate(self.structure):
-            if site.specie == specie:
-                displ_specie.append(self.phdispl_cart[:, :, i, :])
+    #def displ_of_specie(self, specie):
+    #    """Returns the displacement vectors for the given specie."""
+    #    # TODO recheck the ordering
+    #    # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
+    #    #raise NotImplementedError("")
+    #    displ_specie = []
+    #    for i, site in enumerate(self.structure):
+    #        if site.specie == specie:
+    #            displ_specie.append(self.phdispl_cart[:, :, i, :])
 
-        return displ_specie
+    #    return displ_specie
 
     @lazy_property
     def _auto_qlabels(self):
@@ -325,121 +372,29 @@ class PhononBands(object):
         else:
             return None
 
-    @property
-    def markers(self):
-        try:
-            return self._markers
-        except AttributeError:
-            return {}
-
-    def del_marker(self, key):
-        """
-        Delete the entry in self.markers with the specied key.
-        All markers are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._markers[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._markers
-            except AttributeError:
-                pass
-
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                positions of the i-th markers in the plot and
-                s[i] is the size of the marker.
-            extend:
-                True if the values xys should be added to a pre-existing marker.
-        """
-        if not hasattr(self, "_markers"):
-            self._markers = OrderedDict()
-
-        if extend:
-            if key not in self.markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-        else:
-            if key in self.markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
-
-    @property
-    def widths(self):
-        try:
-            return self._widths
-        except AttributeError:
-            return {}
-
-    def del_width(self, key):
-        """
-        Delete the entry in self.widths with the specified key.
-        All keys are removed if key is None.
-        """
-        if key is not None:
-            try:
-                del self._widths[key]
-            except AttributeError:
-                pass
-        else:
-            try:
-                del self._widths
-            except AttributeError:
-                pass
-
-    def set_width(self, key, width):
-        """
-        Set an entry in the widths dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            width: array-like of positive numbers, shape is [nqpt, num_modes].
-        """
-        width = np.reshape(width, self.shape)
-
-        if not hasattr(self, "_widths"):
-            self._widths = OrderedDict()
-
-        if key in self.widths:
-            raise ValueError("Cannot overwrite key %s in data" % key)
-
-        if np.any(np.iscomplex(width)):
-            raise ValueError("Found ambiguous complex entry %s" % str(width))
-
-        if np.any(width < 0.0):
-            raise ValueError("Found negative entry in width array %s" % str(width))
-
-        self._widths[key] = width
-
-    def to_xmgrace(self, filepath):
+    def to_xmgrace(self, filepath, units="meV"):
         """
         Write xmgrace file with phonon band structure energies and labels for high-symmetry q-points.
+
+        Args:
+            filepath: Filename
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
         f = open(filepath, "wt")
         def w(s):
             f.write(s)
             f.write("\n")
 
-        wqnu_meV = self.phfreqs * 1000
+        factor = _factor_ev2units(units)
+        wqnu_units = self.phfreqs * factor
 
         import datetime
         w("# Grace project file with phonon band energies.")
-        w("# Generated by abipy on: %s" % str(datetime.datetime.today()))
+        w("# Generated by AbiPy on: %s" % str(datetime.datetime.today()))
         w("# Crystalline structure:")
         for s in str(self.structure).splitlines():
             w("# %s" % s)
-        w("# Energies are in meV.")
+        w("# Energies are in %s." % units)
         w("# List of q-points and their index (C notation i.e. count from 0)")
         for iq, qpt in enumerate(self.qpoints):
             w("# %d %s" % (iq, str(qpt.frac_coords)))
@@ -450,8 +405,8 @@ class PhononBands(object):
         w("@with g0")
         w("@world xmin 0.00")
         w('@world xmax %d' % (self.num_qpoints -1))
-        w('@world ymin %s' % wqnu_meV.min())
-        w('@world ymax %s' % wqnu_meV.max())
+        w('@world ymin %s' % wqnu_units.min())
+        w('@world ymax %s' % wqnu_units.max())
         w('@default linewidth 1.5')
         w('@xaxis  tick on')
         w('@xaxis  tick major 1')
@@ -469,7 +424,7 @@ class PhononBands(object):
 
         w('@xaxis  ticklabel char size 1.500000')
         w('@yaxis  tick major 10')
-        w('@yaxis  label "Phonon Energy [meV]"')
+        w('@yaxis  label "Phonon %s"' % _unit_tag(units))
         w('@yaxis  label char size 1.500000')
         w('@yaxis  ticklabel char size 1.500000')
         for nu in self.branches:
@@ -480,7 +435,7 @@ class PhononBands(object):
             w('@target G0.S%d' % nu)
             w('@type xy')
             for iq in range(self.num_qpoints):
-                w('%d %.8E' % (iq, wqnu_meV[iq, nu]))
+                w('%d %.8E' % (iq, wqnu_units[iq, nu]))
             w('&')
 
         f.close()
@@ -517,12 +472,37 @@ class PhononBands(object):
 
         return sorted(umodes)
 
+    # TODO
     #def find_irreps(self, qpoint, tolerance):
     #    """
     #    Find the irreducible representation at this q-point
     #    Raise: QIrrepsError if algorithm fails
     #    """
     #    qindex, qpoint = self.qindex_qpoint(qpoint)
+
+    def get_dict4frame(self, with_spglib=True):
+        """
+        Return a :class:`OrderedDict` with the most important parameters:
+
+            - Chemical formula and number of atoms.
+            - Lattice lengths, angles and volume.
+            - The spacegroup number computed by Abinit (set to None if not available).
+            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+
+        Useful to construct pandas DataFrames
+
+        Args:
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        """
+        odict = OrderedDict([
+            ("nqpt", self.num_qpoints), ("nmodes", self.num_branches),
+            ("min_freq", self.minfreq), ("max_freq", self.maxfreq),
+            ("mean_freq", self.phfreqs.mean()), ("std_freq", self.phfreqs.std())
+
+        ])
+        odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
+
+        return odict
 
     def get_phdos(self, method="gaussian", step=1.e-4, width=4.e-4):
         """
@@ -546,17 +526,15 @@ class PhononBands(object):
         # Compute the linear mesh for the DOS
         w_min = self.minfreq
         w_min -= 0.1 * abs(w_min)
-
         w_max = self.maxfreq
         w_max += 0.1 * abs(w_max)
-
         nw = 1 + (w_max - w_min) / step
 
         mesh, step = np.linspace(w_min, w_max, num=nw, endpoint=True, retstep=True)
 
         values = np.zeros(nw)
         if method == "gaussian":
-            for (q, qpoint) in enumerate(self.qpoints):
+            for q, qpoint in enumerate(self.qpoints):
                 weight = qpoint.weight
                 for nu in self.branches:
                     w = self.phfreqs[q, nu]
@@ -586,7 +564,7 @@ class PhononBands(object):
             scale_matrix = self.structure.get_smallest_supercell(self.qpoints[iqpt].frac_coords, max_supercell=max_supercell)
 
         natoms = int(np.round(len(self.structure)*np.linalg.det(scale_matrix)))
-        with open(filename, "w") as xyz_file:
+        with open(filename, "wt") as xyz_file:
             for imode in np.arange(self.num_branches):
                 xyz_file.write(str(natoms) + "\n")
                 xyz_file.write("Mode " + str(imode) + " : " + str(self.phfreqs[iqpt, imode]) + "\n")
@@ -688,7 +666,7 @@ class PhononBands(object):
             h = []
             if np.array_equal(qpts[0], [0, 0, 0]):
                 h.append((0, "\\Gamma"))
-            for i in range(1,len(qpts)-1):
+            for i in range(1, len(qpts)-1):
                 if np.array_equal(qpts[i], [0,0,0]):
                     h.append((i, "\\Gamma"))
                 elif np.array_equal(qpts[i], qpts[i+1]):
@@ -738,7 +716,7 @@ class PhononBands(object):
 
         eigenvalues = []
         for i, phfreqs_sublist in enumerate(self.split_phfreqs):
-            phfreqs_sublist = phfreqs_sublist*eV_to_Ha*Ha_cmm1
+            phfreqs_sublist = phfreqs_sublist * eV_to_Ha * abu.Ha_cmm1
             if match_bands:
                 ind = self.split_matched_indices[i]
                 phfreqs_sublist = phfreqs_sublist[np.arange(len(phfreqs_sublist))[:, None], ind]
@@ -777,16 +755,23 @@ class PhononBands(object):
     def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-
         ax.grid(True)
-        if units in ['eV', 'ev', 'electronvolt']:
+
+        # Handle conversion factor.
+        # TODO: Encapsulate this part.
+        units = units.lower()
+        if units == 'ev':
             ax.set_ylabel('Energy [eV]')
-        elif units in ['Ha', 'ha', 'Hartree']:
+        elif units == 'mev':
+            ax.set_ylabel('Energy [meV]')
+        elif units == 'ha':
             ax.set_ylabel('Energy [Ha]')
-        elif units in ['cm-1', 'cm^-1']:
+        elif units in ('cm-1', 'cm^-1'):
             ax.set_ylabel(r'Frequency [cm$^{-1}$]')
+        elif units == 'thz':
+            ax.set_ylabel(r'Frequency [Thz]')
         else:
-            raise ValueError('Value for units {} unknown'.format(units))
+            raise ValueError('Value for units `{}` unknown'.format(units))
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
@@ -795,19 +780,16 @@ class PhononBands(object):
             ax.set_xticklabels(labels, fontdict=None, minor=False)
 
     @add_fig_kwargs
-    def plot(self, ax=None, qlabels=None, branch_range=None, marker=None, width=None, match_bands=False, **kwargs):
+    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, **kwargs):
         r"""
         Plot the phonon band structure.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
-            marker: String defining the marker to plot. Syntax `markername:fact` where fact is a float used
-                to scale the marker size.
-            width: String defining the width to plot. Syntax `widthname:fact` where fact is a float used
-                to scale the stripe size.
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
 
         Returns:
@@ -822,7 +804,7 @@ class PhononBands(object):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_ax(ax, qlabels=qlabels)
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
 
         if "color" not in kwargs:
             kwargs["color"] = "black"
@@ -831,28 +813,7 @@ class PhononBands(object):
             kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
-        self.plot_ax(ax, branch_range, match_bands=match_bands, **kwargs)
-
-        # Add markers to the plot.
-        if marker is not None:
-            try:
-                key, fact = marker.split(":")
-            except ValueError:
-                key = marker
-                fact = 1
-            fact = float(fact)
-
-            self.plot_marker_ax(ax, key, fact=fact)
-
-        # Plot fatbands.
-        if width is not None:
-            try:
-                key, fact = width.split(":")
-            except ValueError:
-                key = width
-                fact = 1
-
-            self.plot_width_ax(ax, key, fact=fact)
+        self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
 
         return fig
 
@@ -874,14 +835,7 @@ class PhononBands(object):
         first_xx = 0
         lines = []
 
-        if units in ['eV', 'ev', 'electronvolt']:
-            factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
-            factor = eV_to_Ha
-        elif units in ['cm-1', 'cm^-1']:
-            factor = 8065.5440044136285
-        else:
-            raise ValueError('Value for units {} unknown'.format(units))
+        factor = _factor_ev2units(units)
 
         for i, pf in enumerate(self.split_phfreqs):
             if match_bands:
@@ -896,13 +850,14 @@ class PhononBands(object):
         return lines
 
     @add_fig_kwargs
-    def plot_colored_matched(self, ax=None, qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
+    def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
                              **kwargs):
         r"""
-        Plot the phonon band structure with different color for each line .
+        Plot the phonon band structure with different color for each line.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
             branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
@@ -924,19 +879,11 @@ class PhononBands(object):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         # Decorate the axis (e.g add ticks and labels).
-        self.decorate_ax(ax, qlabels=qlabels)
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
 
         first_xx = 0
         lines = []
-        units="eV"
-        if units in ['eV', 'ev', 'electronvolt']:
-            factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
-            factor = eV_to_Ha
-        elif units in ['cm-1', 'cm^-1']:
-            factor = 8065.5440044136285
-        else:
-            raise ValueError('Value for units {} unknown'.format(units))
+        factor = _factor_ev2units(units)
 
         if max_colors is None:
             max_colors = len(branch_range)
@@ -1124,29 +1071,6 @@ class PhononBands(object):
 
         raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
 
-    def plot_width_ax(self, ax, key, branch=None, fact=1.0, **kwargs):
-        """Helper function to plot fatbands for given branch on the axis ax."""
-        branch_range = range(self.num_branches) if branch is None else [branch]
-
-        facecolor = kwargs.pop("facecolor", "blue")
-        alpha = kwargs.pop("alpha", 0.7)
-
-        x, width = range(self.num_qpoints), fact * self.widths[key]
-
-        for branch in branch_range:
-           y, w = self.phfreq[:, branch], width[:,branch] * fact
-           ax.fill_between(x, y-w/2, y+w/2, facecolor=facecolor, alpha=alpha)
-
-    def plot_marker_ax(self, ax, key, fact=1.0):
-        """Helper function to plot the markers for (spin,band) on the axis ax."""
-        pos, neg = self.markers[key].posneg_marker()
-
-        if pos:
-            ax.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-        if neg:
-            ax.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
-
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
         #TODO should be modified in order to handle the "split" list of qpoints
@@ -1166,94 +1090,143 @@ class PhononBands(object):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_fatbands(self, colormap="jet", max_stripe_width_mev=3.0, qlabels=None, **kwargs):
-                      #select_specie, select_red_dir
+    def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
+                      alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
+                      qlabels=None, ylims=None,
+                      **kwargs):
+                      #cart_dir=None
         r"""
-        Plot phonon fatbands
+        Plot phonon fatbands and, optionally, atom-projected DOS.
 
         Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            max_stripe_width_mev: The maximum width of the stripe in meV.
+            phdos_file: Used to activate fatbands + PJDOS plot.
+                Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.
+            width_rations: Rations between the width of the fatbands plots and the DOS plots.
+                Used if `phdos_file` is not None
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         Returns:
             `matplotlib` figure.
         """
-        # FIXME there's a bug in anaddb since we should orthogonalize
-        # wrt the phonon displacement as done (correctly) here
+        lw = kwargs.pop("lw", 2)
+        factor = _factor_ev2units(units)
+        ntypat = self.structure.ntypesp
+
+        # Prepare PJDOS.
+        close_phdos_file = False
+        if phdos_file is not None:
+            if is_string(phdos_file):
+                phdos_file = PhdosFile(phdos_file)
+                close_phdos_file = True
+            else:
+                if not isinstance(phdos_file, PhdosFile):
+                    raise TypeError("Expecting string or PhdosFile, got %s" % type(phdos_file))
+
+        # Grid with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
         import matplotlib.pyplot as plt
-
-        structure = self.structure
-        ntypat = structure.ntypesp
-
-        # Grid with ntypat plots.
-        nrows, ncols = (ntypat, 1)
-
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True)
-        xx = list(range(self.num_qpoints))
+        from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
+        nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
+        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios if ncols == 2 else None,
+                         wspace=0.05, hspace=0.1)
+        fig = plt.gcf()
+        cmap = plt.get_cmap(colormap)
+        qq = list(range(self.num_qpoints))
 
         # phonon_displacements are in cartesian coordinates and stored in an array with shape
         # (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.
+        # Precompute normalization factor:
+        #   d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
 
-        # Precompute normalization factor
-        # d2(q,\nu) = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
-        d2_qnu = np.zeros((self.num_qpoints, self.num_branches))
-        for q in range(self.num_qpoints):
+        # FIXME there's a bug in anaddb since we should orthogonalize
+        # wrt the phonon displacement as done (correctly) here
+        d2_qnu = np.empty((self.num_qpoints, self.num_branches))
+        for iq in range(self.num_qpoints):
             for nu in self.branches:
-                cvect = self.phdispl_cart[q, nu, :]
-                d2_qnu[q, nu] = np.vdot(cvect, cvect).real
+                cvect = self.phdispl_cart[iq, nu, :]
+                d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
 
-        # One plot per atom type.
-        for ax_idx, symbol in enumerate(structure.symbol_set):
-            ax = ax_list[ax_idx]
-
-            self.decorate_ax(ax, qlabels=qlabels)
+        # Plot fatbands: one plot per atom type.
+        ax00 = None
+        for ax_row, symbol in enumerate(self.structure.symbol_set):
+            ax = plt.subplot(gspec[ax_row, 0], sharex=ax00, sharey=ax00)
+            if ax_row == 0: ax00 = ax
+            self.decorate_ax(ax, units=units, qlabels=qlabels)
+            color = cmap(float(ax_row) / (ntypat - 1))
 
             # dir_indices lists the coordinate indices for the atoms of the same type.
-            atom_indices = structure.indices_from_symbol(symbol)
+            atom_indices = self.structure.indices_from_symbol(symbol)
             dir_indices = []
-
             for aindx in atom_indices:
                 start = 3 * aindx
                 dir_indices.extend([start, start + 1, start + 2])
+            dir_indices = np.array(dir_indices)
 
             for nu in self.branches:
-                yy = self.phfreqs[:, nu]
+                yy_qq = self.phfreqs[:, nu] * factor
 
                 # Exctract the sub-vector associated to this atom type.
                 displ_type = self.phdispl_cart[:, nu, dir_indices]
-                d2_type = np.zeros(self.num_qpoints)
-                for q in range(self.num_qpoints):
-                    d2_type[q] = np.vdot(displ_type[q], displ_type[q]).real
+                d2_type = np.empty(self.num_qpoints)
+                for iq in range(self.num_qpoints):
+                    d2_type[iq] = np.vdot(displ_type[iq], displ_type[iq]).real
 
-                # Normalize and scale by max_stripe_width_mev.
+                # Normalize and scale by max_stripe_width_mev taking into account units.
                 # The stripe is centered on the phonon branch hence the factor 2
-                d2_type = max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
+                d2_type = factor * max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
 
                 # Plot the phonon branch and the stripe.
-                color = plt.get_cmap(colormap)(float(ax_idx) / (ntypat - 1))
                 if nu == 0:
-                    ax.plot(xx, yy, lw=2, label=symbol, color=color)
+                    ax.plot(qq, yy_qq, lw=lw, label=symbol, color=color)
                 else:
-                    ax.plot(xx, yy, lw=2, color=color)
+                    ax.plot(qq, yy_qq, lw=lw, color=color)
 
-                ax.fill_between(xx, yy + d2_type, yy - d2_type, facecolor=color, alpha=0.7, linewidth=0)
+                ax.fill_between(qq, yy_qq + d2_type, yy_qq - d2_type, facecolor=color, alpha=alpha, linewidth=0)
 
-            ylim = kwargs.pop("ylim", None)
-            if ylim is not None:
-                ax.set_ylim(ylim)
+            set_axlims(ax, ylims, "y")
+            ax.legend(loc="best")
+
+        # Type projected DOSes.
+        if phdos_file is not None:
+            # Dictionary symbol --> partial PhononDos
+            pjdos_symbol = phdos_file.pjdos_type_dict
+
+            ax01 = None
+            for ax_row, symbol in enumerate(self.structure.symbol_set):
+                color = cmap(float(ax_row) / (ntypat - 1))
+                ax = plt.subplot(gspec[ax_row, 1], sharex=ax01, sharey=ax00)
+                if ax_row == 0: ax01 = ax
+
+                # Get PJDOS
+                pjdos = pjdos_symbol[symbol]
+                x, y = pjdos.mesh * factor, pjdos.values / factor
+
+                ax.plot(y, x, lw=lw, color=color)
+                ax.grid(True)
+                ax.yaxis.set_ticks_position("right")
+                ax.yaxis.set_label_position("right")
+                set_axlims(ax, ylims, "y")
+
+            if close_phdos_file:
+                phdos_file.close()
 
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, dos, qlabels=None, axlist=None, **kwargs):
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, axlist=None, **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS.
 
         Args:
-            dos: An instance of :class:`PhononDos`.
+            phdos: An instance of :class:`PhononDos` or netcdf file providing a PhononDos object.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
@@ -1262,6 +1235,8 @@ class PhononBands(object):
         Returns:
             `matplotlib` figure.
         """
+        phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
+
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
@@ -1279,17 +1254,20 @@ class PhononBands(object):
             kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the phonon band structure.
-        self.plot_ax(ax1, branch=None, **kwargs)
-        self.decorate_ax(ax1, qlabels=qlabels)
+        self.plot_ax(ax1, branch=None, units=units, **kwargs)
+        self.decorate_ax(ax1, units=units, qlabels=qlabels)
 
+        factor = _factor_ev2units(units)
         emin = np.min(self.minfreq)
         emin -= 0.05 * abs(emin)
+        emin *= factor
         emax = np.max(self.maxfreq)
         emax += 0.05 * abs(emax)
+        emax *= factor
         ax1.yaxis.set_view_interval(emin, emax)
 
-        # Plot the DOS
-        dos.plot_ax(ax2, what="d", exchange_xy=True, **kwargs)
+        # Plot Phonon DOS
+        phdos.plot_dos_idos(ax2, what="d", units=units, exchange_xy=True, **kwargs)
 
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
@@ -1298,7 +1276,69 @@ class PhononBands(object):
         fig = plt.gcf()
         return fig
 
-    def to_pymatgen(self, qlabels= None):
+    def to_dataframe(self):
+        """
+        Return a pandas DataFrame with the following columns:
+
+          ['qidx', 'mode', 'freq', 'qpoint']
+
+        where:
+
+        ==============  ==========================
+        Column          Meaning
+        ==============  ==========================
+        qidx            q-point index.
+        mode            phonon branch index.
+        freq            Phonon frequency in eV.
+        qpoint          :class:`Kpoint` object
+        ==============  ==========================
+        """
+        import pandas as pd
+        rows = []
+        for iq, qpoint in enumerate(self.qpoints):
+            for nu in self.branches:
+                rows.append(OrderedDict([
+                           ("qidx", iq),
+                           ("mode", nu),
+                           ("freq", self.phfreqs[iq, nu]),
+                           ("qpoint", self.qpoints[iq]),
+                        ]))
+
+        return pd.DataFrame(rows, columns=list(rows[0].keys()))
+
+    @add_fig_kwargs
+    def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keyword arguments passed to seaborn boxplot.
+        """
+        # Get the dataframe and select bands
+        frame = self.to_dataframe()
+        if mode_range is not None:
+            frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        factor = _factor_ev2units(units)
+        yname = "freq %s" % _unit_tag(units)
+        frame[yname] = factor * frame["freq"]
+
+        import seaborn.apionly as sns
+        hue = None
+        ax = sns.boxplot(x="mode", y=yname, data=frame, hue=hue, ax=ax, **kwargs)
+        if swarm:
+            sns.swarmplot(x="mode", y=yname, data=frame, hue=hue, color=".25", ax=ax)
+
+        return fig
+
+    def to_pymatgen(self, qlabels=None):
         r"""
         Creates a pymatgen PhononBandStructureSymmLine object.
 
@@ -1317,9 +1357,7 @@ class PhononBands(object):
 
         labelled_q_list = list(labels_dict.values())
 
-        ph_freqs = []
-        qpts = []
-        displ = []
+        ph_freqs, qpts, displ = [], [], []
         for split_q, split_phf, split_phdispl in zip(self.split_qpoints, self.split_phfreqs, self.split_phdispl_cart):
             # for q, phf in zip(split_q, split_phf)[1:-1]:
             for i, (q, phf, d) in enumerate(zip(split_q, split_phf, split_phdispl)):
@@ -1340,12 +1378,10 @@ class PhononBands(object):
         qpts = np.array(qpts)
         displ = np.transpose(displ, (1, 0, 2, 3))
 
-        pmg_bs = PhononBandStructureSymmLine(qpoints=qpts, frequencies=ph_freqs,
-                                             lattice=self.structure.reciprocal_lattice,
-                                             has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
-                                             labels_dict=labels_dict, structure=self.structure)
-
-        return pmg_bs
+        return PhononBandStructureSymmLine(qpoints=qpts, frequencies=ph_freqs,
+                                           lattice=self.structure.reciprocal_lattice,
+                                           has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
+                                           labels_dict=labels_dict, structure=self.structure)
 
 
 class PHBST_Reader(ETSF_Reader):
@@ -1397,6 +1433,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     @property
     def qpoints(self):
+        """List of q-point objects."""
         return self.phbands.qpoints
 
     @property
@@ -1415,7 +1452,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             return self.qpoints.index(qpoint)
 
     def qindex_qpoint(self, qpoint):
-        """Returns (qindex, qpoint) from an intege or a qpoint."""
+        """Returns (qindex, qpoint) from an integer or a qpoint."""
         qindex = self.qindex(qpoint)
         qpoint = self.qpoints[qindex]
         return qindex, qpoint
@@ -1437,7 +1474,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             branch=list(range(3 * len(self.structure))),
         )
 
-        # Add geo information
+        # Add geometrical information
         if with_structure:
             d.update(self.structure.get_dict4frame(with_spglib=True))
 
@@ -1469,7 +1506,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1507,7 +1544,7 @@ class PhononDos(Function1D):
     #    self.qmesh = qmesh
 
     @classmethod
-    def as_phdos(cls, obj, phdos_kwargs):
+    def as_phdos(cls, obj, phdos_kwargs=None):
         """
         Return an instance of :class:`PhononDOS` from a generic obj.
         Supports:
@@ -1522,10 +1559,13 @@ class PhononDos(Function1D):
             phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
             Used when obj is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
+        if phdos_kwargs is None: phdos_kwargs = {}
+
         if isinstance(obj, cls):
             return obj
+
         elif is_string(obj):
-            # path?
+            # path? (pickle or file supported by abiopen)
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
                     return cls.as_phdos(pickle.load(fh), phdos_kwargs)
@@ -1537,11 +1577,14 @@ class PhononDos(Function1D):
                 elif hasattr(abifile, "phbands"):
                     return abifile.phbands.get_phdos(**phdos_kwargs)
                 else:
-                    raise TypeError("Don't know how to create `PhononDos` from %s" % type(abifile))
+                    raise TypeError("Don't know how to create `PhononDos` from type: %s" % type(abifile))
+
         elif isinstance(obj, PhononBands):
             return obj.get_phdos(**phdos_kwargs)
+
         elif hasattr(obj, "phbands"):
             return obj.phbands.get_phdos(**phdos_kwargs)
+
         elif hasattr(obj, "phdos"):
             return obj.phdos
 
@@ -1568,55 +1611,44 @@ class PhononDos(Function1D):
         iw0 = self.iw0
         return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
-    def plot_ax(self, ax, what="d", exchange_xy=False, units='eV', *args, **kwargs):
+    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs):
         """
-        Helper function to plot the data on the axis ax.
+        Helper function to plot DOS/IDOS on the axis ax.
 
         Args:
             ax: matplotlib axis
             what: string selecting the quantity to plot:
                 "d" for DOS, "i" for IDOS. chars can be concatenated
                 hence what="id" plots both IDOS and DOS. (default "d").
-            exchange_xy: True to exchange exis
-            args, kwargs:
-                Options passes to matplotlib.
+            exchange_xy: True to exchange axis
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            kwargs: Options passed to matplotlib plot method.
 
         Return:
             list of lines added to the plot
         """
         opts = [c.lower() for c in what]
-
-        if units in ['eV', 'ev', 'electronvolt']:
-            factor = 1
-        elif units in ['Ha', 'ha', 'Hartree']:
-            factor = eV_to_Ha
-        elif units in ['cm-1', 'cm^-1']:
-            factor = 8065.5440044136285
-        else:
-            raise ValueError('Value for units {} unknown'.format(units))
-
-        self._mesh = self.mesh*factor
-        self._values = self.values/factor
-
-        # Use super because we are overwriting the plot_ax provided by Func1D
-        cases = {"d": super(PhononDos, self),
-                 "i": self.idos}
-
         lines = []
+
         for c in opts:
-            f = cases[c]
-            ls = f.plot_ax(ax, exchange_xy=exchange_xy, *args, **kwargs)
+            f = {"d": self, "i": self.idos}[c]
+            xfactor = _factor_ev2units(units)
+            # Don't rescale IDOS
+            yfactor = 1 / xfactor if c == "d" else 1
+
+            ls = f.plot_ax(ax, exchange_xy=exchange_xy, xfactor=xfactor, yfactor=yfactor, **kwargs)
             lines.extend(ls)
 
         return lines
 
     @add_fig_kwargs
-    def plot(self, *args, **kwargs):
+    def plot(self, units="eV", **kwargs):
         """
-        Plot DOS and IDOS.
+        Plot Phonon DOS and IDOS on two distict plots.
 
         Args:
-            args: Positional arguments passed to :mod:`matplotlib`.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            kwargs: Keyword arguments passed to :mod:`matplotlib`.
 
         Returns:
             `matplotlib` figure.
@@ -1624,22 +1656,21 @@ class PhononDos(Function1D):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        gspec = GridSpec(2, 1, height_ratios=[1, 2])
-        gspec.update(wspace=0.05)
+        gspec = GridSpec(2, 1, height_ratios=[1, 2], wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
+        fig = plt.gcf()
 
         for ax in (ax1, ax2):
             ax.grid(True)
 
-        ax2.set_xlabel('Energy [eV]')
-        ax1.set_ylabel("IDOS")
-        ax2.set_ylabel("DOS")
+        ax2.set_xlabel('Energy %s' % _unit_tag(units))
+        ax1.set_ylabel("IDOS [states]")
+        ax2.set_ylabel("DOS %s" % _dos_label_from_units(units))
 
-        self.plot_ax(ax1, what="i", *args, **kwargs)
-        self.plot_ax(ax2, what="d", *args, **kwargs)
+        self.plot_dos_idos(ax1, what="i", units=units, **kwargs)
+        self.plot_dos_idos(ax2, what="d", units=units, **kwargs)
 
-        fig = plt.gcf()
         return fig
 
     def get_internal_energy(self, tstart=5, tstop=300, num=50):
@@ -1660,7 +1691,7 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * kb_eVK * temp)
+            wd2kt = w / (2 * abu.kb_eVK * temp)
             vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
 
         return Function1D(tmesh, 0.5 * vals + self.zero_point_energy)
@@ -1682,10 +1713,10 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * kb_eVK * temp)
+            wd2kt = w / (2 * abu.kb_eVK * temp)
             vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
 
-        return Function1D(tmesh, kb_eVK * vals)
+        return Function1D(tmesh, abu.kb_eVK * vals)
 
     def get_free_energy(self, tstart=5, tstop=300, num=50):
         """
@@ -1701,16 +1732,18 @@ class PhononDos(Function1D):
         """
         uz = self.get_internal_energy(tstart=tstart, tstop=tstop, num=num)
         s = self.get_entropy(tstart=tstart, tstop=tstop, num=num)
+
         return Function1D(uz.mesh, uz.values - s.mesh * s.values)
 
-        tmesh = np.linspace(tstart, tstop, num=num)
-        w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
-        vals = np.empty(len(tmesh))
-        for it, temp in enumerate(tmesh):
-            kt = kb_eVK * temp
-            wd2kt = w / (2 * kt)
-            vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
-        return Function1D(tmesh, vals + self.zero_point_energy)
+        #tmesh = np.linspace(tstart, tstop, num=num)
+        #w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
+        #vals = np.empty(len(tmesh))
+        #for it, temp in enumerate(tmesh):
+        #    kt = abu.kb_eVK * temp
+        #    wd2kt = w / (2 * kt)
+        #    vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
+
+        #return Function1D(tmesh, vals + self.zero_point_energy)
 
     def get_cv(self, tstart=5, tstop=300, num=50):
         """
@@ -1729,10 +1762,10 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * kb_eVK * temp)
+            wd2kt = w / (2 * abu.kb_eVK * temp)
             vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
 
-        return Function1D(tmesh, kb_eVK * vals)
+        return Function1D(tmesh, abu.kb_eVK * vals)
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
@@ -1766,16 +1799,16 @@ class PhononDos(Function1D):
             nrows = num_plots // ncols + num_plots % ncols
 
         import matplotlib.pyplot as plt
-        fig, axmax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmax[-1, -1].axis("off")
+        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
 
-        for iax, (qname, ax) in enumerate(zip(quantities, axmax.flat)):
+        for iax, (qname, ax) in enumerate(zip(quantities, axmat.flat)):
             # Compute thermodinamic quantity associated to qname.
             f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
             ys = f1d.values
             if formula_units is not None: ys /= formula_units
-            if units == "Jmol": ys = ys * e_Cb * Avogadro
+            if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
             ax.plot(f1d.mesh, ys)
 
             ax.set_title(qname)
@@ -1793,32 +1826,33 @@ class PhdosReader(ETSF_Reader):
     This object reads data from the PHDOS.nc file produced by anaddb.
 
     .. note::
+
             Frequencies are in eV, DOSes are in states/eV.
     """
-    @lazy_property
-    def wmesh(self):
-        """The frequency mesh in eV."""
-        return self.read_value("wmesh")
-
-    @lazy_property
-    def pjdos_type(self):
-        """DOS projected over atom types e.g. pjdos_type(ntypat,nomega)."""
-        return self.read_value("pjdos_type")
-
-    @lazy_property
-    def pjdos_rc_type(self):
-        """DOS projected over atom types and reduced directions e.g. pjdos_type(3,ntypat,nomega)."""
-        return self.read_value("pjdos_rc_type")
-
-    @lazy_property
-    def pjdos(self):
-        """DOS projected over atoms and reduced directions pjdos(natom,3,nomega)."""
-        return self.read_value("pjdos")
-
     @lazy_property
     def structure(self):
         """The crystalline structure."""
         return self.read_structure()
+
+    @lazy_property
+    def wmesh(self):
+        """The frequency mesh for the PH-DOS in eV."""
+        return self.read_value("wmesh")
+
+    @lazy_property
+    def pjdos_type(self):
+        """[ntypat, nomega] array with PH-DOS projected over atom types."""
+        return self.read_value("pjdos_type")
+
+    @lazy_property
+    def pjdos_type_rc(self):
+        """[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions"""
+        return self.read_value("pjdos_rc_type")
+
+    @lazy_property
+    def pjdos(self):
+        """[natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        return self.read_value("pjdos")
 
     def read_phdos(self):
         """Return the :class:`PhononDOS`."""
@@ -1826,8 +1860,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_type(self, symbol):
         """
-        The contribution to the DOS due to the atoms of given chemical symbol.
-        pjdos_type(ntypat,nomega)
+        :class:`PhononDos` with the contribution to the DOS due to the atoms of given chemical symbol.
         """
         type_idx = self.typeidx_from_symbol(symbol)
         return PhononDos(self.wmesh, self.pjdos_type[type_idx])
@@ -1846,6 +1879,9 @@ class PhdosReader(ETSF_Reader):
     #     """
     #     return self.read_value("phonon_frequencies")
 
+    # TODO
+    #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
+
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
@@ -1862,6 +1898,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.wmesh = r.wmesh
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @lazy_property
@@ -1871,63 +1908,223 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def phdos(self):
+        """:class:`PhononDos` object."""
         return self.reader.read_phdos()
 
     @lazy_property
     def pjdos_type_dict(self):
+        """
+        Dictionary symbol --> PhononDos
+        where PhononDos is the contribution to the total DOS summed over atoms with chemical symbol `symbol`.
+        """
         pjdos_type_dict = OrderedDict()
         for symbol in self.reader.chemical_symbols:
-            #print(symbol, ncdata.typeidx_from_symbol(symbol))
             pjdos_type_dict[symbol] = self.reader.read_pjdos_type(symbol)
 
         return pjdos_type_dict
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, ax=None, colormap="jet", **kwargs):
+    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
         """
-        Stacked Plot of the projected DOS (projection is for atom types)
+        Plot type-projected phonon DOS.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
 
         Returns:
             matplotlib figure.
         """
+        lw = kwargs.pop("lw", 2)
+        factor = _factor_ev2units(units)
+
         ax, fig, plt = get_ax_fig_plt(ax)
+        cmap = plt.get_cmap(colormap)
+
         ax.grid(True)
-
-        xlim = kwargs.pop("xlim", None)
-        if xlim is not None: ax.set_xlim(xlim)
-
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None: ax.set_ylim(ylim)
-
-        ax.set_xlabel('Frequency [eV]')
-        ax.set_ylabel('PJDOS [states/eV]')
+        set_axlims(ax, kwargs.pop("xlims", None), "x")
+        set_axlims(ax, kwargs.pop("ylims", None), "y")
+        ax.set_xlabel('Frequency %s' % _unit_tag(units))
+        ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_type_dict)
         cumulative = np.zeros(len(self.wmesh))
+
         for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
-            x, y = pjdos.mesh, pjdos.values
-            color = plt.get_cmap(colormap)(float(i) / (num_plots - 1))
-            ax.plot(x, cumulative + y, lw=2, label=symbol, color=color)
-            ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=0.7)
-            cumulative += y
+            x, y = pjdos.mesh * factor, pjdos.values / factor
+            color = cmap(float(i) / (num_plots - 1))
+            if not stacked:
+                ax.plot(x, y, lw=lw, label=symbol, color=color)
+            else:
+                ax.plot(x, cumulative + y, lw=lw, label=symbol, color=color)
+                ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
+                cumulative += y
 
         # Total PHDOS
-        ax.plot(self.phdos.mesh, self.phdos.values, lw=2, label="Total PHDOS", color='black')
-
+        x, y = self.phdos.mesh * factor, self.phdos.values / factor
+        ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
         ax.legend(loc="best")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, axlist=None, **kwargs):
+        """
+        Plot type-projected phonon DOS decomposed along the three reduced directions.
+        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            colormap: Have a look at the colormaps
+                `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
+                and decide which one you'd like:
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            matplotlib figure.
+        """
+        lw = kwargs.pop("lw", 2)
+        ntypat = self.structure.ntypesp
+        factor = _factor_ev2units(units)
+
+        # Three rows for each reduced direction.
+        # Each row shows the contribution of each atomic type + Total PH DOS.
+        import matplotlib.pyplot as plt
+        nrows, ncols = 3, 1
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=True)
+        else:
+            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+
+        cmap = plt.get_cmap(colormap)
+        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
+        #double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)
+        pjdos_type_rc = self.reader.pjdos_type_rc
+
+        xx = self.phdos.mesh * factor
+        for idir, ax in enumerate(axlist):
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+
+            if idir in (0, 2):
+                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+                if idir == 2:
+                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+
+            # Plot Type projected DOSes along reduced direction idir
+            #for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
+            cumulative = np.zeros(len(self.wmesh))
+            for itype in range(ntypat):
+                symbol = str(itype)
+                color = cmap(float(itype) / (ntypat - 1))
+                yy = pjdos_type_rc[itype, idir] / factor
+
+                if not stacked:
+                    ax.plot(xx, yy, label=symbol, color=color)
+                else:
+                    ax.plot(xx, cumulative + yy, lw=lw, label=symbol, color=color)
+                    ax.fill_between(xx, cumulative, cumulative + yy, facecolor=color, alpha=alpha)
+                    cumulative += yy
+
+            # Add Total PHDOS
+            ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
+            ax.legend(loc="best")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
+                               ylims=None, axlist=None, **kwargs):
+        """
+        Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
+
+        Args:
+            view: "inequivalent", "all"
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            stacked: True if DOS partial contributions should be stacked on top of each other.
+            colormap: matplotlib colormap.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
+        """
+        # Define num_plots and ax2atom depending on view.
+        factor = _factor_ev2units(units)
+        natom, ntypat = len(self.structure), self.structure.ntypesp
+        lw = kwargs.pop("lw", 2)
+        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
+
+        if view == "all" or natom == 1:
+            iatom_list = np.arange(natom)
+
+        elif view == "inequivalent":
+            print("Calling spglib to find inequivalent sites.")
+            print("Note that `symafm` magnetic symmetries (if any) are not taken into account.")
+            ea = self.structure.spget_equivalent_atoms(printout=True)
+            iatom_list = ea.irred_pos
+        else:
+            raise ValueError("Wrong value for view: %s" % str(view))
+
+        # Three rows for each reduced direction.
+        # Each row shows the contribution of each site + Total PH DOS.
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(colormap)
+        nrows, ncols = 3, 1
+        if axlist is None:
+            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
+        else:
+            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+
+        # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        pjdos = self.reader.pjdos
+
+        xx = self.phdos.mesh * factor
+        for idir, ax in enumerate(axlist):
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
+
+            if idir in (0, 2):
+                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+                if idir == 2:
+                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+
+            # Plot Type projected DOSes along reduced direction idir
+            cumulative = np.zeros(len(self.wmesh))
+            for iatom in iatom_list:
+                site = self.structure[iatom]
+                symbol = str(site)
+                color = cmap(float(iatom) / (len(iatom_list) - 1))
+                yy = pjdos[iatom, idir] / factor
+
+                if not stacked:
+                    ax.plot(xx, yy, label=symbol, color=color)
+                else:
+                    ax.plot(xx, cumulative + yy, lw=lw, label=symbol, color=color)
+                    ax.fill_between(xx, cumulative, cumulative + yy, facecolor=color, alpha=alpha)
+                    cumulative += yy
+
+            # Add Total PHDOS
+            ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
+            ax.legend(loc="best")
 
         return fig
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1936,14 +2133,17 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("fig = ncfile.phdos.plot()"),
-            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+            nbv.new_code_cell("fig = ncfile.plot_pjdos_type()"),
+            nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_type()"),
+            #nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_site()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
+# FIXME: Remove. Use PhononBandsPlotter API.
 @add_fig_kwargs
-def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, **kwargs):
+def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, units="eV", **kwargs):
     """
     Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
@@ -1959,6 +2159,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
             List of strings with the titles to be added to the subplots.
         phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
             Used only if `phdos_objects` is not None.
+        units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
     Returns:
         matplotlib figure.
@@ -1989,7 +2190,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         if numeb % ncols != 0: axes[-1].axis("off")
 
         for i, (phbands, ax) in enumerate(zip(phbands_list, axes)):
-            phbands.plot(ax=ax, show=False)
+            phbands.plot(ax=ax, units=units, show=False)
             if titles is not None: ax.set_title(titles[i])
             if i % ncols != 0:
                 ax.set_ylabel("")
@@ -2006,7 +2207,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
-            phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), show=False)
+            phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), units=units, show=False)
 
             if titles is not None: ax1.set_title(titles[i])
             if i % ncols != 0:
@@ -2016,7 +2217,30 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
-class PhononBandsPlotter(object):
+def frame_from_phbands(phbands_objects, index=None, with_spglib=True):
+    """
+    Build a pandas dataframe with the most important results available in a list of band structures.
+
+    Args:
+        phbands_objects: List of objects that can be converted to structure.
+            Support netcdf filenames or :class:`PhononBands` objects
+            See `PhononBands.as_ebands` for the complete list.
+        index: Index of the dataframe.
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
+
+    Return:
+        pandas :class:`DataFrame`
+    """
+    phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
+    # Use OrderedDict to have columns ordered nicely.
+    odict_list = [(phbands.get_dict4frame(with_spglib=with_spglib)) for phbands in phbands_list]
+
+    import pandas as pd
+    return pd.DataFrame(odict_list, index=index,
+                        columns=list(odict_list[0].keys()) if odict_list else None)
+
+
+class PhononBandsPlotter(NotebookWriter):
     """
     Class for plotting phonon band structure and DOSes.
     Supports plots on the same graph or separated plots.
@@ -2026,23 +2250,70 @@ class PhononBandsPlotter(object):
     .. code-block:: python
 
         plotter = PhononBandsPlotter()
-        plotter.add_phbands_from_file("foo.nc", label="foo bands")
-        plotter.add_phbands_from_file("bar.nc", label="bar bands")
-        plotter.plot()
+        plotter.add_phbands("foo bands", "foo_PHBST.nc")
+        plotter.add_phbands("bar bands", "bar_PHBST.nc")
+        plotter.gridplot()
     """
     _LINE_COLORS = ["b", "r", "k", "g"]
-    _LINE_STYLES = ["-",":","--","-.",]
-    _LINE_WIDTHS = [2,]
+    _LINE_STYLES = ["-", ":", "--", "-.",]
+    _LINE_WIDTHS = [2, ]
 
-    def __init__(self):
-        self._bands_dict = OrderedDict()
-        self._phdoses_dict = OrderedDict()
-        self._markers = OrderedDict()
+    def __init__(self, key_phbands=None, key_phdos=None, phdos_kwargs=None):
+        """
+        Args:
+            key_phbands: List of (label, phbands) tuples.
+                phbands is any object that can be converted into :class:`PhononBands` e.g. ncfile, path.
+            key_phdos: List of (label, phdos) tuples.
+                phdos is any object that can be converted into :class:`PhononDos`
+        """
+        if key_phbands is None: key_phbands = []
+        key_phbands = [(k, PhononBands.as_phbands(v)) for k, v in key_phbands]
+        self._bands_dict = OrderedDict(key_phbands)
+
+        if key_phdos is None: key_phdos = []
+        key_phdos = [(k, PhononDos.as_phdos(v, phdos_kwargs)) for k, v in key_phdos]
+        self._phdoses_dict = OrderedDict(key_phdos)
+        if key_phdos:
+            if not key_phbands:
+                raise ValueError("key_phbands must be specifed when key_dos is not None")
+            if len(key_phbands) != len(key_phdos):
+                raise ValueError("key_phbands and key_phdos must have the same number of elements.")
+
+    def __repr__(self):
+        """Invoked by repr"""
+        return self.to_string(func=repr)
+
+    def __str__(self):
+        """Invoked by str"""
+        return self.to_string(func=str)
+
+    def to_string(self, func=str, verbose=0):
+        """String representation."""
+        lines = []
+        app = lines.append
+        for i, (label, phbands) in enumerate(self.phbands_dict.items()):
+            app("[%d] %s --> %s" % (i, label, func(phbands)))
+
+        if self.phdoses_dict:
+            for i, (label, phdos) in enumerate(self.phdoses_dict.items()):
+                app("[%d] %s --> %s" % (i, label, func(phdos)))
+
+        return "\n".join(lines)
+
+    def get_phbands_frame(self, with_spglib=True):
+        """
+        Build a pandas dataframe with the most important results available in the band structures.
+        """
+        return frame_from_phbands(list(self.phbands_dict.values()),
+                                 index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def bands_dict(self):
+    def phbands_dict(self):
         """Dictionary with the mapping label --> phbands."""
         return self._bands_dict
+
+    # TODO: Just an alias. To be removed in 0.4
+    bands_dict = phbands_dict
 
     @property
     def phdoses_dict(self):
@@ -2059,100 +2330,84 @@ class PhononBandsPlotter(object):
         """"List of :class:`PhononDos`."""
         return list(self._phdoses_dict.values())
 
-    @property
-    def markers(self):
-        return self._markers
-
     def iter_lineopt(self):
         """Generates style options for lines."""
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
+    @deprecated(message="add_phbands_from_file method of PhononBandsPlotter has been replaced by add_phbands. It will be removed in 0.4")
     def add_phbands_from_file(self, filepath, label=None):
         """
         Adds a band structure for plotting. Reads data from a Netcdfile
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
-            if label is None:
-                label = ncfile.filepath
+            if label is None: label = ncfile.filepath
             self.add_phbands(label, ncfile.phbands)
 
-    def add_phbands(self, label, bands, dos=None):
+    def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
         """
         Adds a band structure for plotting.
 
         Args:
             label: label for the bands. Must be unique.
             bands: :class:`PhononBands` object.
-            dos: :class:`PhononDos` object.
+            phdos: :class:`PhononDos` object.
+            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+              Used only if `phdos` is not None.
         """
+        if dos is not None:
+            import warnings
+            warnings.warn("dos has been renamed phdos. The argument will removed in abipy 0.4")
+            if phdos is not None:
+                raise ValueError("phdos and dos are mutually exclusive")
+            phdos = dos
+
         if label in self._bands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self._bands_dict.keys())))
 
-        self._bands_dict[label] = bands
+        self._bands_dict[label] = PhononBands.as_phbands(bands)
 
-        if dos is not None:
-            self.phdoses_dict[label] = dos
+        if phdos is not None:
+            self.phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
-    def bands_statdiff(self, ref=0):
-        """
-        Compare the reference bands with index ref with the other bands stored in the plotter.
-        """
-        for i, label in enumerate(self._bands_dict.keys()):
-            if i == ref:
-                ref_label = label
-                break
-        else:
-            raise ValueError("ref index %s is > number of bands" % ref)
+    #def bands_statdiff(self, ref=0):
+    #    """
+    #    Compare the reference bands with index ref with the other bands stored in the plotter.
+    #    """
+    #    for i, label in enumerate(self._bands_dict.keys()):
+    #        if i == ref:
+    #            ref_label = label
+    #            break
+    #    else:
+    #        raise ValueError("ref index %s is > number of bands" % ref)
 
-        ref_bands = self._bands_dict[ref_label]
+    #    ref_bands = self._bands_dict[ref_label]
 
-        text = []
-        for label, bands in self._bands_dict.items():
-            if label == ref_label: continue
-            stat = ref_bands.statdiff(bands)
-            text.append(str(stat))
+    #    text = []
+    #    for label, bands in self._bands_dict.items():
+    #        if label == ref_label: continue
+    #        stat = ref_bands.statdiff(bands)
+    #        text.append(str(stat))
 
-        return "\n\n".join(text)
-
-    def set_marker(self, key, xys, extend=False):
-        """
-        Set an entry in the markers dictionary.
-
-        Args:
-            key: string used to label the set of markers.
-            xys: Three iterables x,y,s where x[i],y[i] gives the
-                 positions of the i-th markers in the plot and s[i] is the size of the marker.
-            extend: True if the values xys should be added to a pre-existing marker.
-        """
-        if extend:
-            if key not in self._markers:
-                self._markers[key] = Marker(*xys)
-            else:
-                # Add xys to the previous marker set.
-                self._markers[key].extend(*xys)
-
-        else:
-            if key in self._markers:
-                raise ValueError("Cannot overwrite key %s in data" % key)
-
-            self._markers[key] = Marker(*xys)
+    #    return "\n\n".join(text)
 
     @add_fig_kwargs
-    def plot(self, qlabels=None, units='eV', **kwargs):
+    def combiplot(self, qlabels=None, units='eV', **kwargs):
         r"""
-        Plot the band structure and the DOS.
+        Plot the band structure and the DOS on the same figure.
+        Use `gridplot` to plot band structures on different figures.
 
         Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
 
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits. None (default) for automatic determination.
+        xlims            x-axis limits. None (default) for automatic determination.
+        ylims            y-axis limits. None (default) for automatic determination.
         ==============  ==============================================================
 
         Returns:
@@ -2178,9 +2433,9 @@ class PhononBandsPlotter(object):
         for ax in ax_list:
             ax.grid(True)
 
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None:
-            [ax.set_ylim(ylim) for ax in ax_list]
+        ylims = kwargs.pop("ylims", None)
+        if ylims is not None:
+            [ax.set_ylim(ylims) for ax in ax_list]
 
         # Plot bands.
         lines, legends = [], []
@@ -2204,82 +2459,212 @@ class PhononBandsPlotter(object):
             if i == 0:
                 bands.decorate_ax(ax1, qlabels=qlabels, units=units)
 
-        if self.markers:
-            for key, markers in self.markers.items():
-                pos, neg = markers.posneg_marker()
-                # Use different symbols depending on the value of s.
-                # Cannot use negative s.
-                fact = 1
-                if pos:
-                    ax1.scatter(pos.x, pos.y, s=np.abs(pos.s)*fact, marker="^", label=key + " >0")
-
-                if neg:
-                    ax1.scatter(neg.x, neg.y, s=np.abs(neg.s)*fact, marker="v", label=key + " <0")
-
         ax1.legend(lines, legends, loc='best', shadow=True)
 
         # Add DOSes
         if self.phdoses_dict:
             ax = ax_list[1]
             for label, dos in self.phdoses_dict.items():
-                dos.plot_ax(ax, exchange_xy=True, units=units, **opts_label[label])
+                dos.plot_dos_idos(ax, exchange_xy=True, units=units, **opts_label[label])
 
         return fig
 
+    @deprecated(message="plot method of PhononBandsPlotter has been replaced by combiplot. It will be removed in 0.4")
+    def plot(self, *args, **kwargs):
+        return self.combiplot(*args, **kwargs)
 
-class PhononDosPlotter(object):
+    @add_fig_kwargs
+    def gridplot(self, with_dos=True, units="eV", **kwargs):
+        """
+        Plot multiple electron bandstructures and optionally DOSes on a grid.
+
+        Args:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_dos: True if DOS should be printed.
+
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self._bands_dict.keys())
+        phb_objects = list(self._bands_dict.values())
+        phdos_objects = None
+        if self.phdoses_dict and with_dos:
+            phdos_objects = list(self.phdoses_dict.values())
+
+        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, show=False)
+
+    @add_fig_kwargs
+    def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
+        """
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Band structures are drawn on different subplots.
+
+        Args:
+            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            swarm: True to show the datapoints on top of the boxes
+            kwargs: Keywork arguments passed to seaborn boxplot.
+        """
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.phbands_dict), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        import matplotlib.pyplot as plt
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for (label, phbands), ax in zip(self.phbands_dict.items(), ax_list):
+            phbands.boxplot(ax=ax, units=units, mode_range=mode_range, show=False)
+            ax.set_title(label)
+
+        return fig
+
+    @add_fig_kwargs
+    def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs):
+        """
+        Use seaborn to draw a box plot comparing the distributions of the frequencies.
+        Phonon Band structures are drawn on the same plot.
+
+        Args:
+            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            swarm: True to show the datapoints on top of the boxes
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            kwargs: Keyword arguments passed to seaborn boxplot.
+        """
+        frames = []
+        for label, phbands in self.phbands_dict.items():
+            # Get the dataframe, select bands and add column with label
+            frame = phbands.to_dataframe()
+            if mode_range is not None:
+                frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
+            frame["label"] = label
+            frames.append(frame)
+
+        # Merge frames ignoring index (not meaningful here)
+        import pandas as pd
+        data = pd.concat(frames, ignore_index=True)
+
+        import seaborn.apionly as sns
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        # Create column with frequencies in `units`.
+        factor = _factor_ev2units(units)
+        yname = "freq %s" % _unit_tag(units)
+        data[yname] = factor * data["freq"]
+
+        sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
+        if swarm:
+            sns.swarmplot(x="mode", y=yname, data=data, hue="label", color=".25", ax=ax)
+
+        return fig
+
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, units):
+            return getattr(self, plot_type)(units=units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot"],
+                units=["eV", "cm-1", "Ha"],
+            )
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("plotter = abilab.PhononBandsPlotter.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("print(plotter)"),
+            nbv.new_code_cell("frame = plotter.get_phbands_frame()\ndisplay(frame)"),
+            nbv.new_code_cell("plotter.ipw_select_plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class PhononDosPlotter(NotebookWriter):
     """
     Class for plotting multiple phonon DOSes.
-    """
-    def __init__(self, *args):
-        self._phdoses_dict = OrderedDict()
-        for label, phdos in args:
-            self.add_dos(label, phdos)
 
-    def add_phdos(self, label, phdos):
+    Usage example:
+
+    .. code-block:: python
+
+        plotter = PhononDosPlotter()
+        plotter.add_phdos("foo dos", "foo.nc")
+        plotter.add_phdos("bar dos", "bar.nc")
+        fig = plotter.gridplot()
+    """
+    def __init__(self, key_phdos=None, phdos_kwargs=None):
+        self._phdoses_dict = OrderedDict()
+        if key_phdos is None: key_phdos = []
+        for label, phdos in key_phdos:
+            self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
+
+    @property
+    def phdos_list(self):
+        """List of phonon DOSes"""
+        return list(self._phdoses_dict.values())
+
+    def add_phdos(self, label, phdos, phdos_kwargs=None):
         """
         Adds a DOS for plotting.
 
         Args:
             label: label for the phonon DOS. Must be unique.
             phdos: :class:`PhononDos` object.
+            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+                Used when phdos is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
         if label in self._phdoses_dict:
             raise ValueError("label %s is already in %s" % (label, list(self._phdoses_dict.keys())))
 
-        self._phdoses_dict[label] = phdos
+        self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     @add_fig_kwargs
-    def plot(self, ax=None, *args, **kwargs):
+    def combiplot(self, ax=None, units="eV", **kwargs):
         """
-        Get a matplotlib plot showing the DOSes.
+        Plot the the DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
         ==============  ==============================================================
         kwargs          Meaning
         ==============  ==============================================================
-        xlim            x-axis limits. None (default) for automatic determination.
-        ylim            y-axis limits.  None (default) for automatic determination.
+        xlims           x-axis limits. None (default) for automatic determination.
+        ylims           y-axis limits.  None (default) for automatic determination.
         ==============  ==============================================================
         """
         ax, fig, plt = get_ax_fig_plt(ax)
+
         ax.grid(True)
-
-        xlim = kwargs.pop("xlim", None)
-        if xlim is not None: ax.set_xlim(xlim)
-
-        ylim = kwargs.pop("ylim", None)
-        if ylim is not None: ax.set_ylim(ylim)
-
-        ax.set_xlabel('Energy [eV]')
-        ax.set_ylabel('DOS [states/eV]')
+        set_axlims(ax, kwargs.pop("xlims", None), "x")
+        set_axlims(ax, kwargs.pop("ylims", None), "y")
+        ax.set_xlabel('Energy %s' % _unit_tag(units))
+        ax.set_ylabel('DOS %s' % _dos_label_from_units(units))
 
         lines, legends = [], []
         for label, dos in self._phdoses_dict.items():
-            l = dos.plot_ax(ax, *args, **kwargs)[0]
-
+            l = dos.plot_dos_idos(ax, units=units, **kwargs)[0]
             lines.append(l)
             legends.append("DOS: %s" % label)
 
@@ -2288,9 +2673,56 @@ class PhononDosPlotter(object):
 
         return fig
 
+    @deprecated(message="plot method of PhononDos has been replaced by combiplot. It will be removed in 0.4")
+    def plot(self, **kwargs):
+        return self.combiplot(**kwargs)
+
     @add_fig_kwargs
-    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                             quantities=None, **kwargs):
+    def gridplot(self, xlims=None, units="eV", **kwargs):
+        """
+        Plot multiple DOSes on a grid.
+
+        Args:
+            units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+
+        Returns:
+            matplotlib figure.
+        """
+        titles = list(self._phdoses_dict.keys())
+        phdos_list = list(self._phdoses_dict.values())
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = 1, 1
+        numeb = len(phdos_list)
+        if numeb > 1:
+            ncols = 2
+            nrows = numeb // ncols + numeb % ncols
+
+        # Build Grid
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
+        axes = axes.ravel()
+        # don't show the last ax if numeb is odd.
+        if numeb % ncols != 0: axes[-1].axis("off")
+
+        for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
+            ax = axes[i]
+            phdos.plot_dos_idos(ax, units=units)
+
+            ax.set_xlabel('Energy %s' % _unit_tag(units))
+            ax.set_ylabel("DOS %s" % _dos_label_from_units(units))
+            ax.set_title(label)
+            ax.grid(True)
+            set_axlims(ax, xlims, "x")
+            if i % ncols != 0:
+                ax.set_ylabel("")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
+                             quantities="all", **kwargs):
         """
         Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
 
@@ -2304,12 +2736,11 @@ class PhononDosPlotter(object):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
-                None means all.
 
         Returns:
             matplotlib figure.
         """
-        quantities = list_strings(quantities) if quantities is not None else \
+        quantities = list_strings(quantities) if quantities != "all" else \
             ["internal_energy", "free_energy", "entropy", "cv"]
 
         # Build grid of plots.
@@ -2320,18 +2751,18 @@ class PhononDosPlotter(object):
             nrows = num_plots // ncols + num_plots % ncols
 
         import matplotlib.pyplot as plt
-        fig, axmax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmax[-1, -1].axis("off")
+        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
 
-        for iax, (qname, ax) in enumerate(zip(quantities, axmax.flat)):
+        for iax, (qname, ax) in enumerate(zip(quantities, axmat.flat)):
 
             for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
                 # Compute thermodinamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
                 ys = f1d.values
-                if formula_units is not None: ys /= formula_units
-                if units == "Jmol": ys = ys * e_Cb * Avogadro
+                if formula_units != 1: ys /= formula_units
+                if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
                 ax.plot(f1d.mesh, ys, label=label)
 
             ax.set_title(qname)
@@ -2342,6 +2773,54 @@ class PhononDosPlotter(object):
 
         fig.tight_layout()
         return fig
+
+    def ipw_select_plot(self):
+        """
+        Return an ipython widget with controllers to select the plot.
+        """
+        def plot_callback(plot_type, units):
+            return getattr(self, plot_type)(units=units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                plot_type=["combiplot", "gridplot"],
+                units=["eV", "meV", "cm-1", "Thz", "Ha"],
+            )
+
+    def ipw_harmonic_thermo(self):
+        """
+        Return an ipython widget with controllers to plot thermodinamic properties
+        from the phonon DOS within the harmonic approximation.
+        """
+        def plot_callback(tstart, tstop, num, units, formula_units):
+            return self.plot_harmonic_thermo(tstart=tstart, tstop=tstop, num=num,
+                                             units=units, formula_units=formula_units)
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                plot_callback,
+                tstart=5, tstop=300, num=50, units=["eV", "Jmol"], formula_units=1)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("print(plotter)"),
+            nbv.new_code_cell("plotter.ipw_select_plot()"),
+            nbv.new_code_cell("plotter.ipw_harmonic_thermo()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class NonAnalyticalPh(Has_Structure):
@@ -2410,7 +2889,6 @@ class NonAnalyticalPh(Has_Structure):
             cartesian: if True the direction are already in cartesian coordinates, if False it
                 will be converted to match the internal description of the directions.
         """
-
         if not cartesian:
             direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
         else:
@@ -2460,8 +2938,8 @@ class InteratomicForceConstants(Has_Structure):
         with ETSF_Reader(filepath) as r:
             try:
                 structure = r.read_structure()
-                atoms_indices = r.read_value("ifc_atoms_indices")-1
-                neighbours_indices = r.read_value("ifc_neighbours_indices")-1
+                atoms_indices = r.read_value("ifc_atoms_indices") - 1
+                neighbours_indices = r.read_value("ifc_neighbours_indices") - 1
                 distances = r.read_value("ifc_distances")
                 ifc_cart_coord = r.read_value("ifc_matrix_cart_coord")
                 ifc_cart_coord_short_range = r.read_value("ifc_matrix_cart_coord_short_range", default=None)
@@ -2521,6 +2999,7 @@ class InteratomicForceConstants(Has_Structure):
         """
         Internal method that provides the indices of the neighouring atoms in self.neighbours_indices that satisfy
         the required conditions. All the arguments are optional. If None the filter will not be applied.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
@@ -2557,6 +3036,7 @@ class InteratomicForceConstants(Has_Structure):
         Filters the IFCs in cartesian coordinates
         All the arguments are optional. If None the filter will not be applied.
         Returns two arrays containing the distances and the corresponding filtered ifcs.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
@@ -2574,6 +3054,7 @@ class InteratomicForceConstants(Has_Structure):
         Filters the IFCs in local coordinates
         All the arguments are optional. If None the filter will not be applied.
         Returns two arrays containing the distances and the corresponding filtered ifcs.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
@@ -2595,6 +3076,7 @@ class InteratomicForceConstants(Has_Structure):
         Plots the specified ifcs, filtered according to the optional arguments.
         An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
         be plot at a time.
+
         Args:
             ifc: an array with shape number_of_atoms*number_of_neighbours of the ifc that should be plotted
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
@@ -2604,6 +3086,7 @@ class InteratomicForceConstants(Has_Structure):
             max_dist: maximum distance between atoms and neighbours.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+
         Returns:
             matplotlib figure
         """
@@ -2712,6 +3195,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
     Converts the phonon eigendisplacements to the orthonormal eigenvectors of the dynamical matrix.
     Small discrepancies with the original values may be expected due to the different values of the atomic masses in
     abinit and pymatgen.
+
     Args:
         phdispl: a numpy array containing the eigendisplacements in cartesian coordinates. The last index should have
             size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension
@@ -2720,6 +3204,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
         amu: dictionary that associates the atomic species present in the structure to the values of the atomic
             mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
             almost always lead to inaccuracies in the conversion.
+
     Returns:
         A numpy array of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
@@ -2729,7 +3214,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
         amu = {e.number: e.atomic_mass for e in structure.composition.elements}
 
     for j, a in enumerate(structure):
-        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)]*np.sqrt(amu[a.specie.number]*amu_emass)/Bohr_Ang
+        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)]*np.sqrt(amu[a.specie.number]*abu.amu_emass)/abu.Bohr_Ang
 
     return eigvec
 

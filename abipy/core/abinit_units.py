@@ -22,6 +22,8 @@ Ha_meV=Ha_eV*1000
 Ha_K=315774.65
 # 1 Hartree, in THz
 Ha_THz=6579.683920722
+# 1 eV, in THz
+eV_to_THz=eV_Ha*Ha_THz
 #1 Hartree, in J
 Ha_J=4.35974394e-18
 # minus the electron charge, in Coulomb

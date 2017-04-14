@@ -3,7 +3,6 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-#from numpy import arange, sin, pi
 
 
 def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
@@ -18,7 +17,7 @@ def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
         iterations:
             number of iterations
     """
-    if extent is None: 
+    if extent is None:
         extent = (-2, 1, -1.5, 1.5)
 
     x_min, x_max, y_min, y_max = extent
@@ -29,26 +28,26 @@ def mandelbrot(extent=None, ndivs=(1000,1000), iterations=100):
     yvals = np.linspace(y_min, y_max, ny)
 
     x, y = np.meshgrid(xvals, yvals)
-     
+
     # we define c as c=x+iy, c is a nx x ny matrix.
     c = x + 1j*y
-     
+
     # initially, z=c, we copy so that z and c are different objects in memory
     z = c.copy()
-     
+
     # m is used to plot the fractal
     m = np.zeros((nx, ny))
-     
+
     # iterations
     for n in range(iterations):
         print("Completed %d %%" % (100 * n/iterations))
-     
+
         # indices of the numbers c such that |z(c)|<=10, with z = z_n
         indices = (np.abs(z) <= 10)
-     
+
         # update z
         z[indices] = z[indices]**2 + c[indices]
-     
+
         # update the values in m
         m[indices] = n
 
@@ -97,7 +96,7 @@ class MyPanel(ImagePanel):
     #    print("zoom_motion")
     #    super(MyPanel, self).zoom_motion(event=event)
     #    print(self.zoom_ini)
-    
+
 
 class FractalsFrame(ImageFrame):
     def __init__(self, parent, **kwargs):
@@ -158,7 +157,7 @@ class MyNavigationToolbar(NavigationToolbar2Wx):
         extent = (xmin, xmax, ymin, ymax)
         self.frame.imshow_fractal(extent=extent)
 
-        self.canvas.draw()  
+        self.canvas.draw()
         self.canvas.Refresh(eraseBackground=False)
 
 
@@ -204,7 +203,7 @@ class CanvasFrame(wx.Frame):
 
         self.toolbar = MyNavigationToolbar(self)
         self.toolbar.Realize()
-                                                                                                       
+
         # On Windows platform, default window size is incorrect, so set toolbar width to figure width.
         tw, th = self.toolbar.GetSizeTuple()
         fw, fh = self.canvas.GetSizeTuple()
@@ -212,7 +211,7 @@ class CanvasFrame(wx.Frame):
         # of the frame - so appearance is closer to GTK version.
         self.toolbar.SetSize(wx.Size(fw, th))
         sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
-                                                                                                       
+
         # Update the axes menu on the toolbar
         self.toolbar.update()
 
@@ -230,12 +229,12 @@ class CanvasFrame(wx.Frame):
         self.axes.imshow(np.log(data), cmap=plt.cm.hot, origin="lower", extent=extent)
 
         # Save values
-        self.xvals, self.yvals, self.data = xvals, yvals, data 
+        self.xvals, self.yvals, self.data = xvals, yvals, data
 
     #def onclick(self, event):
     #    print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(
     #          event.button, event.x, event.y, event.xdata, event.ydata))
-                                                                         
+
 
 def wxapp_fractals():
     app = wx.App()
@@ -252,11 +251,11 @@ if __name__ == "__main__":
     sys.exit(0)
 
     x, y, m = mandelbrot()
- 
+
     # we plot log(m)
     import matplotlib.pyplot as plt
     fig = plt.imshow(np.log(m), cmap=plt.cm.hot, extent=extent)
-     
+
     plt.title('Mandelbrot Set')
     plt.xlabel('Re(z)')
     plt.ylabel('Im(z)')

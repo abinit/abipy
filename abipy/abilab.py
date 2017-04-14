@@ -47,7 +47,8 @@ from abipy.electrons.scr import ScrFile
 #from abipy.electrons.sigmaph import SigmaPhFile
 from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.dfpt.phonons import PhbstFile, PhononBands, PhdosFile, PhdosReader, phbands_gridplot
+from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
+    PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
 #from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile

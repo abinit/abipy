@@ -5,7 +5,7 @@ import numpy as np
 
 from abipy.core import Mesh3D
 from abipy.core.gsphere import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestGSphere(AbipyTest):
@@ -15,31 +15,33 @@ class TestGSphere(AbipyTest):
         """Basic G-sphere methods"""
         ecut = 2
         lattice = np.array([1.,0,0, 0,1,0, 0,0,1])
-        lattice.shape = (3,3)
-        kpoint = [0,0,0]
-        gvecs = np.array([[0,0,0], [1,0,0]])
+        lattice.shape = (3, 3)
+        kpoint = [0, 0, 0]
+        gvecs = np.array([[0, 0, 0], [1, 0, 0]])
 
         gsphere = GSphere(ecut, lattice, kpoint, gvecs, istwfk=1)
-        print(gsphere)
-        atrue = self.assertTrue
+        repr(gsphere)
+        str(gsphere)
 
-        atrue(len(gsphere) == 2)
-        atrue([1,0,0] in gsphere)
-        atrue(gsphere.index([1,0,0]) == 1)
-        atrue(gsphere.count([1,0,0]) == 1)
+        assert len(gsphere) == 2
+        assert [1, 0, 0] in gsphere
+        assert gsphere.index([1, 0, 0]) == 1
+        assert gsphere.count([1, 0, 0]) == 1
 
         self.serialize_with_pickle(gsphere, protocols=[-1])
 
         same_gsphere = gsphere.copy()
-        self.assertTrue(gsphere == same_gsphere)
+        assert gsphere == same_gsphere
         same_gsphere.kpt = [0.5, 0.1, 0.3]
-        atrue(np.all(gsphere.kpoint.frac_coords == kpoint))
+        assert np.all(gsphere.kpoint.frac_coords == kpoint)
 
-        gsphere.zeros()
-        gsphere.czeros()
+        assert np.all(gsphere.zeros() == 0)
+        values = gsphere.czeros()
+        assert values.dtype == np.complex
+        assert np.all(values == 0)
 
-        gsphere.empty()
-        gsphere.cempty()
+        assert len(gsphere.empty()) == len(gsphere)
+        assert len(gsphere.cempty()) == len(gsphere)
 
     def test_fft(self):
         """FFT transforms"""
@@ -62,8 +64,3 @@ class TestGSphere(AbipyTest):
                 int_r = mesh.integrate(fr)
                 int_g = fg[...,0,0,0]
                 self.assert_almost_equal(int_r, int_g)
-
-
-if __name__ == "__main__": 
-    import unittest
-    unittest.main()

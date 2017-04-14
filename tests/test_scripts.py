@@ -28,13 +28,6 @@ def test_if_all_scripts_are_tested():
             print("[%d] %s" % (i, s))
 
     assert len(not_tested) == 0
-    #assert not_tested == set([
-    #    "abiGWprint.py",
-    #    "abiGWstore.py",
-    #    "abiGWoutput.py",
-    #    "abiphonons.py",
-    #    "abiGWsetup.py",
-    #])
 
 
 class ScriptTest(AbipyTest):
@@ -65,7 +58,7 @@ class ScriptTest(AbipyTest):
             print("stdout", r.stdout)
             verstr = r.stderr.strip()
             if not verstr: verstr = r.stdout.strip()  # py3k
-            assert verstr == "%s version %s" % (os.path.basename(self.script), abilab.__version__)
+            assert verstr == abilab.__version__
 
         return env
 
@@ -101,6 +94,13 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+    def test_abispg(self):
+        """Testing abistruct abispg"""
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        env = self.get_env()
+        r = env.run(self.script, "abispg", ncfile, self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
     def test_convert(self):
         """Testing abistruct convert"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
@@ -134,7 +134,14 @@ class TestAbistruct(ScriptTest):
     #    """Testing abistruct kmesh"""
     #    env = self.get_env()
     #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-    #    r = env.run(self.script, "kmesh", "--mesh=2 2 2 --shift=1 1 1 --no-time-reversal", ncfile)
+    #    r = env.run(self.script, "kmesh", "--mesh=2 2 2 --shift=1 1 1 --no-time-reversal", ncfile,
+    #                expect_stderr=self.expect_stderr)
+
+    #def test_lgk(self):
+    #    """Testing abistruct lgk"""
+    #    env = self.get_env()
+    #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+    #    r = env.run(self.script, "lgk", "-k 0 0 0 --no-time-reversal", ncfile,
     #                expect_stderr=self.expect_stderr)
 
 
@@ -144,8 +151,54 @@ class TestAbicomp(ScriptTest):
     def test_abicomp(self):
         """Testing abicomp"""
         env = self.get_env()
-        #r = env.run(self.script, "gs_scf", qtype, file1, file2, self.loglevel, self.verbose)
-        #expect_stderr=self.expect_stderr)
+
+        cif_paths = abidata.cif_files("al.cif", "gan.cif", "gan2.cif")
+        r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+        dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")
+        args = [os.path.join(dirpath, p) for p in ("si_nscf_GSR.nc", "si_scf_WFK.nc")]
+        r = env.run(self.script, "ebands", args[0], args[1], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+        args = [os.path.join(dirpath, p) for p in ("si_scf_GSR.nc", "si_scf_WFK.nc")]
+        r = env.run(self.script, "edos", args[0], args[1], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+        dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
+        args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_886.out_PHBST.nc", "ZnSe_hex_886.out_PHBST.nc")]
+        r = env.run(self.script, "phbands", args[0], args[1], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+        #dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
+        #args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_886.out_PHDOS.nc", "ZnSe_hex_886.out_PHDOS.nc")]
+        #r = env.run(self.script, "phdos", *args, self.loglevel, self.verbose,
+        #            expect_stderr=self.expect_stderr)
+
+        #dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
+        #args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_qpt_DDB", "ZnSe_hex_qpt_DDB")]
+        #r = env.run(self.script, "ddb", *args, self.loglevel, self.verbose,
+        #            expect_stderr=self.expect_stderr)
+
+        args = abidata.ref_files("si_g0w0ppm_nband10_SIGRES.nc",
+                                 "si_g0w0ppm_nband20_SIGRES.nc",
+                                 "si_g0w0ppm_nband30_SIGRES.nc")
+        r = env.run(self.script, "sigres", args[0], args[1], args[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+        args = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
+        r = env.run(self.script, "mdf", args[0], args[1], args[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+       # args = abidata.ref_files()
+       # r = env.run(self.script, "gs_scf", *args, self.loglevel, self.verbose,
+       #             expect_stderr=self.expect_stderr)
+
+        #args = abidata.ref_files()
+        #r = env.run(self.script, "dfpt2_scf", *args, self.loglevel, self.verbose,
+
+        #args = abidata.ref_files()
+        #r = env.run(self.script, "time", *args, self.loglevel, self.verbose,
 
 
 class TestAbirun(ScriptTest):
@@ -190,20 +243,6 @@ class TestAbirun(ScriptTest):
             assert r.returncode == 0
 
 
-#class TestAbipsps(ScriptTest):
-#    script = os.path.join(script_dir, "abipsps.py")
-#
-#    def test_abipsps(self):
-#        """Testing abipsps.py"""
-#        if not self.has_matplotlib(): return
-#        si_pspnc = abidata.pseudo("14si.pspnc")
-#        si_oncv = abidata.pseudo("Si.oncvpsp")
-#        env = self.get_env()
-#        r = env.run(self.script, si_pspnc.path, self.loglevel, self.verbose)
-#        r =env.run(self.script, si_pspnc.path, si_oncv.path, self.loglevel, self.verbose,
-#                   expect_stderr=True)
-
-
 class TestAbicheck(ScriptTest):
     script = os.path.join(script_dir, "abicheck.py")
 
@@ -212,13 +251,7 @@ class TestAbicheck(ScriptTest):
         env = self.get_env()
         r = env.run(self.script, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-
-#class TestAbiinsp(ScriptTest):
-#    script = os.path.join(script_dir, "abiinsp.py")
-#
-#    def test_abiinsp(self):
-#        """Testing abiinsp.py"""
-#        env = self.get_env()
+        #r = env.run(self.script, "--with-flow", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -246,7 +279,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)

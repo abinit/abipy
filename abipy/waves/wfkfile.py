@@ -31,7 +31,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # Plot band energies.
         wfk.plot_ebands()
 
-        # Visualize u(r)**2 with vesta.
+        # Visualize crystalline structure with vesta.
         visu = wfk.visualize_structure_with("vesta")
         visu()
 
@@ -40,7 +40,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         visu()
 
         # Get a wavefunction.
-        wave = wfk.get_wave(spin=0, kpoint=[0,0,0], band=0)
+        wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
     """
     def __init__(self, filepath):
         """

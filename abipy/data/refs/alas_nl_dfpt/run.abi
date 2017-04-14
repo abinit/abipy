@@ -1,0 +1,29 @@
+# input used to generate the ref files AlAs_nl_dte_anaddb.nc and AlAs_nl_dte_PHBST.nc
+# General information
+#**********************
+   chneut  1 
+
+# Flags
+#*******
+   dieflag  1
+   ifcflag  0
+    nlflag  1
+
+# Nonlinear response calculation
+#*******************************
+   ramansr  1 
+    alphon  1 
+    prtmbm  1 
+
+# Wavevector list number 1
+#**************************                                                      
+     nph1l  1
+     qph1l  0.0 0.0 0.0 1.0 
+     asr 2
+
+# Wave vector list no. 2
+#***********************
+     nph2l  1
+     qph2l  1.0 0.0 0.0 0.0
+
+

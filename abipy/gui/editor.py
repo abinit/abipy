@@ -8,7 +8,7 @@ import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
 from monty.fnmatch import WildCard
-from wx.py.editor import EditorFrame, EditorNotebookFrame  
+from wx.py.editor import EditorFrame, EditorNotebookFrame
 
 __all__ = [
     "SimpleTextViewer",
@@ -79,7 +79,7 @@ class TextNotebookFrame(awx.Frame):
         try:
             style = fnb.FNB_X_ON_TAB | fnb.FNB_NAV_BUTTONS_WHEN_NEEDED
         except AttributeError:
-            style = fnb.FNB_X_ON_TAB 
+            style = fnb.FNB_X_ON_TAB
 
         nb = fnb.FlatNotebook(nb_panel, style=style)
 
@@ -110,8 +110,8 @@ class TextNotebookFrame(awx.Frame):
                 Directory to scan for additional files.
             walk:
                 Used only if dirpath is not None.
-                If True, we scan all the files contained within dirpath and 
-                we add them to the list if their name match the regular expression 
+                If True, we scan all the files contained within dirpath and
+                we add them to the list if their name match the regular expression
                 given in wildcard.
             wildcard:
                 String with regular expressions separated by `|`.
@@ -154,7 +154,7 @@ class TextNotebookFrame(awx.Frame):
 
 def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
     """
-    Standalone applications that reads the content of the files specified 
+    Standalone applications that reads the content of the files specified
     in input and show them in a notebook.
 
     Args:
@@ -164,8 +164,8 @@ def wxapp_showfiles(filenames=None, dirpath=None, walk=True, wildcard=None):
             Directory to scan for additional files.
         walk:
             Used only if dirpath is not None.
-            If True, we scan all the files contained within dirpath and 
-            we add them to the list if their name match the regular expression 
+            If True, we scan all the files contained within dirpath and
+            we add them to the list if their name match the regular expression
             given in wildcard.
         wildcard:
             String with regular expressions separated by |.

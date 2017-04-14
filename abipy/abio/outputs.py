@@ -6,7 +6,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 
 from monty.string import is_string
-from abipy.flowtk import EventsParser, NetcdfReader, AbinitTimerParser, GroundStateScfCycle, D2DEScfCycle
+from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
+from abipy.abio.timer import AbinitTimerParser
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 
 
@@ -28,7 +29,6 @@ class AbinitTextFile(TextFile):
         """
         Timer data.
         """
-        # Parse the file the first time the property is accessed or when mtime is changed.
         timer = AbinitTimerParser()
         timer.parse(self.filepath)
         return timer
@@ -45,7 +45,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.path),
+            nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(abilog.events)"),
         ])
 

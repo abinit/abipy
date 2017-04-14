@@ -66,7 +66,7 @@ class StructureConverterFrame(wx.Frame):
 
     def _convert(self):
         """Returns string with the structure converted in the user-specified format."""
-        return self.structure.convert(format=self.format)
+        return self.structure.convert(fmt=self.format)
 
     def OnShow(self, event):
         s = self._convert()

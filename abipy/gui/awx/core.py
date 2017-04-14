@@ -6,7 +6,7 @@ import sys
 import wx
 
 from monty.string import list_strings
-import abipy.tools.decorators as dec
+#import abipy.tools.decorators as dec
 
 
 #import logging
@@ -26,12 +26,12 @@ _DEBUG = True
 _DEBUG = False
 
 
-if _DEBUG:
-    verbose = dec.verbose
-
-else:
-    def verbose(func):
-        return func
+#if _DEBUG:
+#    verbose = dec.verbose
+#
+#else:
+def verbose(func):
+    return func
 
 
 #class Error(Exception):

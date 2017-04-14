@@ -1,0 +1,219 @@
+{
+  "comment": null, 
+  "@class": "AbinitInput", 
+  "tags": [], 
+  "abi_args": [
+    [
+      "kptopt", 
+      1
+    ], 
+    [
+      "shiftk", 
+      [
+        [
+          0.0, 
+          0.0, 
+          0.0
+        ]
+      ]
+    ], 
+    [
+      "ngkpt", 
+      [
+        10, 
+        10, 
+        10
+      ]
+    ], 
+    [
+      "nshiftk", 
+      1
+    ], 
+    [
+      "chksymbreak", 
+      null
+    ], 
+    [
+      "nspinor", 
+      1
+    ], 
+    [
+      "occopt", 
+      3
+    ], 
+    [
+      "nspden", 
+      2
+    ], 
+    [
+      "nband", 
+      12
+    ], 
+    [
+      "charge", 
+      0.0
+    ], 
+    [
+      "iscf", 
+      -2
+    ], 
+    [
+      "nsppol", 
+      2
+    ], 
+    [
+      "fband", 
+      null
+    ], 
+    [
+      "tsmear", 
+      0.003674932248
+    ], 
+    [
+      "istwfk", 
+      "*1"
+    ], 
+    [
+      "paral_kgb", 
+      1
+    ], 
+    [
+      "timopt", 
+      -1
+    ], 
+    [
+      "nbdbuf", 
+      8
+    ], 
+    [
+      "ecut", 
+      2
+    ], 
+    [
+      "prtsuscep", 
+      0
+    ], 
+    [
+      "gwmem", 
+      "10"
+    ], 
+    [
+      "gwpara", 
+      2
+    ], 
+    [
+      "inclvkb", 
+      2
+    ], 
+    [
+      "symchi", 
+      1
+    ], 
+    [
+      "ecutwfn", 
+      null
+    ], 
+    [
+      "optdriver", 
+      3
+    ], 
+    [
+      "ecuteps", 
+      3
+    ], 
+    [
+      "awtr", 
+      1
+    ], 
+    [
+      "toldfe", 
+      1e-08
+    ]
+  ], 
+  "decorators": [], 
+  "pseudos": [
+    {
+      "l_max": 2, 
+      "Z_val": 4.0, 
+      "filepath": "/Users/setten/software/conda_install/setten_stack/abipy/abipy/data/pseudos/14si.pspnc", 
+      "symbol": "Si", 
+      "@module": "pymatgen.io.abinit.pseudos", 
+      "Z": 14, 
+      "type": "NcAbinitPseudo", 
+      "basename": "14si.pspnc", 
+      "@class": "NcAbinitPseudo", 
+      "md5": "3916b143991b1cfa1542b130be320e5e"
+    }
+  ], 
+  "structure": {
+    "lattice": {
+      "a": 3.86697462, 
+      "c": 3.86697462, 
+      "b": 3.86697462, 
+      "matrix": [
+        [
+          3.3488982567096763, 
+          0.0, 
+          1.9334873100000005
+        ], 
+        [
+          1.1162994189032256, 
+          3.1573715557642927, 
+          1.9334873100000005
+        ], 
+        [
+          0.0, 
+          0.0, 
+          3.86697462
+        ]
+      ], 
+      "volume": 40.88829179346891, 
+      "beta": 59.99999999999999, 
+      "gamma": 59.99999999999999, 
+      "alpha": 59.99999999999999
+    }, 
+    "sites": [
+      {
+        "abc": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
+        "xyz": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
+        "label": "Si", 
+        "species": [
+          {
+            "occu": 1.0, 
+            "element": "Si"
+          }
+        ]
+      }, 
+      {
+        "abc": [
+          0.25, 
+          0.25, 
+          0.25
+        ], 
+        "xyz": [
+          1.1162994189032256, 
+          0.7893428889410732, 
+          1.9334873100000003
+        ], 
+        "label": "Si", 
+        "species": [
+          {
+            "occu": 1.0, 
+            "element": "Si"
+          }
+        ]
+      }
+    ], 
+    "@class": "Structure", 
+    "@module": "abipy.core.structure"
+  }, 
+  "@module": "abipy.abio.inputs"
+}

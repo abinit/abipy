@@ -3,11 +3,13 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import six
+import abc
 
-from collections import OrderedDict, Iterable, defaultdict
-from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict
-from monty.functools import lazy_property
+#from collections import OrderedDict
+from monty.string import marquee # is_string, list_strings,
+#from monty.collections import AttrDict
+#from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from abipy.core.func1d import Function1D
@@ -21,69 +23,81 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class WGGFunction(object):
+class _AwggMat(object):
     r"""
-    Base class for two-point functions expressed in
-    reciprocal space i.e. a matrix $A_{G,G'}(q, \omega)$
+    Base class for two-point functions expressed in reciprocal space
+    i.e. a complex matrix $A_{G,G'}(\omega)$ where G, G' are reciprocal
+    lattice vectors defines inside the sphere `gsphere`.
+
+    This class is not supposed to be instanciated directly.
 
     .. attributes:
 
-        qpoint
-        wpts
+        wpoints:
         gpshere:
-        nrew
-        nwim
+        nrew:
+        nwim:
     """
+    etsf_name = "_AwggMat"
+    latex_name = "Unknown"
 
-    def __init__(self, qpoint, wpts, gsphere, wggmat, inord="C"):
+    def __init__(self, wpoints, gsphere, wggmat, inord="C"):
         """"
         Args:
-            qpoint: Q-point object
-            wpts: Frequency points in Ha.
-            wggmat: numpy array of shape [nw, ng, ng]
+            gsphere: :class:`GSphere` with G-vectors and k-point object.
+            wpoints: Complex frequency points in Hartree.
+            wggmat: [nw, ng, ng] complex array.
             inord: storage order of wggmat. If inord == "F", wggmat in
                 in Fortran column-major order. Default: "C" i.e. C row-major order
         """
-        self.qpoint = qpoint
-        self.wpts = wpts
+        self.wpoints = np.array(wpoints, dtype=np.complex)
         self.gsphere = gsphere
         self.wggmat = np.reshape(wggmat, (self.nw, self.ng, self.ng))
 
-        if inord == "F":
+        if inord.lower() == "f":
             # Fortran to C.
-            for iw in range(len(wpts)):
+            for iw, _ in enumerate(wpoints):
                 self.wggmat[iw] = self.wggmat[iw].T
 
         for i in (1, 2):
             assert len(gsphere) == wggmat.shape[-i]
-        assert len(self.wpts) == len(self.wggmat)
+        assert len(self.wpoints) == len(self.wggmat)
 
-        # Find number of real/imaginary frequencies
+        # Find number of real/imaginary frequencies.
         self.nrew = self.nw; self.nimw = 0
-        for i, w in enumerate(self.wpts):
+        for i, w in enumerate(self.wpoints):
             if np.iscomplex(w):
                 self.nrew = i
                 break
 
         self.nimw = self.nw - self.nrew
-        if self.nimw and not np.all(np.iscomplex(self.wpts[self.nrew+1:])):
-            raise ValueError("wpts should contained real points packed in the first positions\n"
-                "followed by imaginary points but got: %s" % str(self.wpts))
+        if self.nimw and not np.all(np.iscomplex(self.wpoints[self.nrew+1:])):
+            raise ValueError("wpoints should contained real points packed in the first positions\n"
+                "followed by imaginary points but got: %s" % str(self.wpoints))
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
         lines = []
         app = lines.append
 
         app(self.etsf_name)
-        app("  q-point: %s" % self.qpoint)
+        app("  k-point: %s" % self.kpoint)
         app("  Number of G-vectors: %d" % self.ng)
         app("  Total number of frequencies: %d (real: %s, imag: %s)" % (self.nw, self.nrew, self.nimw))
         if self.nrew:
-            app("  real frequencies up to %.2f [eV]" % self.real_wpts[-1].real)
+            app("  real frequencies up to %.2f [eV]" % self.real_wpoints[-1].real)
         if self.nimw:
-            app("  imaginary frequencies up to %.2f [eV]" % self.imag_wpts[-1].imag)
+            app("  imaginary frequencies up to %.2f [eV]" % self.imag_wpoints[-1].imag)
 
         return "\n".join(lines)
+
+    @property
+    def kpoint(self):
+        """Kpoint object."""
+        return self.gsphere.kpoint
 
     @property
     def ng(self):
@@ -93,20 +107,20 @@ class WGGFunction(object):
     @property
     def nw(self):
         """Total number of frequencies."""
-        return len(self.wpts)
+        return len(self.wpoints)
 
     @property
-    def real_wpts(self):
-        """Real frequencies in Hartree"""
+    def real_wpoints(self):
+        """Real frequencies in Hartree. Empty list if not available."""
         if self.nrew > 0:
-            return np.real(self.wpts[:self.nrew])
+            return np.real(self.wpoints[:self.nrew])
         return []
 
     @property
-    def imag_wpts(self):
-        """Imaginary frequencies in Hartree"""
+    def imag_wpoints(self):
+        """Imaginary frequencies in Hartree. Empty list if not available."""
         if self.nimw > 0:
-            return self.wpts[self.nrew:]
+            return self.wpoints[self.nrew:]
         return []
 
     @property
@@ -121,13 +135,13 @@ class WGGFunction(object):
 
     def windex(self, w, atol=0.001):
         """
-        Find the index of the **closest** frequency in `wpts`.
+        Find the index of the **closest** frequency in `wpoints`.
         """
         if np.iscomplex(w):
-            iw = bs_index(self.imag_wpts.imag, w, atol=atol)
+            iw = bs_index(self.imag_wpoints.imag, w.imag, atol=atol)
             iw += self.nrew
         else:
-            iw = bs_index(self.real_wpts.real, w, atol=atol)
+            iw = bs_index(self.real_wpoints.real, w, atol=atol)
 
         return iw
 
@@ -150,7 +164,7 @@ class WGGFunction(object):
     @add_fig_kwargs
     def plot_w(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
         """
-        Plot the frequency dependence of W_{g1, g2}
+        Plot the frequency dependence of W_{g1, g2}(omega)
 
         Args:
             gvec1, gvec2:
@@ -160,7 +174,6 @@ class WGGFunction(object):
                        "im" for the imaginary part, "abs" for the absolute value.
                        "angle" will display the phase of the complex number in radians.
                        Options can be concatenated with "-" e.g. "re-im"
-
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
@@ -173,12 +186,12 @@ class WGGFunction(object):
         ax, fig, plt = get_ax_fig_plt(ax)
         if waxis == "real":
             if self.nrew == 0: return fig
-            xx = (self.real_wpts * Ha_to_eV).real
+            xx = (self.real_wpoints * Ha_to_eV).real
             yy = self.wggmat_realw[:, ig1, ig2]
 
         elif waxis == "imag":
             if self.nimw == 0: return fig
-            xx = (self.imag_wpts * Ha_to_eV).imag
+            xx = (self.imag_wpoints * Ha_to_eV).imag
             yy = self.wggmat_imagw[:, ig1, ig2]
 
         else:
@@ -198,22 +211,21 @@ class WGGFunction(object):
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
-        ax.set_title("%s, qpoint: %s" % (self.etsf_name, self.qpoint))
-        #ax.legend(loc="best")
+        ax.set_title("%s, kpoint: %s" % (self.etsf_name, self.kpoint))
         ax.legend(loc="upper right")
+        #ax.legend(loc="best")
 
         return fig
 
     @add_fig_kwargs
     def plot_ggmat(self, cplx_mode="abs", wpos=None, **kwargs):
         """
-        Use imshow for plotting W_GG'.
+        Use imshow to plot W_{GG'} matrix
 
         Args:
             cplx_mode:
-            wpos: List of frequency indices to plot. If None, the first
-                frequency is used (usually w=0). if wpos == "all"
-                all frequencies are shown (use it carefully)
+            wpos: List of frequency indices to plot. If None, the first frequency is used (usually w=0).
+                If wpos == "all" all frequencies are shown (use it carefully)
                 Other possible values: "real" if only real frequencies are wanted.
                 "imag" for imaginary frequencies only.
 
@@ -236,24 +248,24 @@ class WGGFunction(object):
         # Build plotter.
         plotter = ArrayPlotter()
         for iw in wpos:
-            label = cplx_mode + r" $\omega = %s" % self.wpts[iw]
+            label = cplx_mode + r" $\omega = %s" % self.wpoints[iw]
             data = data_from_cplx_mode(cplx_mode, self.wggmat[iw,:,:])
             plotter.add_array(label, data)
 
-        return plotter.plot(**kwargs)
+        return plotter.plot(show=False, **kwargs)
 
 
-class Polarizability(WGGFunction):
+class Polarizability(_AwggMat):
     etsf_name = "dielectric_function"
     latex_name = "\\tilde chi"
 
 
-class DielectricFunction(WGGFunction):
+class DielectricFunction(_AwggMat):
     etsf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
 
-class InverseDielectricFunction(WGGFunction):
+class InverseDielectricFunction(_AwggMat):
     etsf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 
@@ -270,8 +282,7 @@ class InverseDielectricFunction(WGGFunction):
         return self._add_ppmodel(ppm)
 
     @add_fig_kwargs
-    def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re",
-        zcut=0.1/Ha_to_eV, **kwargs):
+    def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re", zcut=0.1/Ha_to_eV, **kwargs):
         """
         Args:
             gvec1, gvec2:
@@ -293,11 +304,10 @@ class InverseDielectricFunction(WGGFunction):
 
         ax, fig, plt = get_ax_fig_plt(None)
 
-        self.plot_w(gvec1, gvec2=gvec2, waxis=waxis, cplx_mode=cplx_mode,
-                    ax=ax, show=False)
+        self.plot_w(gvec1, gvec2=gvec2, waxis=waxis, cplx_mode=cplx_mode, ax=ax, show=False)
 
         # Compute em1 from the ppmodel on the same grid used for self.
-        omegas = {"real": self.real_wpts, "imag": self.imag_wpts}[waxis]
+        omegas = {"real": self.real_wpoints, "imag": self.imag_wpoints}[waxis]
 
         # Get y-limits of the ab-initio em1 to zoom-in the interesting region
         ymin_em1, ymax_em1 = ax.get_ylim()
@@ -314,8 +324,7 @@ class InverseDielectricFunction(WGGFunction):
 
 class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
-    Netcdf file with the tables used in Abinit to apply the
-    pseudopotential part of the KS Hamiltonian.
+    ScrFile produced by the Abinit GW code.
 
     Usage example:
 
@@ -323,7 +332,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         with ScrFile("foo_SCR.nc") as scr:
             print(scr)
-            em1 = scr.get_em1(qpoint=0)
+            em1 = scr.get_em1(kpoint=0)
             em1.plot_w()
     """
 
@@ -347,7 +356,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -357,7 +366,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(str(self.structure))
         app("")
         app(marquee("Q-points", mark="="))
-        app(str(self.qpoints))
+        app(str(self.kpoints))
         app("")
         #app("  Number of G-vectors: %d" % self.ng)
         #app("  Number of frequencies: %d (real:%d, imag%d)" % (self.nw, self.nrew, self.nimw))
@@ -370,22 +379,19 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.structure
 
     @property
-    def qpoints(self):
+    def kpoints(self):
         """List of q-points for the dielectric function."""
-        return self.reader.qpoints
+        return self.reader.kpoints
 
     @property
-    def wpts(self):
+    def wpoints(self):
         """
         Read the frequencies of the dielectric function in Ha.
         Returns numpy array of complex numbers.
         """
-        return self.reader.wpts
+        return self.reader.wpoints
 
-    def get_em1(self, qpoint):
-        return self.reader.read_wggfunc(qpoint, InverseDielectricFunction)
-
-    def get_emacro_nlf(self, qpoint=(0, 0, 0)):
+    def get_emacro_nlf(self, kpoint=(0, 0, 0)):
         """
         Compute the macroscopic dielectric function *without* local field effects.
         e_{0,0)(q=0, w).
@@ -393,34 +399,38 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Return :class:`Function1D`
 
         .. warning:
+
             This function performs the inversion of e-1 to get e.
             that can be quite expensive and memory demanding for large matrices!
         """
-        em1 = self.get_em1(qpoint=qpoint)
+        em1 = self.get_em1(kpoint=kpoint)
         e = np.linalg.inv(em1.wggmat[:em1.nrew, :, :])
 
-        return Function1D(em1.real_wpts, e[:, 0, 0])
+        return Function1D(em1.real_wpoints, e[:, 0, 0])
 
-    def get_emacro_lf(self, qpoint=(0, 0, 0)):
+    def get_emacro_lf(self, kpoint=(0, 0, 0)):
         """
         Compute the macroscopic dielectric function *with* local field effects
         1/ em1_{0,0)(q=0, w).
 
         Return :class:`Function1D`
         """
-        em1 = self.get_em1(qpoint=qpoint)
+        em1 = self.get_em1(kpoint=kpoint)
         emacro = 1 / em1.wggmat[:, 0, 0]
-        return Function1D(em1.real_wpts, emacro[:em1.nrew])
+        return Function1D(em1.real_wpoints, emacro[:em1.nrew])
 
-    @add_fig_kwargs
-    def plot_emacro_lf(self, **kwargs):
-        """
-        Plot the macroscopic dielectric function with local-field effects.
+    def get_em1(self, kpoint):
+        return self.reader.read_wggfunc(kpoint, InverseDielectricFunction)
 
-        Returns:
-            matplotlib figure.
-        """
-        return self.get_emacro_lf().plot(**kwargs)
+    #@add_fig_kwargs
+    #def plot_emacro_lf(self, **kwargs):
+    #    """
+    #    Plot the macroscopic dielectric function with local-field effects.
+
+    #    Returns:
+    #        matplotlib figure.
+    #    """
+    #    return self.get_emacro_lf().plot(**kwargs)
 
     def write_notebook(self, nbpath=None):
         """
@@ -432,7 +442,7 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("scr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(scr)"),
-            nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
+            #nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
             #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
         ])
 
@@ -450,8 +460,8 @@ class ScrReader(ETSF_Reader):
         # Read and store important quantities.
         self.structure = self.read_structure()
         qred_coords = self.read_value("qpoints_dielectric_function")
-        self.qpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
-        self.wpts = self.read_value("frequencies_dielectric_function", cmode="c")
+        self.kpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
+        self.wpoints = self.read_value("frequencies_dielectric_function", cmode="c")
 
     #def read_params(self):
     #    """
@@ -465,43 +475,44 @@ class ScrReader(ETSF_Reader):
     #    keys = ["npwwfn_used", "nbands_used",]
     #    return AttrDict({k: self.read_value(k) for k in keys})
 
-    def find_qpoint_fileindex(self, qpoint):
+    def find_kpoint_fileindex(self, kpoint):
         """
         Returns the q-point and the index of in the netcdf file.
         Accepts `Kpoint` instance or integer
 
         Raise:
-            `KpointsError` if qpoint cannot be found.
+            `KpointsError` if kpoint cannot be found.
         """
-        if isinstance(qpoint, int):
-            iq = qpoint
+        if isinstance(kpoint, int):
+            ik = kpoint
         else:
-            iq = self.qpoints.index(qpoint)
+            ik = self.kpoints.index(kpoint)
 
-        return self.qpoints[iq], iq
+        return self.kpoints[ik], ik
 
-    def read_wggfunc(self, qpoint, cls):
+    def read_wggfunc(self, kpoint, cls):
         """
         Read data at the given q-point and return an instance
-        of `cls` where `cls` is a subclass of `WGGFunction`
+        of `cls` where `cls` is a subclass of `_AwggMat`
         """
-        qpoint, iq = self.find_qpoint_fileindex(qpoint)
+        kpoint, iq = self.find_kpoint_fileindex(kpoint)
         # TODO: I don't remember how to slice in python-netcdf
         # ecuteps
         all_gvecs = self.read_value("reduced_coordinates_plane_waves_dielectric_function")
         ecuteps = 2
         # TODO: Gpshere.find is very slow if we don't take advantage of shells
-        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, qpoint, all_gvecs[iq])
+        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, kpoint, all_gvecs[iq])
 
         full_wggmat = self.read_value(cls.etsf_name, cmode="c")
         wggmat = full_wggmat[iq]
 
-        return cls(qpoint, self.wpts, gsphere, wggmat, inord="F")
+        return cls(self.wpoints, gsphere, wggmat, inord="F")
 
 
-import six
-import abc
 class PPModel(six.with_metaclass(abc.ABCMeta, object)):
+    """
+    Abstract base class for Plasmonpole models.
+    """
 
     #@abc.abstractmethod
     #def from_em1(cls, em1):
@@ -524,7 +535,7 @@ class GodbyNeeds(PPModel):
         Plasmon pole parameters $\tilde\omega_{G Gp}(q)$.
         """
         self.gsphere = gsphere
-        self.qpoint = gsphere.kpoint
+        self.kpoint = gsphere.kpoint
         self.omegatw = omegatw
         self.bigomegatwsq = bigomegatwsq
 
@@ -536,7 +547,7 @@ class GodbyNeeds(PPModel):
     def from_em1(cls, em1, wplasma):
         # Find omega=0 and the second imaginary frequency to fit the ppm parameters.
         iw0 = -1; iw1 = -1
-        for i, w in enumerate(em1.wpts):
+        for i, w in enumerate(em1.wpoints):
             if np.abs(w) <= 1e-6: iw0 = i
             if np.abs(w - 1j*wplasma) <= 1e-6: iw1 = i
 
@@ -583,7 +594,7 @@ class GodbyNeeds(PPModel):
             #em1gg = em1gg * (1 - np.exp(-arg**2))
             wggmat[i] = em1gg
 
-        return InverseDielectricFunction(self.qpoint, omegas, self.gsphere, wggmat)
+        return InverseDielectricFunction(self.kpoint, omegas, self.gsphere, wggmat)
 
     @add_fig_kwargs
     def plot_ggparams(self, **kwargs):
@@ -591,4 +602,4 @@ class GodbyNeeds(PPModel):
             (r"$\\tilde\omega_{G G'}$", self.omegatw),
             (r"$\\tilde\Omega^2_{G, G'}$", self.bigomegatwsq)])
 
-        return plotter.plot(**kwargs)
+        return plotter.plot(show=False, **kwargs)

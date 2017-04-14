@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 
-from monty.string import list_strings
 from monty.bisect import find_gt
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import Pseudo
@@ -15,25 +14,25 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def compare_pseudos(filepaths, ecut=30):
-    """
-    This function receives a list of pseudopotential files, call
-    Abinit to produced the PSPS.nc files and produces matplotlib plots
-    comparing the behaviour of the pseudos in real and in reciprocal space.
-
-    Args:
-        filepaths: List of file names.
-        ecut: Cutoff energy in Ha for the wavefunctions.
-    """
-    pseudos = [Pseudo.from_file(path) for path in filepaths]
-
-    psps_files = [p.open_pspsfile(ecut=ecut) for p in pseudos]
-
-    p0 = psps_files[0]
-    p0.compare(psps_files[1:])
-
-    for pfile in psps_files:
-        pfile.close()
+#def compare_pseudos(filepaths, ecut=30):
+#    """
+#    This function receives a list of pseudopotential files, call
+#    Abinit to produced the PSPS.nc files and produces matplotlib plots
+#    comparing the behaviour of the pseudos in real and in reciprocal space.
+#
+#    Args:
+#        filepaths: List of file names.
+#        ecut: Cutoff energy in Ha for the wavefunctions.
+#    """
+#    pseudos = [Pseudo.from_file(path) for path in filepaths]
+#
+#    psps_files = [p.open_pspsfile(ecut=ecut) for p in pseudos]
+#
+#    p0 = psps_files[0]
+#    p0.compare(psps_files[1:])
+#
+#    for pfile in psps_files:
+#        pfile.close()
 
 
 def mklabel(fsym, der, arg):

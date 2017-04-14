@@ -4,9 +4,9 @@ from __future__ import print_function, division
 
 import tempfile
 import numpy as np
-import abipy.data as data
+import abipy.data as abidata
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.iotools.xsf import *
 
 
@@ -14,7 +14,7 @@ class TestXsfUtils(AbipyTest):
     """Unit tests for Density."""
 
     def setUp(self):
-        self.mgb2 = data.structure_from_ucell("MgB2")
+        self.mgb2 = abidata.structure_from_ucell("MgB2")
 
     def test_xsf_write_structure(self):
         """Testing crystalline structures in the XSF format."""
@@ -80,6 +80,7 @@ END_BLOCK_DATAGRID_3D
         # Complex array will raise TypeError since we should specify the type.
         cplx_data = np.array(data, dtype=np.complex)
 
+        # cplx_mode must be specified when data is a complex array
         with self.assertRaises(TypeError):
             xsf_write_data(tmp_file, self.mgb2, cplx_data)
 
@@ -87,6 +88,17 @@ END_BLOCK_DATAGRID_3D
         xsf_write_data(tmp_file, self.mgb2, cplx_data, cplx_mode="re")
         tmp_file.seek(0)
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
+
+        tmp_file.seek(0)
+        xsf_write_data(tmp_file, self.mgb2, cplx_data, cplx_mode="im", add_replicas=True)
+
+        tmp_file.seek(0)
+        xsf_write_data(tmp_file, self.mgb2, cplx_data, cplx_mode="abs", add_replicas=True)
+
+        tmp_file.seek(0)
+        with self.assertRaises(ValueError):
+            xsf_write_data(tmp_file, self.mgb2, cplx_data, cplx_mode="foobar", add_replicas=True)
+
         tmp_file.close()
 
     def test_bxsf_write(self):

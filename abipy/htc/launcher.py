@@ -12,7 +12,6 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from abipy.core import release, Structure, Density
-from abipy.profile import abipy_env
 from .utils import parse_ewc
 from .abinitinput import AbinitInput
 
@@ -382,7 +381,8 @@ class Launcher(AbinitInput):
         from .utils import find_file
         what_visualize = kwargs.get("what_visualize", "crystal")
 
-        visualizer = abipy_env.get_uservar("visualizer", kwargs)
+        visualizer = "xcrysden"
+        #visualizer = abipy_env.get_uservar("visualizer", kwargs)
 
         # Find the correct output file
         out_files = self.odat_files() 

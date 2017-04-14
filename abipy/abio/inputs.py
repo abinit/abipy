@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict, MutableMapping
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
-from monty.json import MontyEncoder, MontyDecoder, MSONable
+from monty.json import MontyDecoder, MSONable
 from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.structure import Structure
@@ -26,7 +26,7 @@ from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
-from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, ParalHintsParser, NetcdfReader
+from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
 
@@ -174,7 +174,7 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         d = {}
         for aobj in abi_objects:
             if not hasattr(aobj, "to_abivars"):
-                raise ValueError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
+                raise TypeError("type %s: %s does not have `to_abivars` method" % (type(aobj), repr(aobj)))
             d.update(self.set_vars(aobj.to_abivars()))
         return d
 
@@ -240,9 +240,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
                 retcode: Return code. 0 if OK.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-
-        Raises:
-            `RuntimeError` if executable is not in $PATH.
         """
 
 
@@ -275,6 +272,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             abi_kwargs: Dictionary with the initial set of variables. Default: Empty
             tags: list/set of tags describing the input
         """
+        self._spell_check = True
+
         # Internal dict with variables. we use an ordered dict so that
         # variables will be likely grouped by `topics` when we fill the input.
         abi_args = [] if abi_args is None else abi_args
@@ -391,39 +390,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return super(AbinitInput, self).__setitem__(key, value)
 
     def _check_varname(self, key):
-        if not is_abivar(key):
-            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
-                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
-                             "and rerun the code. If the problems persists, contact the abipy developers\n"
-                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
 
         if key in _GEOVARS:
             raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 
+        if not is_abivar(key) and self.spell_check:
+            raise self.Error("%s is not a valid ABINIT variable.\n" % key +
+                             "If the name is correct, try to remove ~/.abinit/abipy/abinit_vars.pickle\n"
+                             "and rerun the code. If the problems persists, contact the abipy developers\n"
+                             "or use input.set_spell_check(False)\n"
+                             "or add the variable to ~abipy/data/variables/abinit_vars.json\n")
+
     #def __eq__(self, other)
     #def __ne__(self, other)
     #    return not self.__eq__(other)
-
-    #@abc.property
-    #def runlevel(self):
-    #    """String defining the Runlevel. See _runl2optdriver."""
-    # Mapping runlevel --> optdriver variable
-    #_runl2optdriver = {
-    #    "scf": 0,
-    #    "nscf": 0,
-    #    "relax": 0,
-    #    "dfpt": 1,
-    #    "screening": 3,
-    #    "sigma": 4,
-    #    "bse": 99,
-    #}
-    #    # Find the value of optdriver (firt in self, then in globals finally use default value.
-    #    optdriver = self.get("optdriver")
-    #    if optdriver is None: optdriver = self.dt0.get("optdriver")
-    #    if optdriver is None: optdriver = 0
-
-    #    # At this point we have to understand the type of calculation.
 
     @property
     def runlevel(self):
@@ -477,10 +458,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         elif optdriver == 3:
             runlevel.update([MANY_BODY, SCREENING])
         elif optdriver == 4:
-            runlevel.update([MANY_BODY, SIGMA])
             gwcalctyp = self.get("gwcalctyp")
-            if gwcalctyp > 100:
+            if int(gwcalctyp) > 100:
                 runlevel.add(HYBRID)
+            else:
+                runlevel.update([MANY_BODY, SIGMA])
         elif optdriver == 99:
             runlevel.update([MANY_BODY, BSE])
 
@@ -504,6 +486,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         try:
             return self._mnemonics
         except AttributeError:
+            return False
+
+    def set_spell_check(self, false_or_true):
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self):
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # TODO: This is to maintain compatibility with pickle
             return False
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
@@ -532,6 +526,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         mnemonics = self.mnemonics
         if with_mnemonics: mnemonics = with_mnemonics
+
+        # If spell checking is deactivates, we cannot use mmemonics or sormode == "section"
+        if not self.spell_check:
+            mnemonics = False
+            sortmode = "a"
 
         if mnemonics or sortmode == "section":
             var_database = get_abinit_variables()
@@ -829,8 +828,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
-            print(varnames, values)
-            raise self.Error("The number of variables must equal the number of lists")
+            raise self.Error("The number of variables must equal the number of lists\n"
+                              "varnames: %s\nvalues %s" % (str(varnames), str(values)))
 
         # TODO: group varnames and varvalues!
         #varnames = [t[0] for t in items]
@@ -860,6 +859,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         new.set_vars(*args, **kwargs)
         return new
 
+    #def new_with_supercell(self, scdims):
+    #    sucell = self.structure * scdims
+    #    return new_with_structure(sucell, scdims)
+
     def new_with_structure(self, structure, scdims=None):
         """
         Return a new :class:`AbinitInput` with a different structure
@@ -881,7 +884,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         # Check structure
         if scdims is None:
-            # Same value of natom and typat
+            # Assume same value of natom and typat
             if len(self.structure) != len(structure):
                 raise ValueError("Structures must have same value of natom")
             errors = []
@@ -896,16 +899,17 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             scdims = np.array(scdims)
             if scdims.shape != (3,):
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+
             numcells = np.product(scdims)
             if len(structure) != numcells * len(self.structure):
-                errmsg = "Number of atoms in input structure should be %d * %d but found" % (
+                errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(structure))
                 raise ValueError(errmsg)
+
             if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
                                   [site.specie.symbol for site in structure]):
-                errmsg = "Wrong supercell"
-                raise ValueError(errmsg)
-            # TODO CHeck angles and lengths
+                raise ValueError("Wrong supercell")
+            # TODO Check angles and lengths
 
         # Build new input
         new = AbinitInput(structure, self.pseudos, abi_args=list(self.items()),
@@ -921,8 +925,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             var_database = get_abinit_variables()
             for name in new:
                 var = var_database[name]
-                if var.isarray and "natom" in str(var.dimensions): # This test is not very robust and can fail.
-                    errors.append("Found variable %d with natom in dimensions %s" % (name, str(var.dimensions)))
+                # This test is not very robust and can fail.
+                if var.isarray and "natom" in str(var.dimensions):
+                    errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
 
             if errors:
                 errmsg = ("\n".join(errors) +
@@ -937,19 +942,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
-                print("new new:", new["ngkpt"])
-            #elif "kptrlatt" in new:
-            #   new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
-            #else:
-            #   """Single k-point"""
+                print("new ngkpt:", new["ngkpt"])
+
+            # TODO
+            elif "kptrlatt" in new:
+                raise NotImplementedError("kptrlatt in new_with_structure")
+                #new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
+            else:
+               # Single k-point
+               pass
+
+            # Add chkprim if not yet done.
+            new.set_vars_ifnotin(chkprim=0)
 
         return new
 
     def new_with_decorators(self, decorators):
         """
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
-        applyes the decorators to the input and returns a new :class:`AbinitInput` object.
-        self is not changed.
+        applies the decorators to the input and returns a new :class:`AbinitInput` object. self is not changed.
         """
         if not isinstance(decorators, (list, tuple)): decorators = [decorators]
 
@@ -969,7 +980,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def pop_irdvars(self):
         """
-        Remove all the ird variables present in self.
+        Remove all the `ird*` variables present in self.
         Return dictionary with the variables that have been removed.
         """
         return self.remove_vars(_IRDVARS, strict=False)
@@ -977,11 +988,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     @property
     def scf_tolvar(self):
         """
-        Returns the tolerance variable and value relative to the scf convergence.
+        Returns the tolerance variable and value relative to the SCF convergence.
         If more than one is present raise an error
         """
-        tolvar = None
-        value = None
+        tolvar, value = None, None
         for t in _TOLVARS_SCF:
             if t in self and self[t]:
                 if tolvar:
@@ -994,7 +1004,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
     def make_ph_inputs_qpoint(self, qpt, tolerance=None):
         """
         This functions builds and returns a list of input files
-        for the calculation of phonons at the given q-point `qpt.
+        for the calculation of phonons at the given q-point `qpt`.
         It should be called with an input the represents a GS run.
 
         Args:
@@ -1138,14 +1148,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             for rfdir, inp in zip(dde_rfdirs, multi):
                 inp.set_vars(
                     rfdir=rfdir,  # Direction of the per ddk.
-                    prepanl=1,  # Prepare Non-linear RF calculations.
+                    prepanl=1,    # Prepare Non-linear RF calculations.
                 )
 
         multi.set_vars(
-            rfelfd=3,  # Activate the calculation of the electric field perturbation
-            nqpt=1,  # One wavevector is to be considered
+            rfelfd=3,       # Activate the calculation of the electric field perturbation
+            nqpt=1,         # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
-            kptopt=2,  # Take into account time-reversal symmetry.
+            kptopt=2,       # Take into account time-reversal symmetry.
         )
 
         multi.pop_tolerances()
@@ -1153,27 +1163,37 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_dte_inputs(self, tolerance=None):
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False):
         """
-        Return inputs for the DDK calculation.
-        This functions should be called with an input the represents a GS run.
+        Return inputs for the DTE calculation.
+        This functions should be called with an input that represents a GS run.
+
+        Args:
+            phonon_pert: is True also the phonon perturbations will be considered. Default False.
+            skip_permutations: Since the current version of abinit always performs all the permutations
+                of the perturbations, even if only one is asked, if True avoids the creation of inputs that
+                will produce duplicated outputs.
         """
-        if tolerance is None:
-            tolerance = {"tolwfr": 1.0e-20}
-
-        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
-
-        if "tolvrs" in tolerance:
-            raise self.Error("tolvrs should not be used in a DDK calculation")
-
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_dteperts()
+        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert)
+
+        if skip_permutations:
+            perts_to_skip = []
+            reduced_perts = []
+            for pert in perts:
+                p = ((pert.i1pert, pert.i1dir), (pert.i2pert, pert.i2dir), (pert.i3pert, pert.i3dir))
+                if p not in perts_to_skip:
+                    reduced_perts.append(pert)
+                    perts_to_skip.extend(itertools.permutations(p))
+
+            perts = reduced_perts
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
         # See tutorespfn/Input/tnlo_2.in
+
+        na = len(self.structure)
 
         for pert, inp in zip(perts, multi):
             rfdir1 = 3 * [0]
@@ -1183,13 +1203,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             rfdir3 = 3 * [0]
             rfdir3[pert.i3dir - 1] = 1
 
+            # atpol if needed. Since there can be only one spatial perturbation
+            m = min(pert.i1pert, pert.i2pert, pert.i3pert)
+            atpol = [m, m] if m <= na else None
+
             inp.set_vars(
-                d3e_pert1_elfd=1,  # Activate the calculation of the electric field perturbation
-                d3e_pert2_elfd=1,
-                d3e_pert3_elfd=1,
+                d3e_pert1_elfd=1 if pert.i1pert == na+2 else 0,  # Activate the calculation of the electric field perturbation
+                d3e_pert2_elfd=1 if pert.i2pert == na+2 else 0,
+                d3e_pert3_elfd=1 if pert.i3pert == na+2 else 0,
                 d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
                 d3e_pert2_dir=rfdir2,
                 d3e_pert3_dir=rfdir3,
+                d3e_pert1_phon = 1 if pert.i1pert <= na else 0,
+                d3e_pert2_phon = 1 if pert.i2pert <= na else 0,
+                d3e_pert3_phon = 1 if pert.i3pert <= na else 0,
+                d3e_pert1_atpol = atpol,
                 nqpt=1,  # One wavevector is to be considered
                 qpt=(0, 0, 0),  # q-wavevector.
                 optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
@@ -1197,7 +1225,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             )
 
             inp.pop_tolerances()
-            inp.set_vars(tolerance)
 
         return multi
 
@@ -1293,23 +1320,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def pycheck(self):
-        errors = []
-        eapp = errors.append
-
-        m = self.structure.lattice.matrix
-        volume = np.dot(np.cross(m[0], m[1]), m[2])
-        if volume < 0:
-            eapp("The triple product of the lattice vector is negative. Use structure abi_sanitize.")
-
-        #if sel.ispaw and "pawecutdg not in self
-        #if errors: raise self.Error("\n".join(errors))
-
-        return dict2namedtuple(errors=errors, warnings=warnings)
-
     def abivalidate(self, workdir=None, manager=None):
         """
-        Run ABINIT in dry mode to validate the input file.
+        Run ABINIT in dry-run mode to validate the input file.
 
         Args:
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
@@ -1321,9 +1334,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 retcode: Return code. 0 if OK.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
-
-        Raises:
-            `RuntimeError` if executable is not in $PATH.
         """
         task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
@@ -1371,10 +1381,51 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                            weights=r.read_value("kpoint_weights"))
 
         except Exception as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
+
+    def _handle_task_exception(self, task, prev_exc):
+        """
+        This method is called when we have executed a temporary task but we encounter
+        an exception when we try to extract data from the output results produced by Abinit
+        It tries to extract information about the error and finally raises self.Error.
+
+        .. example::
+
+            try:
+
+                do_something_with_the_output_files_produced_by_the_task
+
+            except Exception as exc:
+
+                self._handle_task_exception(task, exc)
+        """
+        # Check if there are errors in the log file.
+        report = task.get_event_report()
+        if report and report.errors:
+            raise self.Error(str(report))
+
+        # Weird condition. Possible explanations:
+        # 1) Abinit cannot be executed or runtime errors due e.g to libraries
+        # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
+        # Try to return as much iformation as possible to aid debugging
+        errors = ["Problem in temp Task executed in %s" %  task.workdir,
+                  "Previous exception %s" % prev_exc]
+
+        try:
+            errors.append("Last 50 line from %s:" % str(task.log_file.path))
+            log_lines = task.log_file.readlines()
+            i = len(log_lines) - 50 if len(log_lines) >= 50 else 0
+            errors.extend(s.strip() for s in lines[i:])
+        except Exception as exc:
+            errors.append(str(exc))
+
+        emsg = "\n".join(errors)
+
+        try:
+            # TODO: in principle task.debug() but I have to change pymatgen.io.abinit
+            task.flow.debug()
+        finally:
+            raise self.Error(emsg)
 
     def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -1427,10 +1478,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         try:
             return yaml_read_irred_perts(task.log_file.path)
         except Exception as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
 
     def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -1490,7 +1538,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
 
-    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None,
+                              phonon_pert=False):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1501,6 +1550,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            phonon_pert: if True also the phonon perturbations will be considered. Default False.
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
@@ -1510,9 +1560,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                  {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
 
         """
-        dteperts_vars = dict(d3e_pert1_phon=0,           # No phonon-type perturbation
+        dteperts_vars = dict(d3e_pert1_phon=1 if phonon_pert else 0,           # phonon-type perturbation
                              d3e_pert2_phon=0,
                              d3e_pert3_phon=0,
+                             d3e_pert1_atpol=[1, len(self.structure)] if phonon_pert else None,
                              d3e_pert1_elfd=1,           # Electric field perturbation
                              d3e_pert2_elfd=1,
                              d3e_pert3_elfd=1,
@@ -1596,10 +1647,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             pconfs = parser.parse(task.output_file.path)
             return pconfs
         except parser.Error as exc:
-            # Try to understand if it's a problem with the Abinit input.
-            report = task.get_event_report()
-            if report and report.errors: raise self.Error(str(report))
-            raise self.Error("Problem in temp Task executed in %s\n%s" % (task.workdir, exc))
+            self._handle_task_exception(task, exc)
 
     def add_tags(self, tags):
         """
@@ -1647,6 +1695,15 @@ class MultiDataset(object):
 
          multi.set_vars(ecut=1)
 
+        multi.get("ecut") returns a list of values. It's equivalent to:
+
+            [inp["ecut"] for inp in multi]
+
+        Note that if "ecut" is not present in one of the input of multi, the corresponding entry is set to None.
+        A default value can be specified with:
+
+            multi.get("paral_kgb", 0)
+
     .. warning::
 
         MultiDataset does not support calculations done with different sets of pseudopotentials.
@@ -1657,6 +1714,7 @@ class MultiDataset(object):
 
     @classmethod
     def from_inputs(cls, inputs):
+        """Build object from a list of :class:`AbinitInput` objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
@@ -1664,6 +1722,7 @@ class MultiDataset(object):
         # Build MultiDataset from input structures and pseudos and add inputs.
         multi = cls(structure=[inp.structure for inp in inputs], pseudos=inputs[0].pseudos, ndtset=len(inputs))
 
+        # Add variables, decorators and tags.
         for inp, new_inp in zip(inputs, multi):
             new_inp.set_vars(**inp)
             new_inp._decorators = inp.decorators
@@ -1735,6 +1794,7 @@ class MultiDataset(object):
 
     @property
     def pseudos(self):
+        """Pseudopotential objects."""
         return self[0].pseudos
 
     @property
@@ -1782,6 +1842,7 @@ class MultiDataset(object):
         return on_all
 
     def __add__(self, other):
+        """self + other"""
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs(self)
             new_mds.append(other)
@@ -1791,7 +1852,7 @@ class MultiDataset(object):
             new_mds.extend(other)
             return new_mds
         else:
-            return NotImplemented
+            return NotImplementedError("Operation not supported")
 
     def __radd__(self, other):
         if isinstance(other, AbinitInput):
@@ -1801,7 +1862,7 @@ class MultiDataset(object):
             new_mds = MultiDataset.from_inputs(other)
             new_mds.extend(self)
         else:
-            return NotImplemented
+            return NotImplementedError("Operation not supported")
 
     def append(self, abinit_input):
         """Add a :class:`AbinitInput` to the list."""
@@ -1819,9 +1880,11 @@ class MultiDataset(object):
         self._inputs.extend(abinit_inputs)
 
     def addnew_from(self, dtindex):
+        """Add a new entry in the multidataset by copying the input with index `dtindex`."""
         self.append(self[dtindex].deepcopy())
 
     def split_datasets(self):
+        """Return list of AbinitInput files."""
         return self._inputs
 
     def deepcopy(self):
@@ -1870,6 +1933,7 @@ class MultiDataset(object):
         Args:
             tags: A single tag or list/tuple/set of tags
             exclude_tags: A single tag or list/tuple/set of tags that should be excluded
+
         Returns:
             A :class:`MultiDataset` containing the inputs containing all the requested tags
         """
@@ -1917,6 +1981,9 @@ class MultiDataset(object):
             self[i].remove_tags(tags)
 
     def filter_by_runlevel(self, runlevel):
+        """
+        Return new MultiDataset object in which only the inputs with the given runlevel are selected
+        """
         if isinstance(runlevel, (list, tuple, set)):
             runlevel = set(runlevel)
         elif not isinstance(runlevel, set):
@@ -1933,7 +2000,7 @@ class MultiDataset(object):
         """
         root, ext = os.path.splitext(filepath)
         for i, inp in enumerate(self):
-            p = root + str(i) + ext
+            p = root + "DS%d" % i + ext
             inp.write(filepath=p)
 
 
@@ -1953,6 +2020,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
+        self._spell_check = True
         self._structure = structure
         self.comment = comment
 
@@ -1973,10 +2041,23 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def vars(self):
         return self._vars
 
+    def set_spell_check(self, false_or_true):
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self):
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # This is to maintain compatibility with pickle
+            return False
+
     def _check_varname(self, key):
-        if not is_anaddb_var(key):
+        if not is_anaddb_var(key) and self.spell_check:
             raise self.Error("%s is not a registered Anaddb variable\n"
                              "If you are sure the name is correct, please contact the abipy developers\n"
+                             "or use input.set_spell_check(False)\n"
                              "or modify the JSON file abipy/data/variables/anaddb_vars.json" % key)
 
     @classmethod
@@ -2034,6 +2115,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def piezo_elastic(cls, structure, anaddb_args=None, anaddb_kwargs=None, stress_correction=False):
+        """Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations."""
         new = cls(structure, comment="ANADB input for piezoelectric and elastic tensor calculation",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
@@ -2108,7 +2190,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 value, eunit = dos_method[i+1:].split()
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
-            raise cls.Error("Wrong value for dos_method: %s" % dos_method)
+            raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
@@ -2136,10 +2218,11 @@ class AnaddbInput(AbstractInput, Has_Structure):
             for i, qpt in enumerate(qptbounds):
                 if np.array_equal(qpt, (0, 0, 0)):
                     # anaddb expects cartesian coordinates for the qph2l list
-                    if i>0:
+                    if i > 0:
                         directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i-1]))
                         directions.append(0)
-                    if i<len(qptbounds)-1:
+
+                    if i < len(qptbounds) - 1:
                         directions.extend(structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(qptbounds[i+1]))
                         directions.append(0)
 
@@ -2159,6 +2242,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
+        Note: This method is deprecated because now it's possible to compute Thermodynamical
+        properties from PhDos
 
         Args:
             structure: :class:`Structure` object
@@ -2382,10 +2467,24 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return self.set_vars(ng2qpt=self.structure.calc_ngkpt(nqsmall))
 
     def abivalidate(self, workdir=None, manager=None):
+        """
+        Run ANADDB in dry-run mode to validate the input file.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+        """
+        task = AnaddbTask.temp_shell_task(self, ddb_node="fake_DDB", workdir=workdir, manager=manager)
         # TODO: Anaddb does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+        return dict2namedtuple(retcode=0, log_file=task.log_file, stderr_file=task.stderr_file)
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
@@ -2401,7 +2500,7 @@ class OpticError(Exception):
 
 class OpticInput(AbstractInput, MSONable):
     """
-    Input file for optic.
+    Input file for optic executable
 
     Example:
         &FILES
@@ -2565,8 +2664,23 @@ class OpticInput(AbstractInput, MSONable):
         return "\n".join(lines)
 
     def abivalidate(self, workdir=None, manager=None):
+        """
+        Run OPTIC in dry-run mode to validate the input file.
+        Note: This method is a stub, it always return retcode 0
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+        """
         # TODO: Optic does not support --dry-run
-        #task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
+        #task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
         return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
 
@@ -2603,7 +2717,7 @@ class Cut3DInput(MSONable, object):
         if self.infile_path is None or self.options is None:
             raise ValueError("Infile path and options should be provided")
 
-        with open(filepath, 'w') as f:
+        with open(filepath, 'wt') as f:
             f.write(self.to_string())
 
     @classmethod
@@ -2764,8 +2878,7 @@ class Cut3DInput(MSONable, object):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        d = dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options = self.options)
-        return d
+        return dict(infile_path=self.infile_path, output_filepath=self.output_filepath, options=self.options)
 
     @classmethod
     def from_dict(cls, d):

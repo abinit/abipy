@@ -11,6 +11,7 @@ from collections import OrderedDict, defaultdict
 from six.moves import cPickle as pickle
 from monty.string import is_string, list_strings
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 
 
 # Unit names.
@@ -250,9 +251,13 @@ def get_abinit_variables():
         pickle_file = os.path.join(os.getenv("HOME"), ".abinit", "abipy", "abinit_vars.pickle")
 
         if os.path.exists(pickle_file):
-            #print("Reading from pickle")
-            with open(pickle_file, "rb") as fh:
-                __VARS_DATABASE = pickle.load(fh)
+            try:
+                with open(pickle_file, "rb") as fh:
+                    __VARS_DATABASE = pickle.load(fh)
+            except Exception as exc:
+                cprint("Error while trying to read variables from pickle file: %s" % pickle_file, "red")
+                cprint("Please remove the file and rerun.", "red")
+                raise exc
 
         else:
             # Make directory and file if not present.
@@ -355,12 +360,13 @@ class VariableDatabase(OrderedDict):
         List of :class:`Variable` with the specified characteristic.
         chars can be a string or a list of strings.
         """
-        chars = set(list_strings(chars))
+        chars = ["[[" + c + "]]" for c in list_strings(chars)]
         varlist = []
         for v in self.values():
-            #if v.characteristic: print(v.characteristic)
-            if v.characteristic in chars:
+            if v.characteristics is None: continue
+            if any(c in v.characteristics for c in chars):
                 varlist.append(v)
+
         return varlist
 
     def json_dumps_varnames(self):

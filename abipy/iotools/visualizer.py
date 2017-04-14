@@ -69,12 +69,6 @@ class VisualizerError(Exception):
     """Base class for Visualizer errors"""
 
 
-class MetaClass(type):
-    """Provides str representation of the class."""
-    def __str__(self):
-        return "%s: bin: %s, macosx_app: %s" % (self.__class__.__name__, self.bin, self.is_macosx_app)
-
-
 @six.add_metaclass(abc.ABCMeta)
 class Visualizer(object):
     """

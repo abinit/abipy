@@ -9,8 +9,8 @@ import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
-    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz)
-from abipy.core.testing import *
+    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz, set_atol_kdiff, set_spglib_tols)
+from abipy.core.testing import AbipyTest
 
 
 class TestWrapWS(AbipyTest):
@@ -45,6 +45,20 @@ class TestKpoint(AbipyTest):
     def setUp(self):
         self.lattice = Lattice([0.5,0.5,0,0,0.5,0,0,0,0.4])
 
+        # Test API to set tolerances.
+
+        # Change _ATOL_KDIFF
+        atol_default = 1e-8
+        assert set_atol_kdiff(1e-6) == atol_default
+        set_atol_kdiff(atol_default)
+
+        # Change spglib tolerances.
+        symprec_default, angle_tolerance_default = 1e-5, -1.0
+        s, a = set_spglib_tols(1e-4, -2.0)
+        assert s == symprec_default
+        assert a == angle_tolerance_default
+        set_spglib_tols(symprec_default, angle_tolerance_default)
+
     def test_kpoint_algebra(self):
         """Test k-point algebra."""
         lattice = self.lattice
@@ -52,7 +66,7 @@ class TestKpoint(AbipyTest):
         pgamma = Kpoint([1, 0, 1], lattice)
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
-        print(X)
+        repr(X); str(X)
 
         # TODO
         #assert np.all(np.array(X) == X.frac_coords)
@@ -60,20 +74,31 @@ class TestKpoint(AbipyTest):
         self.serialize_with_pickle(X, protocols=[-1])
         self.assert_almost_equal(X.versor().norm, 1.0)
 
-        self.assertTrue(X[0] == 0.5)
-        self.assertListEqual(pgamma[:2].tolist(), [1,0])
+        other_gamma = Kpoint.gamma(lattice, weight=1)
+        assert other_gamma == [0, 0, 0]
+        assert other_gamma == gamma
+        assert gamma.versor() == gamma
 
-        self.assertEqual(gamma, pgamma)
-        self.assertEqual(gamma + pgamma, gamma)
-        self.assertEqual(pgamma + X, X)
-        self.assertNotEqual(gamma, X)
+        X_outside = Kpoint([1.5, 0, 0], lattice)
+        assert X_outside.wrap_to_ws() == X
+        assert X_outside.wrap_to_ws() == [0.5, 0, 0]
 
-        self.assertEqual(X.norm, (gamma + X).norm)
-        self.assertEqual(X.norm, (gamma + X).norm)
-        self.assertEqual(X.norm, np.sqrt(np.sum(X.cart_coords**2)))
+        X_outside = Kpoint([0.7, 0, 0], lattice)
+        assert X_outside.wrap_to_bz() == [-0.3, 0, 0]
 
-        self.assertTrue(hash(gamma) == hash(pgamma))
+        assert X[0] == 0.5
+        self.assert_equal(pgamma[:2].tolist(), [1,0])
 
+        assert gamma == pgamma
+        assert gamma + pgamma == gamma
+        assert pgamma + X == X
+        assert gamma != X
+
+        assert X.norm == (gamma + X).norm
+        assert X.norm ==  (gamma + X).norm
+        assert X.norm == np.sqrt(np.sum(X.cart_coords**2))
+
+        assert hash(gamma) == hash(pgamma)
         if hash(K) != hash(X):
             assert K != X
 
@@ -97,12 +122,12 @@ class TestKpointList(AbipyTest):
         self.serialize_with_pickle(kpts, protocols=[-1])
 
         newkpts = as_kpoints(kpts, lattice)
-        self.assertTrue(kpts is newkpts)
+        assert kpts is newkpts
 
         kpts = as_kpoints([1, 2, 3, 4, 5, 6], lattice)
-        self.assertTrue(len(kpts) == 2)
-        self.assertTrue(kpts[0] == Kpoint([1, 2, 3], lattice))
-        self.assertTrue(kpts[1] == Kpoint([4, 5, 6], lattice))
+        assert len(kpts) == 2
+        assert kpts[0] == Kpoint([1, 2, 3], lattice)
+        assert kpts[1] == Kpoint([4, 5, 6], lattice)
 
     def test_kpointlist(self):
         """Test KpointList."""
@@ -112,6 +137,7 @@ class TestKpointList(AbipyTest):
         weights = [0.1, 0.2, 0.7]
 
         klist = KpointList(lattice, frac_coords, weights=weights)
+        repr(klist); str(klist)
 
         self.serialize_with_pickle(klist, protocols=[-1])
         self.assertMSONable(klist, test_if_subclass=False)
@@ -149,9 +175,9 @@ class TestKpointList(AbipyTest):
 
         # Remove duplicated k-points.
         add_klist = add_klist.remove_duplicated()
-        self.assertTrue(add_klist.count([0,0,0]) == 1)
-        self.assertTrue(len(add_klist) == 4)
-        self.assertTrue(add_klist == add_klist.remove_duplicated())
+        assert add_klist.count([0,0,0]) == 1
+        assert len(add_klist) == 4
+        assert add_klist == add_klist.remove_duplicated()
 
 #class TestIrredZone(AbipyTest):
 #class TestKpath(AbipyTest):
@@ -377,7 +403,7 @@ class TestKsamplingInfo(AbipyTest):
         self.assert_equal(ksi.shifts.flatten(), shifts)
         assert ksi.kptopt == kptopt
         assert ksi.is_homogeneous
-        print(ksi)
+        repr(ksi); str(ksi)
 
         # kptrlatt with non-zero off-diagonal elements.
         shifts = [0.5, 0.5, 0.5]

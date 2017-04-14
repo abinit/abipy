@@ -225,8 +225,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             pseudo: Pseudopotential object.
-            cart_coords: Cartesian coordinates
-            acell: Lengths of the box in *Bohr*
+            cart_coords: Cartesian coordinates in Angstrom
+            acell: Lengths of the box in *Bohr* (Abinit input variable)
         """
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
@@ -484,7 +484,52 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.matrix
         if space.lower() == "g":
             return self.lattice.reciprocal_lattice.matrix
-        raise ValueError("Wrong value for space: %s " % space)
+        raise ValueError("Wrong value for space: %s " % str(space))
+
+    def spget_equivalent_atoms(self, printout=False):
+        """
+        Call spglib to find the inequivalent atoms and build symmetry tables.
+
+        Args:
+            printout: True to print symmetry tables.
+
+        Returns:
+            namedtuple with the following attributes: irred_pos, eqmap, spgdata
+
+            irred_pos: array giving the position of the i-th irred atom in the structure.
+                The number of irred atoms is len(irred_pos)
+            eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+            spgdata: spglib dataset with additional data reported by spglib.
+
+        .. example::
+
+            for irr_pos in irred_pos:
+                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
+        """
+        spgan = SpacegroupAnalyzer(self)
+        spgdata = spgan.get_symmetry_dataset()
+        equivalent_atoms = spgdata["equivalent_atoms"]
+        irred_pos = []
+        eqmap = collections.defaultdict(list)
+        for pos, eqpos in enumerate(equivalent_atoms):
+            eqmap[eqpos].append(pos)
+            # Add it to irred_pos if it's irreducible.
+            if pos == eqpos: irred_pos.append(pos)
+
+        # Convert to numpy arrays
+        irred_pos = np.array(irred_pos)
+        for eqpos in eqmap:
+            eqmap[eqpos] = np.array(eqmap[eqpos], dtype=np.int)
+
+        if printout:
+            print("Found %d inequivalent position(s)." % len(irred_pos))
+            for i, irr_pos in enumerate(sorted(eqmap.keys())):
+                print("Irred_Site: %s" % str(self[irr_pos]))
+                for eqind in eqmap[irr_pos]:
+                    if eqind == irr_pos: continue
+                    print("\tSymEq: %s" % str(self[eqind]))
+
+        return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, spgdata=spgdata)
 
     def spglib_summary(self, verbose=0):
         """
@@ -559,16 +604,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """True is the structure contains info on the spacegroup."""
         return self.abi_spacegroup is not None
 
-    #@property
-    #def fm_symmops(self):
-    #    """Tuple with ferromagnetic symmetries (time-reversal is included, if present)."""
-    #    return self.abi_spacegroup.symmops(afm_sign=+1)
-
-    #@property
-    #def afm_symmops(self):
-    #    """Tuple with Anti-ferromagnetic symmetries (time-reversal is included, if present)."""
-    #    return self.abi_spacegroup.symmops(afm_sign=-1)
-
     @lazy_property
     def hsym_kpath(self):
         """
@@ -606,7 +641,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
     def get_sorted_structure_z(self):
-        """Orders the structure according to increasing Z of the elements"""
+        """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint):
@@ -771,16 +806,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
-    def write_structure(self, filename):
-        """Write structure fo file."""
-        if filename.endswith(".nc"):
-            raise NotImplementedError("Cannot write a structure to a netcdf file yet")
-        else:
-            self.to(filename=filename)
+    #def write_structure(self, filename):
+    #    """Write structure fo file."""
+    #    if filename.endswith(".nc"):
+    #        raise NotImplementedError("Cannot write a structure to a netcdf file yet")
+    #    else:
+    #        self.to(filename=filename)
 
-    def convert(self, format="cif"):
+    def convert(self, fmt="cif"):
         """
-        Convert the Abinit structure to CIF, POSCAR, CSSR  and pymatgen's JSON serialized structures (json, mson)
+        Convert the Abinit structure to CIF, POSCAR, CSSR and pymatgen's JSON serialized structures (json, mson)
+        Return string.
         """
         prefix_dict = {
             "POSCAR": "POSCAR",
@@ -796,14 +832,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
             "mson": ".mson",
         }
 
-        if format not in prefix_dict and format not in suffix_dict:
-            raise ValueError("Unknown format %s" % format)
+        if fmt not in prefix_dict and fmt not in suffix_dict:
+            raise ValueError("Unknown format %s" % fmt)
 
-        prefix = prefix_dict.get(format, "tmp")
-        suffix = suffix_dict.get(format, "")
+        prefix = prefix_dict.get(fmt, "tmp")
+        suffix = suffix_dict.get(fmt, "")
 
         tmp_file = tempfile.NamedTemporaryFile(mode="w+", suffix=suffix, prefix=prefix)
-        self.write_structure(tmp_file.name)
+        self.to(filename=tmp_file.name)
         tmp_file.seek(0)
 
         return tmp_file.read()
@@ -982,6 +1018,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 else:
                     low += z
             return np.arange(low, high+1)
+
         arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
         brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
         crange = range_vec(2)[:, None] * np.array([0, 0, 1])[None, :]
@@ -1177,82 +1214,82 @@ class Structure(pymatgen.Structure, NotebookWriter):
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
-    def ksampling_from_jhudb(self, precalc, format="vasp",
-                             url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet"):
-        """
-        Generate k-point grid for Brillouin zone integration.
+    #def ksampling_from_jhudb(self, precalc, format="vasp",
+    #                         url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet"):
+    #    """
+    #    Generate k-point grid for Brillouin zone integration.
 
-        Args:
-            INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.
-                AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.
-            MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.
-            HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written
-                to the header of the file. The default is SIMPLE.
-            MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.
-            KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.
-                The use of this parameter for systems with less than three periodic dimensions is not recommended.
-            GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,
-                and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided
-                structure, the k-point density in the corresponding direction will be reduced accordingly.
-                The default value is 7 Å.
+    #    Args:
+    #        INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.
+    #            AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.
+    #        MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.
+    #        HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written
+    #            to the header of the file. The default is SIMPLE.
+    #        MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.
+    #        KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.
+    #            The use of this parameter for systems with less than three periodic dimensions is not recommended.
+    #        GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,
+    #            and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided
+    #            structure, the k-point density in the corresponding direction will be reduced accordingly.
+    #            The default value is 7 Å.
 
-        Note:
-            If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or
-            KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.
+    #    Note:
+    #        If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or
+    #        KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.
 
-        Returns:
+    #    Returns:
 
-        See also:
-            http://muellergroup.jhu.edu/K-Points.html
+    #    See also:
+    #        http://muellergroup.jhu.edu/K-Points.html
 
-            Efficient generation of generalized Monkhorst-Pack grids through the use of informatics
-            Pandu Wisesa, Kyle A. McGill, and Tim Mueller
-            Phys. Rev. B 93, 155109
-        """
-        from six.moves import StringIO
+    #        Efficient generation of generalized Monkhorst-Pack grids through the use of informatics
+    #        Pandu Wisesa, Kyle A. McGill, and Tim Mueller
+    #        Phys. Rev. B 93, 155109
+    #    """
+    #    from six.moves import StringIO
 
-        # Prepare PRECALC file.
-        precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
-        wrong_vars = [k for k in precalc if k not in precalc_names]
-        if wrong_vars:
-            raise ValueError("The following keys are not valid PRECALC variables:\n  %s" % wrong_vars)
+    #    # Prepare PRECALC file.
+    #    precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
+    #    wrong_vars = [k for k in precalc if k not in precalc_names]
+    #    if wrong_vars:
+    #        raise ValueError("The following keys are not valid PRECALC variables:\n  %s" % wrong_vars)
 
-        precalc_fobj = StringIO()
-        precalc_fobj.write("MINDISTANCE=28.1\n")
-        for k, v in precalc.items():
-            precalc_fobj.write("%s=%s" % (k, v))
-        precalc_fobj.seek(0)
+    #    precalc_fobj = StringIO()
+    #    precalc_fobj.write("MINDISTANCE=28.1\n")
+    #    for k, v in precalc.items():
+    #        precalc_fobj.write("%s=%s" % (k, v))
+    #    precalc_fobj.seek(0)
 
-        # Get string with structure in POSCAR format.
-        string = self.convert(format="POSCAR")
-        poscar_fobj = StringIO()
-        poscar_fobj.write(string)
-        poscar_fobj.seek(0)
+    #    # Get string with structure in POSCAR format.
+    #    string = self.convert(format="POSCAR")
+    #    poscar_fobj = StringIO()
+    #    poscar_fobj.write(string)
+    #    poscar_fobj.seek(0)
 
-        #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet
-        #       --form "fileupload=@PRECALC" --form "fileupload=@POSCAR")
+    #    #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet
+    #    #       --form "fileupload=@PRECALC" --form "fileupload=@POSCAR")
 
-        # See http://docs.python-requests.org/en/latest/user/advanced/#advanced
-        import requests
-        files = [
-            ('fileupload', ('PRECALC', precalc_fobj)),
-            ('fileupload', ('POSCAR', poscar_fobj)),
-        ]
+    #    # See http://docs.python-requests.org/en/latest/user/advanced/#advanced
+    #    import requests
+    #    files = [
+    #        ('fileupload', ('PRECALC', precalc_fobj)),
+    #        ('fileupload', ('POSCAR', poscar_fobj)),
+    #    ]
 
-        r = requests.post(url, files=files)
-        #print(r.url, r.request)
-        print(r.text)
+    #    r = requests.post(url, files=files)
+    #    #print(r.url, r.request)
+    #    print(r.text)
 
-        r.raise_for_status()
-        if r.status_code != requests.codes.ok:
-            raise RuntimeError("Request status code: %s" % r.status_code)
+    #    r.raise_for_status()
+    #    if r.status_code != requests.codes.ok:
+    #        raise RuntimeError("Request status code: %s" % r.status_code)
 
-        # Parse Vasp Kpoints
-        from pymatgen.io.vasp.inputs import Kpoints
-        vasp_kpoints = Kpoints.from_string(r.text)
-        #print(vasp_kpoints.style)
-        #return kptrlatt, shiftk
-        #return ksamp
+    #    # Parse Vasp Kpoints
+    #    from pymatgen.io.vasp.inputs import Kpoints
+    #    vasp_kpoints = Kpoints.from_string(r.text)
+    #    #print(vasp_kpoints.style)
+    #    #return kptrlatt, shiftk
+    #    #return ksamp
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
@@ -1353,7 +1390,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
                     # BCC
                     shiftk = [0.25,  0.25,  0.25,
                              -0.25, -0.25, -0.25]
-
                     #shiftk = [0.5, 0.5, 05])
 
             elif lattice_type == "hexagonal":
@@ -1380,7 +1416,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # Use default value.
             shiftk = [0.5, 0.5, 0.5]
 
-        return np.reshape(shiftk, (-1,3))
+        return np.reshape(shiftk, (-1, 3))
 
     def num_valence_electrons(self, pseudos):
         """

@@ -1,10 +1,12 @@
-#!/usr/bin/env python
-from __future__ import division, print_function
+# coding: utf-8
+"""Tests for derivatives module."""
+from __future__ import division, print_function, absolute_import, unicode_literals
 
 import numpy as np
 
 from abipy.tools.derivatives import finite_diff
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
+
 
 class FiniteDiffTest(AbipyTest):
 
@@ -65,9 +67,3 @@ class FiniteDiffTest(AbipyTest):
                 yder = finite_diff(exp, h, order=order, acc=acc)
                 print(np.max(np.abs(yder - exp)))
                 self.assert_almost_equal(yder, exp, decs[order])
-
-
-if __name__ == "__main__":
-   import unittest
-   unittest.main()
-

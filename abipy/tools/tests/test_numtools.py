@@ -1,9 +1,8 @@
 from __future__ import print_function, division
 
-import numpy as np
-
 from abipy.tools.numtools import *
 from abipy.core.testing import *
+
 
 class TestTools(AbipyTest):
     """Test numtools."""
@@ -49,5 +48,5 @@ class TestTools(AbipyTest):
 
 
 if __name__ == "__main__":
-   import unittest
-   unittest.main()
+    import unittest
+    unittest.main()
