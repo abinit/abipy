@@ -1415,7 +1415,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             errors.append("Last 50 line from %s:" % str(task.log_file.path))
             log_lines = task.log_file.readlines()
             i = len(log_lines) - 50 if len(log_lines) >= 50 else 0
-            errors.extend(s.strip() for s in lines[i:])
+            errors.extend(s.strip() for s in log_lines[i:])
         except Exception as exc:
             errors.append(str(exc))
 

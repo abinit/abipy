@@ -1,15 +1,26 @@
 """Tests for lessons"""
 from __future__ import print_function, division
 
+import os
+
 from abipy.core.testing import *
 
 
 class TestLessons(AbipyTest):
     """Unit tests for lessons."""
 
+    @staticmethod
+    def assert_lesson_object(lesson):
+        """Helper function to test `Lesson` protocol."""
+        assert len(str(lesson))
+        assert lesson.abipy_string + " "
+        assert lesson.comline_string + " "
+        assert os.path.exists(lesson.pyfile)
+
     def test_lesson_base1(self):
         """Testing lesson_base1."""
         from abipy.lessons.lesson_base1 import build_flow, analyze_flow
+        #self.assert_lesson_object(Lesson())
         flow = build_flow()
         flow.make_scheduler().start()
         analyze_flow(flow)
@@ -40,8 +51,7 @@ class TestLessons(AbipyTest):
         from abipy.lessons.lesson_bse import make_scf_nscf_bse_inputs
 
         scf_input, nscf_input, bse_input = make_scf_nscf_bse_inputs(
-            ngkpt=(6, 6, 6), ecut=6, ecuteps=3,
-            mdf_epsinf=12.0, mbpt_sciss="0.8 eV")
+            ngkpt=(6, 6, 6), ecut=6, ecuteps=3, mdf_epsinf=12.0, mbpt_sciss="0.8 eV")
 
         bse_input.abivalidate()
 
@@ -55,7 +65,8 @@ class TestLessons(AbipyTest):
         """Testing lesson_dos_bands."""
         from abipy.lessons.lesson_dos_bands import Lesson
         lesson = Lesson()
-        print(lesson)
+        self.assert_lesson_object(lesson)
+
         flow = lesson.make_flow()
         flow.make_scheduler().start()
         #flow.build_and_pickle_dump()
@@ -67,6 +78,8 @@ class TestLessons(AbipyTest):
         """Testing lesson_ecut_convergence."""
         from abipy.lessons.lesson_ecut_convergence import Lesson
         lesson = Lesson()
+        self.assert_lesson_object(lesson)
+
         flow = lesson.make_ecut_flow()
         flow.make_scheduler().start()
         #flow.build_and_pickle_dump()
@@ -78,6 +91,8 @@ class TestLessons(AbipyTest):
         """Testing lesson_g0w0."""
         from abipy.lessons.lesson_g0w0 import Lesson
         lesson = Lesson()
+        self.assert_lesson_object(lesson)
+
         flow = lesson.make_flow()
         #flow.build_and_pickle_dump()
         flow.make_scheduler().start()
@@ -89,6 +104,8 @@ class TestLessons(AbipyTest):
         """Testing lesson_kpoint_convergence."""
         from abipy.lessons.lesson_kpoint_convergence import Lesson
         lesson = Lesson()
+        self.assert_lesson_object(lesson)
+
         flow = lesson.make_ngkpt_flow()
         flow.make_scheduler().start()
         flow.rmtree()
@@ -103,6 +120,8 @@ class TestLessons(AbipyTest):
     def test_lesson_relaxation(self):
         """Testing lesson_relaxation."""
         from abipy.lessons.lesson_relaxation import Lesson
+        lesson = Lesson()
+        self.assert_lesson_object(lesson)
         flow = Lesson.make_eos_flow()
         flow = Lesson.make_relax_flow()
 

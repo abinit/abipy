@@ -833,7 +833,8 @@ class ElectronBands(Has_Structure):
 
     def _electron_state(self, spin, kpoint, band):
         """
-        Build an instance of :class:`Electron` from the spin, kpoint and band index"""
+        Build an instance of :class:`Electron` from the spin, kpoint and band index
+        """
         kidx = self.kindex(kpoint)
         #print("kidx", kidx)
         eig = self.eigens[spin, kidx, band]
@@ -962,7 +963,6 @@ class ElectronBands(Has_Structure):
         """The bandwidth for each spin channel i.e. the energy difference (homo - lomo)."""
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
-    #@property
     @lazy_property
     def fundamental_gaps(self):
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""

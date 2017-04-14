@@ -20,13 +20,17 @@ class TestVisualizer(AbipyTest):
         assert Vesta is Visualizer.from_name("vesta")
         assert Vesta.support_ext("xsf") and "xsf" in Vesta.supported_extensions()
         #assert Vesta.from_file("foo.xsf")
+        with self.assertRaises(Visualizer.Error):
+            Visualizer.from_name("foobar")
+
+        assert len(Visualizer.all_visunames())
 
         assert V_Sim.support_ext("xsf")
 
         for cls in [Xcrysden, Vesta, V_Sim]:
             visu = cls("foo.xsf")
             assert callable(visu)
-            str(visu)
-            repr(visu)
+            repr(visu); str(visu)
             # cmdarg is a string?
             assert visu.cmdarg + " "
+            assert visu.is_available in (True, False)

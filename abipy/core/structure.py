@@ -124,7 +124,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                     if hasattr(new, "structure"): new = new.structure
 
                 if not isinstance(new, pymatgen.Structure):
-                    raise ValueError("Don't know how to extract a Structure from file %s, received type %s" %
+                    raise TypeError("Don't know how to extract a Structure from file %s, received type %s" %
                         (filepath, type(new)))
 
                 if new.__class__ != cls: new.__class__ = cls
@@ -384,11 +384,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
         # to be considered in February 2016
         import spglib
-        version = spglib.get_version()
-        if version < (1, 9, 0):
-            raise ValueError('abi_primitive requires spglib version >= 1.9.0 '
-                             'while it is {:d}.{:d}.{:d}'.format(version[0], version[1], version[2]))
-
         from pymatgen.io.ase import AseAtomsAdaptor
         try:
             from ase.atoms import Atoms
@@ -403,6 +398,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
         standardized_structure.__class__ = self.__class__
+
         return standardized_structure
 
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
@@ -833,7 +829,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         }
 
         if fmt not in prefix_dict and fmt not in suffix_dict:
-            raise ValueError("Unknown format %s" % fmt)
+            raise ValueError("Unknown format %s" % str(fmt))
 
         prefix = prefix_dict.get(fmt, "tmp")
         suffix = suffix_dict.get(fmt, "")

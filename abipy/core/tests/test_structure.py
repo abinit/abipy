@@ -75,9 +75,13 @@ class TestStructure(AbipyTest):
             pickle.dump(znse, fh)
         same_znse = Structure.from_file(tmp_path)
         assert same_znse == znse
+        same_znse = Structure.as_structure(tmp_path)
+        assert same_znse == znse
 
         for fmt in ["cif", "POSCAR", "json"]:
             assert len(znse.convert(fmt=fmt)) > 0
+        with self.assertRaises(ValueError):
+            znse.convert(fmt="foo")
 
         e = si.spget_equivalent_atoms(printout=True)
         assert len(e.irred_pos) == 1
@@ -88,6 +92,7 @@ class TestStructure(AbipyTest):
 
         if self.has_matplotlib():
             si.show_bz(show=False)
+            si.show_bz(pmg_path=False, show=False)
 
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())
@@ -171,12 +176,13 @@ class TestStructure(AbipyTest):
         structure = Structure(lattice, ["Ga", "As"], [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
 
-        print(old_structure.lattice._matrix)
+        #print(old_structure.lattice._matrix)
         for site in old_structure:
             print(structure.lattice.get_cartesian_coords(site.frac_coords))
 
-        #qpoint = [1/2, 1/2,1/2]
-        qpoint = [0, 0, 0]
+        # TODO: Check all this stuff more carefully
+        #qpoint = [0, 0, 0]
+        qpoint = [1/2, 1/2, 1/2]
         mx_sc = [2, 2, 2]
         scale_matrix = structure.get_smallest_supercell(qpoint, max_supercell=mx_sc)
         scale_matrix = 2 * np.eye(3)
@@ -184,20 +190,20 @@ class TestStructure(AbipyTest):
         #scale_matrix = 2*np.eye(3)
         natoms = int(np.round(2*np.linalg.det(scale_matrix)))
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [1,1,1]]),
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1, 1, 1], [1, 1, 1]]),
                                  do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1, 1, 1], [-1, -1, -1]]),
                                  do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1, 1, 1], [-1, -1, -1]]),
                                  do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None)
 
-        structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+        structure.frozen_phonon(qpoint, 0.1*np.array([[1, 1, 1], [-1, -1, -1]]),
                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         # We should add some checks here
-        #structure.frozen_phonon(qpoint, 0.1*np.array([[1,1,1], [-1,-1,-1]]),
+        #structure.frozen_phonon(qpoint, 0.1*np.array([[1, 1, 1], [-1, -1, -1]]),
         #                        do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None)
 
         #print("Structure = ", structure)
