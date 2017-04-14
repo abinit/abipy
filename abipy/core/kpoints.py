@@ -95,11 +95,15 @@ def issamek(k1, k2, atol=None):
     True if k1 and k2 are equal modulo a lattice vector.
     Use _ATOL_KDIFF is atol is None.
 
-    >>> assert issamek([1,1,1], [0,0,0])
-    >>> assert issamek([1.1,1,1], [0,0,0], atol=0.1)
+    >>> assert issamek([1, 1, 1], [0, 0, 0])
+    >>> assert issamek([1.1, 1, 1], [0, 0, 0], atol=0.1)
     >>> assert not issamek(0.00003, 1)
     """
-    return is_integer(np.asarray(k1) - np.asarray(k2), atol=atol)
+    k1 = np.asarray(k1)
+    k2 = np.asarray(k2)
+    #if k1.shape != k2.shape:
+
+    return is_integer(k1 - k2, atol=atol)
 
 
 def wrap_to_ws(x):

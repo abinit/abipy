@@ -6,6 +6,8 @@ import collections
 import numpy as np
 
 from .kpoints import Kpoint
+from abipy.tools import duck
+
 
 __all__ = [
     "GSphere",
@@ -108,8 +110,9 @@ class GSphere(collections.Sequence):
         """Returns a numpy array defined on the sphere."""
         shape = (self.npw,)
 
-        if isinstance(extra_dims, int):
+        if duck.is_intlike(extra_dims):
             extra_dims = (extra_dims,)
+
         shape = extra_dims + tuple(shape)
 
         if zero:

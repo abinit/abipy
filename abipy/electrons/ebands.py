@@ -26,7 +26,7 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
     kmesh_from_mpdivs, Ktables, has_timrev_from_kptopt, map_bz2ibz)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
-from abipy.tools import gaussian
+from abipy.tools import gaussian, duck
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
 
 
@@ -41,15 +41,6 @@ __all__ = [
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
 ]
-
-
-def is_intlike(obj):
-    """Return true if obj represents an integer (float such as 1.0 are included as well)."""
-    # isinstance(i, numbers.Integral)
-    try:
-        return int(obj) == obj
-    except (ValueError, TypeError):
-        return False
 
 
 class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
@@ -586,21 +577,10 @@ class ElectronBands(Has_Structure):
         The index of the k-point in the internal list of k-points.
         Accepts: :class:`Kpoint` instance or integer.
         """
-        #if isinstance(kpoint, int):
-        if is_intlike(kpoint):
-            #print("kindex with int", kpoint)
+        if duck.is_intlike(kpoint):
             return int(kpoint)
         else:
-            #print("kindex with kpoint", kpoint)
             return self.kpoints.index(kpoint)
-
-        #if hasattr(kpoint, "frac_coords"):
-        #    print("kindex with kpoint", kpoint)
-        #    return self.kpoints.index(kpoint)
-        #else:
-        #    # Assume int-like object.
-        #    assert int(kpoint) == kpoint
-        #    return int(kpoint)
 
     #def sb_iter(self, ik):
     #    """Iterator over (spin, band) indices."""

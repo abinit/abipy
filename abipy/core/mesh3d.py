@@ -8,6 +8,8 @@ from itertools import product as iproduct
 from monty.functools import lazy_property
 from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
+from abipy.tools import duck
+
 
 __all__ = [
     "Mesh3D",
@@ -124,7 +126,9 @@ class Mesh3D(object):
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
         shape = self.shape
 
-        if isinstance(extra_dims, int): extra_dims = (extra_dims,)
+        if duck.is_intlike(extra_dims):
+            extra_dims = (extra_dims,)
+
         shape = extra_dims + tuple(shape)
 
         if zero:
@@ -161,7 +165,9 @@ class Mesh3D(object):
     def random(self, dtype=np.float, extra_dims=()):
         """Returns random real array for this domain with val in [0.0, 1.0)."""
         shape = self.shape
-        if isinstance(extra_dims, int): extra_dims = (extra_dims,)
+        if duck.is_intlike(extra_dims):
+            extra_dims = (extra_dims,)
+
         shape = extra_dims + tuple(shape)
 
         re = np.random.random(shape)
@@ -183,7 +189,7 @@ class Mesh3D(object):
 
         Returns ndarray with 4 dimensions (?,nx,ny,nz) where ?*nx*ny*nz == arr.size
         """
-        #if isinstance(extra_dims, int): extra_dims = (extra_dims,)
+        #if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)
         #shape = extra_dims + self.shape)
         return np.reshape(arr, (-1,) + self.shape)
 

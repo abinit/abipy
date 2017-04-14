@@ -18,6 +18,7 @@ from abipy.core.gsphere import GSphere
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools import duck
 
 import logging
 logger = logging.getLogger(__name__)
@@ -150,7 +151,7 @@ class _AwggMat(object):
         Find the index of gvec. If gvec is an int, gvec is returned.
         Raises `ValueError` if gvec is not found.
         """
-        if isinstance(gvec, int): return gvec
+        if duck.is_intlike(gvec): return int(gvec)
         return self.gsphere.index(gvec)
 
     def latex_label(self, cplx_mode):
@@ -242,7 +243,7 @@ class _AwggMat(object):
         if any(wpos == k for k in choice_wpos):
             wpos = choice_wpos[wpos]
         else:
-            if isinstance(wpos, int): wpos = [wpos]
+            if duck.is_intlike(wpos): wpos = [int(wpos)]
             wpos = np.array(wpos)
 
         # Build plotter.
@@ -483,8 +484,8 @@ class ScrReader(ETSF_Reader):
         Raise:
             `KpointsError` if kpoint cannot be found.
         """
-        if isinstance(kpoint, int):
-            ik = kpoint
+        if duck.is_intlike(kpoint):
+            ik = int(kpoint)
         else:
             ik = self.kpoints.index(kpoint)
 

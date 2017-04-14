@@ -93,10 +93,14 @@ class TestKpoint(AbipyTest):
         assert gamma + pgamma == gamma
         assert pgamma + X == X
         assert gamma != X
+        # TODO
+        #assert gamma != 0
 
         assert X.norm == (gamma + X).norm
         assert X.norm ==  (gamma + X).norm
         assert X.norm == np.sqrt(np.sum(X.cart_coords**2))
+        # TODO
+        #assert X != 0.5
 
         assert hash(gamma) == hash(pgamma)
         if hash(K) != hash(X):

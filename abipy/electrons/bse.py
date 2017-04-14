@@ -18,6 +18,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import set_axlims
+from abipy.tools import duck
 
 
 __all__ = [
@@ -148,8 +149,8 @@ class DielectricTensor(object):
         ==============  ==============================================================
         """
         # Extract the function to plot according to qpoint.
-        if isinstance(what, int):
-            f = self.to_func1d(red_coords)[what]
+        if duck.is_intlike(what):
+            f = self.to_func1d(red_coords)[int(what)]
         else:
             raise ValueError("Don't know how to handle %s" % str(what))
 
@@ -297,8 +298,8 @@ class DielectricFunction(object):
                     Options can be concated with "-".
         """
         # Extract the function to plot according to qpoint.
-        if isinstance(qpoint, int):
-            f = self.emacros_q[qpoint]
+        if duck.is_intlike(qpoint):
+            f = self.emacros_q[int(qpoint)]
 
         elif isinstance(qpoint, Kpoint):
             iq = self.qpoints.index(qpoint)

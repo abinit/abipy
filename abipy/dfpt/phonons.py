@@ -18,13 +18,14 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
+from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
-from abipy.tools import gaussian
+from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
-from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
+
 
 
 __all__ = [
@@ -444,8 +445,8 @@ class PhononBands(object):
         """
 	Returns the index of the qpoint. Accepts integer or reduced coordinates.
 	"""
-        if isinstance(qpoint, int):
-            return qpoint
+        if duck.is_intlike(qpoint):
+            return int(qpoint)
         else:
             return self.qpoints.index(qpoint)
 
@@ -1445,9 +1446,11 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         self.reader.close()
 
     def qindex(self, qpoint):
-        """Returns the index of the qpoint. Accepts integer or reduced coordinates."""
-        if isinstance(qpoint, int):
-            return qpoint
+        """
+        Returns the index of the qpoint. Accepts integer or reduced coordinates.
+        """
+        if duck.is_intlike(qpoint):
+            return int(qpoint)
         else:
             return self.qpoints.index(qpoint)
 

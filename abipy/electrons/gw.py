@@ -22,6 +22,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, Marker
+from abipy.tools import duck
 
 import logging
 logger = logging.getLogger(__name__)
@@ -87,15 +88,18 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         """Ordered dictionary mapping fields --> strings."""
         d = self.as_dict()
         for k, v in d.items():
-            if isinstance(v, int):
-                d[k] = "%d" % v
+            if duck.is_intlike(v):
+                d[k] = "%d" % int(v)
+
             elif isinstance(v, Kpoint):
                 d[k] = "%s" % v
+
             elif np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
                 else:
                     d[k] = "%.2f%+.2fj" % (v.real, v.imag)
+
             else:
                 try:
                     d[k] = "%.2f" % v
@@ -525,13 +529,13 @@ def torange(obj):
 
     >>> list(torange(1))
     [1]
-    >>> list(torange(slice(0,4,2)))
+    >>> list(torange(slice(0, 4, 2)))
     [0, 2]
-    >>> list(torange([1,4,2]))
+    >>> list(torange([1, 4, 2]))
     [1, 4, 2]
     """
-    if isinstance(obj, int):
-        return range(obj, obj+1)
+    if duck.is_intlike(obj):
+        return range(obj, obj + 1)
 
     elif isinstance(obj, slice):
         start = obj.start if obj.start is not None else 0
@@ -1620,7 +1624,7 @@ class SigresReader(ETSF_Reader):
             This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
-        if isinstance(kpoint, int): return kpoint
+        if duck.is_intlike(kpoint): return int(kpoint)
         return self.ibz.index(kpoint)
 
     def gwkpt2seqindex(self, gwkpoint):
@@ -1628,8 +1632,8 @@ class SigresReader(ETSF_Reader):
         This function returns the index of the GW k-point in (0:nkptgw)
         Used to access data in the arrays that are dimensioned [0:nkptgw] e.g. minbnd.
         """
-        if isinstance(gwkpoint, int):
-            return gwkpoint
+        if duck.is_intlike(gwkpoint):
+            return int(gwkpoint)
         else:
             return self.gwkpoints.index(gwkpoint)
 

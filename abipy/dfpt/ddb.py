@@ -28,6 +28,7 @@ from abipy.core.abinit_units import Ha_cmm1
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools import duck
 
 
 import logging
@@ -282,8 +283,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         The index of the q-point in the internal list of q-points.
         Accepts: :class:`Kpoint` instance or integer.
         """
-        if isinstance(qpoint, int):
-            return qpoint
+        if duck.is_intlike(qpoint):
+            return int(qpoint)
         else:
             return self.qpoints.index(qpoint)
 
