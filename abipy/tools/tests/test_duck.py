@@ -11,7 +11,13 @@ from abipy.tools import duck
 
 class DuckTest(AbipyTest):
 
-    def test_intlike(self):
+    def test_is_string(self):
+        """Testing is_string."""
+        assert duck.is_string("hello")
+        assert not duck.is_string(1)
+        assert not duck.is_string([1, 2, 3])
+
+    def test_is_intlike(self):
         """Testing is_intlike."""
         assert duck.is_intlike(1)
         assert duck.is_intlike(1.0)
@@ -24,3 +30,13 @@ class DuckTest(AbipyTest):
 
         assert not duck.is_intlike(np.complex(123))
 
+    def test_is_listlike(self):
+        """Testing is_listlike."""
+        #if isinstance(branch, (list, tuple, np.ndarray)):
+        assert duck.is_listlike([1, 2, 3])
+        assert duck.is_listlike((1,))
+        assert not duck.is_listlike({1, 2, 3})
+        assert duck.is_listlike(np.zeros(3))
+        d = {"hello": 1, "world": 2}
+        #assert not duck.is_listlike(d)
+        #assert duck.is_listlike(range(1, 3))

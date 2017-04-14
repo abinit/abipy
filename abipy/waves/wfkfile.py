@@ -11,7 +11,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader, Visualizer
 from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
-from abupy.tools import duck
+from abipy.tools import duck
 
 __all__ = [
     "WfkFile",
