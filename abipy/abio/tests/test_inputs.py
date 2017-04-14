@@ -1,13 +1,12 @@
 """Tests for input  module"""
 from __future__ import print_function, division, unicode_literals
 
-import tempfile
 import os
 import numpy as np
 import abipy.data as abidata
 
 from abipy import abilab
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest, has_abinit
 from abipy.abio.inputs import *
 from abipy.abio.input_tags import *
 
@@ -19,7 +18,7 @@ class TestAbinitInput(AbipyTest):
     """Unit tests for AbinitInput."""
 
     def test_api(self):
-        """Test AbinitInput API."""
+        """Testing AbinitInput API."""
         # Build simple input with structure and pseudos
         unit_cell = {
             "acell": 3*[10.217],
@@ -36,7 +35,7 @@ class TestAbinitInput(AbipyTest):
 
         inp = AbinitInput(structure=unit_cell, pseudos=abidata.pseudos("14si.pspnc"))
 
-        print(repr(inp))
+        repr(inp), str(inp)
         assert len(inp) == 0 and not inp
         assert inp.get("foo", "bar") == "bar" and inp.pop("foo", "bar") == "bar"
         assert inp.comment is None
@@ -47,7 +46,18 @@ class TestAbinitInput(AbipyTest):
         assert len(inp.structure) == 2 and inp.num_valence_electrons == 8
 
         # foo is not a valid Abinit variable
-        with self.assertRaises(inp.Error): inp["foo"] = 1
+        with self.assertRaises(inp.Error):
+            inp["foo"] = 1
+
+        # unless we deactive spell_check
+        assert inp.spell_check
+        inp.set_spell_check(False)
+        inp["foo"] = 1
+        assert inp["foo"] == 1
+        inp.pop("foo")
+        assert "foo" not in inp
+        inp.set_spell_check(True)
+
         inp["ecut" ] = 1
         assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
 
@@ -56,20 +66,27 @@ class TestAbinitInput(AbipyTest):
         assert inp.mnemonics == True
 
         # Test to_string
-        inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
-        inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
 
         inp.set_vars(ecut=5, toldfe=1e-6)
         assert inp["ecut"] == 5
         inp.set_vars_ifnotin(ecut=-10)
         assert inp["ecut"] == 5
+        assert inp.scf_tolvar == ("toldfe", inp["toldfe"])
 
-        _, tmp_file = tempfile.mkstemp()
-        inp.write(filepath=tmp_file)
+        inp.write(filepath=self.get_tmpname(text=True))
 
         # Cannot change structure variables directly.
         with self.assertRaises(inp.Error):
             inp.set_vars(unit_cell)
+
+        with self.assertRaises(TypeError):
+            inp.add_abiobjects({})
+
+        with self.assertRaises(KeyError):
+            inp.remove_vars("foo", strict=True)
+        assert not inp.remove_vars("foo", strict=False)
 
         # Test deepcopy and remove_vars.
         inp["bdgw"] = [1, 2]
@@ -80,6 +97,7 @@ class TestAbinitInput(AbipyTest):
 
         removed = inp.pop_tolerances()
         assert len(removed) == 1 and removed["toldfe"] == 1e-6
+        assert inp.scf_tolvar == (None, None)
 
         # Test set_spin_mode
         old_vars = inp.set_spin_mode("polarized")
@@ -104,6 +122,14 @@ class TestAbinitInput(AbipyTest):
         inp.remove_tags([GROUND_STATE])
         assert len(inp.tags) == 1
 
+        new_inp = AbinitInput(structure=inp.structure, pseudos=inp.pseudos, abi_kwargs=inp.vars)
+        new_inp.pop_par_vars(new_inp)
+        new_inp["npband"] = 2
+        new_inp["npfft"] = 3
+        popped = new_inp.pop_par_vars(new_inp)
+        assert popped["npband"] == 2 and "npband" not in new_inp
+        assert popped["npfft"] == 3 and "npfft" not in new_inp
+
     def test_input_errors(self):
         """Testing typical AbinitInput Error"""
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -123,7 +149,9 @@ class TestAbinitInput(AbipyTest):
 
     def test_helper_functions(self):
         """Testing AbinitInput helper functions."""
-        inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
+        pseudo = abidata.pseudo("14si.pspnc")
+        pseudo_dir = os.path.dirname(pseudo.filepath)
+        inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=pseudo.basename, pseudo_dir=pseudo_dir)
 
         nval_atoms = inp.valence_electrons_per_atom
         assert len(nval_atoms) == 2
@@ -147,45 +175,107 @@ class TestAbinitInput(AbipyTest):
         ranginps = inp.arange("ecut", start=3, stop=5, step=1)
         assert len(ranginps) == 2 and (ranginps[0]["ecut"] == 3 and (ranginps[-1]["ecut"] == 4))
 
-        prod_inps = inp.product("ngkpt", "tsmear", [[2,2,2], [4,4,4]], [0.1, 0.2, 0.3])
-        #prod_inps = inp.product([("ngkpt", [[2,2,2], [4,4,4]]), ("tsmear", [0.1, 0.2, 0.3])])
+        with self.assertRaises(inp.Error):
+            inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]])
+
+        prod_inps = inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
         assert len(prod_inps) == 6
         assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
         assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
 
+    # TODO
+    def test_new_with_structure(self):
+        """Testing new_with_structure."""
+
+        si2_inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"),
+                abi_kwargs={"ecut": 4, "toldfe": 1e-10, "nband": 6, "ngkpt": [12, 12, 12]})
+
+        # Build new input with same parameters and compressed unit cell.
+        new_vol = 0.9 * si2_inp.structure.volume
+        new_lattice = si2_inp.structure.lattice.scale(new_vol)
+        new_structure = abilab.Structure(new_lattice, si2_inp.structure.species, si2_inp.structure.frac_coords)
+
+        new_inp = si2_inp.new_with_structure(new_structure, scdims=None)
+        assert new_inp.structure.volume == new_vol
+        assert new_inp["ecut"] == 4
+
+        #al2_structure = abilab.Structure.from_file(abidata.cif_file("al.cif"))
+
+        # Let's build an input file for a (2, 3, 4) supercell
+        #super_structure = si2_inp.structure.make_supercell
+        scdims = np.array((2, 3, 4))
+        # Note: This will return a pymatgen structure, not an Abipy structure.
+        super_structure = si2_inp.structure * scdims
+        sc_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
+        assert isinstance(sc_inp.structure, abilab.Structure)
+        assert len(sc_inp.structure) == 2 * scdims.prod()
+        self.assert_almost_equal(sc_inp.structure.volume, si2_inp.structure.volume * scdims.prod())
+        assert sc_inp["chkprim"] == 0
+        assert sc_inp["nband"] == si2_inp["nband"] * scdims.prod()
+        self.assert_equal(sc_inp["ngkpt"], [6, 4, 3])
+        self.abivalidate_input(sc_inp)
+        #sc_inp.write(filepath=self.tmpfileindir("run.abi"))
+
+        # TODO
+        # Test new_with_structure with nsppol == 2
+        # In this case, we have the `spinat` array that depends on natom
+        #si2_inp["nsppol"] = 2
+        #si2_inp["spinat"] = [[0, 0, 1], [0, 0 -1]]
+        #scdims = np.array((1, 1, 2))
+        #super_structure = si2_inp.structure * scdims
+        #with self.assertRaises(ValueError):
+        #    si2_inp.new_with_structure(new_structure, scdims=scdims)
+
+        #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
+        #self.abivalidate_input(new_inp)
+
+
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
-        inp = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
-        inp.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
+        inp_si = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
+        inp_si.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
 
-        # The code below invokes Abinit.
-        # Test validate with wrong input
-        inp.set_vars(ecut=-1)
-        v = inp.abivalidate()
-        assert v.retcode != 0 and v.log_file.read()
+        inp_gan = AbinitInput(structure=abidata.cif_file("gan.cif"),
+                              pseudos=abidata.pseudos("31ga.pspnc", "7n.pspnc"))
+        inp_gan.set_kmesh(ngkpt=(2, 2, 2), shiftk=(0, 0, 0))
+
+        # The code below invokes Abinit (the test must fail because of wrong input)
+        inp_si.set_vars(ecut=-1)
+        self.abivalidate_input(inp_si, must_fail=True)
 
         # Test validate with correct input
-        inp.set_vars(ecut=2, toldfe=1e-6)
-        v = inp.abivalidate()
-        assert v.retcode == 0
+        inp_si.set_vars(ecut=2, toldfe=1e-6)
+        self.abivalidate_input(inp_si)
 
         # Test abiget_ibz
-        ibz = inp.abiget_ibz()
+        ibz = inp_si.abiget_ibz()
         assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
         # Test abiget_irred_phperts
         # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
-        irred_perts = inp.abiget_irred_phperts(qpt=(0, 0, 0))
+        irred_perts = inp_si.abiget_irred_phperts(qpt=(0, 0, 0))
         assert len(irred_perts) == 1
         pert = irred_perts[0]
         assert pert.idir == 1 and (pert.idir, pert.ipert) == (1, 1) and all(c == 0 for c in pert.qpt)
 
+        irred_perts = inp_gan.abiget_irred_phperts(qpt=(0.5, 0, 0))
+        print(irred_perts)
+        assert len(irred_perts) == 6
+        irred_perts_values = [{'idir': 1, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
+                              {'idir': 2, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
+                              {'idir': 3, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
+                              {'idir': 1, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
+                              {'idir': 2, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
+                              {'idir': 3, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]}]
+        for a, b in zip(irred_perts, irred_perts_values):
+            self.assertDictEqual(a, b)
+
         # Test abiget_autoparal_pconfs
-        inp["paral_kgb"] = 0
-        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
-        inp["paral_kgb"] = 1
-        pconfs = inp.abiget_autoparal_pconfs(max_ncpus=5)
+        inp_si["paral_kgb"] = 0
+        pconfs = inp_si.abiget_autoparal_pconfs(max_ncpus=5)
+        inp_si["paral_kgb"] = 1
+        pconfs = inp_si.abiget_autoparal_pconfs(max_ncpus=5)
 
     def test_dict_methods(self):
         """ Testing AbinitInput dict methods """
@@ -217,29 +307,54 @@ class TestAbinitInput(AbipyTest):
             tolvrs=1.0e-10,
         )
 
+        # qpt is not in gs_inp and not passed to method.
+        with self.assertRaises(ValueError):
+            gs_inp.abiget_irred_phperts()
+
         ################
         # Phonon methods
         ################
         with self.assertRaises(gs_inp.Error):
-            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
+            try:
+                ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
+            except Exception as exc:
+                print(exc)
+                raise
 
         phg_inputs = gs_inp.make_ph_inputs_qpoint(qpt=(0, 0, 0), tolerance=None)
-        print("phonon inputs at Gamma\n", phg_inputs)
+        #print("phonon inputs at Gamma\n", phg_inputs)
         assert len(phg_inputs) == 2
         assert np.all(phg_inputs[0]["rfatpol"] == [1, 1])
         assert np.all(phg_inputs[1]["rfatpol"] == [2, 2])
         assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
         assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
 
-        # Validate
-        vs = phg_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
+        # Validate with Abinit
+        self.abivalidate_multi(phg_inputs)
+
+        ##############
+        # BEC methods
+        ##############
+        with self.assertRaises(gs_inp.Error):
+            gs_inp.make_bec_inputs(tolerance={"tolfoo": 1e10})
+
+        bec_inputs = gs_inp.make_bec_inputs(tolerance=None)
+        print("BEC inputs at Gamma\n", bec_inputs)
+        assert len(bec_inputs) == 2
+        assert np.all(bec_inputs[0]["rfatpol"] == [1, 1])
+        assert np.all(bec_inputs[1]["rfatpol"] == [2, 2])
+        assert all(np.all(inp["rfelfd"] == 3 for inp in bec_inputs))
+        assert all(np.all(inp["tolvrs"] == 1.0e-10 for inp in bec_inputs))
+        assert all(np.all(inp["kptopt"] == 2 for inp in bec_inputs))
+
+        # Validate with Abinit
+        self.abivalidate_multi(bec_inputs)
 
         #############
         # DDK methods
         #############
         with self.assertRaises(gs_inp.Error):
-            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolvrs": 1e10})
+            gs_inp.make_ddk_inputs(tolerance={"tolvrs": 1e10})
 
         ddk_inputs = gs_inp.make_ddk_inputs(tolerance=None)
         print("DDK inputs\n", ddk_inputs)
@@ -247,9 +362,31 @@ class TestAbinitInput(AbipyTest):
         assert all(inp["iscf"] == -3 for inp in ddk_inputs)
         assert all(inp["rfelfd"] == 2 for inp in ddk_inputs)
 
-        # Validate
-        vs = ddk_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
+        # Validate with Abinit
+        self.abivalidate_multi(ddk_inputs)
+
+        #############
+        # DDE methods
+        #############
+        with self.assertRaises(gs_inp.Error):
+            gs_inp.make_dde_inputs(tolerance={"tolfoo": 1e10})
+
+        dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=False)
+        assert len(dde_inputs) == 3
+        assert all(inp["prepanl"] == 1 for inp in dde_inputs)
+        for i, dde_rfdirs in enumerate([(1, 0, 0), (0, 1, 0), (0, 0, 1)]):
+            assert np.all(dde_inputs[i]["rfdir"] == dde_rfdirs)
+        self.abivalidate_multi(dde_inputs)
+
+        dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=True)
+        print("DDE inputs\n", dde_inputs)
+        assert len(dde_inputs) == 1
+        assert all(np.all(inp["tolvrs"] == 1.0e-22 for inp in dde_inputs))
+        assert all(inp["rfelfd"] == 3 for inp in dde_inputs)
+        assert all(inp["kptopt"] == 2 for inp in dde_inputs)
+
+        # Validate with Abinit
+        self.abivalidate_multi(dde_inputs)
 
         #################
         # Strain methods
@@ -258,8 +395,22 @@ class TestAbinitInput(AbipyTest):
         print("STRAIN inputs\n", strain_inputs)
         assert all(inp["tolvrs"] == 1e-12 for inp in strain_inputs)
 
-        vs = strain_inputs.abivalidate()
-        assert all(v.retcode == 0 for v in vs)
+        # Validate with Abinit
+        self.abivalidate_multi(strain_inputs)
+
+        #####################
+        # Non-linear methods
+        ####################
+        if has_abinit('8.3.2'):
+            dte_inputs = gs_inp.make_dte_inputs(phonon_pert=True, skip_permutations=True)
+            print("dte inputs\n", dte_inputs)
+            assert len(dte_inputs) == 8
+            assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
+            assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
+            assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
+
+            # Validate with Abinit
+            self.abivalidate_multi(dte_inputs)
 
     def TestInputCheckSum(self):
         """Testing the hash method of AbinitInput"""
@@ -267,18 +418,25 @@ class TestAbinitInput(AbipyTest):
         inp_cs = inp.variable_checksum()
         ecut = inp.pop('ecut')
         inp.set_vars({'ecut': ecut})
-        self.assertEqual(inp_cs, inp.variable_checksum())
+        assert inp_cs == inp.variable_checksum()
 
 
 class TestMultiDataset(AbipyTest):
     """Unit tests for MultiDataset."""
 
     def test_api(self):
-        """Test MultiDataset API."""
+        """Testing MultiDataset API."""
         structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-        multi = MultiDataset(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
+        pseudo = abidata.pseudo("14si.pspnc")
+        pseudo_dir = os.path.dirname(pseudo.filepath)
+        multi = MultiDataset(structure=structure, pseudos=pseudo)
+        with self.assertRaises(ValueError):
+            MultiDataset(structure=structure, pseudos=pseudo, ndtset=-1)
+
+        multi = MultiDataset(structure=structure, pseudos=pseudo.basename, pseudo_dir=pseudo_dir)
 
         assert len(multi) == 1 and multi.ndtset == 1
+        assert multi.isnc
         for i, inp in enumerate(multi):
             assert list(inp.keys()) == list(multi[i].keys())
 
@@ -289,8 +447,17 @@ class TestMultiDataset(AbipyTest):
 
         multi.set_vars(ecut=2)
         assert all(inp["ecut"] == 2 for inp in multi)
+        self.assert_equal(multi.get("ecut"), [2, 2])
+
         multi[1].set_vars(ecut=1)
         assert multi[0]["ecut"] == 2 and multi[1]["ecut"] == 1
+        self.assert_equal(multi.get("ecut"), [2, 1])
+
+        self.assert_equal(multi.get("foo", "default"), ["default", "default"])
+
+        multi[1].set_vars(paral_kgb=1)
+        assert "paral_kgb" not in multi[0]
+        self.assert_equal(multi.get("paral_kgb"), [None, 1])
 
         pert_structure = structure.copy()
         pert_structure.perturb(distance=0.1)
@@ -305,14 +472,10 @@ class TestMultiDataset(AbipyTest):
 
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
+        repr(multi); str(multi)
 
-        print(multi)
-        #print(dir(multi))
-        #assert 0
-
-        tmp_dir = tempfile.mkdtemp()
-        tmp_file = os.path.join(tmp_dir, "run.abi")
-        inp.write(filepath=tmp_file)
+        inp.write(filepath=self.tmpfileindir("run.abi"))
+        multi.write(filepath=self.tmpfileindir("run.abi"))
 
         new_multi = MultiDataset.from_inputs([inp for inp in multi])
         assert new_multi.ndtset == multi.ndtset
@@ -331,7 +494,7 @@ class TestMultiDataset(AbipyTest):
             self.assertDictEqual(ref_input.as_dict(), inp.as_dict())
 
         # Compatible with Pickle and MSONable?
-        #self.serialize_with_pickle(multi, test_eq=False)
+        self.serialize_with_pickle(multi, test_eq=False)
         #self.assertMSONable(multi)
 
         # Test tags
@@ -350,15 +513,29 @@ class AnaddbInputTest(AbipyTest):
         self.structure = abidata.structure_from_ucell("Si")
 
     def test_phbands_and_dos(self):
-        """Test phbands_and_dos constructor."""
+        """Testing phbands_and_dos constructor."""
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
+        repr(inp); str(inp)
         assert "brav" in inp
         assert inp["brav"] == 1
         assert inp.get("brav") == 1
 
+        self.serialize_with_pickle(inp, test_eq=False)
+        #self.assertMSONable(inp, test_if_subclass=False)
+
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
             AnaddbInput(self.structure, anaddb_kwargs={"foo": 1})
+
+        # unless we deactive spell_check
+        assert inp.spell_check
+        inp.set_spell_check(False)
+        inp["foo"] = 1
+        assert inp["foo"] == 1
+
+        inp.pop("foo")
+        assert "foo" not in inp
+        inp.set_spell_check(True)
 
         ndivsm = 1
         nqsmall = 3
@@ -366,51 +543,77 @@ class AnaddbInputTest(AbipyTest):
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
         assert inp2['ifcflag'] == 1
-
         print(inp2.to_string(sortmode="a"))
+        self.abivalidate_input(inp2)
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
         assert inp3['ifcflag'] == 1
         assert inp3['prtdos'] == 1
         print(inp3.to_string(sortmode="a"))
+        self.abivalidate_input(inp3)
 
         # Compatible with deepcopy and Pickle?
         for i in (inp, inp2, inp3):
             self.serialize_with_pickle(i, test_eq=False)
             i.deepcopy()
 
+        # Test AnaddbInput with lo_to_splitting.
+        inp_loto = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
+                                               lo_to_splitting=True)
+        #print(inp_loto)
+        #print(inp_loto["qpath"], inp_loto["qph2l"])
+        assert "qpath" in inp_loto
+        assert inp_loto["nph2l"] == 3
+        self.assert_almost_equal(inp_loto["qph2l"],
+            [[ 0.        , 0.184959  , 0.       , 0.],
+             [ 0.13871925, 0.13871925, 0.       , 0.],
+             [ 0.0924795 , 0.0924795 , 0.0924795, 0.]])
+        self.abivalidate_input(inp_loto)
+
     def test_thermo(self):
-        """Test the thermodynamics constructor"""
+        """Testing the thermodynamics constructor"""
         anaddb_input = AnaddbInput.thermo(self.structure, ngqpt=(40, 40, 40), nqsmall=20)
-        self.assertTrue(str(anaddb_input))
+        assert str(anaddb_input)
         for var in ('thmtol', 'ntemper', 'temperinc', 'thmtol'):
-            self.assertTrue(anaddb_input[var] >= 0)
+            assert anaddb_input[var] >= 0
         for flag in ('ifcflag', 'thmflag'):
-            self.assertEqual(anaddb_input[flag], 1)
+            assert anaddb_input[flag] == 1
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
 
     def test_modes(self):
-        """Test the modes constructor"""
+        """Testing modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
-        self.assertTrue(str(anaddb_input))
+        assert str(anaddb_input)
         for flag in ('ifcflag', 'dieflag'):
-            self.assertEqual(anaddb_input[flag], 1)
+            assert anaddb_input[flag] == 1
+        self.abivalidate_input(anaddb_input)
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
 
     def test_ifc(self):
-        """Test the ifc constructor"""
+        """Testing ifc constructor"""
         anaddb_input = AnaddbInput.ifc(self.structure, ngqpt=[4,4,4])
-        self.assertTrue(str(anaddb_input))
+        assert str(anaddb_input)
         for flag in ('ifcflag', 'dipdip'):
-            self.assertEqual(anaddb_input[flag], 1)
+            assert anaddb_input[flag] == 1
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
         anaddb_input.deepcopy()
+        self.abivalidate_input(anaddb_input)
+
+    def test_piezo_elastic(self):
+        """Testing piezo_elastic constructor."""
+        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=True)
+        assert anaddb_input["elaflag"] == 5 and anaddb_input["piezoflag"] == 3 and anaddb_input["asr"] == 0
+        self.abivalidate_input(anaddb_input)
+
+        anaddb_input = AnaddbInput.piezo_elastic(self.structure, stress_correction=False)
+        assert anaddb_input["elaflag"] == 3 and anaddb_input["piezoflag"] == 3 and anaddb_input["chneut"] == 1
+        self.abivalidate_input(anaddb_input)
 
 
 class TestCut3DInput(AbipyTest):
@@ -421,7 +624,11 @@ class TestCut3DInput(AbipyTest):
 
     def test_dict_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
-        self.assertMSONable(cut3d_input)
+        repr(cut3d_input); str(cut3d_input)
+        cut3d_input.write(self.get_tmpname(text=True))
+
+        self.serialize_with_pickle(cut3d_input, test_eq=False)
+        self.assertMSONable(cut3d_input, test_if_subclass=False)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
@@ -431,14 +638,22 @@ class TestCut3DInput(AbipyTest):
         cut3d_input = Cut3DInput.den_to_tecplot('/path/to/den', 'outfile_name')
         cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
 
+        # TODO
+        #cut3d_input = Cut3DInput.hirshfeld(density_filepath, all_el_dens_paths)
+        #cut3d_input = Cut3DInput.hirshfeld_from_fhi_path(density_filepath, structure, fhi_all_el_path)
+
 
 class OpticInputTest(AbipyTest):
     """Tests for OpticInput."""
 
     def test_optic_input_api(self):
-        """Test OpticInput API."""
+        """Testing OpticInput API."""
         optic_input = OpticInput()
-        print(optic_input)
+        repr(optic_input); str(optic_input)
+
+        for var in OpticInput._VARIABLES:
+            repr(var); str(var)
+            assert str(var.help) and var.group
 
         with self.assertRaises(optic_input.Error):
             optic_input["foo"] = 23
@@ -465,13 +680,13 @@ class OpticInputTest(AbipyTest):
             nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
         )
 
-        print(optic_input)
+        repr(optic_input); str(optic_input)
         assert optic_input.vars
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(optic_input, test_eq=True)
+
         # TODO: But change function that build namelist to ignore @module ...
         #self.assertMSONable(optic_input)
 
-        v = optic_input.abivalidate()
-        assert v.retcode == 0
+        self.abivalidate_input(optic_input)

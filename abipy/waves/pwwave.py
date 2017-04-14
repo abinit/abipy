@@ -93,7 +93,8 @@ class WaveFunction(object):
 
     def set_ug(self, ug):
         """Set the value of the u(nspinor, G) array."""
-        assert ug.shape == self.shape
+        if ug.shape != self.shape:
+            raise ValueError("Input ug shape %s differs from the one stored in self %s" % (ug.shape, self.shape))
         self._ug = ug
         self.delete_ur()
 
@@ -261,7 +262,7 @@ class PWWaveFunction(WaveFunction):
         # Compute |u(r)|2 and write data according to ext.
         ur2 = np.reshape(self.ur2, (1,) + self.ur2.shape)
 
-        with open(filename, mode="w") as fh:
+        with open(filename, mode="wt") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf_write_structure(fh, structures=[structure])
@@ -325,7 +326,7 @@ class PWWaveFunction(WaveFunction):
             return np.vdot(self.ur, other.ur) * self.mesh.dv
 
         else:
-            raise ValueError("Wrong space: %s" % space)
+            raise ValueError("Wrong space: %s" % str(space))
 
     #def pww_translation(self, gvector, rprimd):
     #    """Returns the pwwave of the kpoint translated by one gvector."""

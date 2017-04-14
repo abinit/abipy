@@ -1,8 +1,8 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import wx
-
 import pymatgen.core.units as units
+
 from abipy.gui import awx
 
 
@@ -93,7 +93,7 @@ class ConverterFrame(awx.Frame):
         if from_unit == "foo":
             from abipy.gui.awx.eggs import Puzzle
             return Puzzle(self)
-            
+
         ufloat = units.FloatWithUnit(fvalue, from_unit)
         to_unit = self.to_unit_choice.GetValue()
 

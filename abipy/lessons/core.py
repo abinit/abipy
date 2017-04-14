@@ -2,20 +2,17 @@
 """Base classes and utils for lessons."""
 from __future__ import print_function, division, unicode_literals
 
-import sys
 import os
 import six
 import abc
 import shutil
 import abipy.data as abidata
 
-from monty.functools import lazy_property
-
 
 class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def __init__(self, **kwargs):
-        mode = kwargs.get("mode") #, "ipython-shell")
+        mode = kwargs.get("mode")
         if mode is None: return
             
     @abc.abstractproperty
@@ -87,17 +84,14 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def _repr_html_(self):
         """Support for ipython notebooks."""
-        from docutils.core import publish_string, publish_parts
+        from docutils.core import publish_string
         return publish_string(self.abipy_string, writer_name="html")
 
     @staticmethod
     def docvar(varname):
-        from abipy.htc.abivars_db import get_abinit_variables
+        from abipy.abio.abivars_db import get_abinit_variables
         if varname == "inputvariable":
-            return ("inputvariable is a very complicated input variable. Better to ask for help immediately")
-#            return ("When we said that you should pass `inputvariable` to docvar we meant that"
-#                    "you should pass a string with the name of a valid ABINT variable e.g. `ecut`"
-#                    "not `inputvariable` :)")
+            return "inputvariable is a very complicated input variable. Better to ask for help immediately"
         return get_abinit_variables()[varname]
 
     @property

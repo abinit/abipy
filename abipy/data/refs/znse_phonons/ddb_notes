@@ -1,0 +1,9 @@
+ZnSe_hex_qpt_DDB has been generated for a convergence test study.
+The grids that can be used from the DDB to check the convergence are:
+2 2 2
+3 3 2
+4 4 2
+4 4 3
+6 6 4
+8 8 6
+10 10 8

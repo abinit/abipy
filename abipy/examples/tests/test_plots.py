@@ -13,9 +13,20 @@ root = os.path.dirname(__file__)
 
 class TestPlots(AbipyTest):
 
-    def test_plots(self):
+    #def test_plots_with_runtests(self):
+    #    """Running _runplots script."""
+    #    if not self.has_matplotlib():
+    #        raise unittest.SkipTest("matplotlib is not installed")
+
+    #    script = os.path.abspath(os.path.join(root, "..", "_runplots.py"))
+    #    assert os.path.exists(script)
+    #    assert os.system(script + " --backend Agg")
+
+    def test_plots_with_exec(self):
+        """Running plot script with exec."""
+        #raise unittest.SkipTest("Skipping matplotlib examples")
         if not self.has_matplotlib():
-            raise unittest.SkipTest("sympy is not installed")
+            raise unittest.SkipTest("matplotlib is not installed")
 
         #0 file /home/travis/build/abinit/abipy/abipy/examples/tests/../plot/plot_qpconverge.py
         # Traceback (most recent call last):

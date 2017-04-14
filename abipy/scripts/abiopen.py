@@ -77,6 +77,7 @@ def main():
     def str_examples():
         s = """\
 Usage example:
+
     abiopen.py out_GSR.nc
     abiopen.py out_DDB -nb  # To generate jupyter notebook
 
@@ -94,15 +95,15 @@ File extensions supported:
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + abilab.__version__)
+                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
     #                     help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     parser.add_argument('--foreground', action='store_true', default=False,
-                         help="Run jupyter notebook in the foreground.")
+                        help="Run jupyter notebook in the foreground.")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
@@ -134,13 +135,7 @@ File extensions supported:
         import IPython
         # Use embed because I don't know how to show a header with start_ipython.
         IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
-        #IPython.start_ipython(argv=options.argv,
-        #                      user_ns={"abifile": abifile},
-        #                      banner="hello",
-        #                      banner1="hello1",
-        #                      header="hello_header",
-        #                      )
-        #
+
     else:
         # Call specialized method if the object is a NotebookWriter
         # else generate simple notebook by calling `make_and_open_notebook`

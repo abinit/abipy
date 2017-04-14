@@ -1,16 +1,16 @@
 # coding: utf-8
 """Tests for DEN/POT files."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import abipy.data as abidata
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.electrons.denpot import DensityNcFile
 
 
 class DensityNcFileTest(AbipyTest):
 
-    def test_silicon_density(self):
+    def test_silicon_density_ncfile(self):
         """Test si_DEN.nc"""
         with DensityNcFile(abidata.ref_file("si_DEN.nc")) as denc:
             print(denc)

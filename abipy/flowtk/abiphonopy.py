@@ -19,6 +19,14 @@ from pymatgen.io.abinit.works import Work
 from abipy.core.structure import Structure
 
 
+__all__ = [
+    "atoms_from_structure",
+    "structure_from_atoms",
+    "PhonopyWork",
+    "PhonopyGruneisenWork",
+]
+
+
 def atoms_from_structure(structure):
     """
     Convert a pymatgen Structure into a phonopy Atoms object.
@@ -94,7 +102,7 @@ class PhonopyWork(Work):
         new.phonon = phonon = Phonopy(unitcell, supercell_matrix, **phonopy_kwargs)
 
         displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
-        phonon.generate_displacements(**displ_kwargs) #distance=0.01,
+        phonon.generate_displacements(**displ_kwargs)  # distance=0.01,
 
         # Obtain supercells containing respective displacements (list of Atoms objects).
         for atoms in phonon.get_supercells_with_displacements():
@@ -200,15 +208,6 @@ class PhonopyGruneisenWork(Work):
 
 	numpy arrays with the number of cells in the supercell along the three reduced directions.
 
-    .. attribute:: phonon
-
-	:class:`Phonopy` object used to construct the supercells with displaced atoms.
-
-    .. attribute:: phonopy_tasks
-
-	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.
-
-    .. attribute:: bec_tasks
     """
     @classmethod
     def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None):
@@ -229,7 +228,7 @@ class PhonopyGruneisenWork(Work):
 		(Optional) dictionary with arguments passed to generate_displacements.
 
 	Return:
-	    PhonopyGruneisenWork instance.
+	    `PhonopyGruneisenWork` instance.
         """
         new = cls()
 

@@ -460,7 +460,7 @@ class Function1D(object):
 
         return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
-    def plot_ax(self, ax, exchange_xy=False, *args, **kwargs):
+    def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
         """
         Helper function to plot self on axis ax.
 
@@ -469,6 +469,7 @@ class Function1D(object):
             exchange_xy: True to exchange the axis in the plot
             args: Positional arguments passed to ax.plot
             kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:
+            xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
 
         ==============  ===============================================================
         kwargs          Meaning
@@ -488,12 +489,15 @@ class Function1D(object):
         else:
             cplx_mode = kwargs.pop("cplx_mode", "re")
 
-
         lines = []
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
+            if xfactor != 1: xx = xx * xfactor
+            if yfactor != 1: yy = yy * yfactor
+
             if exchange_xy:
                 xx, yy = yy, xx
+
             lines.extend(ax.plot(xx, yy, *args, **kwargs))
 
         return lines

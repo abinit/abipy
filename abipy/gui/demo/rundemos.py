@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import sys
 import os
 import time
@@ -13,6 +15,7 @@ def str_examples():
       "run.py -m automatic -t 7  => Run all tests, close the demo after 7 seconds.\n"
       )
     return examples
+
 
 def show_examples_and_exit(err_msg=None, error_code=1):
     """Display the usage of the script."""
@@ -34,13 +37,15 @@ def main():
     options = parser.parse_args()
 
     # Find scripts.
-    dir = os.path.dirname(__file__)
+    dirpath = os.path.dirname(__file__)
     scripts = []
-    for fname in os.listdir(dir):
+    for fname in os.listdir(dirpath):
         if fname.endswith(".py") and fname.startswith("demo_"):
-            scripts.append(os.path.join(dir, fname))
+            scripts.append(os.path.join(dirpath, fname))
 
     python = "pythonw"
+    python = "python.app"
+    print("Using python:", python)
 
     # Run scripts depending on mode.
     if options.mode in ["s", "sequential"]:

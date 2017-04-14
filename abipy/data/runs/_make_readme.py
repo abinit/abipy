@@ -10,9 +10,9 @@ from monty.fnmatch import WildCard
 
 def main():
     # Find (runnable) scripts.
-    dir = os.path.dirname(os.path.abspath(__file__))
+    dirpath = os.path.dirname(os.path.abspath(__file__))
     wildcard = WildCard("run_*.py")
-    scripts = [f.replace(".py", "") for f in wildcard.filter(os.listdir(dir))]
+    scripts = [f.replace(".py", "") for f in wildcard.filter(os.listdir(dirpath))]
 
     missing = []
     with open("README.md", "wt") as fh:
@@ -20,7 +20,8 @@ def main():
             mod = __import__(script)
             if mod.__doc__ is None: missing.append(script)
             doc = str(mod.__doc__).lstrip().rstrip()
-            print("`%s`" % script + ":\n" + doc + "\n", file=fh)
+            doc = doc.replace("\n", "\n    ")
+            print("``%s``:\n\n    " % script + doc + "\n", file=fh)
 
     if missing:
         raise RuntimeError("The following script do not provide a doc string:\n" + "\n".join(missing))

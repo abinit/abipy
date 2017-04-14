@@ -1,5 +1,5 @@
 """Tests for electrons.gw module"""
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import, unicode_literals
 
 import collections
 import numpy as np
@@ -8,13 +8,15 @@ import abipy.data as abidata
 from abipy.abilab import abiopen
 from abipy.electrons.gw import *
 from abipy.electrons.gw import SigresReader, SigresPlotter
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestQPList(AbipyTest):
 
     def setUp(self):
         self.sigres = sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+        repr(self.sigres)
+        str(self.sigres)
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
 
     def tearDown(self):
@@ -26,12 +28,21 @@ class TestQPList(AbipyTest):
         assert isinstance(qplist, collections.Iterable)
         self.serialize_with_pickle(qplist, protocols=[-1])
 
-        print(qplist)
+        repr(qplist)
+        str(qplist)
         qplist_copy = qplist.copy()
-        self.assertTrue(qplist_copy == qplist)
+        assert qplist_copy == qplist
 
         qpl_e0sort = qplist.sort_by_e0()
-        qpl_e0sort.get_e0mesh()
+        assert qpl_e0sort.is_e0sorted
+        e0mesh = qpl_e0sort.get_e0mesh()
+        assert e0mesh[-1] > e0mesh[0]
+        values = qpl_e0sort.get_field("qpeme0")
+        assert len(values) == len(qpl_e0sort)
+
+        qp = qpl_e0sort[2]
+        value = qpl_e0sort.get_skb_field(qp.skb, "qpeme0")
+        assert qp.qpeme0 == value
 
         with self.assertRaises(ValueError):
             qplist.get_e0mesh()
@@ -50,7 +61,7 @@ class TestQPList(AbipyTest):
 
         # Test QPState object.
         qp = qplist[0]
-        print(qp)
+        str(qp)
         print(qp.tips)
 
         self.assertAlmostEqual(qp.e0, -5.04619941555265, places=5)
@@ -64,15 +75,14 @@ class TestSigresFile(AbipyTest):
     def test_readall(self):
         for path in abidata.SIGRES_NCFILES:
             with abiopen(path) as sigres:
-                print(sigres)
+                repr(sigres)
+                str(sigres)
+                assert len(sigres.structure)
 
     def test_base(self):
         """Test SIGRES File."""
         sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         assert sigres.nsppol == 1
-
-        # Markers are initialied in __init__
-        assert sigres.ebands.markers
 
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
@@ -98,12 +108,16 @@ class TestSigresFile(AbipyTest):
         same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
         assert np.all(df["qpe"] == same_df["qpe"])
 
+        marker = sigres.get_marker("qpeme0")
+        assert marker and len(marker.x)
+
         if self.has_matplotlib():
             sigres.plot_qps_vs_e0(show=False)
             with self.assertRaises(ValueError):
                 sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
             sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
             sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
+            sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
 
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -118,6 +132,13 @@ class TestSigresFile(AbipyTest):
 
         # Interpolate QP corrections and apply them on top of the KS band structures.
         # QP band energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
+
+        # Just to test call without ks_ebands.
+        r = sigres.interpolate(lpratio=5,
+                               ks_ebands_kpath=None,
+                               ks_ebands_kmesh=None,
+                               verbose=0, filter_params=[1.0, 1.0], line_density=10)
+
         r = sigres.interpolate(lpratio=5,
                                ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
                                ks_ebands_kmesh=abidata.ref_file("si_scf_GSR.nc"),
@@ -166,14 +187,15 @@ class TestSigresPlotter(AbipyTest):
         ]
         filepaths = [abidata.ref_file(fname) for fname in filenames]
 
-        plotter = SigresPlotter()
-        plotter.add_files(filepaths)
-        print(plotter)
-        assert len(plotter) == len(filepaths)
+        with SigresPlotter() as plotter:
+            plotter.add_files(filepaths)
+            repr(plotter)
+            str(plotter)
+            assert len(plotter) == len(filepaths)
 
-        if self.has_matplotlib():
-            plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
-            plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
-            plotter.plot_qps_vs_e0(show=False)
+            if self.has_matplotlib():
+                plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
+                plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
+                plotter.plot_qps_vs_e0(show=False)
 
-        plotter.close()
+            plotter.close()

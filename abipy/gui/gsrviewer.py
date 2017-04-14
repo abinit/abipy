@@ -2,13 +2,12 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
-
 import abipy.gui.awx as awx
 
 from wx.py.shell import Shell
 from monty.string import marquee
 from abipy.abilab import abiopen
-from abipy.gui import mixins as mix 
+from abipy.gui import mixins as mix
 from abipy.gui.kpoints import KpointsPanel
 from abipy.gui.baseviewer import MultiViewerFrame
 
@@ -59,7 +58,7 @@ Also, these key bindings can be used
     @property
     def ebands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `ElectronBands` have been read.
         """
         paths = []
@@ -87,11 +86,11 @@ Also, these key bindings can be used
         menu_bar.Append(self.CreateEbandsMenu(), "Ebands")
         menu_bar.Append(self.CreateToolsMenu(), "Tools")
         menu_bar.Append(self.CreateNetcdfMenu(), "Netcdf")
-                                                                 
+
         # Help menu
         help_menu = self.makeHelpMenu()
         menu_bar.Append(help_menu, "Help")
-                                                                 
+
         self.SetMenuBar(menu_bar)
 
     def makeToolBar(self):
@@ -154,18 +153,18 @@ class GsrFileTab(wx.Panel):
 
     def _visualize_skb(self, spin, kpoint, band):
         """Calls the visualizer to visualize the specified wavefunction."""
-        # To make the Gui responsive one can use the approach described in 
+        # To make the Gui responsive one can use the approach described in
         # http://wiki.wxpython.org/LongRunningTasks
         visu_name = self.GetVisualizer()
         if visu_name == "None": return
-                                                                                                                       
+
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
             visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-                                                                                                                       
+
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
-                                                                                                                       
+
         except:
             awx.showErrorMessage(self)
 
@@ -174,7 +173,7 @@ class GsrFileTab(wx.Panel):
         """The parent frame `GsrViewerFrame`."""
         try:
             return self._viewer_frame
-                                                                                    
+
         except AttributeError:
             self._viewer_frame = self.getParentWithType(GsrViewerFrame)
             return self._viewer_frame

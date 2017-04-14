@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import numpy as np
 
 from abipy.core.mesh3d import *
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 
 
 class TestMesh3D(AbipyTest):
@@ -12,8 +12,7 @@ class TestMesh3D(AbipyTest):
 
     def test_base(self):
         """Testing mesh3d methods"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
+        rprimd = np.reshape([1., 0, 0, 0, 1, 0, 0, 0, 1], (3, 3))
 
         mesh_443 = Mesh3D((4,4,3), rprimd)
         assert len(mesh_443) == 4 * 4 * 3
@@ -23,10 +22,11 @@ class TestMesh3D(AbipyTest):
         mesh_444 = Mesh3D((4,4,4), rprimd)
 
         # Test __eq__
-        self.assertEqual(mesh_443, mesh_443)
-        self.assertNotEqual(mesh_443, mesh_444)
+        assert mesh_443 == mesh_443
+        assert mesh_443 != mesh_444
 
-        print(mesh_444)
+        repr(mesh_444)
+        str(mesh_444)
         mesh_444.gvecs
         mesh_444.rpoints
 
@@ -44,6 +44,29 @@ class TestMesh3D(AbipyTest):
 
         czeros = mesh_444.czeros()
         assert czeros.shape == mesh_444.shape and np.all(czeros == 0) and czeros.dtype == np.complex
+
+        # Iteration
+        # i = iz + iy * nz + ix * ny * nz
+        #ny, nz = mesh_443.ny, mesh_443.nz
+        #nyz = mesh_443.ny * nz
+        #for i, r in enumerate(mesh_443):
+        #    #iyz, ix = divmod(i, nyz)
+        #    ix, iyz = divmod(i, nyz)
+        #    iy, iz = divmod(iyz, ny)
+        #    assert np.all(mesh_443.rpoint(ix, iy, iz) == r)
+
+        for ixyz, r in mesh_443.iter_ixyz_r():
+            self.assert_equal(mesh_443.rpoint(*ixyz), r)
+
+        shift = 0.2 * mesh_443.dvx + 0.1 * mesh_443.dvy + 0.3 * mesh_443.dvz
+        for ix in range(mesh_443.nx):
+            for iy in range(mesh_443.ny):
+                for iz in range(mesh_443.nz):
+                    r = mesh_443.rpoint(ix, iy, iz)
+                    self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
+                    r += shift
+                    self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
+
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""
@@ -67,7 +90,6 @@ class TestMesh3D(AbipyTest):
                 self.assert_almost_equal(int_r, int_g)
 
     #def test_trilinear_interp(self):
-    #    return
     #    rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
     #    rprimd.shape = (3,3)
     #    mesh = Mesh3D( (12,3,5), rprimd)

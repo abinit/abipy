@@ -14,7 +14,7 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
 
     # Preparatory run for E-PH calculations.
     # The sequence of datasets makes the ground states and
@@ -77,11 +77,10 @@ def build_flow(options):
         optdriver=7,
         #ddb_ngqpt=[1, 1, 1],  # q-mesh used to produce the DDB file (must be consisten with DDB data)
         ddb_ngqpt=[4, 4, 4],   # q-mesh used to produce the DDB file (must be consisten with DDB data)
-        eph_intmeth=2,         # Tetra
+        eph_intmeth=2,         # Tetra method
         eph_fsewin="0.8 eV",   # Energy window around Ef
         eph_mustar=0.12,       # mustar parameter
-        # q-path for phonons and phonon linewidths.
-        ph_ndivsm=20,
+        ph_ndivsm=20,          # q-path for phonons and phonon linewidths.
         ph_nqpath=3,
         ph_qpath= [
           0  , 0  , 0, 

@@ -49,7 +49,7 @@ class FileCheckBoxPanel(awx.Panel):
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         all_button = wx.Button(self, -1, "Select all", wx.DefaultPosition, wx.DefaultSize, 0)
-        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll) 
+        all_button.Bind(wx.EVT_BUTTON, self.OnSelectAll)
         hsizer.Add(all_button, 0, wx.ALL, 5)
 
         deselect_button = wx.Button(self, -1, "Deselect all", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -110,7 +110,7 @@ class FileCheckBoxPanel(awx.Panel):
 
 class ComparisonFrame(awx.Frame):
     """
-    This frame allows the user to select/deselect a list of files and to produce plots 
+    This frame allows the user to select/deselect a list of files and to produce plots
     for all the files selected. Useful for convergence studies.
     """
 

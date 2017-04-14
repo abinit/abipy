@@ -7,7 +7,9 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 from abipy.core.testing import AbipyTest
 from abipy.iotools.visualizer import Visualizer, Xcrysden, Vesta, V_Sim
 
+
 class TestVisualizer(AbipyTest):
+
     def test_visualizers(self):
         print("Available visualizers:")
         for vclass in Visualizer.get_available():
@@ -21,6 +23,10 @@ class TestVisualizer(AbipyTest):
 
         assert V_Sim.support_ext("xsf")
 
-        #visu = Xcrysden(filename)
-        #visu = Vesta(filename)
-        #visu = V_Sim(filename)
+        for cls in [Xcrysden, Vesta, V_Sim]:
+            visu = cls("foo.xsf")
+            assert callable(visu)
+            str(visu)
+            repr(visu)
+            # cmdarg is a string?
+            assert visu.cmdarg + " "

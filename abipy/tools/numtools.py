@@ -66,7 +66,7 @@ def minloc(iterable):
     """Return the min value and its position."""
     min_val, min_idx = iterable[0], 0
 
-    for (idx, item) in enumerate(iterable[1:]):
+    for idx, item in enumerate(iterable[1:]):
         if item < min_val:
             min_val, min_idx = item, idx
 
@@ -77,7 +77,7 @@ def maxloc(iterable):
     """Return the max value and its position."""
     max_val, max_idx = iterable[0], 0
 
-    for (idx, item) in enumerate(iterable[1:]):
+    for idx, item in enumerate(iterable[1:]):
         if item > max_val:
             max_val, max_idx = item, idx
 
@@ -108,11 +108,11 @@ def iflat(iterables):
     [0, 1, 2, 3, 4]
     """
     for item in iterables:
-        if not hasattr(item, "__iter__"): 
+        if not hasattr(item, "__iter__"):
             yield item
-        else: 
+        else:
             # iterable object.
-            for it in iflat(item): 
+            for it in iflat(item):
                 yield it
 
 
@@ -400,7 +400,7 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
         vinf: Used to specify an alternative value instead of values[-1].
             By default, vinf = values[-1]
 
-    Return: 
+    Return:
         -1 if convergence is not achieved else the index in values.
     """
     vinf = values[-1] if vinf is None else vinf

@@ -3,7 +3,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
-
 import abipy.gui.awx as awx
 import wx.lib.mixins.listctrl as listmix
 
@@ -30,18 +29,18 @@ def frameclass_from_filepath(filepath):
         "SIGRES.nc": SigresViewerFrame,
         "GSR.nc": GsrViewerFrame,
         "MDF.nc": MdfViewerFrame,
-        ".abi": MyEditorFrame, 
-        ".abo": MyEditorFrame, 
-        ".log": MyEditorFrame, 
-        ".sh": MyEditorFrame,  
-        ".err": MyEditorFrame, 
-        ".files": MyEditorFrame, 
+        ".abi": MyEditorFrame,
+        ".abo": MyEditorFrame,
+        ".log": MyEditorFrame,
+        ".sh": MyEditorFrame,
+        ".err": MyEditorFrame,
+        ".files": MyEditorFrame,
     }
 
     ext = filepath.split("_")[-1]
     try:
         return VIEWER_FRAMES[ext]
-                                                                                
+
     except KeyError:
         root, ext = os.path.splitext(filepath)
         try:
@@ -134,7 +133,7 @@ class FileDataObj(namedtuple("FileDataObj", "filename type directory")):
 class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     """
     This panel shows a list of files (strings), supports column sorting
-    and provides specific popup menus for the different type of files 
+    and provides specific popup menus for the different type of files
     (file type detection is based on file extensions).
     """
     def __init__(self, parent, filepaths, **kwargs):
@@ -209,7 +208,7 @@ class FileListPanel(awx.Panel, listmix.ColumnSorterMixin):
     def _AppendFilepath(self, abspath):
         filedata = FileDataObj.from_abspath(abspath)
 
-        # We use next as entry id because we want to be able 
+        # We use next as entry id because we want to be able
         # to sort the columns with the mixin ColumnSorterMixin.
         next = len(self.id2filedata)
         entry_id = next

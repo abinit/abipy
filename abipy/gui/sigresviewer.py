@@ -2,7 +2,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import wx
-
 import wx.lib.agw.flatnotebook as fnb
 import abipy.gui.awx as awx
 
@@ -64,7 +63,7 @@ Also, these key bindings can be used
     @property
     def ebands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `ElectronBands` have been read.
         """
         paths = []
@@ -85,7 +84,7 @@ Also, these key bindings can be used
     @property
     def sigres_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `SigresFile` have been read.
         """
         paths = []
@@ -141,7 +140,7 @@ Also, these key bindings can be used
         # Instanciate the plotter and add the filepaths to the plotter.
         plotter = SigresPlotter()
         plotter.add_files(self.sigres_filepaths)
-                                                                             
+
         # Plot the convergence of the QP energies.
         plotter.plot_qpenes(title="Convergence of QP energies", hspan=0.05)
 
@@ -169,7 +168,7 @@ Also, these key bindings can be used
             (self.ID_PLOTKSWITHMARKS, self.OnPlotKSwithQPmarkers),
             (self.ID_SCISSORS, self.OnScissors),
         ]
-                                                                   
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
@@ -248,7 +247,7 @@ class SigresFileTab(wx.Panel):
         """The parent frame `WfkViewerFrame`."""
         try:
             return self._viewer_frame
-                                                                                    
+
         except AttributeError:
             self._viewer_frame = self.getParentWithType(SigresViewerFrame)
             return self._viewer_frame

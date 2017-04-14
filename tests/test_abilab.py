@@ -17,11 +17,16 @@ class AbilabTest(AbipyTest):
         assert abilab.abifile_subclass_from_filename("GSR.nc") is not None
 
         assert len(abilab.dir2abifiles(top=abidata.dirpath))
+        assert len(abilab.dir2abifiles(top=abidata.dirpath, recurse=False)) == 0
         with self.assertRaises(ValueError):
             abilab.abifile_subclass_from_filename("foobar")
 
         assert abilab.isabifile("foo_GSR.nc")
         assert not abilab.isabifile("foobar")
+
+        import pandas
+        df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
+        abilab.print_frame(df, title="foo")
 
         d = abilab.software_stack()
         assert d

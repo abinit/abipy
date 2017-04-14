@@ -7,6 +7,7 @@ def print_source_in_module(function, module):
     For use inside an IPython notebook: given a module and a function, print the source code.
 
     Based on:
+
         http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook
     """
     from inspect import getmembers, isfunction, getsource

@@ -2,7 +2,8 @@
 from __future__ import division, print_function, unicode_literals
 
 import abipy.data as abidata
-from abipy.core.testing import *
+from abipy import abilab
+from abipy.core.testing import AbipyTest
 from abipy.dynamics.hist import HistFile
 
 
@@ -11,12 +12,14 @@ class HistFileTest(AbipyTest):
     def test_hist_api(self):
         """Testing HistFile API."""
         hist = HistFile(abidata.ref_file("sic_relax_HIST.nc"))
-        print(hist)
+        repr(hist)
+        str(hist)
 
         assert hist.num_steps == 7
         assert len(hist.structures) == hist.num_steps
         assert hist.final_structure is hist.structures[-1]
         assert hist.final_structure.composition.reduced_formula == "SiC"
+        assert len(hist.final_structure) == hist.reader.natom
         assert len(hist.final_structure) == 2
         assert len(hist.etotals) == hist.num_steps
         self.assert_almost_equal(hist.etotals.to("Ha"), [-10.4914795629442, -10.491527362795, -10.4915307068041,
@@ -24,8 +27,6 @@ class HistFileTest(AbipyTest):
 
         last_stren = [5.01170783044364e-08, 5.01170783044364e-08, 5.01170783046533e-08, 0, 0, 0]
         self.assert_almost_equal(hist.reader.read_value("strten")[-1], last_stren)
-
-
 
         cart_forces_step = hist.reader.read_cart_forces(unit="Ha bohr^-1")
         #self.assert_almost_equal(cart_forces_step[0], [
@@ -47,6 +48,9 @@ class HistFileTest(AbipyTest):
         self.assert_almost_equal(cart_stress_tensors[-1, 1, 0], 0.0)
         for i in range(3):
             self.assert_almost_equal(cart_stress_tensors[-1, i, i], 5.01170783E-08)
+
+        same_structure = abilab.Structure.from_file(abidata.ref_file("sic_relax_HIST.nc"))
+        self.assert_almost_equal(same_structure.frac_coords, hist.final_structure.frac_coords)
 
         # Test matplotlib plots.
         if self.has_matplotlib():

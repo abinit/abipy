@@ -26,6 +26,9 @@ ignore_errors = True
 omit =
     */python?.?/*
     */site-packages/*
-    *tests/*
-    *htc/*
-    *gui/*
+    abipy/data/*
+    abipy/examples/*
+    abipy/htc/*
+    abipy/gui/*
+    abipy/gw/*
+    ./docs/

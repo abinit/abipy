@@ -110,7 +110,7 @@ class ShiftMode(Enum):
         elif is_string(obj):
             return cls(obj[0].upper())
         else:
-            raise ValueError('The object provided is not handled')
+            raise TypeError('The object provided is not handled: type' % type(obj))
 
 
 def _stopping_criterion(runlevel, accuracy):
@@ -183,7 +183,7 @@ def _get_shifts(shift_mode, structure):
         centered otherwise.
 
     Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
-        chksymbreak.
+        `chksymbreak` condition (Abinit input variable).
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
@@ -544,7 +544,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                 diff_abivars = dict()
                 diff_abivars[var] = value
                 if pseudos.allpaw and var == 'ecut':
-                    diff_abivars['pawecutdg'] = diff_abivars['ecut']*2
+                    diff_abivars['pawecutdg'] = diff_abivars['ecut'] * 2
                 scf_diffs.append(diff_abivars)
 
     extra_abivars_all = dict(
@@ -558,7 +558,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     extra_abivars_all.update(extra_abivars)
 
     if pseudos.allpaw:
-        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut']*2
+        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut'] * 2
 
     extra_abivars_gw = dict(
         inclvkb=2,
@@ -774,6 +774,7 @@ def bse_with_mdf_inputs(structure, pseudos,
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+    # TODO: Please check the unused variables in the function
     """
     Returns a list of input files for performing phonon calculations.
     GS input + the input files for the phonon calculation.
@@ -827,6 +828,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
             #kptopt   2      # Automatic generation of k points, taking
 
         irred_perts = ph_inp.abiget_irred_phperts()
+        # TODO irred_perts is not used ??
 
         #for pert in irred_perts:
         #    #print(pert)
@@ -871,11 +873,11 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
             input as the phonons. This will allow to determine the BECs.
             Automatically sets with_ddk=True and with_dde=False.
         ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
-            its value. Default from AbinitInput.make_ph_inputs_qpoint: {"tolvrs": 1.0e-10}.
+            its value. Default: {"tolvrs": 1.0e-10}.
         ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
-            its value. Default from AbinitInput.make_ddk_inputs: {"tolwfr": 1.0e-22}.
+            its value. Default: {"tolwfr": 1.0e-22}.
         dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
-            its value. Default from AbinitInput.make_dde_inputs: {"tolvrs": 1.0e-10}.
+            its value. Default: {"tolvrs": 1.0e-10}.
         wfq_tol: a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
             the WFQ and its value. Default {"tolwfr": 1.0e-22}.
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
@@ -1101,71 +1103,6 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
 
     return multi
 
-    # gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
-    #
-    # # Set the cutoff energies.
-    # gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
-    #
-    # ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0, shifts=(0.0, 0.0, 0.0))
-    # gs_inp.set_vars(ksampling.to_abivars())
-    # gs_inp.set_vars(tolvrs=1.0e-18)
-    #
-    # scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-    #                                charge=charge, nband=None, fband=None)
-    #
-    # if scf_electrons.nband is None:
-    #     scf_electrons.nband = _find_scf_nband(structure, gs_inp.pseudos, scf_electrons)
-    # gs_inp.set_vars(scf_electrons.to_abivars())
-
-    #
-    # # Add the ddk input
-    # ddk_inp = gs_inp.deepcopy()
-    #
-    # ddk_inp.set_vars(
-    #             rfelfd=2,             # Activate the calculation of the d/dk perturbation
-    #             rfdir=(1,1,1),        # All directions
-    #             nqpt=1,               # One wavevector is to be considered
-    #             qpt=(0, 0, 0),        # q-wavevector.
-    #             kptopt=2,             # Take into account time-reversal symmetry.
-    #             iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
-    #         )
-    # if ddk_tol is None:
-    #     ddk_tol = {"tolwfr": 1.0e-20}
-    #
-    # if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-    #     raise ValueError("Invalid tolerance: {}".format(ddk_tol))
-    # ddk_inp.pop_tolerances()
-    # ddk_inp.set_vars(ddk_tol)
-    #
-    # ddk_inp.add_tags(DDK)
-    # all_inps.append(ddk_inp)
-    #
-    # # Add the Response Function calculation
-    # rf_inp = gs_inp.deepcopy()
-    #
-    # rf_inp.set_vars(rfphon=1,                          # Atomic displacement perturbation
-    #                 rfatpol=(1,len(gs_inp.structure)), # Perturbation of all atoms
-    #                 rfstrs=3,                          # Do the strain perturbations
-    #                 rfdir=(1,1,1),                     # All directions
-    #                 nqpt=1,                            # One wavevector is to be considered
-    #                 qpt=(0, 0, 0),                     # q-wavevector.
-    #                 kptopt=2,                          # Take into account time-reversal symmetry.
-    #                 iscf=7,                            # The d/dk perturbation must be treated in a non-self-consistent way
-    #                 )
-    #
-    # if rf_tol is None:
-    #     rf_tol = {"tolvrs": 1.0e-12}
-    #
-    # if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-    #     raise ValueError("Invalid tolerance: {}".format(rf_tol))
-    # rf_inp.pop_tolerances()
-    # rf_inp.set_vars(rf_tol)
-    #
-    # rf_inp.add_tags([DFPT, STRAIN])
-    # all_inps.append(rf_inp)
-    #
-    # return MultiDataset.from_inputs(all_inps)
-
 
 def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
@@ -1243,7 +1180,7 @@ def dos_from_gsinput(gsinput, dos_kppa, nband=None, accuracy="normal", pdos=Fals
 
     if pdos:
         # FIXME
-        pass
+        raise NotImplementedError()
 
     return dos_input
 
@@ -1312,13 +1249,81 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     if smearing is None:
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
-        nband = int(nval // 2 + nbdbuf)
+        nband = int(round(nval / 2) + nbdbuf)
         abiinput.set_vars(nband=nband)
 
     # enforce symmetries and add a buffer of bands to ease convergence with tolwfr
     abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
+
+
+def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None, dte_tol=None,
+                     skip_dte_permutations=False):
+    """
+    Returns a list of inputs in the form of a MultiDataset to perform calculations of non-linear properties, based on
+    a ground state AbinitInput.
+
+    The inputs have the following tags, according to their function: "ddk", "dde", "ph_q_pert" and "dte".
+    All of them have the tag "dfpt".
+
+    Args:
+        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.
+        use_phonons: determine wether the phonon perturbations at gamma should be included or not
+        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+            its value. Default: {"tolvrs": 1.0e-22}.
+        ddk_tol: a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+            its value. Default: {"tolwfr": 1.0e-22}.
+        dde_tol: a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+            its value. Default: {"tolvrs": 1.0e-22}.
+        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and
+            its value. Default: {"tolwfr": 1.0e-20}.
+        skip_dte_permutations:
+    """
+    gs_inp = gs_inp.deepcopy()
+    gs_inp.pop_irdvars()
+
+    if ph_tol is None:
+        ph_tol = {"tolvrs": 1.0e-22}
+
+    if ddk_tol is None:
+        ddk_tol = {"tolwfr": 1.0e-22}
+
+    if dde_tol is None:
+        dde_tol = {"tolvrs": 1.0e-22}
+
+    if dte_tol is None:
+        dte_tol = {"tolwfr": 1.0e-20}
+
+    multi = []
+
+    multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+    multi_ddk.add_tags(DDK)
+    multi.extend(multi_ddk)
+    multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False)
+    multi_dde.add_tags(DDE)
+    multi.extend(multi_dde)
+
+    if use_phonons:
+        multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol)
+        multi_ph.add_tags(PH_Q_PERT)
+        multi.extend(multi_ph)
+
+    # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+    # Do this as last, so not to intrfere with the the generation of the other steps.
+    nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+    nval -= gs_inp['charge']
+    nband = int(round(nval / 2))
+    gs_inp.set_vars(nband=nband)
+    gs_inp.pop('nbdbuf', None)
+    multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations)
+    multi_dte.add_tags(DTE)
+    multi.extend(multi_dte)
+
+    multi = MultiDataset.from_inputs(multi)
+    multi.add_tags(DFPT)
+
+    return multi
 
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,

@@ -13,10 +13,10 @@ z="Atomic number",
 nc="Number of core states",
 nv="Number of valence states",
 iexc="""\
-Exchange-correlation functional: 
+Exchange-correlation functional:
    1-Wigner
    2-Hedin-Lundquist
-   3-Perdew-Wang-Ceperly-Alder 
+   3-Perdew-Wang-Ceperly-Alder
    4-Perdew-Burke-Enzerhof""",
 psfile="Format of pseudopotential file, psp8 for ABINIT, upf for PWSCF",
 n="Principal quantum number",
@@ -25,7 +25,7 @@ f="Occupancy (MUST be >0)",
 lmax="Maximum angular momentum for which psp is calculated (<=3)",
 rc="Core radius for this l",
 ep="""\
-Energy at which psp is generated (eigenvalue inserted for occupied 
+Energy at which psp is generated (eigenvalue inserted for occupied
 state in reference configuration, positive energy must be specified
 for barrier-confined "scattering" state for unoccupied l <=lmax.
 A small positive energy is usually  good (0.1-0.25 Ha).""",
@@ -57,7 +57,7 @@ debl="""\
 Energy added to basic psp  energy ep for 2nd projector, automatically reset to match 2nd projector with 2nd bound state
 at this l when it is occupied (i.e., the psp is generated for a corresponding-l shallow core state)""",
 icmod="""\
-  0: no non-linear core correction charge. 
+  0: no non-linear core correction charge.
   1: smooth monotonic polynomial model core charge fit at "matching" rc following reference 35.""",
 fcfact="""\
 Radius for above determined by  rho_core(r)=fcfact*rho_pseudo_valence(r).
@@ -70,15 +70,15 @@ epsh2="Upper energy limit, 2.0 usually good",
 depsh="Energy mesh interval for plot, 0.02 usually good enough",
 rcfact="rcfact scales the crossover radius to determine the range of the Teter function.",
 rlmax="""\
-Maximum radius for Abinit psp code 8 format output. 
+Maximum radius for Abinit psp code 8 format output.
 Must be greater than maximum rc (including lloc=4 rc), but also determines
 range of diagnostic plots, so  ~2*rcmax is usually good""",
 drl="""\
-Mesh spacing of linear radial mesh for Abinit output. 
+Mesh spacing of linear radial mesh for Abinit output.
 0.02 is good for "softer" psps, 0.01 is probably better with 1st row, 3d's, or semi-core psps.""",
 ncnf="""\
 Number of test configurations (<=4).
-The reference config is always run first as a consistency check.  
+The reference config is always run first as a consistency check.
 Core always is the reference core configuration""",
 )
 #   nvcnf (repeated ncnf times) number of valence states in this test configuration

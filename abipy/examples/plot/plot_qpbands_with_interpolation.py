@@ -21,14 +21,17 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr_scf:
 
 ks_edos = ks_ebands_kmesh.get_edos()
 
-# Interpolate the QP corrections and use the interpolated values to correct the KS energies
-# stored in ks_ebands_kpath and ks_ebands_kmesh.
+# Interpolate the QP corrections and use the interpolated values to correct 
+# the KS energies stored in `ks_ebands_kpath` and `ks_ebands_kmesh`.
+#
 # The QP energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
 # Note that the KS energies are optional but this is the recommended approach
 # because the code will interpolate the corrections instead of the QP energies.
+
 r = sigres.interpolate(lpratio=5,
                        ks_ebands_kpath=ks_ebands_kpath,
-                       ks_ebands_kmesh=ks_ebands_kmesh)
+                       ks_ebands_kmesh=ks_ebands_kmesh
+                       )
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
 # Shortcut: pass the name of the GSR files directly.
@@ -43,8 +46,8 @@ plotter.add_ebands("LDA", ks_ebands_kpath, dos=ks_edos)
 plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
 # Get pandas dataframe with band structure parameters.
-df = plotter.get_ebands_frame()
-print(df)
+#df = plotter.get_ebands_frame()
+#print(df)
 
 # By default, the two band energies are shifted wrt to *their* fermi level.
 # Use e=0 if you don't want to shift the eigenvalus

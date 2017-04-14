@@ -1,12 +1,11 @@
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import numpy as np
 import abipy.data as abidata
 import abipy.core
 
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.electrons.psps import PspsFile
-from abipy.core.testing import has_matplotlib
 
 
 class PspsFileTestCase(AbipyTest):
@@ -16,10 +15,11 @@ class PspsFileTestCase(AbipyTest):
         pseudo = abidata.pseudo("Ga.oncvpsp")
 
         with pseudo.open_pspsfile(ecut=10) as psps:
+            repr(psps)
             print(psps)
             r = psps.reader
             assert r.usepaw == 0 and r.ntypat == 1
 
-            if has_matplotlib():
-                psps.plot(what="all", show=False)
+            if self.has_matplotlib():
+                psps.plot(what="all", with_qn=True, show=False)
                 psps.compare(psps, show=False)

@@ -8,18 +8,22 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
+import numpy
 import subprocess
 import json
 import tempfile
 import shutil
+import unittest
 import numpy.testing.utils as nptu
 
 from monty.os.path import which
+from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 
 import logging
 logger = logging.getLogger(__file__)
 
+root = os.path.dirname(__file__)
 
 __all__ = [
     "AbipyTest",
@@ -72,7 +76,7 @@ def has_matplotlib(version=None, op=">="):
     If version is None, the result of matplotlib.__version__ `op` version is returned.
     """
     try:
-        #have_display = "DISPLAY" in os.environ
+        # have_display = "DISPLAY" in os.environ
         import matplotlib
         matplotlib.use("Agg")  # Use non-graphical display backend during test.
 
@@ -97,6 +101,38 @@ def has_seaborn():
         return False
 
 
+def has_phonopy(version=None, op=">="):
+    """
+    True if phonopy is installed.
+    If version is None, the result of phonopy.__version__ `op` version is returned.
+    """
+    try:
+        import phonopy
+
+    except ImportError:
+        print("Skipping phonopy test")
+        return False
+
+    if version is None: return True
+    return cmp_version(phonopy.__version__, version, op=op)
+
+
+def get_mock_module():
+    """Return mock module for testing. Raises ImportError if not found."""
+    try:
+        # py > 3.3
+        from unittest import mock
+    except ImportError:
+        try:
+            import mock
+        except ImportError:
+            print("mock module required for unit tests")
+            print("Use py > 3.3 or install it with `pip install mock` if py2.7")
+            raise
+
+    return mock
+
+
 def has_fireworks():
     """True if fireworks is installed."""
     try:
@@ -118,14 +154,122 @@ def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None
     except:
         return False
 
+
+def json_read_abinit_input_from_path(json_path):
+    """
+    Read a json file from the absolute path `json_path`, return AbinitInput instance.
+    """
+    from abipy.abio.inputs import AbinitInput
+    import abipy.data as abidata
+
+    with open(json_path, "rt") as fh:
+        d = json.load(fh)
+
+    # Convert pseudo paths: extract basename and build path in abipy/data/pseudos.
+    for pdict in d["pseudos"]:
+        pdict["filepath"] = os.path.join(abidata.dirpath, "pseudos", os.path.basename(pdict["filepath"]))
+
+    return AbinitInput.from_dict(d)
+
+
 def straceback():
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
 
 
+def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=False):
+    """
+    Function to compare two inputs
+    ref_file takes the path to reference input in json: json.dump(input.as_dict(), fp, indent=2)
+    input2 takes an AbinintInput object
+    tol relative tolerance for floats
+    we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)
+    or almost equal (floats)
+    """
+
+    def check_int(i, j):
+        return i != j
+
+    def check_float(x, y):
+        return not numpy.isclose(x, y, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+    def check_str(s, t):
+        return s != t
+
+    def check_var(v, w):
+        _error = False
+        if isinstance(v, int):
+            _error = check_int(v, w)
+        elif isinstance(v, float):
+            _error = check_float(v, w)
+        elif is_string(v):
+            _error = check_str(v, w)
+        return _error
+
+    def flatten_var(o, tree_types=(list, tuple, numpy.ndarray)):
+        flat_var = []
+        if isinstance(o, tree_types):
+            for value in o:
+                for sub_value in flatten_var(value, tree_types):
+                    flat_var.append(sub_value)
+        else:
+            flat_var.append(o)
+        return flat_var
+
+    input_ref = json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', ref_file))
+
+    errors = []
+    diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
+    diff_in_actual = [var for var in input2.vars if var not in input_ref.vars]
+    if len(diff_in_ref) > 0 or len(diff_in_actual) > 0:
+        error_description = 'not the same input parameters:\n' \
+                            '     %s were found in ref but not in actual\n' \
+                            '     %s were found in actual but not in ref\n' % \
+                            (diff_in_ref, diff_in_actual)
+        errors.append(error_description)
+
+    for var, val_r in input_ref.vars.items():
+        try:
+            val_t = input2.vars[var]
+        except KeyError:
+            errors.append('variable %s from the reference is not in the actual input\n' % str(var))
+            continue
+        val_list_t = flatten_var(val_t)
+        val_list_r = flatten_var(val_r)
+        error = False
+        print(var)
+        print(val_list_r, type(val_list_r[0]))
+        print(val_list_t, type(val_list_t[0]))
+        for k, var_item in enumerate(val_list_r):
+            try:
+                error = error or check_var(val_list_t[k], val_list_r[k])
+            except IndexError:
+                print(val_list_t, type(val_list_t[0]))
+                print(val_list_r, type(val_list_r[0]))
+                raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
+                                   'type to the tree_types tuple in flatten_var')
+
+        if error:
+            error_description = 'var %s differs: %s (reference) != %s (actual)' % \
+                                (var, val_r, val_t)
+            errors.append(error_description)
+
+    if input2.structure != input_ref.structure:
+        errors.append('Structures are not the same.\n')
+        print(input2.structure, input_ref.structure)
+
+    if len(errors) > 0:
+        msg = 'Two inputs were found to be not equal:\n'
+        for err in errors:
+            msg += '   ' + err + '\n'
+        raise AssertionError(msg)
+
+
 class AbipyTest(PymatgenTest):
     """Extends PymatgenTest with Abinit-specific methods """
+
+    SkipTest = unittest.SkipTest
 
     @staticmethod
     def which(program):
@@ -135,7 +279,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_abinit(version=None, op=">="):
         """Return True if abinit is in $PATH and version is op min_version."""
-        return has_abinit(version=None, op=op)
+        return has_abinit(version=version, op=op)
 
     @staticmethod
     def has_matplotlib(version=None, op=">="):
@@ -168,6 +312,19 @@ class AbipyTest(PymatgenTest):
         return Structure.as_structure(abidata.ref_file(basename))
 
     @staticmethod
+    def mkdtemp(**kwargs):
+        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        return tempfile.mkdtemp(**kwargs)
+
+    @staticmethod
+    def tmpfileindir(basename, **kwargs):
+        """
+        Return the absolute path of a temporary file with basename `basename` created in a temporary directory.
+        """
+        tmpdir = tempfile.mkdtemp(**kwargs)
+        return os.path.join(tmpdir, basename)
+
+    @staticmethod
     def get_tmpname(**kwargs):
         """Invoke mkstep with kwargs, return the name of a temporary file."""
         fd, tmpname = tempfile.mkstemp(**kwargs)
@@ -178,6 +335,15 @@ class AbipyTest(PymatgenTest):
         """Return True if nbformat is available and we can test the generation of ipython notebooks."""
         try:
             import nbformat
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
+    def has_ipywidgets():
+        """Return True if ipywidgets is available."""
+        try:
+            import ipywidgets as ipw
             return True
         except ImportError:
             return False
@@ -197,9 +363,104 @@ class AbipyTest(PymatgenTest):
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
 
     @staticmethod
+    def json_read_abinit_input(json_basename):
+        """Return an AbinitInput from the basename of the file in abipy/data/test_files."""
+        return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
+
+    @staticmethod
+    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
+        """
+        Check equality between an input and a reference in test_files.
+        only input variables and structure are compared.
+        Args:
+            ref_basename: base name of the reference file to test against in test_files
+            input_to_test: AbinitInput object to test
+            rtol: passed to numpy.isclose for float comparison
+            atol: passed to numpy.isclose for float comparison
+            equal_nan: passed to numpy.isclose for float comparison
+
+        Returns:
+            raises an assertion error if the two inputs are not the same
+        """
+        ref_file = os.path.join(root, '..', 'test_files', ref_basename)
+        input_equality_check(ref_file, input_to_test, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+    @staticmethod
     def straceback():
         """Returns a string with the traceback."""
         return straceback()
+
+    @staticmethod
+    def skip_if_not_phonopy(version=None, op=">="):
+        """
+        Raise SkipTest if phonopy is not installed.
+        Use `version` and `op` to ask for a specific version
+        """
+        if not has_phonopy(version=version, op=op):
+            if version is None:
+                msg = "This test requires phonopy"
+            else:
+                msg = "This test requires phonopy version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    @staticmethod
+    def skip_if_not_abinit(version=None, op=">="):
+        """
+        Raise SkipTest if the specified version of abinit is not installed.
+        Use `version` and `op` to ask for a specific version
+        """
+        if not has_abinit(version=version, op=op):
+            if version is None:
+                msg = "This test requires abinit"
+            else:
+                msg = "This test requires abinit version %s %s" % (op, version)
+            raise unittest.SkipTest(msg)
+
+    @staticmethod
+    def get_mock_module():
+        """Return mock module for testing. Raises ImportError if not found."""
+        return get_mock_module()
+
+    def abivalidate_input(self, abinput, must_fail=False):
+        """
+        Invoke Abinit to test validity of an Input object
+        Print info to stdout if failuer before raising AssertionError.
+        """
+        v = abinput.abivalidate()
+        if must_fail:
+            assert v.retcode != 0 and v.log_file.read()
+        else:
+            if v.retcode != 0:
+                print(type(abinput))
+                print(abinput)
+                lines = v.log_file.readlines()
+                i = len(lines) - 50 if len(lines) >= 50 else 0
+                print("Last 50 line from logfile:")
+                print("".join(lines[i:]))
+
+            assert v.retcode == 0
+
+    def abivalidate_multi(self, multi):
+        """
+        Invoke Abinit to test validity of a `MultiDataset` or a list of input objects.
+        """
+        if hasattr(multi, "split_datasets"):
+            inputs = multi.split_datasets()
+        else:
+            inputs = multi
+
+        errors = []
+        for inp in inputs:
+            try:
+                self.abivalidate_input(inp)
+            except Exception as exc:
+                errors.append(str(exc))
+
+        if errors:
+            for e in errors:
+                print(e)
+
+        assert not errors
 
 
 class AbipyFileTest(AbipyTest):
@@ -266,6 +527,7 @@ class AbipyFileTest(AbipyTest):
 CONF_FILE = None
 BKP_FILE = None
 
+
 def change_matplotlib_backend(new_backend=""):
     """Change the backend by modifying the matplotlib configuration file."""
     global CONF_FILE, BKP_FILE
@@ -293,7 +555,8 @@ def change_matplotlib_backend(new_backend=""):
 
 
 def revert_matplotlib_backend():
+    """Revert matplotlib backend to the previous value."""
     global CONF_FILE, BKP_FILE
-    #print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
+    # print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
     if BKP_FILE is not None:
         shutil.move(BKP_FILE, CONF_FILE)

@@ -23,12 +23,12 @@ print(kpath)
 
 ebands = gsr_file.ebands
 
-xys = ebands.derivatives(spin=0, band=0, order=1, asmarker="DER1-band0")
-xys = ebands.derivatives(spin=0, band=1, order=1, asmarker="DER1-band1")
-xys = ebands.derivatives(spin=0, band=2, order=1, asmarker="DER1-band2")
-xys = ebands.derivatives(spin=0, band=3, order=1, asmarker="DER1-band3")
+xys = ebands.derivatives(spin=0, band=0, order=1)
+xys = ebands.derivatives(spin=0, band=1, order=1)
+xys = ebands.derivatives(spin=0, band=2, order=1)
+xys = ebands.derivatives(spin=0, band=3, order=1)
 
-#ebands.plot(marker="DER1-band0:100")
+#ebands.plot()
 
 #emasses = ebands.effective_masses(spin=0, band=0, acc=2)
 #print("emasses", emasses)

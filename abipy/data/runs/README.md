@@ -1,83 +1,107 @@
-`run_eph_al`:
-Electron-phonon calculations.
+``run_eph_al``:
 
-`run_fe_ebands`:
-Calculation of the band structure of Fe with and without magnetization.
-See `~abinit/tutorial/Input/tspin_1.in`
+    Electron-phonon calculations.
 
-`run_from_files`:
-Flow for computing the band structure of silicon.
+``run_fe_ebands``:
 
-`run_gruneisen_phonopy_si`:
-Compute phonon frequencies with phonopy (supercells and finite-difference method).
+    Calculation of the band structure of Fe with and without magnetization.
+    See `~abinit/tutorial/Input/tspin_1.in`
 
-`run_gwconv_ecuteps`:
-G0W0 convergence study wrt ecuteps and the number of bands in W.
+``run_from_files``:
 
-`run_ht_si_bsemdf`:
-Calculation of the BSE spectrum with the HT interface.
+    Flow for computing the band structure of silicon.
 
-`run_ht_si_ebands`:
-Band structure of silicon with the HT interface.
+``run_gruneisen_phonopy_si``:
 
-`run_ht_si_g0w0ppm`:
-G0W0 corrections with the HT interface.
+    Compute phonon frequencies with phonopy (supercells and finite-difference method).
 
-`run_ldaus`:
-LDA+U band structure of NiO for several values of U-J.
+``run_gwconv_ecuteps``:
 
-`run_mgb2_edoses`:
-Band structure and the electron DOS of MgB2 with different k-point samplings.
+    G0W0 convergence study wrt ecuteps and the number of bands in W.
 
-`run_optic`:
-Optical spectra with Optic.
+``run_ht_si_bsemdf``:
 
-`run_phfrozen_bands`:
-Band structure of silicon in a distorted geometry (frozen phonon at q=0)
+    Calculation of the BSE spectrum with the HT interface.
 
-`run_phonons`:
-Phonon band structure of AlAs.
+``run_ht_si_ebands``:
 
-`run_phonopy_si`:
-Compute phonon frequencies with phonopy (supercells and finite-difference method).
+    Band structure of silicon with the HT interface.
 
-`run_qha`:
-Flow for quasi-harmonic calculations
+``run_ht_si_g0w0ppm``:
 
-`run_qptdmscr`:
-This example shows how to compute the SCR file by splitting the calculation of the SCR file
-over q-points with the input variables nqptdm and qptdm.
+    G0W0 corrections with the HT interface.
 
-`run_raman`:
-This script shows how to perform a RAMAN calculation with 
-excitonic effects included with the BSE formalism.
+``run_ldaus``:
 
-`run_raman_optic`:
-This script shows how to perform a RAMAN calculation with excitonic effects 
-included with the BSE formalism.
+    LDA+U band structure of NiO for several values of U-J.
 
-`run_relax`:
-This script shows how to perform a structural relaxation in two steps:
+``run_mgb2_edoses``:
 
-    1) Relaxation of atomic positions with unit cell parameters fixed.
+    Band structure and the electron DOS of MgB2 with different k-point samplings.
 
-    2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
+``run_optic``:
 
-`run_relax_and_ebands`:
-This script shows how to perform a structural relaxation and a band structure calculation
+    Optical spectra with Optic.
 
-WARNING: The API could change!
+``run_phfrozen_bands``:
 
-`run_si_ebands`:
-Flow for computing the band structure of silicon.
+    Band structure of silicon in a distorted geometry (frozen phonon at q=0)
 
-`run_si_g0w0`:
-This script shows how to compute the G0W0 corrections in silicon.
+``run_phonons``:
 
-`run_sic_relax`:
-Structural relaxation for SiC.
+    Phonon band structure of AlAs.
 
-`run_wyckoff`:
-This example shows how to compute the band structure of a set of
-crystalline structures obtained by changing a set of internal paramaters
+``run_phonopy_si``:
+
+    Compute phonon frequencies with phonopy (supercells and finite-difference method).
+
+``run_qha``:
+
+    Flow for quasi-harmonic calculations
+
+``run_qptdmscr``:
+
+    This example shows how to compute the SCR file by splitting the calculation of the SCR file
+    over q-points with the input variables nqptdm and qptdm.
+
+``run_raman``:
+
+    This script shows how to perform a RAMAN calculation with 
+    excitonic effects included with the BSE formalism.
+
+``run_raman_optic``:
+
+    This script shows how to perform a RAMAN calculation with excitonic effects 
+    included with the BSE formalism.
+
+``run_relax``:
+
+    This script shows how to perform a structural relaxation in two steps:
+    
+        1) Relaxation of atomic positions with unit cell parameters fixed.
+    
+        2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
+
+``run_relax_and_ebands``:
+
+    This script shows how to perform a structural relaxation and a band structure calculation
+    
+    WARNING: The API could change!
+
+``run_si_ebands``:
+
+    Flow for computing the band structure of silicon.
+
+``run_si_g0w0``:
+
+    This script shows how to compute the G0W0 corrections in silicon.
+
+``run_sic_relax``:
+
+    Structural relaxation for SiC.
+
+``run_wyckoff``:
+
+    This example shows how to compute the band structure of a set of
+    crystalline structures obtained by changing a set of internal paramaters
 

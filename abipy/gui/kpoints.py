@@ -10,7 +10,7 @@ import wx.lib.mixins.listctrl as listmix
 
 class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
     """
-    ListCtrl that allows the user to interact with a list of k-points. 
+    ListCtrl that allows the user to interact with a list of k-points.
     Support column sorting.
     """
     def __init__(self, parent, kpoints, **kwargs):
@@ -37,9 +37,9 @@ class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
         self.itemDataMap = {}
 
         for (index, kpt) in enumerate(self.kpoints):
-            entry = ["%d\t\t" % index, 
-                     "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords), 
-                     "%.3f\t\t" % kpt.weight, 
+            entry = ["%d\t\t" % index,
+                     "[%.5f,  %.5f,  %.5f]\t\t" % tuple(c for c in kpt.frac_coords),
+                     "%.3f\t\t" % kpt.weight,
                      "%s" % kpt.name,
                      ]
             self.Append(entry)
@@ -73,7 +73,7 @@ class KpointsListCtrl(wx.ListCtrl, listmix.ColumnSorterMixin):
 
 class KpointsPanel(awx.Panel):
     """
-    A panel with a list of k-points and a structure. 
+    A panel with a list of k-points and a structure.
     Provides popup menus for retrieving information on a single k-point.
     """
     def __init__(self, parent, structure, kpoints, **kwargs):
@@ -84,7 +84,7 @@ class KpointsPanel(awx.Panel):
             structure:
                 `Structure` object.
             kpoints:
-                `KpointList` object. 
+                `KpointList` object.
         """
         super(KpointsPanel, self).__init__(parent, **kwargs)
 
@@ -122,18 +122,18 @@ class KpointsPanel(awx.Panel):
             (self.ID_POPUP_LITTLEGROUP, self.onLittleGroup),
             (self.ID_POPUP_STAR, self.onShowStar),
         ]
-                                                            
+
         for combo in menu_handlers:
             mid, handler = combo[:2]
             self.Bind(wx.EVT_MENU, handler, id=mid)
-                                                     
+
         return menu
 
     def onLittleGroup(self, event):
         """Show a table with the character table of the little group."""
         kpoint = self.klist_ctrl.getSelectedKpoint()
         if kpoint is None: return
-        ltk = self.structure.spacegroup.find_little_group(kpoint)
+        ltk = self.structure.abi_spacegroup.find_little_group(kpoint)
         table, header = ltk.bilbao_character_table()
         awx.SimpleGridFrame(self, table, title=header, labels_from_table=True).Show()
 
@@ -141,7 +141,7 @@ class KpointsPanel(awx.Panel):
         """Show a new `KpointsFrame` with the list of points in the star of the selected k-point."""
         kpoint = self.klist_ctrl.getSelectedKpoint()
         if kpoint is None: return
-        star = kpoint.compute_star(self.structure.fm_symmops)
+        star = kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops)
         KpointsFrame(self, self.structure, star, title="Star of point: " + str(star.base_point)).Show()
 
 
@@ -155,7 +155,7 @@ class KpointsFrame(awx.Frame):
             structure:
                 `Structure` object.
             kpoints:
-                `KpointList` object. 
+                `KpointList` object.
         """
         super(KpointsFrame, self).__init__(parent, **kwargs)
 
@@ -164,7 +164,7 @@ class KpointsFrame(awx.Frame):
 
 class SpinKpointBandPanel(awx.Panel):
     """
-    This panel shows information on the k-points and the set of bands, spins. 
+    This panel shows information on the k-points and the set of bands, spins.
     Useful if we want to allow the user to select the set of indices (spin, kpt_idx, band).
     """
     # Command event used to signal that the spin-kpoint-band has been selected.
@@ -184,7 +184,7 @@ class SpinKpointBandPanel(awx.Panel):
             bstart:
                 First band index.
         """
-        super(SpinKpointBandPanel, self).__init__(parent, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs) 
+        super(SpinKpointBandPanel, self).__init__(parent, style=wx.LC_REPORT | wx.BORDER_SUNKEN, **kwargs)
 
         self.parent = parent
         self.nsppol, self.mband = nsppol, mband

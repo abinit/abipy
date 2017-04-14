@@ -42,14 +42,11 @@ class GSphere(collections.Sequence):
         return self._gvecs
 
     #@property
-    #def kpg2(self):
+    #def get_kpg2(self):
     #    """ndarray with |k+G|**2. in atomic unit"""
-    #    try:
-    #        return self._kpg2
-    #    except AttributeError
-    #        # note that now we use pymatgen lattice hence we have to convert to a.u.
-    #        self.kpg2 =
-    #        return self._kpg2
+    #    # note that now we use pymatgen lattice hence we have to convert to a.u.
+    #    self.kpg2 =
+    #    return self._kpg2
 
     # Sequence protocol
     def __len__(self):
@@ -81,7 +78,7 @@ class GSphere(collections.Sequence):
         return np.count_nonzero(np.all(g == gvec) for g in self)
 
     def __str__(self):
-        return self.tostring()
+        return self.to_string()
 
     def __eq__(self, other):
         if other is None: return False
@@ -98,11 +95,14 @@ class GSphere(collections.Sequence):
         """Deep copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
-    def tostring(self, prtvol=0):
+    def to_string(self, prtvol=0):
         """String representation."""
         name = str(self.__class__)
         s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % self.__dict__
         return s
+
+    # TODO: Alias To be removed in 0.4
+    tostring = to_string
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
         """Returns a numpy array defined on the sphere."""
@@ -169,7 +169,7 @@ class GSphere(collections.Sequence):
             #  i3=kg_k(3,ipw); if(i3<0)i3=i3+n3; i3=i3+1
             #end do
 
-            (n1, n2, n3) = mesh.shape
+            n1, n2, n3 = mesh.shape
             for sph_idx, gvec in enumerate(self.gvecs):
                 i1 = gvec[0]
                 if i1 < 0: i1 = i1 + n1
@@ -205,7 +205,7 @@ class GSphere(collections.Sequence):
             #  i2=kg_kout(2,ig); if (i2<0) i2=i2+n2; i2=i2+1
             #  i3=kg_kout(3,ig); if (i3<0) i3=i3+n3; i3=i3+1
             #end do
-            (n1, n2, n3) = mesh.shape
+            n1, n2, n3 = mesh.shape
 
             for sph_idx, gvec in enumerate(self.gvecs):
                 i1 = gvec[0]
@@ -225,32 +225,32 @@ class GSphere(collections.Sequence):
 
         return arr_on_sphere
 
-    def rotate(self, symmop):
-        """
-        Returns a new `GSphere` centered on Sk.
+    #def rotate(self, symmop):
+    #    """
+    #    Returns a new `GSphere` centered on Sk.
 
-        Args:
-            symmop: Symmetry operation object.
-        """
-        # The problem in this approach is that G-spheres centered on the
-        # same k-point might have G-vectors ordered in a different way
-        # and therefore one cannot operate on two wavefunctions in reciprocal space
-        # on the G-sphere without checking first that gvecs1 == gvecs2.
-        # The best solution is to compute the list of g-vectors with a deterministic
-        # algorithm, similar to the one used in Abinit and then create tables
-        # defining the mapping btw the two sets
-        if self.istwfk != 1:
-            raise ValueError("istwfk %d not coded" % self.istwfk)
+    #    Args:
+    #        symmop: Symmetry operation object.
+    #    """
+    #    # The problem in this approach is that G-spheres centered on the
+    #    # same k-point might have G-vectors ordered in a different way
+    #    # and therefore one cannot operate on two wavefunctions in reciprocal space
+    #    # on the G-sphere without checking first that gvecs1 == gvecs2.
+    #    # The best solution is to compute the list of g-vectors with a deterministic
+    #    # algorithm, similar to the one used in Abinit and then create tables
+    #    # defining the mapping btw the two sets
+    #    if self.istwfk != 1:
+    #        raise ValueError("istwfk %d not coded" % self.istwfk)
 
-        # Rotate the k-point and the G-vectors
-        rot_kpt = symmop.rotate_k(self.kpoint.frac_coords, wrap_tows=False)
-        rot_gvecs = symmop.rotate_gvecs(self.gvecs)
+    #    # Rotate the k-point and the G-vectors
+    #    rot_kpt = symmop.rotate_k(self.kpoint.frac_coords, wrap_tows=False)
+    #    rot_gvecs = symmop.rotate_gvecs(self.gvecs)
 
-        #rot_istwfk = istwfk(rot_kpt)
-        rot_istwfk = self.istwfk
+    #    #rot_istwfk = istwfk(rot_kpt)
+    #    rot_istwfk = self.istwfk
 
-        new = self.__class__(self.ecut, self.lattice, rot_kpt, rot_gvecs, istwfk=rot_istwfk)
-        return new
+    #    new = self.__class__(self.ecut, self.lattice, rot_kpt, rot_gvecs, istwfk=rot_istwfk)
+    #    return new
 
 
 #def kpg_sphere(lattice, kcoords, ecut):

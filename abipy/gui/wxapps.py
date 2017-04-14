@@ -26,12 +26,12 @@ _EXT2APP = {
     "GSR.nc": wxapp_gsrviewer,
     "MDF.nc": wxapp_mdfviewer,
     "PHBST.nc": wxapp_phbstviewer,
-    #".abi": MyEditorApp, 
-    #".abo": MyEditorApp, 
-    #".log": MyEditorApp, 
-    #".sh": MyEditorApp,  
-    #".err": MyEditorApp, 
-    #".files": MyEditorApp, 
+    #".abi": MyEditorApp,
+    #".abo": MyEditorApp,
+    #".log": MyEditorApp,
+    #".sh": MyEditorApp,
+    #".err": MyEditorApp,
+    #".files": MyEditorApp,
 }
 
 
@@ -46,7 +46,7 @@ def file2appcls(filepath):
         try:
             return _EXT2APP[ext]
         except KeyError:
-            # No frame registered for the file. 
+            # No frame registered for the file.
             # Open NcViewer if we have a netcdf file else None
             if filepath.endswith(".nc"): return wxapp_ncview
             return None
