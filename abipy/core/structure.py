@@ -163,7 +163,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         from pymatgen import SETTINGS
         if api_key is None:
-            api_key = SETTINGS.get("MAPI_KEY")
+            api_key = SETTINGS.get("PMG_MAPI_KEY")
             if api_key is None:
                 raise RuntimeError(
                     "Cannot find MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
