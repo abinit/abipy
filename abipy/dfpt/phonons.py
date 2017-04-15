@@ -1199,9 +1199,6 @@ class PhononBands(object):
 
         # Type projected DOSes.
         if phdos_file is not None:
-            # Dictionary symbol --> partial PhononDos
-            pjdos_symbol = phdos_file.pjdos_type_dict
-
             ax01 = None
             for ax_row, symbol in enumerate(self.structure.symbol_set):
                 color = cmap(float(ax_row) / (ntypat - 1))
@@ -1209,7 +1206,8 @@ class PhononBands(object):
                 if ax_row == 0: ax01 = ax
 
                 # Get PJDOS
-                pjdos = pjdos_symbol[symbol]
+                # Dictionary symbol --> partial PhononDos
+                pjdos = phdos_file.pjdos_symbol[symbol]
                 x, y = pjdos.mesh * factor, pjdos.values / factor
 
                 ax.plot(y, x, lw=lw, color=color)
@@ -1868,14 +1866,21 @@ class PhdosReader(ETSF_Reader):
     #     """
     #     return self.read_value("phonon_frequencies")
 
-    # def read_pjdos_rc_symbol(self, symbol):
-    #     """
-    #     phdos[3, ntypat, nomega]
-    #     phonon DOS contribution arising from a particular atom-type
-    #     decomposed along the three reduced directions.
-    #     """
-    #     #[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions"
-    #     return self.read_value("pjdos_rc_type")
+    def read_pjdos_symbol_rc_dict(self):
+        """
+        Return `OrderedDict` mapping element symbol --> [3, nomega] array
+        with the the phonon DOSes summed over atom-types and decomposed along
+        the three reduced directions.
+        """
+        # phdos_rc_type[ntypat, 3, nomega]
+        values = self.read_value("pjdos_rc_type")
+
+        od = OrderedDict()
+        for symbol in self.chemical_symbols:
+           type_idx = self.typeidx_from_symbol(symbol)
+           od[symbol] = values[type_idx]
+
+        return od
 
     # TODO
     #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
@@ -1910,16 +1915,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_phdos()
 
     @lazy_property
-    def pjdos_type_dict(self):
+    def pjdos_symbol(self):
         """
-        Dictionary symbol --> PhononDos
-        where PhononDos is the contribution to the total DOS summed over atoms with chemical symbol `symbol`.
+        Ordered dictionary mapping element symbol --> `PhononDos`
+        where PhononDos is the contribution to the total DOS summed over atoms
+        with chemical symbol `symbol`.
         """
-        pjdos_type_dict = OrderedDict()
-        for symbol in self.reader.chemical_symbols:
-            pjdos_type_dict[symbol] = self.reader.read_pjdos_symbol(symbol)
-
-        return pjdos_type_dict
+        return OrderedDict([(symbol, self.reader.read_pjdos_symbol(symbol))
+            for symbol in self.reader.chemical_symbols])
 
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
@@ -1951,10 +1954,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
 
         # Type projected DOSes.
-        num_plots = len(self.pjdos_type_dict)
+        num_plots = len(self.pjdos_symbol)
         cumulative = np.zeros(len(self.wmesh))
 
-        for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
+        for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             x, y = pjdos.mesh * factor, pjdos.values / factor
             color = cmap(float(i) / (num_plots - 1))
             if not stacked:
@@ -2004,8 +2007,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         cmap = plt.get_cmap(colormap)
         xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
-        #double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)
-        pjdos_type_rc = self.reader.pjdos_type_rc
+
+        # symbol --> [three, number_of_frequencies]
+        pjdos_symbol_rc = self.reader.read_pjdos_symbol_rc_dict()
 
         xx = self.phdos.mesh * factor
         for idir, ax in enumerate(axlist):
@@ -2019,12 +2023,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     ax.set_xlabel('Frequency %s' % _unit_tag(units))
 
             # Plot Type projected DOSes along reduced direction idir
-            #for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):
+            #for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             cumulative = np.zeros(len(self.wmesh))
-            for itype in range(ntypat):
-                symbol = str(itype)
+            for itype, symbol in enumerate(self.reader.chemical_symbols):
                 color = cmap(float(itype) / (ntypat - 1))
-                yy = pjdos_type_rc[itype, idir] / factor
+                yy = pjdos_symbol_rc[symbol][idir] / factor
 
                 if not stacked:
                     ax.plot(xx, yy, label=symbol, color=color)

@@ -234,20 +234,35 @@ class PhononDosTest(AbipyTest):
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
         repr(ncfile); str(ncfile)
         assert hasattr(ncfile, "structure")
-        phdos = ncfile.phdos
+        nw = len(ncfile.wmesh)
+        assert nw == 461
 
+        # Read PJDOSes
+        assert list(ncfile.pjdos_symbol.keys()) == ["Al", "As"]
+        od = ncfile.reader.read_pjdos_symbol_rc_dict()
+        assert list(od.keys()) == ["Al", "As"]
+        assert all(v.shape == (3, nw) for v in od.values())
+
+        phdos = ncfile.phdos
         assert phdos == PhononDos.as_phdos(abidata.ref_file("trf2_5.out_PHDOS.nc"))
 
-        # Thermodinamics in the Harmonic approximation
-        #self.assert_almost_equal(phdos.zero_point_energy, )
-        f = phdos.get_free_energy()
-        #self.assert_almost_equal(f.values, )
+        # Test Thermodinamics in the Harmonic approximation
+        self.assert_almost_equal(phdos.zero_point_energy.to("Ha"), 0.0030872835637731303)
+
         u = phdos.get_internal_energy()
-        #self.assert_almost_equal(u.values, )
+        self.assert_almost_equal(u.values[0], 0.16801859138305908)
+        self.assert_almost_equal(u.values[-1], 0.25671036732970359)
+
         s = phdos.get_entropy()
-        #self.assert_almost_equal(s.values, )
+        self.assert_almost_equal(s.values[0], 1.6270193052583423e-08)
+        self.assert_almost_equal(s.values[-1], 0.00058238779354717)
+
         cv = phdos.get_cv()
-        #self.assert_almost_equal(cv.values, )
+        self.assert_almost_equal(cv.values[0], 5.3715488328604253e-08)
+        self.assert_almost_equal(cv.values[-1], 0.00045871909188672578)
+
+        f = phdos.get_free_energy()
+        self.assert_almost_equal(f.values, (u - s.mesh * s.values).values)
 
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
@@ -259,8 +274,7 @@ class PhononDosTest(AbipyTest):
 
             assert phdos.plot(units="cm-1", show=False)
             assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)
-            # FIXME
-            #phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=1, show=False)
+            assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="Jmol", formula_units=2, show=False)
 
         # Test notebook
         if self.has_nbformat():
