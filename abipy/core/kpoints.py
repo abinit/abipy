@@ -1323,11 +1323,6 @@ class KpointsReaderMixin(object):
         except self.Error:
             return self.read_value("kpoint_grid_vectors")
 
-    #@returns_None_onfail
-    #def read_kptopt(self):
-    #    """Returns the ABINIT variable kptopt. None if not found."""
-    #    return int(self.read_value("kptopt"))
-
 
 class KpointsReader(ETSF_Reader, KpointsReaderMixin):
     """This object reads k-point data from a netcdf file."""

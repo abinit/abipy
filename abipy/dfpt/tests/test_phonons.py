@@ -243,6 +243,9 @@ class PhononDosTest(AbipyTest):
         assert list(od.keys()) == ["Al", "As"]
         assert all(v.shape == (3, nw) for v in od.values())
 
+        arr = ncfile.reader.read_pjdos_atdir()
+        assert arr.shape == (len(ncfile.structure), 3, nw)
+
         phdos = ncfile.phdos
         assert phdos == PhononDos.as_phdos(abidata.ref_file("trf2_5.out_PHDOS.nc"))
 

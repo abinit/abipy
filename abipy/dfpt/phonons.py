@@ -691,7 +691,7 @@ class PhononBands(object):
         data["lattice"] = self.structure.lattice.matrix.tolist()
         data["atom_types"] = [e.name for e in self.structure.species]
         data["atom_numbers"] = self.structure.atomic_numbers
-        data["chemical_symbols"] =self.structure.symbol_set
+        data["chemical_symbols"] = self.structure.symbol_set
         data["atomic_numbers"] = list(set(self.structure.atomic_numbers))
         data["formula"] = self.structure.formula.replace(" ", "")
         data["repetitions"] = repetitions or (3,3,3)
@@ -897,8 +897,8 @@ class PhononBands(object):
         for i, pf in enumerate(self.split_phfreqs):
             ind = self.split_matched_indices[i]
             pf = pf[np.arange(len(pf))[:, None], ind]
-            pf = pf*factor
-            xx = range(first_xx, first_xx+len(pf))
+            pf = pf * factor
+            xx = range(first_xx, first_xx + len(pf))
             colors = itertools.cycle(colormap(np.linspace(0, 1, max_colors)))
             for branch_i in branch_range:
                 kwargs = dict(kwargs)
@@ -927,7 +927,7 @@ class PhononBands(object):
     @property
     def split_phdispl_cart(self):
         # prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
-        # not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not useed
+        # not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
         # most of the times.
         try:
             return self._split_phdispl_cart
@@ -1110,7 +1110,7 @@ class PhononBands(object):
                 Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.
-            width_rations: Rations between the width of the fatbands plots and the DOS plots.
+            width_ratios: Ratios between the width of the fatbands plots and the DOS plots.
                 Used if `phdos_file` is not None
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -1834,37 +1834,19 @@ class PhdosReader(ETSF_Reader):
         """The frequency mesh for the PH-DOS in eV."""
         return self.read_value("wmesh")
 
-    @lazy_property
-    def pjdos_type(self):
+    def read_pjdos_type(self):
         """[ntypat, nomega] array with PH-DOS projected over atom types."""
         return self.read_value("pjdos_type")
 
-    @lazy_property
-    def pjdos_type_rc(self):
-        """[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions"""
-        return self.read_value("pjdos_rc_type")
-
-    @lazy_property
-    def pjdos(self):
-        """[natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+    def read_pjdos_atdir(self):
+        """
+        Return [natom, three, nomega] array with Phonon DOS projected over atoms and reduced directions.
+        """
         return self.read_value("pjdos")
 
     def read_phdos(self):
-        """Return the :class:`PhononDOS`."""
+        """Return the :class:`PhononDOS`. with the total phonon DOS"""
         return PhononDos(self.wmesh, self.read_value("phdos"))
-
-    def read_pjdos_symbol(self, symbol):
-        """
-        :class:`PhononDos` with the contribution to the DOS due to the atoms of given chemical symbol.
-        """
-        type_idx = self.typeidx_from_symbol(symbol)
-        return PhononDos(self.wmesh, self.pjdos_type[type_idx])
-
-    # def read_pjdos(self, atom_idx=None):
-    #     """
-    #     projected DOS (over atoms)
-    #     """
-    #     return self.read_value("phonon_frequencies")
 
     def read_pjdos_symbol_rc_dict(self):
         """
@@ -1882,8 +1864,24 @@ class PhdosReader(ETSF_Reader):
 
         return od
 
+    def read_pjdos_symbol_dict(self):
+        """
+        Ordered dictionary mapping element symbol --> `PhononDos`
+        where PhononDos is the contribution to the total DOS summed over atoms
+        with chemical symbol `symbol`.
+        """
+        # [ntypat, nomega] array with PH-DOS projected over atom types."""
+        values = self.read_pjdos_type()
+
+        od = OrderedDict()
+        for symbol in self.chemical_symbols:
+            type_idx = self.typeidx_from_symbol(symbol)
+            od[symbol] = PhononDos(self.wmesh, values[type_idx])
+
+        return od
+
     # TODO
-    #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
+    #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies)
 
 
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -1921,8 +1919,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol `symbol`.
         """
-        return OrderedDict([(symbol, self.reader.read_pjdos_symbol(symbol))
-            for symbol in self.reader.chemical_symbols])
+        return self.reader.read_pjdos_symbol_dict()
 
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
@@ -2023,7 +2020,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     ax.set_xlabel('Frequency %s' % _unit_tag(units))
 
             # Plot Type projected DOSes along reduced direction idir
-            #for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             cumulative = np.zeros(len(self.wmesh))
             for itype, symbol in enumerate(self.reader.chemical_symbols):
                 color = cmap(float(itype) / (ntypat - 1))
@@ -2089,7 +2085,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
         # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
-        pjdos = self.reader.pjdos
+        pjdos_atdir = self.reader.read_pjdos_atdir()
 
         xx = self.phdos.mesh * factor
         for idir, ax in enumerate(axlist):
@@ -2108,7 +2104,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 site = self.structure[iatom]
                 symbol = str(site)
                 color = cmap(float(iatom) / (len(iatom_list) - 1))
-                yy = pjdos[iatom, idir] / factor
+                yy = pjdos_atdir[iatom, idir] / factor
 
                 if not stacked:
                     ax.plot(xx, yy, label=symbol, color=color)
@@ -3229,8 +3225,8 @@ def match_eigenvectors(v1, v2):
     prod = np.absolute(np.dot(v1, v2.transpose().conjugate()))
 
     indices = np.zeros(len(v1), dtype=np.int)
-    missing_v1 = [True]*len(v1)
-    missing_v2 = [True]*len(v1)
+    missing_v1 = [True] * len(v1)
+    missing_v2 = [True] * len(v1)
     for m in reversed(np.argsort(prod, axis=None)):
         i, j = np.unravel_index(m, prod.shape)
         if missing_v1[i] and missing_v2[j]:
