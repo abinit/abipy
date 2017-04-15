@@ -621,17 +621,20 @@ class PhononBands(object):
 
             displ_list = np.zeros((self.num_branches, self.num_atoms, 3), dtype=np.complex)
             for i in range(self.num_atoms):
-                displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)]*\
-                                    np.exp(-2*np.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
+                displ_list[:,i,:] = self.phdispl_cart[iqpt,:,3*i:3*(i+1)] * \
+                    np.exp(-2*np.pi*1j*np.dot(structure[i].frac_coords, self.qpoints[iqpt].frac_coords))
 
             displ_list = np.dot(np.dot(displ_list, structure.lattice.inv_matrix), ascii_basis) * pre_factor
 
             for imode in np.arange(self.num_branches):
-                lines.append("#metaData: qpt=[{:.6f};{:.6f};{:.6f};{:.6f} \\".format(q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
+                lines.append("#metaData: qpt=[{:.6f};{:.6f};{:.6f};{:.6f} \\".format(
+                    q[0], q[1], q[2], self.phfreqs[iqpt, imode]))
+
                 for displ in displ_list[imode]:
                     line = "#; "+ "; ".join("{:.6f}".format(i) for i in displ.real) + "; " \
                            + "; ".join("{:.6f}".format(i) for i in displ.imag) + " \\"
                     lines.append(line)
+
                 lines.append(("# ]"))
 
         with open(filename, 'wt') as f:
@@ -733,8 +736,8 @@ class PhononBands(object):
             for iqpt in range(len(qpts)):
                 q = self.qpoints[iqpt].frac_coords
                 for ai in range(self.num_atoms):
-                    vect[iqpt, :, 3*ai:3*(ai + 1)] = vect[iqpt, :, 3*ai:3*(ai + 1)]* \
-                                                     np.exp(-2*np.pi*1j*np.dot(self.structure[ai].frac_coords, q))
+                    vect[iqpt, :, 3*ai:3*(ai + 1)] = vect[iqpt, :, 3*ai:3*(ai + 1)] * \
+                        np.exp(-2*np.pi*1j*np.dot(self.structure[ai].frac_coords, q))
 
             if match_bands:
                 vect = vect[np.arange(vect.shape[0])[:, None, None],
@@ -851,8 +854,8 @@ class PhononBands(object):
         return lines
 
     @add_fig_kwargs
-    def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None, colormap="rainbow", max_colors=None,
-                             **kwargs):
+    def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
+                             colormap="rainbow", max_colors=None, **kwargs):
         r"""
         Plot the phonon band structure with different color for each line.
 
@@ -1281,7 +1284,7 @@ class PhononBands(object):
         """
         Return a pandas DataFrame with the following columns:
 
-          ['qidx', 'mode', 'freq', 'qpoint']
+            ['qidx', 'mode', 'freq', 'qpoint']
 
         where:
 
@@ -1443,6 +1446,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         return self._phbands
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     def qindex(self, qpoint):
@@ -1738,16 +1742,6 @@ class PhononDos(Function1D):
 
         return Function1D(uz.mesh, uz.values - s.mesh * s.values)
 
-        #tmesh = np.linspace(tstart, tstop, num=num)
-        #w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
-        #vals = np.empty(len(tmesh))
-        #for it, temp in enumerate(tmesh):
-        #    kt = abu.kb_eVK * temp
-        #    wd2kt = w / (2 * kt)
-        #    vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)
-
-        #return Function1D(tmesh, vals + self.zero_point_energy)
-
     def get_cv(self, tstart=5, tstop=300, num=50):
         """
         Returns the constant-volume specific heat, in eV/K, in the harmonic approximation for different temperatures
@@ -1861,7 +1855,7 @@ class PhdosReader(ETSF_Reader):
         """Return the :class:`PhononDOS`."""
         return PhononDos(self.wmesh, self.read_value("phdos"))
 
-    def read_pjdos_type(self, symbol):
+    def read_pjdos_symbol(self, symbol):
         """
         :class:`PhononDos` with the contribution to the DOS due to the atoms of given chemical symbol.
         """
@@ -1874,13 +1868,14 @@ class PhdosReader(ETSF_Reader):
     #     """
     #     return self.read_value("phonon_frequencies")
 
-    # def read_pjdos_rc_type(self, symbol=None):
+    # def read_pjdos_rc_symbol(self, symbol):
     #     """
-    #     phdos(3,ntypat,nomega)
+    #     phdos[3, ntypat, nomega]
     #     phonon DOS contribution arising from a particular atom-type
     #     decomposed along the three reduced directions.
     #     """
-    #     return self.read_value("phonon_frequencies")
+    #     #[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions"
+    #     return self.read_value("pjdos_rc_type")
 
     # TODO
     #double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;
@@ -1922,7 +1917,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         pjdos_type_dict = OrderedDict()
         for symbol in self.reader.chemical_symbols:
-            pjdos_type_dict[symbol] = self.reader.read_pjdos_type(symbol)
+            pjdos_type_dict[symbol] = self.reader.read_pjdos_symbol(symbol)
 
         return pjdos_type_dict
 

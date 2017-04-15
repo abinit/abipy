@@ -224,7 +224,9 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     abispg = structure.abi_spacegroup
     if abispg is None:
         raise ValueError("Structure does not contain the Abinit spacegroup!")
-    symrec_fm = [s for (s, afm) in zip(abispg.symrec, abispg.symafm) if afm == 1]
+
+    # Extract rotations in reciprocal space (FM part).
+    symrec_fm = [o.rot_g for o in abispg.fm_symmops]
 
     # Compute TS k_ibz.
     bzgrid2ibz = -np.ones(ngkpt, dtype=np.int)
@@ -1278,9 +1280,8 @@ class KpointsReaderMixin(object):
         # We have a homogeneous sampling of the BZ.
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
-        raise ValueError(
-          "Only homogeneous samplings or paths are supported!"
-          "ksamping info:\n%s" % str(ksampling))
+        raise ValueError("Only homogeneous samplings or paths are supported!\n"
+                         "ksampling info:\n%s" % str(ksampling))
 
     def read_ksampling_info(self):
         # FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig

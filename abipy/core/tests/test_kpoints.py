@@ -8,7 +8,7 @@ import numpy as np
 import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, Kpoint, KpointList, KpointsReader,
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader,
     KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz, set_atol_kdiff, set_spglib_tols)
 from abipy.core.testing import AbipyTest
 
@@ -204,7 +204,7 @@ class TestKpointsReader(AbipyTest):
 
             with KpointsReader(filepath) as r:
                 kpoints = r.read_kpoints()
-                print(kpoints)
+                repr(kpoints); str(kpoints)
 
                 if "_scf" in fname:
                     # expecting a homogeneous sampling.
@@ -231,6 +231,7 @@ class TestKpointsReader(AbipyTest):
 
 
 class KmeshTest(AbipyTest):
+
     def test_rc_list(self):
         """Testing rc_list."""
         # Special case mp=1
@@ -386,6 +387,7 @@ class KmeshTest(AbipyTest):
 
 
 class TestKsamplingInfo(AbipyTest):
+
     def test_ksampling(self):
         """Test KsamplingInfo API."""
         # from_mpdivs constructor
@@ -397,7 +399,7 @@ class TestKsamplingInfo(AbipyTest):
         self.assert_equal(ksi.shifts.flatten(), shifts)
         assert ksi.kptopt == kptopt
         assert ksi.is_homogeneous
-        print(ksi)
+        repr(ksi); str(ksi)
 
         # from kptrlatt constructor
         kptrlatt = np.diag(mpdivs)
@@ -415,7 +417,7 @@ class TestKsamplingInfo(AbipyTest):
         kptopt = 1
         ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
         assert ksi.mpdivs is None
-        print(ksi)
+        repr(ksi); str(ksi)
 
         # from_kbounds constructor
         kbounds = [0, 0, 0, 1, 1, 1]
@@ -423,7 +425,7 @@ class TestKsamplingInfo(AbipyTest):
         assert (ksi.mpdivs, ksi.kptrlatt, ksi.kptrlatt_orig, ksi.shifts, ksi.shifts_orig) == 5 * (None,)
         assert ksi.kptopt == 1
         assert not ksi.is_homogeneous
-        print(ksi)
+        repr(ksi); str(ksi)
 
         with self.assertRaises(ValueError):
             foo = KSamplingInfo(foo=1)
@@ -442,34 +444,43 @@ class TestKmappingTools(AbipyTest):
             self.ngkpt = [18, 18, 18]
 
     def test_map_bz2ibz(self):
+        """Testing map_bz2ibz."""
         bz2ibz = map_bz2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
 
-        #errors = []
-        #for ik_bz, kbz in enumerate(bz):
-        #    ik_ibz = bz2inz[ik_bz]
-        #    for symmop in structure.spacegroup:
-        #        krot = symmop.rotate_k(kibz)
-        #        if issamek(krot, kbz):
-        #            bz2ibz[ik_bz] = ik_ibz
-        #            break
-        #    else:
-        #        errors.append((ik_bz, kbz))
+        bz = []
+        nx, ny, nz = self.ngkpt
+        for ix, iy, iz in itertools.product(range(nx), range(ny), range(nz)):
+            bz.append([ix/nz, iy/ny, iz/nz])
+        bz = np.reshape(bz, (-1, 3))
 
-        #if errors:
-        #assert not errors
+        abispg = self.mgb2.abi_spacegroup
+
+        nmax = 54
+        errors = []
+        for ik_bz, kbz in enumerate(bz[:nmax]):
+            ik_ibz = bz2ibz[ik_bz]
+            ki = self.kibz[ik_ibz]
+            for symmop in abispg.fm_symmops:
+                krot = symmop.rotate_k(ki)
+                if issamek(krot, kbz):
+                    break
+            else:
+                errors.append((ik_bz, kbz))
+
+        assert not errors
 
     #def test_with_from_structure_with_symrec(self):
     #    """Generate Ktables from a structure with Abinit symmetries."""
     #    self.mgb2 = self.get_abistructure.mgb2("mgb2_kpath_FATBANDS.nc")
-    #    assert self.mgb2.spacegroup is not None
+    #    assert self.mgb2.abi_spacegroup is not None
     #    mesh = [4, 4, 4]
     #    k = Ktables(self.mgb2, mesh, is_shift=None, has_timrev=True)
-    #    print(k)
+    #    repr(k); str(k)
     #    k.print_bz2ibz()
 
     #def test_with_structure_without_symrec(self):
     #    """Generate Ktables from a structure without Abinit symmetries."""
-    #    assert self.mgb2.spacegroup is None
+    #    assert self.mgb2.abi_spacegroup is None
     #    k = Ktables(self.mgb2, mesh, is_shift, has_timrev)
-    #    print(k)
+    #    repr(k); str(k)
     #    k.print_bz2ibz()
