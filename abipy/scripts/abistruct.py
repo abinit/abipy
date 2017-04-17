@@ -51,6 +51,7 @@ Usage example:
     abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
     abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
     abistruct.py pmgdata mp-149             => Get structure from pymatgen database and print its JSON representation.
+                                               Use e.g. `-f abivars` to change format.
 
 Use `abistruct.py COMMAND --help` for futher information.
 """
@@ -189,6 +190,8 @@ Has to be all integers. Several options are possible:
                            help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     p_pmgdata.add_argument("--endpoint", help="Pymatgen database.",
                            default="https://www.materialsproject.org/rest/v2")
+    p_pmgdata.add_argument("-f", '--format', default="json", type=str,
+                           help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
@@ -391,8 +394,12 @@ Has to be all integers. Several options are possible:
         # Get the Structure corresponding the a material_id.
         structure = abilab.Structure.from_material_id(options.pmgid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
-        # Convert to json and print it.
-        print(structure.convert(fmt="json"))
+
+        if options.format == "abivars":
+            print(structure.abi_string)
+        else:
+            # Convert to json and print it.
+            print(structure.convert(fmt=options.format))
 
     elif options.command == "animate":
         filepath = options.filepath
