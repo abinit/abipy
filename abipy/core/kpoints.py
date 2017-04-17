@@ -12,6 +12,7 @@ from tabulate import tabulate
 from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
 from pymatgen.serializers.json_coders import pmg_serialize
 from pymatgen.serializers.pickle_coders import SlotPickleMixin
@@ -795,9 +796,7 @@ class KpointList(collections.Sequence):
         """
         if not self.is_ibz: return (None, None)
         # Test if kptrlatt is diagonal.
-        m = self.ksampling.kptrlatt.copy()
-        np.fill_diagonal(m, 0)
-        if np.any(m != 0): return (None, None)
+        if not is_diagonal(self.ksampling.kptrlatt): return (None, None)
         return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
@@ -863,6 +862,7 @@ class KpointList(collections.Sequence):
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def plot(self, ax=None, **kwargs):
+        """Plot k-points with matplotlib."""
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
 
@@ -1122,8 +1122,7 @@ class IrredZone(KpointList):
             s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
             app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
         else:
-            for k, v in self.ksampling.items():
-                app("%s: %s" % (k, v))
+            app(str(self.ksampling))
 
         return "\n".join(lines)
 
@@ -1166,6 +1165,19 @@ class IrredZone(KpointList):
     #    return kx, ky, plane
 
 
+def is_diagonal(matrix, atol=1e-12):
+    """
+    Return True if matrix is diagonal.
+    """
+    m = matrix.copy()
+    np.fill_diagonal(m, 0)
+
+    if issubclass(matrix.dtype.type, np.integer):
+        return np.all(m == 0)
+    else:
+        return np.all(np.abs(m) <= atol)
+
+
 class KSamplingInfo(AttrDict):
     """
     Store metadata defining the k-point sampling according to the abinit conventions.
@@ -1174,12 +1186,12 @@ class KSamplingInfo(AttrDict):
     """
 
     KNOWN_KEYS = set([
-        "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None
-        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None
-        "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None
-        "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None
-        "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None
-        "kptopt"           # Options for k-point generation. Negative if we have a k-path (nbounds - 1)
+        "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None.
+        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None.
+        "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None.
+        "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None.
+        "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None.
+        "kptopt",          # Options for k-point generation. Negative if we have a k-path (nbounds - 1).
     ])
 
     @classmethod
@@ -1190,6 +1202,7 @@ class KSamplingInfo(AttrDict):
         """
         kptrlatt = kptrlatt_orig = np.diag(mpdivs)
         shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
+
         return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
@@ -1199,20 +1212,22 @@ class KSamplingInfo(AttrDict):
         Homogeneous sampling specified in terms of `kptrlatt`
         the set of `shifts` and the value of `kptopt`.
         """
-        kptrlatt = kptrlatt_orig = np.reshape(kptrlatt, (3,3))
+        kptrlatt = kptrlatt_orig = np.reshape(kptrlatt, (3, 3))
         shifts = shifts_orig = np.reshape(np.array(shifts), (-1, 3))
         # Test if kptrlatt is diagonal.
-        m = kptrlatt.copy()
-        np.fill_diagonal(m, 0)
-        mpdivs = None if np.any(m != 0) else np.diag(kptrlatt)
+        mpdivs = None if not is_diagonal(kptrlatt) else np.diag(kptrlatt)
+
         return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     @classmethod
     def from_kbounds(cls, kbounds):
-        """Metadata associated to a k-path specified in terms of boundaries."""
+        """
+        Metadata associated to a k-path specified in terms of boundaries.
+        """
         mpdivs, kptrlatt, kptrlatt_orig, shifts, shifts_orig = 5 * (None,)
-        kptopt = len(np.reshape(kbounds, (-1, 3))) - 1  # Note -1
+        kptopt = - (len(np.reshape(kbounds, (-1, 3))) - 1)  # Note -1
+
         return cls(mpdivs=mpdivs, shifts=shifts, shifts_orig=shifts_orig,
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
@@ -1222,29 +1237,55 @@ class KSamplingInfo(AttrDict):
            if k not in self.KNOWN_KEYS:
                raise ValueError("Unknow key %s" % k)
 
-    #def __str__(self):
-    #    lines = []
-    #    app = lines.append
-    #    return "\n".join(lines)
+        # FIXME: monkhorst_pack_folding is not written in e.g. DEN.nc files
+        # so we get crazy results because of netCDF4._default_fillvals
+        # This part set the value of mpdivs from kptrlatt.
+        if self["mpdivs"] is not None and np.any(np.abs(self["mpdivs"]) > 1e+6):
+            if self.kptrlatt_orig is not None:
+                # We have a sampling
+                if np.all(self.kptrlatt_orig == self.kptrlatt) and is_diagonal(self.kptrlatt):
+                    self["mpdivs"] = np.diag(self.kptrlatt)
+
+                else:
+                    cprint("monkhorst_pack_folding variables has not been written to netcdf file.", "magenta")
+                    cprint("Received %s" % str(self["mpdivs"]), "magenta")
+                    cprint("Set mpdivs to None, this could create problems in post-processing tools.", "magenta")
+                    cprint("If needed, use python netcdf to change the value of `monkhorst_pack_folding`", "magenta")
+                    self["mpdivs"] = None
+
+    def __str__(self):
+        """String representation."""
+        lines = []
+        app = lines.append
+        app("kptopt: %s" % str(self.kptopt))
+        app("mpdivs: %s" % str(self.mpdivs))
+        app("kptrlatt: %s" % str(self.kptrlatt))
+        app("shifts: %s" % str(self.shifts))
+        app("kptrlatt_orig: %s" % str(self.kptrlatt_orig))
+        app("shifts_orig: %s" % str(self.shifts_orig))
+
+        return "\n".join(lines)
 
     @property
-    def is_homogeneous(self):
-        """True if we have a homogeneous sampling of the BZ."""
-        return (self.mpdivs is not None or self.kptrlatt is not None) and self.kptopt > 0
+    def is_mesh(self):
+        """True if we have a path in the BZ."""
+        return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
+
+    @property
+    def is_path(self):
+        """True if we have a path in the BZ."""
+        return self.kptopt < 0
 
     #@property
-    #def sampling_with_diagonal_kptrlatt(self)
-    #    if self.kptrlatt is None: return False
-    #    # Test if kptrlatt is diagonal.
-    #    m = self.kptrlatt.copy()
-    #    np.fill_diagonal(m, 0)
-    #    if np.any(m != 0): return False
-    #    return True
+    #def is_homogeneous(self):
+    #    """True if we have a homogeneous sampling of the BZ."""
+    #    return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
 
-    #@property
-    #def is_path(self):
-    #    """True if we have a path in the BZ."""
-    #    return self.kptopt < 0
+    @property
+    def has_diagonal_kptrlatt(self):
+        """True if sampling with diagonal kptrlatt."""
+        if self.kptrlatt is None: return False
+        return is_diagonal(self.kptrlatt)
 
 
 class KpointsReaderMixin(object):
@@ -1280,10 +1321,13 @@ class KpointsReaderMixin(object):
         # We have a homogeneous sampling of the BZ.
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
-        raise ValueError("Only homogeneous samplings or paths are supported!\n"
-                         "ksampling info:\n%s" % str(ksampling))
+        #raise ValueError("Only homogeneous samplings or paths are supported!\n"
+        #                 "ksampling info:\n%s" % str(ksampling))
 
     def read_ksampling_info(self):
+        """
+        Read information on the k-point sampling. Return `KSamplingInfo` object.
+        """
         # FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig
         kptrlatt = self.read_kptrlatt()
         shifts = self.read_kshifts()

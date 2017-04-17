@@ -1457,10 +1457,11 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
             return self.qpoints.index(qpoint)
 
     def qindex_qpoint(self, qpoint):
-        """Returns (qindex, qpoint) from an integer or a qpoint."""
+        """
+        Returns (qindex, qpoint) from an integer or a qpoint.
+        """
         qindex = self.qindex(qpoint)
-        qpoint = self.qpoints[qindex]
-        return qindex, qpoint
+        return qindex, self.qpoints[qindex]
 
     def get_phframe(self, qpoint, with_structure=True):
         """

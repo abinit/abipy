@@ -14,14 +14,13 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         # The text of this variable contaings greek symbols in HTML.
         var = database["cd_frqim_method"]
-        print(var)
+        repr(var); str(var)
 
         # Print all variables in the database.
         for name, var in database.items():
             #print("testing variable: ", name)
             assert var.name == name
-            repr(var)
-            str(var)
+            repr(var); str(var)
             str(var.info)
             str(var._repr_html_())
 
@@ -42,12 +41,23 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         assert database.group_by_section("ecut") == {'varbas': ['ecut']}
 
-        assert not database["ecut"].isarray
-        assert database["spinat"].isarray
+        natom_var = database["natom"]
+
+        ecut_var = database["ecut"]
+        assert ecut_var.name == "ecut"
+        assert not ecut_var.isarray
+        assert not ecut_var.depends_on_dimension("natom")
+        assert not ecut_var.depends_on_dimension(natom_var)
+
+        spinat_var = database["spinat"]
+        assert spinat_var.isarray
+        assert spinat_var.depends_on_dimension("natom")
+        assert spinat_var.depends_on_dimension(natom_var)
+        assert not spinat_var.depends_on_dimension("ntypat")
 
         abinit_help("ecut", info=True)
         # Should not raise
         abinit_help("foobar", info=True)
 
-        ecut = docvar("ecut")
-        assert ecut.name == "ecut"
+        ecut_var = docvar("ecut")
+        assert ecut_var.name == "ecut"

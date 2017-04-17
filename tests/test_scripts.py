@@ -109,6 +109,13 @@ class TestAbistruct(ScriptTest):
             r = env.run(self.script, "convert", ncfile, fmt, self.loglevel, self.verbose,
                         expect_stderr=self.expect_stderr)
 
+    def test_supercell(self):
+        """Testing abistruct supercell"""
+        cif_file = abidata.cif_file("gan2.cif")
+        env = self.get_env()
+        r = env.run(self.script, "supercell", cif_file, "-s 2" , "-f", "abivars", self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
     def test_abisanitize(self):
         """Testing abistruct abisanitize"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")

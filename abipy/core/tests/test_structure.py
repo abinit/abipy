@@ -55,6 +55,11 @@ class TestStructure(AbipyTest):
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
 
+        # Test __mul__, __rmul__ (should return Abipy structures)
+        assert si_wfk == 1 * si_wfk
+        supcell = si_wfk * [2, 2, 2]
+        assert len(supcell) == 8 * len(si_wfk) and hasattr(supcell, "abi_string")
+
         si_abi = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abi"))
         assert si_abi.formula == "Si2"
         self.assert_equal(si_abi.frac_coords, [[0, 0, 0], [0.25, 0.25, 0.25]])

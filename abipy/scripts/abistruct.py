@@ -7,6 +7,7 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import os
 import argparse
+import numpy as np
 
 from monty.string import marquee
 from monty.functools import prof_main
@@ -34,6 +35,8 @@ Usage example:
     abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
     abistruct.py convert out_HIST abivars   => Read the last structure from the HIST file and
                                                print the corresponding ABINIT variables.
+    abistruct.py supercell FILE -s 2 2 1    => Read structure from FILE and build [2, 2, 1] supercell,
+                                               print new structure using --format (default abivars).
     abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
     abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
     abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ with a 2,2,2 mesh,
@@ -104,6 +107,26 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_convert.add_argument('format', nargs="?", default="cif", type=str,
                            help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
 
+    # Subparser for supercell command.
+    p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
+                                        help="Generate supercell.")
+    p_supercell.add_argument("-s", '--scaling_matrix', nargs="+", required=True, type=int,
+                             help="""\
+scaling_matrix: A scaling matrix for transforming the lattice vectors.
+Has to be all integers. Several options are possible:
+
+    a. A full 3x3 scaling matrix defining the linear combination
+       the old lattice vectors. E.g., -s 2,1,0 0,3,0, 0,0,1
+       generates a new structure with lattice vectors
+       a' = 2a + b, b' = 3b, c' = c where a, b, and c are the lattice vectors of the original structure.
+    b. An sequence of three scaling factors. E.g., -s 2, 1, 1
+       specifies that the supercell should have dimensions 2a x b x c.
+    c. A number, which simply scales all lattice vectors by the same factor.
+    """)
+
+    p_supercell.add_argument("-f", '--format', default="abivars", type=str,
+                             help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+
     # Subparser for abisanitize
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
                                       help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
@@ -148,7 +171,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 
     # Subparser for lgk.
     p_lgk = subparsers.add_parser('lgk', parents=[copts_parser, path_selector, spgopt_parser],
-                                 help="Read structure from file, find little group of k-point, print Bilbao character table.")
+                                  help="Read structure from file, find little group of k-point, print Bilbao character table.")
     p_lgk.add_argument("-k", "--kpoint", nargs="+", required=True, type=float,
                        help="K-point in reduced coordinates e.g. 0.25 0 0")
 
@@ -204,6 +227,23 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
             print(structure.abi_string)
         else:
             print(structure.convert(fmt=options.format))
+
+    elif options.command == "supercell":
+        structure = abilab.Structure.from_file(options.filepath)
+
+        options.scaling_matrix = np.array(options.scaling_matrix)
+        if len(options.scaling_matrix) == 9:
+            options.scaling_matrix.shape = (3, 3)
+        if options.verbose:
+            print("scaling matrix: ", options.scaling_matrix)
+
+        supcell = structure * options.scaling_matrix
+        #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
+
+        if options.format == "abivars":
+            print(supcell.abi_string)
+        else:
+            print(supcell.convert(fmt=options.format))
 
     elif options.command == "abisanitize":
         print("\nCalling abi_sanitize to get a new structure in which:")

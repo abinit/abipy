@@ -27,7 +27,7 @@ class TestWrapWS(AbipyTest):
         self.assert_almost_equal(wrap_to_ws(np.array([0.5,2.3,-1.2])), np.array([0.5,0.3,-0.2]))
 
 
-class TestWrapBZ(AbipyTest):
+class TestHelperFunctions(AbipyTest):
 
     def test_wrap_to_bz(self):
         """Testing wrap_to_bz"""
@@ -37,6 +37,17 @@ class TestWrapBZ(AbipyTest):
         self.assertAlmostEqual(wrap_to_bz(-0.2), 0.8)
         self.assertAlmostEqual(wrap_to_bz( 3.2), 0.2)
         self.assertAlmostEqual(wrap_to_bz(-3.2), 0.8)
+
+    def test_is_diagonal(self):
+        """Testing is_diagonal"""
+        from abipy.core.kpoints import is_diagonal
+        assert is_diagonal(np.eye(3, dtype=np.int))
+        assert is_diagonal(np.eye(3, dtype=np.float))
+        a = np.eye(3, dtype=np.float)
+        atol = 1e-12
+        a[1, 2] = atol
+        assert is_diagonal(a, atol=atol)
+        assert not is_diagonal(a, atol=atol / 2)
 
 
 class TestKpoint(AbipyTest):
@@ -394,38 +405,49 @@ class TestKsamplingInfo(AbipyTest):
         mpdivs, shifts = [2, 3, 4], [0.5, 0.5, 0.5]
         kptopt = 1
         ksi = KSamplingInfo.from_mpdivs(mpdivs, shifts, kptopt)
+        repr(ksi); str(ksi)
         self.assert_equal(ksi.mpdivs, mpdivs)
         self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
         self.assert_equal(ksi.shifts.flatten(), shifts)
+        assert ksi.shifts.shape == (1, 3)
         assert ksi.kptopt == kptopt
-        assert ksi.is_homogeneous
-        repr(ksi); str(ksi)
+        assert ksi.is_mesh
+        assert ksi.has_diagonal_kptrlatt
+        assert not ksi.is_path
 
         # from kptrlatt constructor
         kptrlatt = np.diag(mpdivs)
         ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
+        repr(ksi); str(ksi)
+        assert ksi.kptrlatt.shape == (3, 3)
         self.assert_equal(ksi.kptrlatt, np.diag(mpdivs))
         self.assert_equal(ksi.mpdivs, np.diag(ksi.kptrlatt))
         self.assert_equal(ksi.shifts.flatten(), shifts)
         assert ksi.kptopt == kptopt
-        assert ksi.is_homogeneous
-        repr(ksi); str(ksi)
+        assert ksi.is_mesh
+        assert ksi.has_diagonal_kptrlatt
+        assert not ksi.is_path
 
         # kptrlatt with non-zero off-diagonal elements.
         shifts = [0.5, 0.5, 0.5]
         kptrlatt = [1, 1, 1, 2, 2, 2, 3, 3, 3]
         kptopt = 1
         ksi = KSamplingInfo.from_kptrlatt(kptrlatt, shifts, kptopt)
-        assert ksi.mpdivs is None
         repr(ksi); str(ksi)
+        assert ksi.mpdivs is None
+        assert not ksi.has_diagonal_kptrlatt
+        assert not ksi.is_path
 
         # from_kbounds constructor
         kbounds = [0, 0, 0, 1, 1, 1]
         ksi = KSamplingInfo.from_kbounds(kbounds)
-        assert (ksi.mpdivs, ksi.kptrlatt, ksi.kptrlatt_orig, ksi.shifts, ksi.shifts_orig) == 5 * (None,)
-        assert ksi.kptopt == 1
-        assert not ksi.is_homogeneous
         repr(ksi); str(ksi)
+        assert (ksi.mpdivs, ksi.kptrlatt, ksi.kptrlatt_orig, ksi.shifts, ksi.shifts_orig) == 5 * (None,)
+        assert ksi.kptopt == -1
+        assert ksi.kptrlatt is None
+        assert not ksi.is_mesh
+        assert not ksi.has_diagonal_kptrlatt
+        assert ksi.is_path
 
         with self.assertRaises(ValueError):
             foo = KSamplingInfo(foo=1)
@@ -438,6 +460,7 @@ class TestKmappingTools(AbipyTest):
 
         with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as ncfile:
             self.mgb2 = ncfile.structure
+            assert ncfile.ebands.kpoints.is_ibz
             self.kibz = [k.frac_coords for k in ncfile.ebands.kpoints]
             self.has_timrev = True
             #self.has_timrev = has_timrev_from_kptopt(kptopt)

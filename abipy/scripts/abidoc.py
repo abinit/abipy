@@ -10,6 +10,7 @@ import argparse
 
 from pprint import pprint
 from monty.functools import prof_main
+from monty.termcolor import cprint
 from abipy.core.release import __version__
 from abipy.abilab import abinit_help
 from abipy.abio.abivars_db import get_abinit_variables
@@ -33,8 +34,8 @@ Usage example:
 
     abidoc.py man ecut        --> Show documentation for ecut input variable.
     abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
-    abidoc.py find paw        --> To search in the database for the variables whose name contains paw
-    abidoc.py list            --> Print full list of variables
+    abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
+    abidoc.py list            --> Print full list of variables.
     abidoc.py withdim natom   --> Print arrays depending on natom.
 """
 
@@ -137,8 +138,9 @@ Usage example:
 
     elif options.command == "withdim":
         for var in database.values():
-            if var.isarray and options.dimname in str(var.dimensions):
-                print(repr(var), "\n", str(var.dimensions), "\n") # type(var.dimensions)
+            if var.depends_on_dimension(options.dimname):
+                cprint(repr(var), "yellow")
+                print("dimensions:", str(var.dimensions), "\n")
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)

@@ -92,6 +92,20 @@ _IRDVARS = set([
 ])
 
 
+#def change_varshape(varname, varvalues, from_structure, new_structure):
+#    from_natom, new_natom = len(from_structure), len(new_structure)
+#    numcells = (new_natom / from_natom)
+#    assert ncells >= 0
+#    #if ncelss == 1:
+#
+#    if varname == "spinat":
+#        # [3, natom]
+#        varvalues = np.reshape(varvalues, (-1, from_natom))
+#        return np.repeat(varvalues, numcells, axis=0)
+#    else:
+#        raise ValueError("Don't know how to change the shape of %s" % str(varname))
+
+
 class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
     """
     Abstract class defining the methods that must be implemented by Input objects.
@@ -787,6 +801,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp = self.deepcopy()
             inp[varname] = value
             inps.append(inp)
+
         return inps
 
     def arange(self, varname, start, stop, step):
@@ -812,6 +827,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp = self.deepcopy()
             inp[varname] = value
             inps.append(inp)
+
         return inps
 
     def product(self, *items):
@@ -861,39 +877,39 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     #def new_with_supercell(self, scdims):
     #    sucell = self.structure * scdims
-    #    return new_with_structure(sucell, scdims)
+    #    return new_with_structure(sucell, scdims=scdims)
 
-    def new_with_structure(self, structure, scdims=None):
+    def new_with_structure(self, new_structure, scdims=None, verbose=1):
         """
-        Return a new :class:`AbinitInput` with a different structure
-        (see notes below for the constraints that must be fulfilled by the new structure)
+        Return a new :class:`AbinitInput` with different structure.
+        See notes below for the constraints that must be fulfilled by the new structure
 
         Args:
-            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
+            new_structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
                 file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
             scdims: 3 integer giving with the number of cells in the supercell along the three reduced directions.
-                Must be used when structure represents a supercell of the initial structure defined
+                Must be used when `new_structure` represents a supercell of the initial structure defined
                 in the input file.
+            verbose: Verbosity level.
 
         .. warning::
 
-            if scdims is None (i.e. no supercell), the two structure must have the same value of
+            if `scdims` is None (i.e. no supercell), the two structures must have the same value of
             `natom` and `typat`, they can only differ at the level of the lattice and of the atomic positions.
-            When structure represents a supercell, scdims must be coherent with the structure passed
+            When structure represents a supercell, scdims must be coherent with the `new_structure` passed
             as argument.
         """
         # Check structure
         if scdims is None:
             # Assume same value of natom and typat
-            if len(self.structure) != len(structure):
+            if len(self.structure) != len(new_structure):
                 raise ValueError("Structures must have same value of natom")
             errors = []
-            for i, (site1, site2) in enumerate(zip(self.structure, structure)):
+            for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
                 if site1.specie.symbol != site2.specie.symbol:
                     errors.append("[%d] %s != %s" % (i, site1.specie.symbol != site2.specie.symbol))
             if errors:
-                errmsg = "Structures must have same order of atomic types:\n" + "\n".join(errors)
-                raise ValueError(errmsg)
+                raise ValueError("Structures must have same order of atomic types:\n" + "\n".join(errors))
 
         else:
             scdims = np.array(scdims)
@@ -901,18 +917,18 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
 
             numcells = np.product(scdims)
-            if len(structure) != numcells * len(self.structure):
+            if len(new_structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
-                    numcells, len(self.structure), len(structure))
+                    numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
 
             if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
-                                  [site.specie.symbol for site in structure]):
+                                  [site.specie.symbol for site in new_structure]):
                 raise ValueError("Wrong supercell")
             # TODO Check angles and lengths
 
         # Build new input
-        new = AbinitInput(structure, self.pseudos, abi_args=list(self.items()),
+        new = AbinitInput(new_structure, self.pseudos, abi_args=list(self.items()),
                           decorators=self.decorators, tags=self.tags)
 
         if scdims is not None:
@@ -921,13 +937,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             # Here we use the database of abinit variables to find the variables whose shape depends on `natom`.
             # The method raises ValueError if an array that depends on `natom` is found and no handler is implemented.
             # It's better to raise an exception here than having a error when Abinit parses the input file!
+
+            #def change_shape(name, values, from_natom, numcells):
+            #    if name in {"spinat",}:
+            #        # [3, natom]
+            #        values = np.reshape(values, (-1, from_natom))
+            #        return np.repeat(values, numcells, axis=0)
+            #    else:
+            #        raise ValueError("Don't know how to change the shape of %s" % str(name))
+
             errors = []
             var_database = get_abinit_variables()
             for name in new:
                 var = var_database[name]
-                # This test is not very robust and can fail.
-                if var.isarray and "natom" in str(var.dimensions):
+                #if var.depends_on_dimension("ntypat"):
+                #    errors.append("Found variable %s with ntypat in dimensions %s" % (name, str(var.dimensions)))
+
+                if var.depends_on_dimension("natom"):
                     errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
+                    #self[name] = change_shape(name, self[name], len(inp.structure), new_structure)
 
             if errors:
                 errmsg = ("\n".join(errors) +
@@ -938,11 +966,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
                 new["nband"] = int(self["nband"] * iscale)
-                print("self['nband']", self["nband"], "new['nband']", new["nband"])
+                if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
-                print("new ngkpt:", new["ngkpt"])
+                if verbose: print("new ngkpt:", new["ngkpt"])
 
             # TODO
             elif "kptrlatt" in new:
@@ -1208,7 +1236,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             atpol = [m, m] if m <= na else None
 
             inp.set_vars(
-                d3e_pert1_elfd=1 if pert.i1pert == na+2 else 0,  # Activate the calculation of the electric field perturbation
+                # Activate the calculation of the electric field perturbation
+                d3e_pert1_elfd=1 if pert.i1pert == na+2 else 0,
                 d3e_pert2_elfd=1 if pert.i2pert == na+2 else 0,
                 d3e_pert3_elfd=1 if pert.i3pert == na+2 else 0,
                 d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
@@ -1218,10 +1247,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 d3e_pert2_phon = 1 if pert.i2pert <= na else 0,
                 d3e_pert3_phon = 1 if pert.i3pert <= na else 0,
                 d3e_pert1_atpol = atpol,
-                nqpt=1,  # One wavevector is to be considered
+                nqpt=1,         # One wavevector is to be considered
                 qpt=(0, 0, 0),  # q-wavevector.
-                optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
-                kptopt=2,  # Take into account time-reversal symmetry.
+                optdriver=5,    # non-linear response functions, using the 2n+1 theorem.
+                kptopt=2,       # Take into account time-reversal symmetry.
             )
 
             inp.pop_tolerances()

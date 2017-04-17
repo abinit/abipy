@@ -24,9 +24,10 @@ print(kpath)
 ebands = gsr_file.ebands
 
 xys = ebands.derivatives(spin=0, band=0, order=1)
-xys = ebands.derivatives(spin=0, band=1, order=1)
-xys = ebands.derivatives(spin=0, band=2, order=1)
-xys = ebands.derivatives(spin=0, band=3, order=1)
+print("xys\n", xys)
+#xys = ebands.derivatives(spin=0, band=1, order=1)
+#xys = ebands.derivatives(spin=0, band=2, order=1)
+#xys = ebands.derivatives(spin=0, band=3, order=1)
 
 #ebands.plot()
 
@@ -41,3 +42,5 @@ xys = ebands.derivatives(spin=0, band=3, order=1)
 
 #emasses = ebands.effective_masses(spin=0, band=4, acc=2)
 #print("emasses", emasses)
+
+gsr_file.close()

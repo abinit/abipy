@@ -24,49 +24,14 @@ class DenNcReader(ElectronsReader, DensityReader):
     """Object used to read data from DEN.nc files."""
 
 
-class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    Netcdf File containing the electronic density.
-
-    Usage example:
-
-    .. code-block:: python
-
-        with DensityNcFile("foo_DEN.nc") as ncfile:
-            ncfile.density
-            ncfile.ebands.plot()
+    Base class providing commong methods for files with densities/potentials
     """
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
-
-    def __init__(self, filepath):
-        super(DensityNcFile, self).__init__(filepath)
-        self.reader = DenNcReader(filepath)
-
-    def __str__(self):
-        """String representation."""
-        return self.to_string()
-
-    def to_string(self):
-        """Return string representation."""
-        lines = []; app = lines.append
-
-        app(marquee("File Info", mark="="))
-        app(self.filestat(as_string=True))
-        app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
-        app("")
-        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
-        app("XC functional: %s" % str(self.xc))
-
-        return "\n".join(lines)
-
-    @lazy_property
-    def density(self):
-        return self.reader.read_density()
 
     @lazy_property
     def ebands(self):
@@ -85,6 +50,52 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
 
     def close(self):
         self.reader.close()
+
+    def to_string(self, field=None, verbose=0):
+        """String representation."""
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+        app("")
+        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+        app("XC functional: %s" % str(self.xc))
+
+        # Add info on the field
+        if field is not None:
+            app(marquee(field.__class__.__name__, mark="="))
+            app(str(field))
+
+        return "\n".join(lines)
+
+
+class DensityNcFile(_NcFileWithField):
+    """
+    Netcdf File containing the electronic density.
+
+    Usage example:
+
+    .. code-block:: python
+
+        with DensityNcFile("foo_DEN.nc") as ncfile:
+            ncfile.density
+            ncfile.ebands.plot()
+    """
+
+    def __init__(self, filepath):
+        super(DensityNcFile, self).__init__(filepath)
+        self.reader = DenNcReader(filepath)
+
+    def __str__(self):
+        """String representation."""
+        return self.to_string(field=self.density)
+
+    @lazy_property
+    def density(self):
+        return self.reader.read_density()
 
     def write_chgcar(self, filename=None):
         """
@@ -120,8 +131,8 @@ class DensityNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         nb.cells.extend([
             nbv.new_code_cell("denc = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(denc)"),
-            nbv.new_code_cell("fig = denc.ebands.plot()"),
             nbv.new_code_cell("fig = denc.ebands.kpoints.plot()"),
+            nbv.new_code_cell("fig = denc.ebands.plot()"),
             nbv.new_code_cell("fig = denc.ebands.get_edos().plot()"),
             nbv.new_code_cell("#cube = denc.write_cube(filename=None)"),
             nbv.new_code_cell("#xsf_path = denc.write_xsf(filename=None"),

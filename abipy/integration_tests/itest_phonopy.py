@@ -37,7 +37,7 @@ def itest_phonopy_flow(fwp, tvars):
     assert len(phpy_work.phonopy_tasks) == len(phpy_work)
     assert len(phpy_work.phonopy_tasks) == 1
     assert len(phpy_work.bec_tasks) == 0
-    assert nptu.assert_equal(scdims, phpy_work.scdims)
+    nptu.assert_equal(scdims, phpy_work.scdims)
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()
@@ -86,7 +86,7 @@ def itest_phonopy_flow(fwp, tvars):
                                                          phonopy_kwargs=None, displ_kwargs=None)
     flow.register_work(grun_work)
     assert len(grun_work) == 3
-    assert nptu.assert_equal(scdims, grun_work.scdims)
+    nptu.assert_equal(scdims, grun_work.scdims)
 
     # Will remove output files (WFK)
     flow.set_garbage_collector()

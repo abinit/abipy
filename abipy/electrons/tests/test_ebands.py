@@ -348,7 +348,8 @@ class ElectronBandsTest(AbipyTest):
         """Testing computation of effective masses."""
         ebands = ElectronBands.from_file(abidata.ref_file("si_nscf_GSR.nc"))
 
-        # Hack eigens to simulate free-electron bands. This will produce all(effective masses == 1)
+        # Hack eigens to simulate free-electron bands.
+        # This should produce all(effective masses == 1)
         new_eigens = np.empty(ebands.shape)
         branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in ebands.kpoints])
         for spin in ebands.spins:
@@ -362,7 +363,8 @@ class ElectronBandsTest(AbipyTest):
         values = []
         for arr in effm_lines:
             values.extend(arr)
-        self.assertArrayAlmostEqual(np.array(values), 1.0)
+
+        self.assert_almost_equal(np.array(values), 1.0)
 
     def test_to_bxsf(self):
         """Testing Fermi surface exporter."""

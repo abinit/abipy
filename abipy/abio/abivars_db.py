@@ -153,6 +153,19 @@ class Variable(yaml.YAMLObject):
             ): return False
         return True
 
+    def depends_on_dimension(self, dimname):
+        """
+        True if variable is an array whose shape depends on dimension name `dimname`.
+
+        Args:
+            dimname: String of :class:`Variable` object.
+        """
+        if isinstance(dimname, Variable): dimname = dimname.varname
+        if not self.isarray: return False
+        # This test is not very robust and can fail.
+        if dimname in str(self.dimensions): return True
+        return False
+
 
 class ValueWithUnit(yaml.YAMLObject):
     yaml_tag = u'!valuewithunit'

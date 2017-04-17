@@ -37,6 +37,7 @@ class PhononBandsTest(AbipyTest):
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         phbands = PhononBands.from_file(filename)
         repr(phbands); str(phbands)
+
         assert phbands.to_string(title="Title", with_structure=False, with_qpoints=True, verbose=1)
         assert PhononBands.as_phbands(phbands) is phbands
         with self.assertRaises(TypeError):
@@ -141,10 +142,13 @@ class PhbstFileTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
             assert ncfile.phbands is not None
             for iq, qpt in enumerate(ncfile.qpoints):
+                assert hasattr(qpt, "frac_coords")
                 assert ncfile.qpoints[ncfile.qindex(qpt)] == qpt
                 ii = ncfile.qindex(qpt)
                 #print("iq", iq, "qpt", qpt, "ii", ii, "qpoints[ii]", ncfile.qpoints[ii])
-                #assert ii == iq
+                same_ii, same_qpt = ncfile.qindex_qpoint(ii)
+                assert same_ii == ii
+                assert qpt == same_qpt
 
             qpoint = ncfile.qpoints[0]
             frame = ncfile.get_phframe(qpoint)

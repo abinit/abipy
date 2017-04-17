@@ -3,10 +3,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import numpy as np
-
-from abipy.core.testing import *
-from abipy.dfpt.anaddbnc import AnaddbNcFile
 import abipy.data as abidata
+
+from abipy.core.testing import AbipyTest
+from abipy.dfpt.anaddbnc import AnaddbNcFile
 
 
 class AnaddbNcFileTest(AbipyTest):

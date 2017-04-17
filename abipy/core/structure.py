@@ -345,6 +345,19 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return structure_from_abivars(cls, *args, **kwargs)
 
+    def __mul__(self, scaling_matrix):
+        """
+        Makes a supercell. Allowing to have sites outside the unit cell
+        See pymatgen for docs.
+
+        Wraps __mul__ operator of pymatgen structure to return abipy structure
+        """
+        new = super(Structure, self).__mul__(scaling_matrix)
+        new.__class__ = self.__class__
+        return new
+
+    __rmul__ = __mul__
+
     def to_abivars(self, **kwargs):
         """Returns a dictionary with the ABINIT variables."""
         return structure_to_abivars(self, **kwargs)
@@ -923,7 +936,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         # Inspired from Exciting Fortran code phcell.F90
         # It should be possible to improve this code taking advantage of python !
-        scale_matrix = np.zeros((3,3),dtype=np.int)
+        scale_matrix = np.zeros((3, 3), dtype=np.int)
         dmin = np.inf
         found = False
 

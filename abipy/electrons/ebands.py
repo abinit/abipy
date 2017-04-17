@@ -1563,7 +1563,7 @@ class ElectronBands(Has_Structure):
         w("@link page off")
         w("@with g0")
         w("@world xmin 0.00")
-        w('@world xmax %d' % (self.nkpt-1))
+        w('@world xmax %d' % (self.nkpt - 1))
         w('@world ymin %s' % emef.min())
         w('@world ymax %s' % emef.max())
         w('@default linewidth 1.5')
@@ -1639,7 +1639,7 @@ class ElectronBands(Has_Structure):
 
         # Write BXSF file.
         with open(filepath, "wt") as fh:
-            bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs+1, emesh_sbk, self.fermie, unit="eV")
+            bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs + 1, emesh_sbk, self.fermie, unit="eV")
 
     def derivatives(self, spin, band, order=1, acc=4):
         """
@@ -1654,13 +1654,13 @@ class ElectronBands(Has_Structure):
         Returns:
         """
         if self.kpoints.is_path:
-            # Extract the branch.
-            branch = self.eigens[spin, :, band]
+            # Extract the energy branch.
+            ebranch = self.eigens[spin, :, band]
             # Simulate free-electron bands. This will produce all(effective masses == 1)
-            #branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in self.kpoints])
+            #ebranch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in self.kpoints])
 
             # Compute derivatives by finite differences.
-            ders_onlines = self.kpoints.finite_diff(branch, order=order, acc=acc)
+            ders_onlines = self.kpoints.finite_diff(ebranch, order=order, acc=acc)
             return ders_onlines
 
         else:
@@ -1672,7 +1672,7 @@ class ElectronBands(Has_Structure):
         Use finite difference with accuracy `acc`.
 
         Returns:
-            numpy array of size nkpt.
+            numpy array of size self.nkpt with effective masses.
         """
         ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
         return 1. / ders2
@@ -1691,7 +1691,7 @@ class ElectronBands(Has_Structure):
         Returns:
         """
         if not self.kpoints.is_path:
-            raise ValueError("effmass_line requires a k-path.")
+            raise ValueError("effmass_line requires points along a path.")
 
         # Find index associate to the k-point
         ik = self.kindex(kpoint)
@@ -1709,8 +1709,8 @@ class ElectronBands(Has_Structure):
         do_right = (not is_inside) and kpos != 0 and iline != len(self.kpoints.lines) - 1
 
         from abipy.tools.derivatives import finite_diff
-        vals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
-        d2line = finite_diff(vals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+        evals_on_line, h_left, vers_left = self._eigens_hvers_iline(spin, band, iline)
+        d2line = finite_diff(evals_on_line, h_left, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
         em_left = 1. / d2line[kpos]
         em_right = em_left
         h_right, vers_right = h_left, vers_left
@@ -1718,8 +1718,8 @@ class ElectronBands(Has_Structure):
         if do_right:
             kpos_right = self.kpoints.lines[iline+1].index(ik)
             assert kpos_right == 0
-            vals_on_line, h_right, vers_right = self._eigens_hvers_iline(spin, band, iline+1)
-            d2line = finite_diff(vals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
+            evals_on_line, h_right, vers_right = self._eigens_hvers_iline(spin, band, iline+1)
+            d2line = finite_diff(evals_on_line, h_right, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
             em_right = 1. / d2line[kpos_right]
 
         return EffectiveMassAlongLine(spin, self.kpoints[ik], band, self.eigens[spin, ik, band],
@@ -1728,12 +1728,14 @@ class ElectronBands(Has_Structure):
 
     def _eigens_hvers_iline(self, spin, band, iline):
         line = self.kpoints.lines[iline]
-        vals_on_line = self.eigens[spin, line, band]
+        evals_on_line = self.eigens[spin, line, band]
         h = self.kpoints.ds[line[0]]
+
         if not np.allclose(h, self.kpoints.ds[line[:-1]]):
             raise ValueError("For finite difference derivatives, the path must be homogeneous!\n" +
                              str(self.kpoints.ds[line[:-1]]))
-        return vals_on_line, h, self.kpoints.versors[line[0]]
+
+        return evals_on_line, h, self.kpoints.versors[line[0]]
 
     def interpolate(self, lpratio=5, vertices_names=None, line_density=20,
                     kmesh=None, is_shift=None, filter_params=None, verbose=0):
@@ -1775,7 +1777,7 @@ class ElectronBands(Has_Structure):
             msg = ("Ebands object does not have symmetry operations `spacegroup.symrel`\n"
                    "This usually happens when ebands has not been initalized from a netcdf file\n."
                    "Will call spglib to get symmetry operations.")
-            print(msg)
+            cprint(msg, "yellow")
             from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
             spglib_data = SpacegroupAnalyzer(self.structure).get_symmetry_dataset()
             fm_symrel = spglib_data["rotations"]
@@ -1793,6 +1795,7 @@ class ElectronBands(Has_Structure):
         # Generate k-points for interpolation.
         if vertices_names is None:
             vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+
         kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
         kfrac_coords, knames = kpath.frac_coords, kpath.names
 
@@ -1802,6 +1805,7 @@ class ElectronBands(Has_Structure):
         # Build new ebands object.
         kpts_kpath = Kpath(self.reciprocal_lattice, kfrac_coords, weights=None, names=knames)
         occfacts_kpath = np.zeros(eigens_kpath.shape)
+
         ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
                                       self.nelect, self.nspinor, self.nspden)
 
@@ -1817,6 +1821,7 @@ class ElectronBands(Has_Structure):
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights,
                                    names=None, ksampling=ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+
             ebands_kmesh = self.__class__(self.structure, kpts_kmesh, eigens_kmesh, self.fermie, occfacts_kmesh,
                                           self.nelect, self.nspinor, self.nspden)
 
@@ -1912,14 +1917,22 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def __repr__(self):
         """Invoked by repr"""
+        return self.to_string(func=repr)
+
+    def __str__(self):
+        """Invoked by str"""
+        return self.to_string(func=str)
+
+    def to_string(self, func=str):
+        """String representation."""
         lines = []
         app = lines.append
         for i, (label, ebands) in enumerate(self.ebands_dict.items()):
-            app("[%d] %s --> %s" % (i, label, repr(ebands)))
+            app("[%d] %s --> %s" % (i, label, func(ebands)))
 
         if self.edoses_dict:
             for i, (label, edos) in enumerate(self.edoses_dict.items()):
-                app("[%d] %s --> %s" % (i, label, repr(edos)))
+                app("[%d] %s --> %s" % (i, label, func(edos)))
 
         return "\n".join(lines)
 
