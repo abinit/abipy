@@ -185,8 +185,8 @@ class TestAbicomp(ScriptTest):
         #args = [os.path.join(dirpath, p) for p in ( "ZnSe_hex_qpt_DDB")]
         test_dir = os.path.join(os.path.dirname(__file__),  "..", 'test_files')
         args = [
-            os.path.join(abidata.dirpath, "refs", "znse_phonons","ZnSe_hex_qpt_DDB")
-            args[1] = os.path.join(test_dir, "AlAs_444_nobecs_DDB")
+            os.path.join(abidata.dirpath, "refs", "znse_phonons","ZnSe_hex_qpt_DDB"),
+            os.path.join(test_dir, "AlAs_444_nobecs_DDB"),
         ]
 
         r = env.run(self.script, "ddb", args[0], args[1], self.loglevel, self.verbose,

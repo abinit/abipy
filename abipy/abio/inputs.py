@@ -91,19 +91,13 @@ _IRDVARS = set([
     "ird1wf",
 ])
 
-
-#def change_varshape(varname, varvalues, from_structure, new_structure):
-#    from_natom, new_natom = len(from_structure), len(new_structure)
-#    numcells = (new_natom / from_natom)
-#    assert ncells >= 0
-#    #if ncelss == 1:
-#
-#    if varname == "spinat":
-#        # [3, natom]
-#        varvalues = np.reshape(varvalues, (-1, from_natom))
-#        return np.repeat(varvalues, numcells, axis=0)
+#def repeat_array(name, values, from_natom, numcells):
+#    if name in {"spinat",}:
+#        # [:, natom]
+#        values = np.reshape(values, (-1, from_natom))
+#        return np.repeat(values, numcells, axis=0)
 #    else:
-#        raise ValueError("Don't know how to change the shape of %s" % str(varname))
+#        raise ValueError("Don't know how to reallocate variable %s" % str(name))
 
 
 class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
@@ -894,9 +888,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         .. warning::
 
-            if `scdims` is None (i.e. no supercell), the two structures must have the same value of
+            If `scdims` is None (i.e. no supercell), the two structures must have the same value of
             `natom` and `typat`, they can only differ at the level of the lattice and of the atomic positions.
-            When structure represents a supercell, scdims must be coherent with the `new_structure` passed
+            When structure represents a supercell, `scdims` must be coherent with the `new_structure` passed
             as argument.
         """
         # Check structure
@@ -922,9 +916,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                     numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
 
-            if not np.array_equal(numcells * [site.specie.symbol for site in self.structure],
-                                  [site.specie.symbol for site in new_structure]):
-                raise ValueError("Wrong supercell")
+            expected_symbols = numcells * [site.specie.symbol for site in self.structure]
+            supcell_symbols = [site.specie.symbol for site in new_structure]
+            if not np.array_equal(expected_symbols, supcell_symbols):
+                msg = ("Wrong supercell. The routine assumes the atoms in the other cells have the\n"
+                       "same ordering as the atoms in the original cell.\n"
+                       "expected_symbols: %s\nsupercell_symbols: %s" % (str(expected_symbols), str(supcell_symbols))
+                       )
+                raise ValueError(msg)
             # TODO Check angles and lengths
 
         # Build new input
@@ -938,14 +937,6 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             # The method raises ValueError if an array that depends on `natom` is found and no handler is implemented.
             # It's better to raise an exception here than having a error when Abinit parses the input file!
 
-            #def change_shape(name, values, from_natom, numcells):
-            #    if name in {"spinat",}:
-            #        # [3, natom]
-            #        values = np.reshape(values, (-1, from_natom))
-            #        return np.repeat(values, numcells, axis=0)
-            #    else:
-            #        raise ValueError("Don't know how to change the shape of %s" % str(name))
-
             errors = []
             var_database = get_abinit_variables()
             for name in new:
@@ -955,7 +946,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                 if var.depends_on_dimension("natom"):
                     errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
-                    #self[name] = change_shape(name, self[name], len(inp.structure), new_structure)
+                    #new[name] = repeat_array(name, new[name], len(self.structure), numcells)
 
             if errors:
                 errmsg = ("\n".join(errors) +
