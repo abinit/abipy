@@ -119,6 +119,9 @@ def abifile_subclass_from_filename(filename):
     """
     Returns the appropriate class associated to the given filename.
     """
+    if os.path.basename(filename) == Flow.PICKLE_FNAME:
+        return Flow
+
     for ext, cls in ext2file.items():
         if filename.endswith(ext): return cls
 
@@ -177,6 +180,7 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
+    #print(filepath)
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 

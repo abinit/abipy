@@ -981,7 +981,8 @@ Specify the files to open. Possible choices:
         #if num_tasks == 1:
         #    p.join()
         #else:
-        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks, color="magenta", end="", flush=True)
+        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks,
+        #           color="magenta", end="", flush=True)
         #    try:
         #        p.join()
         #    except KeyboardInterrupt:

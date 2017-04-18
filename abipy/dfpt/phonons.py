@@ -1137,10 +1137,12 @@ class PhononBands(object):
         # Grid with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
+
+        fig = plt.figure()
         nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
         gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios if ncols == 2 else None,
                          wspace=0.05, hspace=0.1)
-        fig = plt.gcf()
+
         cmap = plt.get_cmap(colormap)
         qq = list(range(self.num_qpoints))
 
@@ -1244,6 +1246,7 @@ class PhononBands(object):
 
         if axlist is None:
             # Build axes and align bands and DOS.
+            fig = plt.figure()
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
@@ -1251,6 +1254,7 @@ class PhononBands(object):
         else:
             # Take them from axlist.
             ax1, ax2 = axlist
+            fig = plt.gcf()
 
         if not kwargs:
             kwargs = {"color": "black", "linewidth": 2.0}
@@ -1275,7 +1279,6 @@ class PhononBands(object):
         ax2.yaxis.set_ticks_position("right")
         #ax2.yaxis.set_label_position("right")
 
-        fig = plt.gcf()
         return fig
 
     def to_dataframe(self):
@@ -1662,10 +1665,10 @@ class PhononDos(Function1D):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
+        fig = plt.figure()
         gspec = GridSpec(2, 1, height_ratios=[1, 2], wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1])
-        fig = plt.gcf()
 
         for ax in (ax1, ax2):
             ax.grid(True)
@@ -2415,6 +2418,7 @@ class PhononBandsPlotter(NotebookWriter):
         from matplotlib.gridspec import GridSpec
 
         # Build grid of plots.
+        fig = plt.figure()
         if self.phdoses_dict:
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
@@ -2422,9 +2426,8 @@ class PhononBandsPlotter(NotebookWriter):
             # Align bands and DOS.
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             ax_list = [ax1, ax2]
-            fig = plt.gcf()
+
         else:
-            fig = plt.figure()
             ax1 = fig.add_subplot(111)
             ax_list = [ax1]
 

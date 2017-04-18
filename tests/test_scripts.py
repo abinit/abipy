@@ -34,7 +34,7 @@ class ScriptTest(AbipyTest):
     loglevel = "--loglevel=ERROR"
     verbose = "--verbose"
 
-    expect_stderr = True   # otherwise tests fail due to warnings and deprecation messages
+    expect_stderr = True   # else tests fail due to warnings and deprecation messages
 
     def get_env(self, check_help_version=True):
         #import tempfile
@@ -137,19 +137,19 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-    #def test_kmesh(self):
-    #    """Testing abistruct kmesh"""
-    #    env = self.get_env()
-    #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-    #    r = env.run(self.script, "kmesh", "--mesh=2 2 2 --shift=1 1 1 --no-time-reversal", ncfile,
-    #                expect_stderr=self.expect_stderr)
+    def test_kmesh(self):
+        """Testing abistruct kmesh"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        r = env.run(self.script, "kmesh", "--mesh", "2", "2", "2", "--is_shift", "1", "1", "1",
+                    "--no-time-reversal", ncfile, expect_stderr=self.expect_stderr)
 
-    #def test_lgk(self):
-    #    """Testing abistruct lgk"""
-    #    env = self.get_env()
-    #    ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-    #    r = env.run(self.script, "lgk", "-k 0 0 0 --no-time-reversal", ncfile,
-    #                expect_stderr=self.expect_stderr)
+    def test_lgk(self):
+        """Testing abistruct lgk"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        r = env.run(self.script, "lgk", "-k", "0", "0", "0", "--no-time-reversal", ncfile,
+                    expect_stderr=self.expect_stderr)
 
 
 class TestAbicomp(ScriptTest):
@@ -178,14 +178,19 @@ class TestAbicomp(ScriptTest):
                     expect_stderr=self.expect_stderr)
 
         #dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
-        #args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_886.out_PHDOS.nc", "ZnSe_hex_886.out_PHDOS.nc")]
-        #r = env.run(self.script, "phdos", *args, self.loglevel, self.verbose,
-        #            expect_stderr=self.expect_stderr)
+        args = abidata.ref_files("ZnSe_hex_886.out_PHDOS.nc", "trf2_5.out_PHDOS.nc")
+        r = env.run(self.script, "phdos", args[0], args[1], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
 
-        #dirpath = os.path.join(abidata.dirpath, "refs", "znse_phonons")
-        #args = [os.path.join(dirpath, p) for p in ("ZnSe_hex_qpt_DDB", "ZnSe_hex_qpt_DDB")]
-        #r = env.run(self.script, "ddb", *args, self.loglevel, self.verbose,
-        #            expect_stderr=self.expect_stderr)
+        #args = [os.path.join(dirpath, p) for p in ( "ZnSe_hex_qpt_DDB")]
+        test_dir = os.path.join(os.path.dirname(__file__),  "..", 'test_files')
+        args = [
+            os.path.join(abidata.dirpath, "refs", "znse_phonons","ZnSe_hex_qpt_DDB")
+            args[1] = os.path.join(test_dir, "AlAs_444_nobecs_DDB")
+        ]
+
+        r = env.run(self.script, "ddb", args[0], args[1], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
 
         args = abidata.ref_files("si_g0w0ppm_nband10_SIGRES.nc",
                                  "si_g0w0ppm_nband20_SIGRES.nc",
@@ -197,9 +202,10 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "mdf", args[0], args[1], args[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-       # args = abidata.ref_files()
-       # r = env.run(self.script, "gs_scf", *args, self.loglevel, self.verbose,
-       #             expect_stderr=self.expect_stderr)
+        # TODO
+        # args = abidata.ref_files()
+        # r = env.run(self.script, "gs_scf", *args, self.loglevel, self.verbose,
+        #             expect_stderr=self.expect_stderr)
 
         #args = abidata.ref_files()
         #r = env.run(self.script, "dfpt2_scf", *args, self.loglevel, self.verbose,

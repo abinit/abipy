@@ -1490,6 +1490,7 @@ class ElectronBands(Has_Structure):
 
         if axlist is None:
             # Build axes and align bands and DOS.
+            fig = plt.figure()
             gspec = GridSpec(1, 2, width_ratios=[2, 1])
             gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
@@ -1497,6 +1498,7 @@ class ElectronBands(Has_Structure):
         else:
             # Take them from axlist.
             ax1, ax2 = axlist
+            fig = plt.gcf()
 
         # Define the zero of energy.
         e0 = self.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
@@ -1531,7 +1533,7 @@ class ElectronBands(Has_Structure):
         ax2.yaxis.set_label_position("right")
         set_axlims(ax2, ylims, "y")
 
-        fig = plt.gcf()
+
         return fig
 
     def to_xmgrace(self, filepath):
@@ -2034,6 +2036,8 @@ class ElectronBandsPlotter(NotebookWriter):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
+        fig = plt.figure()
+
         if self.edoses_dict:
             # Build grid with two axes.
             gspec = GridSpec(1, 2, width_ratios=width_ratios)
@@ -2042,10 +2046,8 @@ class ElectronBandsPlotter(NotebookWriter):
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             ax_list = [ax1, ax2]
-            fig = plt.gcf()
         else:
             # One axis for bands only
-            fig = plt.figure()
             ax1 = fig.add_subplot(111)
             ax_list = [ax1]
 
@@ -2718,6 +2720,7 @@ class ElectronDos(object):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
+        fig = plt.figure()
         gspec = GridSpec(2, 1, height_ratios=height_ratios)
         gspec.update(wspace=0.05)
         ax1 = plt.subplot(gspec[0])
@@ -2742,7 +2745,6 @@ class ElectronDos(object):
             self.plot_ax(ax1, e0, spin=spin, what="i", **opts)
             self.plot_ax(ax2, e0, spin=spin, what="d", **opts)
 
-        fig = plt.gcf()
         return fig
 
     @add_fig_kwargs

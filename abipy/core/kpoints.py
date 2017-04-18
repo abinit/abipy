@@ -810,7 +810,9 @@ class KpointList(collections.Sequence):
 
     @property
     def frac_coords(self):
-        """Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)"""
+        """
+        Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)
+        """
         return self._frac_coords
 
     @property

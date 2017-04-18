@@ -6,6 +6,7 @@ import os
 import six
 import abc
 import shutil
+import warnings
 import abipy.data as abidata
 
 
@@ -14,7 +15,7 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
     def __init__(self, **kwargs):
         mode = kwargs.get("mode")
         if mode is None: return
-            
+
     @abc.abstractproperty
     def abipy_string(self):
         """the abipy lesson."""
@@ -84,8 +85,13 @@ class BaseLesson(six.with_metaclass(abc.ABCMeta, object)):
 
     def _repr_html_(self):
         """Support for ipython notebooks."""
-        from docutils.core import publish_string
-        return publish_string(self.abipy_string, writer_name="html")
+        try:
+            from docutils.core import publish_string
+            return publish_string(self.abipy_string, writer_name="html")
+        except ImportError:
+            import warnings
+            warnings.warn("docutils is not available. Returning raw string")
+            return self.abipy_string
 
     @staticmethod
     def docvar(varname):
