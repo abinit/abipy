@@ -13,8 +13,10 @@ from pprint import pprint
 from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
+from monty.dev import deprecated
 from monty.functools import lazy_property
 from monty.string import is_string
+from monty.termcolor import cprint
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -540,7 +542,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, spgdata=spgdata)
 
-    def spglib_summary(self, verbose=0):
+    def spget_summary(self, verbose=0):
         """
         Return string with full information about crystalline structure i.e.
         space group, point group, wyckoff positions, equivalent sites.
@@ -592,6 +594,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return "\n".join(outs)
 
+    @deprecated(message="spglib_summary method has been replaced by spget_summary. It will be removed in 0.4")
+    def spglib_summary(self, verbose=0):
+        return self.spget_summary(verbose=verbose)
+
     @property
     def abi_spacegroup(self):
         """
@@ -612,6 +618,43 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def has_abi_spacegroup(self):
         """True is the structure contains info on the spacegroup."""
         return self.abi_spacegroup is not None
+
+    def spgset_abi_spacegroup(self, has_timerev, overwrite=False):
+        """
+        Call spglib to find the spacegroup of the crystal, create new
+        `AbinitSpaceGroup` object and store it in `self.abi_spacegroup`.
+
+        Args:
+            has_timerev: True if time-reversal can be used.
+            overwrite: By default, the method raises `ValueError` if the object
+                already has the list of symmetries found by Abinit.
+
+        Returns:
+            `AbinitSpaceGroup`
+
+        .. warning:
+
+            This method should be called only if the Abipy structure does not have
+            spacegroup symmetries e.g. if we are reading a CIF file or if the structure
+            is initialized from an output file produced by another code.
+        """
+        if self.has_abi_spacegroup and not overwrite:
+            raise ValueError(("Structure object already has an Abinit spacegroup object.\n"
+                              "Use `overwrite=True` to allow modification."))
+
+        msg = ("Structure object does not have symmetry operations computed from Abinit.\n"
+               "Will call spglib to get symmetry operations.")
+        cprint(msg, "magenta")
+
+        spglib_data = SpacegroupAnalyzer(self).get_symmetry_dataset()
+        spgid = spglib_data["number"]
+        symrel, tnons = spglib_data["rotations"], spglib_data["translations"]
+        symafm = [1] * len(symrel)  # TODO: Anti-ferromagnetic symmetries are not supported by spglib
+
+        abispg = AbinitSpaceGroup(spgid, symrel, tnons, symafm, has_timerev, inord="C")
+        self.set_abi_spacegroup(abispg)
+
+        return abispg
 
     @lazy_property
     def hsym_kpath(self):

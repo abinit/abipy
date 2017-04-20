@@ -61,6 +61,9 @@ class TestAbinitInput(AbipyTest):
         inp["ecut" ] = 1
         assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
 
+        # Default is kptopt 1
+        assert inp.uses_ktimereversal
+
         assert inp.mnemonics == False
         inp.set_mnemonics(True)
         assert inp.mnemonics == True
@@ -68,6 +71,7 @@ class TestAbinitInput(AbipyTest):
         # Test to_string
         assert inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
         assert inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
 
         inp.set_vars(ecut=5, toldfe=1e-6)
         assert inp["ecut"] == 5
@@ -159,6 +163,7 @@ class TestAbinitInput(AbipyTest):
 
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
+        assert inp.uses_ktimereversal
 
         inp.set_autokmesh(nksmall=2)
         assert inp["kptopt"] == 1 and np.all(inp["ngkpt"] == [2, 2, 2]) and inp["nshiftk"] == 4
@@ -180,8 +185,11 @@ class TestAbinitInput(AbipyTest):
 
         prod_inps = inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
         assert len(prod_inps) == 6
-        assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
-        assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
+        assert prod_inps[0]["ngkpt"] == [2, 2, 2] and prod_inps[0]["tsmear"] == 0.1
+        assert prod_inps[-1]["ngkpt"] ==  [4, 4, 4] and prod_inps[-1]["tsmear"] == 0.3
+
+        inp["kptopt"] = 4
+        assert not inp.uses_ktimereversal
 
     # TODO
     def test_new_with_structure(self):
@@ -228,7 +236,6 @@ class TestAbinitInput(AbipyTest):
 
         #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
         #self.abivalidate_input(new_inp)
-
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""

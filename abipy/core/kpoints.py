@@ -273,8 +273,9 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
 
 def has_timrev_from_kptopt(kptopt):
     """
-    True if time-reversal symmetry can be used in the generation of the k-points in the IBZ.
+    True if time-reversal symmetry can be used to generate k-points in the IBZ.
     """
+    # note: We assume TR if negative value i.e. band structure k-sampling.
     kptopt = int(kptopt)
     return False if kptopt in (3, 4) else True
 

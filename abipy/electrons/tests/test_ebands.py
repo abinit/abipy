@@ -135,11 +135,22 @@ class ElectronBandsTest(AbipyTest):
         assert pmg_bands_kpath.is_spin_polarized
         assert pmg_bands_kpath.is_metal()
 
+        # Test Pymatgen --> Abipy converter.
+        same_ekpath = ElectronBands.from_pymatgen(pmg_bands_kpath, ni_ebands_kpath.nelect)
+        repr(same_ekpath); str(same_ekpath)
+        self.assert_equal(same_ekpath.eigens, ni_ebands_kpath.eigens)
+        assert same_ekpath.fermie == ni_ebands_kpath.fermie
+
         pmg_bands_kmesh = ni_ebands_kmesh.to_pymatgen()
         #assert hasattr(pmg_bands_kmesh, "get_branch")   # Should be BandStructure
         assert pmg_bands_kmesh.efermi == ni_ebands_kmesh.fermie
         assert pmg_bands_kmesh.is_spin_polarized
         assert pmg_bands_kmesh.is_metal()
+
+        # Test Pymatgen --> Abipy converter.
+        same_ekmesh = ElectronBands.from_pymatgen(pmg_bands_kmesh, ni_ebands_kmesh.nelect)
+        self.assert_equal(same_ekmesh.eigens, ni_ebands_kmesh.eigens)
+        assert same_ekmesh.fermie == ni_ebands_kmesh.fermie
 
     def test_silicon_ebands(self):
         """Testing electron bands with nsppol == 1"""
@@ -175,7 +186,7 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.stdev, 2.164400652355628)
         self.assert_almost_equal(estats.min, 0)
         self.assert_almost_equal(estats.max, 11.855874158768694)
-        str(estats)
+        repr(estats); str(estats)
 
         with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
@@ -237,6 +248,16 @@ class ElectronBandsTest(AbipyTest):
 
         # Test Abipy --> Pymatgen converter.
         pmg_bands_kmesh = si_ebands_kmesh.to_pymatgen()
+        assert pmg_bands_kmesh.efermi == si_ebands_kmesh.fermie
+        assert not pmg_bands_kmesh.is_spin_polarized
+        #assert not pmg_bands_kmesh.is_metal()
+
+        # Test Pymatgen --> Abipy converter.
+        same_ekmesh = ElectronBands.from_pymatgen(pmg_bands_kmesh, si_ebands_kmesh.nelect)
+        repr(same_ekmesh); str(same_ekmesh)
+        self.assert_equal(same_ekmesh.eigens, si_ebands_kmesh.eigens)
+        assert same_ekmesh.fermie == si_ebands_kmesh.fermie
+        assert len(same_ekmesh.kpoints) == len(pmg_bands_kmesh.kpoints)
 
         # Test JDOS methods.
         spin = 0

@@ -8,7 +8,7 @@ import numpy as np
 import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader,
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader, has_timrev_from_kptopt,
     KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz, set_atol_kdiff, set_spglib_tols)
 from abipy.core.testing import AbipyTest
 
@@ -48,6 +48,12 @@ class TestHelperFunctions(AbipyTest):
         a[1, 2] = atol
         assert is_diagonal(a, atol=atol)
         assert not is_diagonal(a, atol=atol / 2)
+
+    def test_has_timrev_from_kptopt(self):
+        """Testing has_timrev_from_kptopt."""
+        assert has_timrev_from_kptopt(1)
+        assert not has_timrev_from_kptopt(4)
+        assert has_timrev_from_kptopt(-7)
 
 
 class TestKpoint(AbipyTest):

@@ -561,9 +561,9 @@ class ElectronBands(Has_Structure):
     @lazy_property
     def kptopt(self):
         """The value of the kptopt input variable."""
-        if hasattr(self, "kpoints.ksampling.kptopt"):
+        try:
             return self.kpoints.ksampling.kptopt
-        else:
+        except AttributeError:
             cprint("ebands.kpoints.ksampling.kptopt is not defined, assuming kptopt = 1", "red")
             return 1
 
@@ -804,17 +804,108 @@ class ElectronBands(Has_Structure):
 
         return fig
 
-    def to_pymatgen(self):
+    @classmethod
+    def from_pymatgen(cls, pmg_bands, nelect, weights=None, has_timerev=True,
+                      ksampling=None, smearing=None, nspinor=1, nspden=None):
         """
-        Return a pymatgen bandstructure object.
+        Convert a pymatgen bandstructure object to an Abipy ElectronBands object.
+
+        Args:
+            pmg_bands: pymatgen bandstructure object.
+            nelect: Number of electrons in unit cell.
+            weights: List of K-points weights (normalized to one, same order as pmg_bands.kpoints).
+                This argument is optional but recommended when `pmg_bands` represents an IBZ sampling.
+                If weights are not provided, Abipy methods requiring integrations in the BZ won't work.
+            has_timerev: True if time-reversal symmetry can be used.
+            ksampling: dictionary with parameters passed to :class:`KSamplingInfo` defining the k-points sampling.
+                If None, hard-coded values are used. This argument is recommended if IBZ sampling.
+            smearing: dictionary with parameters passed to :class:`Smearing`
+                If None, default hard-coded values are used.
+            nspinor: Number of spinor components.
+            nspden: Number of independent spin-density components.
+                If None, nspden is automatically computed from nsppol
+
+        .. warning::
+
+            The Abipy bandstructure contains more information than the pymatgen object so
+            the conversion is not complete, especially if you rely on the default values.
+            Please read the docstring and the code carefully and use the optional arguments to pass
+            additional data required by Abipy if you need a complete conversion.
         """
         from pymatgen.electronic_structure.core import Spin
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
-        assert np.all(self.nband_sk == self.nband_sk[0,0])
+        # Cast to abipy structure and call spglib to init AbinitSpaceGroup.
+        abipy_structure= Structure.as_structure(pmg_bands.structure.copy())
+        if not abipy_structure.has_abi_spacegroup:
+            abipy_structure.spgset_abi_spacegroup(has_timerev)
+
+        # Get dimensions.
+        nsppol = 2 if pmg_bands.is_spin_polarized else 1
+        if nspden is None:
+            if nspinor == 1: nspden = nsppol
+            if nspinor == 2: nspden = 4
+        nkpt = len(pmg_bands.kpoints)
+
+        if smearing is None:
+            smearing = Smearing(scheme=None, occopt=1, tsmear_ev=0.0)
+        else:
+            if not isinstance(smearing, Smearing):
+                smearing = Smearing(**smearing)
+
+        if ksampling is None:
+            ksampling = KSamplingInfo(
+                mpdivs=None,
+                kptrlatt=None,
+                kptrlatt_orig=None,
+                shifts=None,
+                shifts_orig=None,
+                kptopt=1,
+            )
+        else:
+            if not isinstance(ksampling, KSamplingInfo):
+                ksampling = KSamplingInfo(**ksampling)
+
+        # Build numpy array with eigenvalues.
+        abipy_eigens = np.empty((nsppol, nkpt, pmg_bands.nb_bands))
+        abipy_eigens[0] = np.array(pmg_bands.bands[Spin.up]).T.copy()
+        if nsppol == 2:
+            abipy_eigens[1] = np.array(pmg_bands.bands[Spin.down]).T.copy()
+
+        # Compute occupation factors. Note that pmg bands don't have occfact so
+        # I have to compute them from the eigens assuming T=0)
+        atol = 1e-4
+        abipy_occfacts = np.where(abipy_eigens <= pmg_bands.efermi + atol, 1, 0)
+        if nsppol == 1: abipy_occfacts *= 2
+
+        reciprocal_lattice = pmg_bands.structure.lattice.reciprocal_lattice
+        frac_coords = np.array([k.frac_coords for k in pmg_bands.kpoints])
+
+        if isinstance(pmg_bands, BandStructureSymmLine):
+            abipy_kpoints = Kpath(reciprocal_lattice, frac_coords,
+                                  weights=weights, names=None, ksampling=ksampling)
+
+        elif isinstance(pmg_bands, BandStructure):
+            abipy_kpoints = IrredZone(reciprocal_lattice, frac_coords,
+                                      weights=weights, names=None, ksampling=ksampling)
+
+        else:
+            raise TypeError("Don't know how to handle type: %s" % type(pmg_bands))
+
+        return cls(abipy_structure, abipy_kpoints, abipy_eigens, pmg_bands.efermi, abipy_occfacts,
+                   nelect, nspinor, nspden, smearing=smearing)
+
+    def to_pymatgen(self):
+        """
+        Return a pymatgen bandstructure object from an Abipt :class:`ElectronBands` object.
+        """
+        from pymatgen.electronic_structure.core import Spin
+        from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
+
+        assert np.all(self.nband_sk == self.nband_sk[0, 0])
 
         # eigenvals is a dict of energies for spin up and spin down
-        # {Spin.up:[][],Spin.down:[][]}, the first index of the array
+        # {Spin.up:[][], Spin.down:[][]}, the first index of the array
         # [][] refers to the band and the second to the index of the
         # kpoint. The kpoints are ordered according to the order of the
         # kpoints array. If the band structure is not spin polarized, we
@@ -1519,7 +1610,8 @@ class ElectronBands(Has_Structure):
 
         # Plot the DOS
         if self.nsppol == 1:
-            edos.plot_ax(ax2, e0, exchange_xy=True, **kwargs)
+            opts = {"color": "black", "linewidth": 2.0}
+            edos.plot_ax(ax2, e0, exchange_xy=True, **opts)
         else:
             for spin in self.spins:
                 if spin == 0:
@@ -1743,7 +1835,7 @@ class ElectronBands(Has_Structure):
                     kmesh=None, is_shift=None, filter_params=None, verbose=0):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
-        Note that the interpolation will likely fail if there are symmetrical k-points in the input sampling
+        Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
         so it's recommended to call this method with band structure obtained in the IBZ.
 
         Args:
@@ -1768,7 +1860,7 @@ class ElectronBands(Has_Structure):
 
             ebands_kpath: :class:`ElectronBands` with the interpolated band structure on the k-path.
             ebands_kmesh: :class:`ElectronBands` with the interpolated band structure on the k-mesh.
-                None if kmesh is not given.
+                None if `kmesh` is not given.
             interpolator: :class:`SkwInterpolator` object.
         """
         # Get symmetries from abinit spacegroup (read from file).
@@ -1776,6 +1868,7 @@ class ElectronBands(Has_Structure):
         if abispg is not None:
             fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
         else:
+            #abispg = self.structure.spgset_abi_spacegroup(has_timrev=self.has_timrev)
             msg = ("Ebands object does not have symmetry operations `spacegroup.symrel`\n"
                    "This usually happens when ebands has not been initalized from a netcdf file\n."
                    "Will call spglib to get symmetry operations.")
@@ -1819,7 +1912,7 @@ class ElectronBands(Has_Structure):
 
             # Build new ebands object with k-mesh
             #kptopt = kptopt_from_timrev()
-            ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0,0,0], kptopt=1)
+            ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0, 0, 0], kptopt=1)
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, kdos.ibz, weights=kdos.weights,
                                    names=None, ksampling=ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)

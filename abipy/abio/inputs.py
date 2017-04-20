@@ -22,6 +22,7 @@ from pymatgen.core.units import Energy
 from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
+from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.htc.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
@@ -91,7 +92,9 @@ _IRDVARS = set([
     "ird1wf",
 ])
 
-#def repeat_array(name, values, from_natom, numcells):
+# FIXME __mul__ operator in pymatgen should allow for grouping atoms by individual cells
+# The present version group by image.
+#def _repeat_array(name, values, from_natom, numcells):
 #    if name in {"spinat",}:
 #        # [:, natom]
 #        values = np.reshape(values, (-1, from_natom))
@@ -254,9 +257,6 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by `AbinitInput`"""
 
-
-# TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries
-#       Very important especially when we have to select the value of kptopt
 
 class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_Structure, object)):
     """
@@ -496,6 +496,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except AttributeError:
             return False
 
+    @property
+    def uses_ktimereversal(self):
+        """
+        True if time-reversal symmetry is used to generate k-points in the IBZ.
+        """
+        return has_timrev_from_kptopt(self.get("kptopt", 1))
+
     def set_spell_check(self, false_or_true):
         """Activate/Deactivate spell-checking"""
         self._spell_check = bool(false_or_true)
@@ -505,7 +512,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """True if spell checking is activated."""
         try:
             return self._spell_check
-        except AttributeError: # TODO: This is to maintain compatibility with pickle
+        except AttributeError:  # TODO: This is to maintain compatibility with pickle
             return False
 
     def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
@@ -513,7 +520,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         String representation.
 
         Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanted
+            sortmode: "section" if variables should be gruped by sections.
+                "a" for alphabetical order, None if no sorting is wanted.
             with_mnemonics: True if mnemonics should be added.
             post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
@@ -946,7 +954,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                 if var.depends_on_dimension("natom"):
                     errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
-                    #new[name] = repeat_array(name, new[name], len(self.structure), numcells)
+                    #new[name] = _repeat_array(name, new[name], len(self.structure), numcells)
 
             if errors:
                 errmsg = ("\n".join(errors) +
@@ -1099,7 +1107,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Call Abinit to get the list of irred perts.
         #perts = self.abiget_irred_phperts(qpt=qpt)
         # TODO Add symmetries
-        ddk_rfdirs = [(1,0,0), (0,1,0), (0,0,1)]
+        ddk_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
         # Build list of datasets (one input per perturbation)
         ddk_inputs = MultiDataset.replicate_input(input=self, ndtset=len(ddk_rfdirs))

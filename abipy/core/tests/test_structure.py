@@ -47,6 +47,11 @@ class TestStructure(AbipyTest):
         assert si.formula == "Si2"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
 
+        spgroup = si.spgset_abi_spacegroup(has_timerev=True)
+        assert spgroup is not None
+        assert si.has_abi_spacegroup
+        assert si.abi_spacegroup.spgid == 227
+
         with self.assertRaises(TypeError):
             Structure.as_structure({})
         with self.assertRaises(TypeError):
@@ -55,6 +60,12 @@ class TestStructure(AbipyTest):
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
 
+        assert si_wfk.has_abi_spacegroup
+        # Cannot change spacegroup
+        with self.assertRaises(ValueError):
+            si_wfk.spgset_abi_spacegroup(has_timerev=True)
+
+        # TODO: Fix order of atoms in supercells.
         # Test __mul__, __rmul__ (should return Abipy structures)
         assert si_wfk == 1 * si_wfk
         supcell = si_wfk * [2, 2, 2]
