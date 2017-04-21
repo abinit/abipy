@@ -107,6 +107,24 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(ValueError):
             ni_ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
+        # Interpolation
+        r = ni_ebands_kmesh.interpolate(lpratio=10, kmesh=[8, 8, 8], verbose=1)
+
+        assert r.ebands_kpath is not None
+        assert r.ebands_kpath.kpoints.is_path
+        assert not r.ebands_kpath.kpoints.is_ibz
+        mpdivs, shifts = r.ebands_kpath.kpoints.mpdivs_shifts
+        assert mpdivs is None and shifts is None
+
+        assert r.ebands_kmesh is not None
+        assert r.ebands_kmesh.kpoints.is_ibz
+        assert not r.ebands_kmesh.kpoints.is_path
+        assert r.ebands_kmesh.kpoints.ksampling is not None
+        assert r.ebands_kmesh.kpoints.is_mpmesh
+        mpdivs, shifts = r.ebands_kmesh.kpoints.mpdivs_shifts
+        self.assert_equal(mpdivs, [8, 8, 8])
+        self.assert_equal(shifts.flatten(), [0, 0, 0])
+
         # Test plot methods
         if self.has_matplotlib():
             elims = [-10, 2]
@@ -335,12 +353,11 @@ class ElectronBandsTest(AbipyTest):
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
-        if sys.version[0:3] >= '3.4':
-            raise unittest.SkipTest(
-                "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
-             )
+        #if sys.version[0:3] >= '3.4':
+        #    raise unittest.SkipTest(
+        #        "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
+        #     )
 
-        # TODO: interpolation with nsppol 2
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
         # Test interpolation.

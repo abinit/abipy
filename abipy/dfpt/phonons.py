@@ -2565,6 +2565,77 @@ class PhononBandsPlotter(NotebookWriter):
 
         return fig
 
+    def animate(self, interval=250, savefile=None, units="eV", width_ratios=(2, 1), show=True):
+        """
+        Use matplotlib to animate a list of band structure plots (with or without DOS).
+
+        Args:
+            interval: draws a new frame every interval milliseconds.
+            savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+                Used when there are DOS stored in the plotter.
+            show: True if the animation should be shown immediately
+
+        Returns:
+            Animation object.
+
+        See also:
+            http://matplotlib.org/api/animation_api.html
+            http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+
+        Note:
+            It would be nice to animate the title of the plot, unfortunately
+            this feature is not available in the present version of matplotlib.
+            See: http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
+        """
+        phbands_list, phdos_list = self.phbands_list, self.phdoses_list
+        if phdos_list and len(phdos_list) != len(phbands_list):
+            raise ValueError("The number of objects for DOS must be equal to the number of bands")
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        plotax_kwargs = {"color": "black", "linewidth": 2.0}
+
+        artists = []
+        if not phdos_list:
+            # Animation with band structures
+            ax = fig.add_subplot(1, 1, 1)
+            phbands_list[0].decorate_ax(ax, units=units)
+            for i, phbands in enumerate(phbands_list):
+                lines = phbands.plot_ax(ax=ax, branch=None, units=units, **plotax_kwargs)
+                #if titles is not None: lines += [ax.set_title(titles[i])]
+                artists.append(lines)
+        else:
+            # Animation with band structures + DOS.
+            from matplotlib.gridspec import GridSpec
+            gspec = GridSpec(1, 2, width_ratios=width_ratios)
+            gspec.update(wspace=0.05)
+            ax1 = plt.subplot(gspec[0])
+            ax2 = plt.subplot(gspec[1], sharey=ax1)
+            phbands_list[0].decorate_ax(ax1)
+            ax2.grid(True)
+            ax2.yaxis.set_ticks_position("right")
+            ax2.yaxis.set_label_position("right")
+
+            for i, (phbands, phdos) in enumerate(zip(phbands_list, phdos_list)):
+                phbands_lines = phbands.plot_ax(ax=ax1, branch=None, units=units, **plotax_kwargs)
+                phdos_lines = phdos.plot_dos_idos(ax=ax2, units=units, exchange_xy=True, **plotax_kwargs)
+                lines = phbands_lines + phdos_lines
+                #if titles is not None: lines += [ax.set_title(titles[i])]
+                artists.append(lines)
+
+        import matplotlib.animation as animation
+        anim = animation.ArtistAnimation(fig, artists, interval=interval,
+                                         blit=False, # True is faster but then the movie starts with an empty frame!
+                                         #repeat_delay=1000
+                                         )
+
+        if savefile is not None: anim.save(savefile)
+        if show: plt.show()
+
+        return anim
+
     def ipw_select_plot(self):
         """
         Return an ipython widget with controllers to select the plot.

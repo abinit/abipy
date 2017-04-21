@@ -195,6 +195,7 @@ class PhononBandsPlotterTest(AbipyTest):
             assert plotter.gridplot(units="meV", show=True)
             assert plotter.boxplot(units="cm-1", show=True)
             assert plotter.combiboxplot(units="Thz", show=True)
+            assert plotter.animate(show=False)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))

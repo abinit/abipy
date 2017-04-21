@@ -1865,17 +1865,10 @@ class ElectronBands(Has_Structure):
         """
         # Get symmetries from abinit spacegroup (read from file).
         abispg = self.structure.abi_spacegroup
-        if abispg is not None:
-            fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
-        else:
-            #abispg = self.structure.spgset_abi_spacegroup(has_timrev=self.has_timrev)
-            msg = ("Ebands object does not have symmetry operations `spacegroup.symrel`\n"
-                   "This usually happens when ebands has not been initalized from a netcdf file\n."
-                   "Will call spglib to get symmetry operations.")
-            cprint(msg, "yellow")
-            from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-            spglib_data = SpacegroupAnalyzer(self.structure).get_symmetry_dataset()
-            fm_symrel = spglib_data["rotations"]
+        if abispg is None:
+            abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
+
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
         # Build interpolator.
         from abipy.core.skw import SkwInterpolator
@@ -2121,7 +2114,7 @@ class ElectronBandsPlotter(NotebookWriter):
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-                Used when DOS are stored in the plotter.
+                Used when there are DOS stored in the plotter.
 
         Returns:
             matplotlib figure.
@@ -2361,7 +2354,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    def animate(self, e0="fermie", interval=250, savefile=None, show=True):
+    def animate(self, e0="fermie", interval=250, savefile=None, width_ratios=(2, 1), show=True):
         """
         Use matplotlib to animate a list of band structure plots (with or without DOS).
 
@@ -2376,18 +2369,21 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
             interval: draws a new frame every interval milliseconds.
             savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+                Used when there are DOS stored in the plotter.
             show: True if the animation should be shown immediately
 
         Returns:
             Animation object.
 
-        See also http://matplotlib.org/api/animation_api.html
-                 http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+        See also:
+            http://matplotlib.org/api/animation_api.html
+            http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
 
         Note:
-            It would be nice to have the possibility of animating the title of the plot, unfortunately
-            this feature is not available in the present version of matplotlib. See
-            http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
+            It would be nice to animate the title of the plot, unfortunately
+            this feature is not available in the present version of matplotlib.
+            See: http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
         """
         ebands_list, edos_list = self.ebands_list, self.edoses_list
         if edos_list and len(edos_list) != len(ebands_list):
@@ -2404,13 +2400,12 @@ class ElectronBandsPlotter(NotebookWriter):
             ebands_list[0].decorate_ax(ax)
             for i, ebands in enumerate(ebands_list):
                 lines = ebands.plot_ax(ax, e0, **plotax_kwargs)
-                #if titles is not None:
-                #    lines += [ax.set_title(titles[i])]
+                #if titles is not None: lines += [ax.set_title(titles[i])]
                 artists.append(lines)
         else:
             # Animation with band structures + DOS.
             from matplotlib.gridspec import GridSpec
-            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec = GridSpec(1, 2, width_ratios=width_ratios)
             gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2425,8 +2420,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 ebands_lines = ebands.plot_ax(ax1, mye0, **plotax_kwargs)
                 edos_lines = edos.plot_ax(ax2, mye0, exchange_xy=True, **plotax_kwargs)
                 lines = ebands_lines + edos_lines
-                #if titles is not None:
-                #    lines += [ax.set_title(titles[i])]
+                #if titles is not None: lines += [ax.set_title(titles[i])]
                 artists.append(lines)
 
         import matplotlib.animation as animation
@@ -2437,6 +2431,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         if savefile is not None: anim.save(savefile)
         if show: plt.show()
+
         return anim
 
     def ipw_select_plot(self):
@@ -3061,16 +3056,6 @@ class ElectronDosPlotter(NotebookWriter):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
-
-    #def animate(self, **kwargs):
-    #    animator = Animator()
-    #    import tempfile
-    #    tmpdir = tempfile.mkdtemp()
-    #    for (label, dos) in self.edoses_dict.items():
-    #        savefig = os.path.join(tmpdir, label + ".png")
-    #        dos.plot(show=False, savefig=savefig)
-    #        animator.add_figure(label, savefig)
-    #    return animator.animate(**kwargs)
 
     def _can_use_basenames_as_labels(self):
         """
