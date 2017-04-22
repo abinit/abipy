@@ -1926,7 +1926,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_pjdos_symbol_dict()
 
     @add_fig_kwargs
-    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, ax=None, **kwargs):
+    def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
+                        ax=None, xlims=None, ylims=None, **kwargs):
         """
         Plot type-projected phonon DOS.
 
@@ -1938,6 +1939,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: y-axis limits.
 
         Returns:
             matplotlib figure.
@@ -1949,8 +1953,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         cmap = plt.get_cmap(colormap)
 
         ax.grid(True)
-        set_axlims(ax, kwargs.pop("xlims", None), "x")
-        set_axlims(ax, kwargs.pop("ylims", None), "y")
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
         ax.set_xlabel('Frequency %s' % _unit_tag(units))
         ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
 
@@ -1976,7 +1980,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, axlist=None, **kwargs):
+    def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
+                               xlims=None, ylims=None, axlist=None, **kwargs):
         """
         Plot type-projected phonon DOS decomposed along the three reduced directions.
         Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
@@ -1988,6 +1993,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: y-axis limits.
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
@@ -2007,7 +2015,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
         cmap = plt.get_cmap(colormap)
-        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
 
         # symbol --> [three, number_of_frequencies]
         pjdos_symbol_rc = self.reader.read_pjdos_symbol_rc_dict()
@@ -2044,7 +2051,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               ylims=None, axlist=None, **kwargs):
+                               xlims=None, ylims=None, axlist=None, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -2054,6 +2061,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             stacked: True if DOS partial contributions should be stacked on top of each other.
             colormap: matplotlib colormap.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
@@ -2065,7 +2074,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         factor = _factor_ev2units(units)
         natom, ntypat = len(self.structure), self.structure.ntypesp
         lw = kwargs.pop("lw", 2)
-        xlims, ylims = kwargs.pop("xlims", None), kwargs.pop("ylims", None)
 
         if view == "all" or natom == 1:
             iatom_list = np.arange(natom)
@@ -2394,7 +2402,7 @@ class PhononBandsPlotter(NotebookWriter):
     #    return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, qlabels=None, units='eV', **kwargs):
+    def combiplot(self, qlabels=None, units='eV', ylims=None, **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure.
         Use `gridplot` to plot band structures on different figures.
@@ -2403,13 +2411,8 @@ class PhononBandsPlotter(NotebookWriter):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        xlims            x-axis limits. None (default) for automatic determination.
-        ylims            y-axis limits. None (default) for automatic determination.
-        ==============  ==============================================================
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
 
         Returns:
             matplotlib figure.
@@ -2434,9 +2437,9 @@ class PhononBandsPlotter(NotebookWriter):
         for ax in ax_list:
             ax.grid(True)
 
-        ylims = kwargs.pop("ylims", None)
         if ylims is not None:
-            [ax.set_ylim(ylims) for ax in ax_list]
+            for ax in ax_list:
+                set_axlims(ax, ylims, "y")
 
         # Plot bands.
         lines, legends = [], []
@@ -2711,26 +2714,22 @@ class PhononDosPlotter(NotebookWriter):
         self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, units="eV", **kwargs):
+    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, **kwargs):
         """
-        Plot the the DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
+        Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        xlims           x-axis limits. None (default) for automatic determination.
-        ylims           y-axis limits.  None (default) for automatic determination.
-        ==============  ==============================================================
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: y-axis limits.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
         ax.grid(True)
-        set_axlims(ax, kwargs.pop("xlims", None), "x")
-        set_axlims(ax, kwargs.pop("ylims", None), "y")
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
         ax.set_xlabel('Energy %s' % _unit_tag(units))
         ax.set_ylabel('DOS %s' % _dos_label_from_units(units))
 
@@ -2750,7 +2749,7 @@ class PhononDosPlotter(NotebookWriter):
         return self.combiplot(**kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, xlims=None, units="eV", **kwargs):
+    def gridplot(self, units="eV", xlims=None, ylims=None, **kwargs):
         """
         Plot multiple DOSes on a grid.
 
@@ -2787,6 +2786,7 @@ class PhononDosPlotter(NotebookWriter):
             ax.set_title(label)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
+            set_axlims(ax, ylims, "y")
             if i % ncols != 0:
                 ax.set_ylabel("")
 

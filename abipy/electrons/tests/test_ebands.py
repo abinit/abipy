@@ -4,12 +4,28 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import unittest
-import abipy.data as abidata
 import pymatgen.core.units as units
+import abipy.data as abidata
+from abipy import abilab
 
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
-    ElectronsReader, frame_from_ebands)
+    ElectronsReader, frame_from_ebands, Smearing)
 from abipy.core.testing import AbipyTest
+
+
+class SmearingTest(AbipyTest):
+    def test_smearing_info(self):
+        """Testing SmearingInfo."""
+        with self.assertRaises(ValueError):
+            Smearing(scheme=None, occopt=1)
+
+        sm = Smearing(scheme=None, occopt=3, tsmear_ev=0.0)
+        repr(sm); str(sm)
+        self.assertMSONable(sm, test_if_subclass=False)
+        assert sm.has_metallic_scheme
+        assert Smearing.as_smearing(sm) is sm
+        assert Smearing.as_smearing(sm).occopt == 3
+        assert Smearing.as_smearing(None).occopt == 1
 
 
 class EbandsReaderTest(AbipyTest):
@@ -52,7 +68,6 @@ class EbandsReaderTest(AbipyTest):
 
             self.assertMSONable(smearing, test_if_subclass=False)
             assert len(smearing.to_json())
-
 
 
 class ElectronBandsTest(AbipyTest):
@@ -354,9 +369,7 @@ class ElectronBandsTest(AbipyTest):
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
         #if sys.version[0:3] >= '3.4':
-        #    raise unittest.SkipTest(
-        #        "SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)"
-        #     )
+        #    raise unittest.SkipTest("SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)")
 
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
@@ -406,8 +419,7 @@ class ElectronBandsTest(AbipyTest):
 
     def test_to_bxsf(self):
         """Testing Fermi surface exporter."""
-        from abipy.abilab import abiopen
-        with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
+        with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
             fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
 
     def test_frame_from_ebands(self):
@@ -421,6 +433,16 @@ class ElectronBandsTest(AbipyTest):
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
         assert all(df["spglib_num"] == df["abispg_num"])
+
+
+#class ElectronBandsFromRestApi(AbipyTest):
+#    def test_sn02(self):
+#        #mpid = "mp-149"
+#        mpid = "mp-856"
+#        ebands = abilab.ElectronBands.from_material_id(mpid)
+#        ebands = ebands.new_with_irred_kpoints(prune_step=2)
+#        r = ebands.interpolate(lpratio=20)
+#        #r.ebands_kpath.plot()
 
 
 class ElectronBandsPlotterTest(AbipyTest):

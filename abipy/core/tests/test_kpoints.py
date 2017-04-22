@@ -8,9 +8,11 @@ import numpy as np
 import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
+from abipy import abilab
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader, has_timrev_from_kptopt,
     KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz, set_atol_kdiff, set_spglib_tols)
 from abipy.core.testing import AbipyTest
+
 
 
 class TestWrapWS(AbipyTest):
@@ -407,6 +409,9 @@ class TestKsamplingInfo(AbipyTest):
 
     def test_ksampling(self):
         """Test KsamplingInfo API."""
+        with self.assertRaises(ValueError):
+            KSamplingInfo(foo=1)
+
         # from_mpdivs constructor
         mpdivs, shifts = [2, 3, 4], [0.5, 0.5, 0.5]
         kptopt = 1
@@ -455,16 +460,22 @@ class TestKsamplingInfo(AbipyTest):
         assert not ksi.has_diagonal_kptrlatt
         assert ksi.is_path
 
-        with self.assertRaises(ValueError):
-            foo = KSamplingInfo(foo=1)
+        assert ksi is KSamplingInfo.as_ksampling(ksi)
+
+        ksi_from_dict = KSamplingInfo.as_ksampling({k: v for k, v in ksi.items()})
+        assert ksi_from_dict.kptopt == ksi.kptopt
+
+        ksi_none = KSamplingInfo.as_ksampling(None)
+        repr(ksi_none); str(ksi_none)
+        assert ksi_none.kptopt == 0
+        assert not ksi_none.is_mesh
+        assert not ksi_none.is_path
 
 
 class TestKmappingTools(AbipyTest):
 
     def setUp(self):
-        from abipy.abilab import abiopen
-
-        with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as ncfile:
+        with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as ncfile:
             self.mgb2 = ncfile.structure
             assert ncfile.ebands.kpoints.is_ibz
             self.kibz = [k.frac_coords for k in ncfile.ebands.kpoints]

@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import collections
 import json
 import sys
+import time
 import numpy as np
 
 from itertools import product
@@ -19,6 +20,8 @@ from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas
+
+#from numba import jit
 
 import logging
 logger = logging.getLogger(__name__)
@@ -276,8 +279,7 @@ def has_timrev_from_kptopt(kptopt):
     True if time-reversal symmetry can be used to generate k-points in the IBZ.
     """
     # note: We assume TR if negative value i.e. band structure k-sampling.
-    kptopt = int(kptopt)
-    return False if kptopt in (3, 4) else True
+    return int(kptopt) not in (3, 4)
 
 
 def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
@@ -338,6 +340,81 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
                         break
 
         return o2r_map, o2r_map.count(None)
+
+
+#def find_irred_kpoints_kmesh(structure, kfrac_coords):
+#    """
+#    Remove k-points that are connected to each other by one of the
+#    symmetry operations of the space group. Return new list of k-points.
+#    """
+#    # Wrap in [0,1[ interval.
+#    uc_kcoords = np.reshape(kfrac_coords, (-1, 3)) % 1
+#    numk = len(uc_kcoords)
+#    nx, ny, nz = np.int(np.floor(1 / uc_kcoords.min(axis=0)))
+#
+#    # Compute rank. invrank
+#    rank = np.array(numk, dtype=np.int)
+#    invrank =   {}
+#    #for ik, kk in enumerate(uc_kcoords):
+#    #    rk = iz + iy * nz + ix * ny * nz
+#    #    rank[ik] = rk
+#    #    invrank[rank] = ik
+#
+#    return irred_map
+
+
+def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
+    """
+    Remove the k-points that are connected to each other by one of the
+    symmetry operations of the space group. No assumption is done
+    on the initial k-point sampling.
+
+    Args:
+        structure: Structure object.
+        kfrac_coords: Reduced coordinates of the k-points.
+
+    Return:
+
+    .. warning:
+
+        In the worst case, the algorithm scales as nkpt ** 2 * nsym.
+        hence this routine should be used only if `kfrac_coords` represents
+        e.g. a path in the brillouin zone or an arbitrary set of points.
+    """
+    start = time.time()
+    print("Removing redundant k-points. This is gonna take a while... ")
+
+    # Wrap points in [0,1[ interval.
+    uc_kcoords = np.reshape(kfrac_coords, (-1, 3)) % 1
+
+    #irred_map = []
+    irred_map = collections.deque()
+    irred_map.append(0)
+    kpts2irred = collections.deque()
+    kpts2irred.append(0)
+
+    for ik, kk in enumerate(uc_kcoords[1:]):
+        ik += 1
+        found = False
+        for ik_irr in irred_map:
+            kirr = kfrac_coords[ik_irr]
+            for isym, symmop in enumerate(structure.abi_spacegroup):
+                krot = symmop.rotate_k(kirr)
+                if issamek(krot, kk):
+                    #kpts2irred[ik] = ik_irr
+                    #kpts2irred[ik] = isym
+                    found = True
+                    break
+
+        if not found:
+            irred_map.append(ik)
+
+    print("Completed in", time.time() - start, "[s]")
+    if verbose:
+        print("Entered with ", len(uc_kcoords), "k-points")
+        print("Found ", len(irred_map), "irred k-points")
+
+    return np.array(irred_map, dtype=np.int)
 
 
 class KpointsError(Exception):
@@ -944,14 +1021,12 @@ class Kpath(KpointList):
                 next_k = k0 + dk * ii / numk
                 frac_coords.append(next_k)
                 if ii > 0: knames.append("")
+
         knames.append(vnames[-1])
         frac_coords.append(vertices[-1])
 
-        return cls(structure.lattice.reciprocal_lattice,
-                   frac_coords=frac_coords,
-                   weights=None,
-                   names=knames,
-                   )
+        return cls(structure.lattice.reciprocal_lattice, frac_coords=frac_coords,
+                   weights=None, names=knames)
 
     def __str__(self):
         return self.to_string()
@@ -985,6 +1060,7 @@ class Kpath(KpointList):
                 self.ds[i] if i != len(self) - 1 else None,
                 "*" if i in vids else " ",
             ])
+
         return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
     @lazy_property
@@ -1196,6 +1272,28 @@ class KSamplingInfo(AttrDict):
         "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None.
         "kptopt",          # Options for k-point generation. Negative if we have a k-path (nbounds - 1).
     ])
+
+    @classmethod
+    def as_ksampling(cls, obj):
+        """"
+        Convert obj into a `KSamplingInfo` instance.
+        Accepts: KSamplingInfo instance, None (if info are not available), Dict-like object.
+        """
+        if isinstance(obj, cls): return obj
+        if obj is None:
+            return cls(mpdivs=None,
+                       kptrlatt=None,
+                       kptrlatt_orig=None,
+                       shifts=None,
+                       shifts_orig=None,
+                       kptopt=0,
+            )
+
+        # Assume dict-like object.
+        try:
+            return cls(**obj)
+        except Exception as exc:
+            raise TypeError("Don't know how to convert %s into KSamplingInfo object:\n%s" % (type(obj), str(exc)))
 
     @classmethod
     def from_mpdivs(cls, mpdivs, shifts, kptopt):

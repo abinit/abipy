@@ -20,6 +20,7 @@ from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from monty.dev import deprecated
 from pymatgen.serializers.json_coders import pmg_serialize
+from pymatgen.electronic_structure.core import Spin as PmgSpin
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
@@ -245,6 +246,22 @@ class Smearing(AttrDict):
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
+    @classmethod
+    def as_smearing(cls, obj):
+        """"
+        Convert obj into a Smearing instance.
+        Accepts: Smearing instance, None (if info are not available), Dict-like object.
+        """
+        if isinstance(obj, cls): return obj
+        if obj is None:
+            return cls(scheme=None, occopt=1, tsmear_ev=0.0)
+
+        # Assume dict-like object.
+        try:
+            return cls(**obj)
+        except Exception as exc:
+            raise TypeError("Don't know how to convert %s into Smearing object:\n%s" % (type(obj), str(exc)))
+
     def __init__(self, *args, **kwargs):
         super(Smearing, self).__init__(*args, **kwargs)
         for mkey in self._MANDATORY_KEYS:
@@ -374,6 +391,62 @@ class ElectronBands(Has_Structure):
 
         raise TypeError("Don't know how to extract ebands from object %s" % type(obj))
 
+    @classmethod
+    def from_material_id(cls, material_id, api_key=None, endpoint="https://www.materialsproject.org/rest/v2",
+                         nelect=None, has_timerev=True, nspinor=1, nspden=None):
+        """
+        Read bandstructure data corresponding to a materials project material_id.
+        and return Abipy ElectronBands object.
+
+        Args:
+            material_id (str): Materials Project material_id (a string, e.g., mp-1234).
+            api_key (str): A String API key for accessing the MaterialsProject
+                REST interface. Please apply on the Materials Project website for one.
+                If this is None, the code will check if there is a `PMG_MAPI_KEY` in
+                your .pmgrc.yaml. If so, it will use that environment
+                This makes easier for heavy users to simply add
+                this environment variable to their setups and MPRester can
+                then be called without any arguments.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address, but
+                can be changed to other urls implementing a similar interface.
+            nelect: Number of electrons in the unit cell.
+            nspinor: 1
+        """
+        from pymatgen import SETTINGS
+        if api_key is None:
+            api_key = SETTINGS.get("PMG_MAPI_KEY")
+            if api_key is None:
+                raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
+
+        # Get pytmatgen structure and convert it to abipy structure
+        from pymatgen.matproj.rest import MPRester
+        with MPRester(api_key=api_key, endpoint=endpoint) as rest:
+            pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)
+
+            # Structure is set to None so we have to perform another request and patch the object.
+            structure = rest.get_structure_by_material_id(material_id, final=True)
+            if pmgb.structure is None: pmgb.structure = structure
+            #pmgb = pmgb.__class__.from_dict(pmgb.as_dict())
+
+        if nelect is None:
+            # Get nelect from valence band maximum index.
+            if pmgb.is_metal():
+                raise RuntimeError("Nelect must be specified if metallic bands.")
+            else:
+                d = pmgb.get_vbm()
+                iv_up = max(d["band_index"][PmgSpin.up])
+                nelect = (iv_up + 1) * 2
+                #print("iv_up", iv_up, "nelect: ", nelect)
+                if pmgb.is_spin_polarized:
+                    iv_down = max(d["band_index"][PmgSpin.down])
+                    assert iv_down == iv_up
+
+        #ksampling = KSamplingInfo.from_kbounds(kbounds)
+
+        return cls.from_pymatgen(pmgb, nelect, weights=None, has_timerev=has_timerev,
+                                 ksampling=None, smearing=None, nspinor=nspinor, nspden=nspden)
+
     def to_json(self):
         """
         Returns a json string representation of the MSONable object.
@@ -415,6 +488,7 @@ class ElectronBands(Has_Structure):
 
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
+        assert isinstance(self.kpoints, KpointList)
 
         self.smearing = {} if smearing is None else smearing
         self.nelect = float(nelect)
@@ -832,7 +906,6 @@ class ElectronBands(Has_Structure):
             Please read the docstring and the code carefully and use the optional arguments to pass
             additional data required by Abipy if you need a complete conversion.
         """
-        from pymatgen.electronic_structure.core import Spin
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
         # Cast to abipy structure and call spglib to init AbinitSpaceGroup.
@@ -847,30 +920,14 @@ class ElectronBands(Has_Structure):
             if nspinor == 2: nspden = 4
         nkpt = len(pmg_bands.kpoints)
 
-        if smearing is None:
-            smearing = Smearing(scheme=None, occopt=1, tsmear_ev=0.0)
-        else:
-            if not isinstance(smearing, Smearing):
-                smearing = Smearing(**smearing)
-
-        if ksampling is None:
-            ksampling = KSamplingInfo(
-                mpdivs=None,
-                kptrlatt=None,
-                kptrlatt_orig=None,
-                shifts=None,
-                shifts_orig=None,
-                kptopt=1,
-            )
-        else:
-            if not isinstance(ksampling, KSamplingInfo):
-                ksampling = KSamplingInfo(**ksampling)
+        smearing = Smearing.as_smearing(smearing)
+        ksampling = KSamplingInfo.as_ksampling(ksampling)
 
         # Build numpy array with eigenvalues.
         abipy_eigens = np.empty((nsppol, nkpt, pmg_bands.nb_bands))
-        abipy_eigens[0] = np.array(pmg_bands.bands[Spin.up]).T.copy()
+        abipy_eigens[0] = np.array(pmg_bands.bands[PmgSpin.up]).T.copy()
         if nsppol == 2:
-            abipy_eigens[1] = np.array(pmg_bands.bands[Spin.down]).T.copy()
+            abipy_eigens[1] = np.array(pmg_bands.bands[PmgSpin.down]).T.copy()
 
         # Compute occupation factors. Note that pmg bands don't have occfact so
         # I have to compute them from the eigens assuming T=0)
@@ -899,9 +956,7 @@ class ElectronBands(Has_Structure):
         """
         Return a pymatgen bandstructure object from an Abipt :class:`ElectronBands` object.
         """
-        from pymatgen.electronic_structure.core import Spin
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
-
         assert np.all(self.nband_sk == self.nband_sk[0, 0])
 
         # eigenvals is a dict of energies for spin up and spin down
@@ -910,9 +965,9 @@ class ElectronBands(Has_Structure):
         # kpoint. The kpoints are ordered according to the order of the
         # kpoints array. If the band structure is not spin polarized, we
         # only store one data set under Spin.up
-        eigenvals = {Spin.up: self.eigens[0,:,:].T.copy().tolist()}
+        eigenvals = {PmgSpin.up: self.eigens[0,:,:].T.copy().tolist()}
         if self.nsppol == 2:
-            eigenvals[Spin.down] = self.eigens[1,:,:].T.copy().tolist()
+            eigenvals[PmgSpin.down] = self.eigens[1,:,:].T.copy().tolist()
 
         if self.kpoints.is_path:
             labels_dict = {k.name: k.frac_coords for k in self.kpoints if k.name is not None}
@@ -1122,6 +1177,35 @@ class ElectronBands(Has_Structure):
 
         return "\n".join(lines)
 
+    def new_with_irred_kpoints(self, prune_step=None):
+        """
+        Return a new :class:`ElectronBands` object in which only the irreducible k-points are kept.
+        This method is mainly used to prepare the band structure interpolation as the interpolator
+        will likely fail if the input k-path contains symmetrical k-points.
+
+        Args:
+            prune_step: Optional argument used to select a subset of the irreducible points found.
+            If `prune_step` is None, all irreducible k-points are used.
+        """
+        from abipy.core.kpoints import find_irred_kpoints_generic
+
+        # Get the index of the irreducible kpoints.
+        irred_map = find_irred_kpoints_generic(self.structure, self.kpoints.frac_coords)
+        if prune_step is not None:
+            irred_map = irred_map[::prune_step].copy()
+
+        # Build new set of k-points
+        new_kcoords = self.kpoints.frac_coords[irred_map].copy()
+        new_kpoints = KpointList(self.structure.reciprocal_lattice, new_kcoords,
+                                 weights=None, names=None, ksampling=self.kpoints.ksampling)
+
+        # Extract eigevanlues and occupation factors associated to irred k-points.
+        new_eigens = self.eigens[:, irred_map, :].copy()
+        new_occfacts = self.occfacts[:, irred_map, :].copy()
+
+        return self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
+                              self.nelect, self.nspinor, self.nspden)
+
     def spacing(self, axis=None):
         """
         Compute the statistical parameters of the energy spacing, i.e. e[b+1] - e[b]
@@ -1131,11 +1215,8 @@ class ElectronBands(Has_Structure):
         """
         ediff = self.eigens[:, :, 1:] - self.eigens[:, :, :self.mband-1]
 
-        return StatParams(
-            mean=ediff.mean(axis=axis),
-            stdev=ediff.std(axis=axis),
-            min=ediff.min(axis=axis),
-            max=ediff.max(axis=axis))
+        return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
+                          min=ediff.min(axis=axis), max=ediff.max(axis=axis))
 
     def statdiff(self, other, axis=None, numpy_op=np.abs):
         """
@@ -1154,11 +1235,8 @@ class ElectronBands(Has_Structure):
             `namedtuple` with the statistical parameters in eV
         """
         ediff = numpy_op(self.eigens - self.fermie - other.eigens + other.fermie)
-        return StatParams(mean=ediff.mean(axis=axis),
-                          stdev=ediff.std(axis=axis),
-                          min=ediff.min(axis=axis),
-                          max=ediff.max(axis=axis)
-                          )
+        return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
+                          min=ediff.min(axis=axis), max=ediff.max(axis=axis))
 
     def ipw_edos_widget(self):
         """
@@ -1624,7 +1702,6 @@ class ElectronBands(Has_Structure):
         ax2.yaxis.set_ticks_position("right")
         ax2.yaxis.set_label_position("right")
         set_axlims(ax2, ylims, "y")
-
 
         return fig
 

@@ -167,14 +167,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if api_key is None:
             api_key = SETTINGS.get("PMG_MAPI_KEY")
             if api_key is None:
-                raise RuntimeError(
-                    "Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml"
-                )
+                raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
 
         # Get pytmatgen structure and convert it to abipy structure
-        from pymatgen.matproj.rest import MPRester, MPRestError
-        with MPRester(api_key=api_key, endpoint=endpoint) as database:
-            new = database.get_structure_by_material_id(material_id, final=final)
+        from pymatgen.matproj.rest import MPRester
+        with MPRester(api_key=api_key, endpoint=endpoint) as rest:
+            new = rest.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new
 
