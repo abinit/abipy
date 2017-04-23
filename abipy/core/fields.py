@@ -155,22 +155,6 @@ class ScalarField(Has_Structure):
         """True if collinear i.e. nspinor==1."""
         return self.nspinor == 1
 
-    #@property
-    #def datar_xyz(self):
-    #    """
-    #    Returns a copy of the real space data with shape [:, nx, ny, nz].
-    #    Mainly used for post-processing.
-    #    """
-    #    return self.mesh.reshape(self.datar).copy()
-
-    #@property
-    #def datag_xyz(self):
-    #    """
-    #    Returns a copy of the reciprocal space data with shape [:, nx, ny, nz].
-    #    Mainly used for post-processing.
-    #    """
-    #    return self.mesh.reshape(self.datag).copy()
-
     @staticmethod
     def _check_space(space):
         """Helper function used in __add__ ... methods to check Consistency."""
@@ -196,6 +180,95 @@ class ScalarField(Has_Structure):
             return self.datar.std(axis=axis)
         else:
             return self.datag.std(axis=axis)
+
+    def export(self, filename, visu=None):
+        """
+        Export the real space data to file filename.
+
+        Args:
+            filename: String specifying the file path and the file format.
+                The format is defined by the file extension. filename="prefix.xsf", for example,
+                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+            visu:
+               :class:`Visualizer` subclass. By default, this method returns the first available
+                visualizer that supports the given file format. If visu is not None, an
+                instance of visu is returned. See :class:`Visualizer` for the list of
+                applications and formats supported.
+
+        Returns:
+            Instance of :class:`Visualizer`
+        """
+        if "." not in filename:
+            raise ValueError("Cannot detect file extension in filename: %s " % filename)
+
+        tokens = filename.strip().split(".")
+        ext = tokens[-1]
+
+        if not tokens[0]: # filename == ".ext" ==> Create temporary file.
+            import tempfile
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
+
+        with open(filename, mode="wt") as fh:
+            if ext == "xsf":
+                # xcrysden
+                xsf.xsf_write_structure(fh, self.structure)
+                xsf.xsf_write_data(fh, self.structure, self.datar, add_replicas=True)
+            else:
+                raise NotImplementedError("extension %s is not supported." % ext)
+
+        if visu is None:
+            return Visualizer.from_file(filename)
+        else:
+            return visu(filename)
+
+    def visualize(self, visu_name):
+        """
+        Visualize data with visualizer.
+
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        visu = Visualizer.from_name(visu_name)
+
+        # Try to export data to one of the formats supported by the visualizer
+        # Use a temporary file (note "." + ext)
+        for ext in visu.supported_extensions():
+            ext = "." + ext
+            try:
+                return self.export(ext, visu=visu)
+            except visu.Error:
+                pass
+        else:
+            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
+
+    #def get_interpolator(self, **kwargs):
+    #    from scipy.interpolate import RegularGridInterpolator
+    #    x = np.linspace(0, 1, num=self.nx)
+    #    y = np.linspace(0, 1, num=self.ny)
+    #    z = np.linspace(0, 1, num=self.nz)
+
+    #    return RegularGridInterpolator((x, y, z), self.datar[0], **kwargs)
+
+    #def get_line(self, line, space="r"):
+    #    x, y, z = self.mesh.line_inds(line)
+    #    space = self._check_space(space)
+    #    if space == "r":
+    #       line = self.datar_xyz[:, x, y, z]
+    #    elif space == "g":
+    #       line = self.datag_xyz[:, x, y, z]
+    #    # Return a 2D array.
+    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
+    #    return np.reshape(line, new_shape)
+
+    #def get_plane(self, plane, h, space="r"):
+    #    x, y, z = self.mesh.plane_inds(plane, h=h)
+    #    space = self._check_space(space)
+    #    if space == "r":
+    #       plane = self.datar_xyz[:, x, y, z]
+    #    elif space == "g":
+    #       plane = self.datag_xyz[:, x, y, z]
+    #    # Return a 3D array.
+    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
+    #    return np.reshape(plane, new_shape)
 
     #def spheres_indexarr(self, symbrad=None):
     #    if not hasattr(self, "_cached_spheres_indexarr"):
@@ -260,87 +333,6 @@ class ScalarField(Has_Structure):
     #def fourier_interp(self, new_mesh):
         #intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
         #return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
-
-    def export(self, filename, visu=None):
-        """
-        Export the real space data to file filename.
-
-        Args:
-            filename: String specifying the file path and the file format.
-                The format is defined by the file extension. filename="prefix.xsf", for example,
-                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            visu:
-               :class:`Visualizer` subclass. By default, this method returns the first available
-                visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of
-                applications and formats supported.
-
-        Returns:
-            Instance of :class:`Visualizer`
-        """
-        if "." not in filename:
-            raise ValueError("Cannot detect file extension in filename: %s " % filename)
-
-        tokens = filename.strip().split(".")
-        ext = tokens[-1]
-
-        if not tokens[0]: # filename == ".ext" ==> Create temporary file.
-            import tempfile
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
-
-        with open(filename, mode="wt") as fh:
-            if ext == "xsf":
-                # xcrysden
-                xsf.xsf_write_structure(fh, self.structure)
-                xsf.xsf_write_data(fh, self.structure, self.datar, add_replicas=True)
-            else:
-                raise NotImplementedError("extension %s is not supported." % ext)
-
-        if visu is None:
-            return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
-
-    def visualize(self, visu_name):
-        """
-        Visualize data with visualizer.
-
-        See :class:`Visualizer` for the list of applications and formats supported.
-        """
-        visu = Visualizer.from_name(visu_name)
-
-        # Try to export data to one of the formats supported by the visualizer
-        # Use a temporary file (note "." + ext)
-        for ext in visu.supported_extensions():
-            ext = "." + ext
-            try:
-                return self.export(ext, visu=visu)
-            except visu.Error:
-                pass
-        else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
-
-    #def get_line(self, line, space="r"):
-    #    x, y, z = self.mesh.line_inds(line)
-    #    space = self._check_space(space)
-    #    if space == "r":
-    #       line = self.datar_xyz[:, x, y, z]
-    #    elif space == "g":
-    #       line = self.datag_xyz[:, x, y, z]
-    #    # Return a 2D array.
-    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
-    #    return np.reshape(line, new_shape)
-
-    #def get_plane(self, plane, h, space="r"):
-    #    x, y, z = self.mesh.plane_inds(plane, h=h)
-    #    space = self._check_space(space)
-    #    if space == "r":
-    #       plane = self.datar_xyz[:, x, y, z]
-    #    elif space == "g":
-    #       plane = self.datag_xyz[:, x, y, z]
-    #    # Return a 3D array.
-    #    new_shape = lines.shape[0] + tuple(s for s in shape[-3:] is s)
-    #    return np.reshape(plane, new_shape)
 
 
 class Density(ScalarField):
@@ -502,7 +494,6 @@ class Density(ScalarField):
                 if self.nspden == 2: raise NotImplementedError()
                 return self.datar[0]
             elif self.nsppol == 2:
-                #tot_rhor = np.sum(self.datar, axis=0)
                 return self.datar[0] + self.datar[1]
             else:
                 raise ValueError("You should not be here")
@@ -732,7 +723,7 @@ class DensityReader(ETSF_Reader):
     """This object reads density data from a netcdf file."""
 
     def read_den_dims(self):
-        """Returns an :class:`AttrDict` dictionary with the basic dimensions."""
+        """Returns a :class:`AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
             cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
@@ -754,26 +745,43 @@ class DensityReader(ETSF_Reader):
         # Abinit conventions:
         # rhor(nfft, nspden) = electron density in r space
         # (if spin polarized, array contains total density in first half and spin-up density in second half)
-        # (for non-collinear magnetism, first element: total density, 3 next ones: mx,my,mz in units of hbar/2)
+        # (for non-collinear magnetism, first element: total density, 3 next ones: mx, my, mz in units of hbar/2)
         rhor = self.read_value("density")
 
-        if dims.nspden in (1, 4):
-            pass
-        elif dims.nspden == 2:
-            # Store rho_up, rho_down instead of rho_total, rho_up
-            total = rhor[0].copy()
-            rhor[0] = rhor[1]
-            rhor[1] = total - rhor[1]
+        if dims.nspinor == 1:
+            if dims.nspden == 1:
+                assert dims.nsppol == 1
+
+            elif dims.nspden == 2:
+                assert dims.nsppol == 2
+                # Store rho_up, rho_down instead of rho_total, rho_up
+                total = rhor[0].copy()
+                rhor[0] = rhor[1]
+                rhor[1] = total - rhor[1]
+
+            else:
+                raise ValueError("Invalid nspinor: %s, nspden: %s and nsppol: %s" % (
+                    dims.nspinor, dims.nspden, dims%nsppol))
+
         else:
-            raise RuntimeError("You should not be here")
+            if dims.nspden == 4:
+                raise NotImplementedError()
+                #rhor_ab = np.empty_like(rhor)
+                #rhor_ab[0] = (rhor[0] + rhor[3]) / 2    # (n + mz) / 2
+                #rhor_ab[1] = (rho[1] - 1j*rho[2]) / 2   # (mx - jmy) / 2
+                #rhor_ab[2] = (rho[1] + 1j*rho[2]) / 2   # (mx + jmy) /2
+                #rhor_ab[3] = (rho[0] - rho[3]) / 2      # (n - mz) / 2
+                #rhor = rhor_ab
+            else:
+                raise NotImplementedError()
 
         # use iorder="f" to transpose the last 3 dimensions since ETSF
-        # stores data in Fortran order while abipy uses C-ordering.
+        # stores data in Fortran order while AbiPy uses C-ordering.
         if dims.cplex_den == 1:
             # Get rid of fake last dimensions (cplex).
             rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
 
-            # Structure uses Angstrom. Abinit uses bohr.
+            # Structure uses Angstrom. Abinit uses Bohr.
             rhor /= (bohr_to_angstrom ** 3)
             return cls(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
 

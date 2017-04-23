@@ -194,7 +194,9 @@ class Mesh3D(object):
         return np.reshape(arr, (-1,) + self.shape)
 
     def fft_r2g(self, fr, shift_fg=False):
-        """FFT of array fr given in real space."""
+        """
+        FFT of array fr given in real space.
+        """
         ndim, shape = fr.ndim, fr.shape
 
         if ndim == 1:
@@ -218,7 +220,9 @@ class Mesh3D(object):
         return fg / self.size
 
     def fft_g2r(self, fg, fg_ishifted=False):
-        """FFT of array fg given in G-space."""
+        """
+        FFT of array fg given in G-space.
+        """
         ndim, shape = fg.ndim, fg.shape
 
         if ndim == 1:
@@ -265,7 +269,9 @@ class Mesh3D(object):
     #    return new_mesh.fft_g2r(intp_datag)
 
     def integrate(self, fr):
-        """Integrate array(s) fr."""
+        """
+        Integrate array(s) fr.
+        """
         shape, ndim = fr.shape, fr.ndim
         assert self.size == np.prod(shape[-3:])
 

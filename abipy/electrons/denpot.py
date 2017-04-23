@@ -11,6 +11,8 @@ from abipy.core.mixins import (AbinitNcFile, Has_Structure, Has_ElectronBands, N
     AbinitFortranFile, CubeFile)
 from abipy.core.fields import DensityReader
 from abipy.electrons.ebands import ElectronsReader
+from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -97,6 +99,21 @@ class DensityNcFile(_NcFileWithField):
     def density(self):
         return self.reader.read_density()
 
+    #def plot_line(self, point1, point2, ax=None, num=100, **kwargs):
+    #    line = ...
+    #    interpolator = self.density.get_interpolator()
+
+    #    values = interpolator(line)
+
+    #    # Plot data.
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    ax.grid(True)
+
+    #    for ispden in range(self.nspden)
+    #        ax.plot(line, values[ispden])
+
+    #    return fig
+
     def write_chgcar(self, filename=None):
         """
         Write density in CHGCAR format. Return :class:`ChgCar` instance.
@@ -104,6 +121,7 @@ class DensityNcFile(_NcFileWithField):
         if filename is None:
             filename = self.basename.replace(".nc", "_CHGCAR")
             cprint("Writing density in CHGCAR format to file: %s" % filename, "yellow")
+
         return self.density.to_chgcar(filename=filename)
 
     def write_xsf(self, filename=None):
@@ -113,12 +131,14 @@ class DensityNcFile(_NcFileWithField):
         if filename is None:
             filename = self.basename.replace(".nc", ".xsf")
             cprint("Writing density in XSF format to file: %s" % filename, "yellow")
+
         return self.density.export(filename)
 
     def write_cube(self, filename=None, spin="total"):
         if filename is None:
             filename = self.basename.replace(".nc", ".cube")
             cprint("Writing density in CUBE format to file: %s" % filename, "yellow")
+
         return self.density.export_to_cube(filename, spin=spin)
 
     def write_notebook(self, nbpath=None):
