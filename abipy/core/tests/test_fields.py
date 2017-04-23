@@ -5,24 +5,22 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import numpy as np
 import abipy.data as abidata
 
-from abipy.core.fields import *
+from abipy.core.fields import _Field, Density
 from abipy.core.testing import AbipyTest
-
-from abipy.core import Density
 from abipy.iotools import *
 
 
 class TestScalarField(AbipyTest):
-    """Unit tests for ScalarField."""
+    """Unit tests for _Field."""
 
     def test_base_class(self):
-        """Testing ScalarField base class."""
+        """Testing _Field base class."""
         structure = abidata.structure_from_ucell("Si")
         nspinor, nsppol, nspden = 1, 1, 1
         xyz_shape = (2, 3, 4)
         datar = np.zeros((nsppol,) + xyz_shape)
 
-        field = ScalarField(nspinor, nsppol, nspden, datar, structure, iorder="c")
+        field = _Field(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
         repr(field); str(field)
         assert field.datar.ndim ==  4
@@ -59,7 +57,7 @@ class TestScalarField(AbipyTest):
 
         nspinor_ncoll, nsppol_ncoll, nspden_ncoll = 1, 1, 4
         datar_ncoll = np.zeros((nspden_ncoll,) + xyz_shape)
-        field_ncoll = ScalarField(nspinor_ncoll, nsppol_ncoll, nspden_ncoll, datar_ncoll, structure, iorder="c")
+        field_ncoll = _Field(nspinor_ncoll, nsppol_ncoll, nspden_ncoll, datar_ncoll, structure, iorder="c")
         with self.assertRaises(ValueError):
             field + field_ncoll
 
@@ -101,6 +99,11 @@ class TestScalarField(AbipyTest):
         assert nup == ndown
         self.assert_almost_equal(nup, ne / 2)
         self.assert_almost_equal(si_den.zeta, 0)
+
+        if self.has_matplotlib():
+            assert si_den.plot_line(0, 1, num=1000, show=False)
+            # TODO
+            #assert si_den.plot_line([0, 0, 0], [1, 0, 0], num=1000, cartesian=True, show=False)
 
         # Export to chgcar and re-read it.
         chgcar_path = self.get_tmpname(text=True)
@@ -160,6 +163,9 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(nup, 9.32507195)
         self.assert_almost_equal(ndown, 8.674928)
         self.assert_almost_equal(ni_den.zeta[3, 3, 3], 0.31311881970587324)
+
+        if self.has_matplotlib():
+            assert ni_den.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)
 
         # Export data in xsf format.
         visu = ni_den.export(".xsf")

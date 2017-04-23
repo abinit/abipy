@@ -17,15 +17,16 @@ class TestWFKFile(AbipyTest):
 
         for i, path in enumerate(abidata.WFK_NCFILES):
             wfk = WfkFile(path)
-            repr(wfk)
-            str(wfk)
+            repr(wfk); str(wfk)
+            assert wfk.nsppol == 1
+            assert wfk.nspinor == 1
+            assert wfk.nspden == 1
 
             spin, kpoint, band = (0, 0, 0)
             structure = wfk.structure
             wave = wfk.get_wave(spin, kpoint, band)
-            repr(wave)
-            str(wave)
-            assert wave.shape == (wave.nspinor, wave.npw)
+            repr(wave); str(wave)
+            assert wave.shape == (wfk.nspinor, wave.npw)
 
             other_wave = wfk.get_wave(spin, kpoint, band+1)
 

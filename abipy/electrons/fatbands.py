@@ -95,8 +95,6 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         # Initialize the electron bands from file
         self._ebands = r.read_ebands()
         self.natom = len(self.structure)
-        # TODO: Via ElectronBands Mixin? In this case I have to change Ebands __init__
-        self.nspden, self.nspinor = r.read_nspinor(), r.read_nspden()
 
         # Read metadata so that we know how to handle the content of the file.
         self.prtdos = r.read_value("prtdos")

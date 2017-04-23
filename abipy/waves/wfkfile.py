@@ -55,7 +55,6 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         assert reader.has_pwbasis_set
         assert reader.cplex_ug == 2
-        self.nspinor = reader.nspinor
         self.npwarr = reader.npwarr
         self.nband_sk = reader.nband_sk
 

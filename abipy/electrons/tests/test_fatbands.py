@@ -23,6 +23,8 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.pawprtdos == 0
         assert fbnc_kpath.usepaw == 0
         assert fbnc_kpath.nsppol == 1
+        assert fbnc_kpath.nspden == 1
+        assert fbnc_kpath.nspinor == 1
         assert fbnc_kpath.nkpt == 78
         assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0
@@ -75,6 +77,8 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.pawprtdos == 0
         assert fbnc_kpath.usepaw == 0
         assert fbnc_kpath.nsppol == 2
+        assert fbnc_kpath.nspden == 2
+        assert fbnc_kpath.nspinor == 1
         #assert fbnc_kpath.nkpt == 78
         #assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0

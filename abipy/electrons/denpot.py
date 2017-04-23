@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Density/potential files in netcdf format."""
+"""Density/potential files in netcdf/fortran format."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -9,10 +9,10 @@ from monty.termcolor import cprint
 from monty.functools import lazy_property
 from abipy.core.mixins import (AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
-from abipy.core.fields import DensityReader
+from abipy.core.fields import FieldReader
 from abipy.electrons.ebands import ElectronsReader
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
-
+#from abipy.tools import duck
+#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt # set_axlims,
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ __all__ = [
     "DensityNcFile",
 ]
 
-class DenNcReader(ElectronsReader, DensityReader):
+class DenNcReader(ElectronsReader, FieldReader):
     """Object used to read data from DEN.nc files."""
 
 
@@ -98,21 +98,6 @@ class DensityNcFile(_NcFileWithField):
     @lazy_property
     def density(self):
         return self.reader.read_density()
-
-    #def plot_line(self, point1, point2, ax=None, num=100, **kwargs):
-    #    line = ...
-    #    interpolator = self.density.get_interpolator()
-
-    #    values = interpolator(line)
-
-    #    # Plot data.
-    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    ax.grid(True)
-
-    #    for ispden in range(self.nspden)
-    #        ax.plot(line, values[ispden])
-
-    #    return fig
 
     def write_chgcar(self, filename=None):
         """

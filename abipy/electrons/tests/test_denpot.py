@@ -29,8 +29,6 @@ class DensityNcFileTest(AbipyTest):
             str(ksamp); repr(ksamp)
 
             self.assert_equal(ksamp.mpdivs, [8, 8, 8])
-            #assert 0
-
             self.assert_equal(ksamp.kptrlatt_orig, 8 * np.eye(3, 3))
             self.assert_equal(ksamp.shifts_orig, 0)
 

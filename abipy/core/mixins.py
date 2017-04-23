@@ -255,15 +255,15 @@ class Has_ElectronBands(object):
         """Number of spin polarizations"""
         return self.ebands.nsppol
 
-    #@property
-    #def nspinor(self):
-    #    """Number of spinors"""
-    #    return self.ebands.nspinor
+    @property
+    def nspinor(self):
+        """Number of spinors"""
+        return self.ebands.nspinor
 
-    #@property
-    #def nspden(self):
-    #    """Number of indepedendent spin-density components."""
-    #    return self.ebands.nspden
+    @property
+    def nspden(self):
+        """Number of indepedendent spin-density components."""
+        return self.ebands.nspden
 
     @property
     def mband(self):
