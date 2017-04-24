@@ -4,11 +4,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 import collections
+import pymatgen.core.units as pmgu
 
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import is_string
-from pymatgen.core.units import bohr_to_angstrom
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Chgcar
 from abipy.core.structure import Structure
@@ -22,7 +22,9 @@ from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
 __all__ = [
     "Density",
-    #"Potential",
+    "VxcPotential",
+    "VhartreePotential",
+    "VhxcPotential",
 ]
 
 
@@ -96,8 +98,8 @@ class _Field(Has_Structure):
 
     def _check_other(self, other):
         """Consistency check"""
-        if not isinstance(other, self.__class__):
-            raise TypeError('object of class %s is not an instance of %s' % (other.__class__, self.__class__))
+        if not isinstance(other, _Field):
+            raise TypeError('object of class %s is not an instance of _Field' % other.__class__)
 
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
@@ -176,6 +178,16 @@ class _Field(Has_Structure):
     def nz(self):
         """Number of points along z."""
         return self.mesh.nz
+
+    @property
+    def is_density_like(self):
+        """True if field is density-like."""
+        return isinstance(self, _DensityField)
+
+    @property
+    def is_potential_like(self):
+        """True if field is potential-like."""
+        return isinstance(self, _PotentialField)
 
     @property
     def is_collinear(self):
@@ -276,15 +288,16 @@ class _Field(Has_Structure):
 
     #def braket_waves(self, bra_wave, ket_wave):
     #    """
-    #    Compute the matrix element of <bra_wave| datar |ket_wave> in real space
+    #    Compute the matrix element of <bra_wave| self.datar |ket_wave> in real space
     #    """
-    #    bra_ur = bra_wave.ur if bra_wave.mesh == self.mesh else bra_wave.fft_ug(self.mesh)
-    #    ket_ur = ket_wave.ur if ket_wave.mesh == self.mesh else ket_wave.fft_ug(self.mesh)
+    #    bra_ur = bra_wave.get_ur_mesh(self.mesh, copy=False)
+    #    ket_ur = ket_wave.get_ur_mesh(self.mesh, copy=False)
     #    if self.nspinor == 1:
     #       assert bra_wave.spin == ket_wave.spin
-    #       return self.mesh.integrate(bra_ur.conj() * self.datar[bra_wave.spin] * ket_ur)
+    #       v = self.mesh.integrate(bra_ur.conj() * self.datar[bra_wave.spin] * ket_ur)
+    #       return v / self.structure.volume
     #    else:
-    #        raise NotImplementedError("nspinor != 1 not implmenented")
+    #        raise NotImplementedError("nspinor != 1 not implenented")
 
     @add_fig_kwargs
     def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, **kwargs):
@@ -319,7 +332,7 @@ class _Field(Has_Structure):
             ax.plot(dist, values[ispden], label=texlabel_ispden(ispden, self.nspden))
 
         ax.grid(True)
-        ax.set_xlabel("Distance [$A^3$]")
+        ax.set_xlabel("Distance [Angstrom]")
         ax.set_ylabel(self.latex_label)
         if self.nspden > 1:
             ax.legend(loc="best")
@@ -370,7 +383,7 @@ class _Field(Has_Structure):
             ax.grid(True)
 
             if i == nrows - 1:
-                ax.set_xlabel("Distance [$A^3$]")
+                ax.set_xlabel("Distance [Angstrom]")
                 ax.set_ylabel(self.latex_label)
                 if self.nspden > 1:
                     ax.legend(loc="best")
@@ -379,7 +392,7 @@ class _Field(Has_Structure):
 
     #def integrate_spheres(self):
     #    from scipy.integrate import nquad
-    #    interpolator = self.density.get_interpolator()
+    #    interpolator = self.get_interpolator()
 
     #    ispden = 0
     #    cart2red = self.structure.lattice.inv_matrix.T
@@ -402,7 +415,11 @@ class _Field(Has_Structure):
     #    #print(result, (4/3) * np.pi * rcut ** 3)
 
 
-class Density(_Field):
+class _DensityField(_Field):
+    """Base class for density-like fields."""
+
+
+class Density(_DensityField):
     """
     Electronic density.
 
@@ -428,8 +445,8 @@ class Density(_Field):
             for ifname, fname in rhoc_files:
                 rad_rho = np.fromfile(fname, sep=' ')
                 rad_rho = rad_rho.reshape((len(rad_rho)/2, 2))
-                radii = rad_rho[:, 0] * bohr_to_angstrom
-                rho = rad_rho[:, 1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+                radii = rad_rho[:, 0] * pmgu.bohr_to_angstrom
+                rho = rad_rho[:, 1] / (4.0*np.pi) / (pmgu.bohr_to_angstrom ** 3)
                 func1d = Function1D(radii, rho)
                 rhoc_atom_splines[ifname] = func1d.spline
 
@@ -441,8 +458,8 @@ class Density(_Field):
             for symbol, fname in rhoc_files.items():
                 rad_rho = np.fromfile(fname, sep=' ')
                 rad_rho = rad_rho.reshape((len(rad_rho)/2, 2))
-                radii = rad_rho[:, 0] * bohr_to_angstrom
-                rho = rad_rho[:, 1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+                radii = rad_rho[:, 0] * pmgu.bohr_to_angstrom
+                rho = rad_rho[:, 1] / (4.0*np.pi) / (pmgu.bohr_to_angstrom ** 3)
                 func1d = Function1D(radii, rho)
                 splines[symbol] = func1d.spline
             for isite, site in enumerate(structure):
@@ -613,8 +630,7 @@ class Density(_Field):
         """
         numpy array with Magnetization(r) / total_density(r)
         """
-        fact = np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
-        return self.magnetization * fact
+        return self.magnetization * np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
 
     #def vhartree(self):
     #    """
@@ -679,10 +695,6 @@ class Density(_Field):
     #def kinden(self):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
-
-    #def vxc(self, xc=None):
-        #"""Compute the exchange-correlation potential in real- and reciprocal-space."""
-        #return vxcr, vxcg
 
     def to_chgcar(self, filename=None):
         """
@@ -769,6 +781,26 @@ class Density(_Field):
                    structure=poscar.structure, iorder="c")
 
 
+class _PotentialField(_Field):
+    """Base class for potential-like fields."""
+
+
+class VxcPotential(_PotentialField):
+    """XC Potential."""
+    netcdf_name = "exchange_correlation_potential"
+    latex_label = "vxc $[eV/A^3]$"
+
+
+class VhartreePotential(_PotentialField):
+    """Hartree Potential."""
+    netcdf_name = "vhartree"
+    latex_label = "vh $[eV/A^3]"
+
+
+class VhxcPotential(_PotentialField):
+    netcdf_name = "vhxc"
+    latex_label = "vhxc $[eV/A^3]"
+
 
 class _FieldInterpolator(object):
 
@@ -796,7 +828,7 @@ class _FieldInterpolator(object):
         # Build nspden interpolators. Note that RegularGridInterpolator supports
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
         # nspden components and this complicates the declation of callbacks
-        # operating on a single ispden component.
+        # operating on a single `ispden` component.
         self._interpolator_ispden = [None] * self.nspden
         for ispden in range(self.nspden):
             self._interpolator_ispden[ispden] = RegularGridInterpolator((x, y, z), datar[ispden])
@@ -805,10 +837,12 @@ class _FieldInterpolator(object):
         """
         Interpolate values along a line.
         """
-        if cartesian:
-            raise NotImplementedError()
         point1 = np.reshape(point1, (3,))
         point2 = np.reshape(point2, (3,))
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            point1 = np.dot(red_from_cart, point1)
+            point2 = np.dot(red_from_cart, point2)
 
         p21 = point2 - point1
         line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
@@ -817,11 +851,14 @@ class _FieldInterpolator(object):
 
         return dist, self.eval_points(line_points)
 
-    def eval_points(self, frac_coords, ispden=None):
+    def eval_points(self, frac_coords, ispden=None, cartesian=False):
         """
         Interpolate values on an arbitrary list of points.
         """
         frac_coords = np.reshape(frac_coords, (-1, 3)) % 1
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            frac_coords = [np.dot(red_from, v) for v in frac_coords]
 
         if ispden is None:
             values = np.empty((self.nspden, len(frac_coords)), dtype=self.dtype)
@@ -838,7 +875,6 @@ class FieldReader(ETSF_Reader):
     def read_den_dims(self):
         """Returns a :class:`AttrDict` dictionary with the basic dimensions."""
         return AttrDict(
-            cplex_den=self.read_dimvalue("real_or_complex_density"),
             nspinor=self.read_dimvalue("number_of_spinor_components"),
             nsppol=self.read_dimvalue("number_of_spins"),
             nspden=self.read_dimvalue("number_of_components"),
@@ -849,6 +885,18 @@ class FieldReader(ETSF_Reader):
 
     def read_density(self, field_cls=Density):
         """Read density data. Return :class:`Density` object."""
+        return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
+    def read_vh(self, field_cls=VhartreePotential):
+        """Read potential data. Return :class:`VhartreePotential` object."""
+        return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
+    def read_vxc(self, field_cls=VxcPotential):
+        """Read potential data. Return :class:`VxcPotential` object."""
+        return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
+    def read_vhxc(self, field_cls=VhxcPotential):
+        """Read potential data. Return :class:`VhxcPotential` object."""
         return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
     def read_denpot(self, varname, field_cls):
@@ -864,6 +912,7 @@ class FieldReader(ETSF_Reader):
         # (if spin polarized, array contains total density in first half and spin-up density in second half)
         # (for non-collinear magnetism, first element: total density, 3 next ones: mx, my, mz in units of hbar/2)
         rhor = self.read_value(varname)
+        cplex = rhor.shape[-1]
 
         if dims.nspinor == 1:
             if dims.nspden == 1:
@@ -892,15 +941,17 @@ class FieldReader(ETSF_Reader):
             else:
                 raise NotImplementedError()
 
+        # Structure uses Angstrom. Abinit uses Bohr.
+        if issubclass(field_cls, _DensityField): fact = 1 / pmgu.bohr_to_angstrom ** 3
+        if issubclass(field_cls, _PotentialField): fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
+        rhor *= fact
+
         # use iorder="f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while AbiPy uses C-ordering.
-        if dims.cplex_den == 1:
+        if cplex == 1:
             # Get rid of fake last dimensions (cplex).
             rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
-
-            # Structure uses Angstrom. Abinit uses Bohr.
-            rhor /= (bohr_to_angstrom ** 3)
             return field_cls(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
 
         else:
-            raise NotImplementedError("cplex_den %s not coded" % dims.cplex_den)
+            raise NotImplementedError("cplex %s not coded" % cplex)

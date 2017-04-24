@@ -143,16 +143,29 @@ class WaveFunction(object):
         """Deep copy of self."""
         return copy.deepcopy(self)
 
-    def ug_mesh(self, mesh=None):
+    def get_ug_mesh(self, mesh=None):
         """
-        Returns u(G) on the FFT mesh,
+        Returns u(G) on the FFT mesh
 
         Args:
-            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.
+            mesh: :class:`Mesh3d` object. If mesh is None, the internal mesh is used.
         """
         mesh = self.mesh if mesh is None else mesh
-        ug_mesh = self.gsphere.tofftmesh(mesh, self.ug)
-        return ug_mesh
+        return self.gsphere.tofftmesh(mesh, self.ug)
+
+    def get_ur_mesh(self, mesh, copy=True):
+        """
+        Returns u(r) on the FFT mesh. This routine is mainly used if we need u(r) on a
+        differen mesh. Data on the initial mesh is already available in `self.ur`
+
+        Args:
+            mesh: :class:`Mesh3d` object.
+            copy: By default, we return a copy of ur if mesh == self.mesh.
+        """
+        if mesh == self.mesh:
+            return self.ur.copy() if copy else self.ur
+        else:
+            return self.fft_ug(mesh=mesh)
 
     def fft_ug(self, mesh=None):
         """
@@ -165,7 +178,7 @@ class WaveFunction(object):
             :math:`u(r)` on the real space FFT box.
         """
         mesh = self.mesh if mesh is None else mesh
-        ug_mesh = self.ug_mesh(mesh)
+        ug_mesh = self.get_ug_mesh(mesh=mesh)
         return mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
     def to_string(self, prtvol=0):
@@ -205,7 +218,7 @@ class PWWaveFunction(WaveFunction):
 
         Args:
             nspinor: number of spinorial components.
-            spin: spin index.
+            spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
             gsphere :class:`GSphere` instance.
             ug: 2D array containing u[nspinor,G] for G in gsphere.

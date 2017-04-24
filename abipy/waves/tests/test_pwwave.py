@@ -18,8 +18,7 @@ class TestPWWave(AbipyTest):
 
         mesh_443 = Mesh3D((4, 4, 3), vectors)
         mesh_444 = Mesh3D((4, 4, 4), vectors)
-        repr(mesh_444)
-        str(mesh_444)
+        repr(mesh_444); str(mesh_444)
         assert not mesh_443 == mesh_444
 
         #mesh_444.get_gvec()

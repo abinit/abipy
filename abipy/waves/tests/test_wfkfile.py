@@ -18,17 +18,14 @@ class TestWFKFile(AbipyTest):
         for i, path in enumerate(abidata.WFK_NCFILES):
             wfk = WfkFile(path)
             repr(wfk); str(wfk)
-            assert wfk.nsppol == 1
-            assert wfk.nspinor == 1
-            assert wfk.nspden == 1
+            assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
 
             spin, kpoint, band = (0, 0, 0)
             structure = wfk.structure
             wave = wfk.get_wave(spin, kpoint, band)
             repr(wave); str(wave)
             assert wave.shape == (wfk.nspinor, wave.npw)
-
-            other_wave = wfk.get_wave(spin, kpoint, band+1)
+            other_wave = wfk.get_wave(spin, kpoint, band + 1)
 
             assert wave == wave
             assert wave != other_wave
@@ -51,6 +48,13 @@ class TestWFKFile(AbipyTest):
                 norm2 = wave.braket(wave, space=space)
                 if space == "r": norm2 = norm2 / structure.volume
                 self.assert_almost_equal(norm2, 1.0)
+
+            ur = wave.get_ur_mesh(wave.mesh, copy=False)
+            assert ur is wave.ur
+            other_mesh = wave.mesh.__class__((8, 8, 8), wave.mesh.vectors)
+            ur = wave.get_ur_mesh(other_mesh)
+            assert ur.shape == (8, 8, 8)
+            self.assert_almost_equal(other_mesh.integrate(ur.conj() * ur) / structure.volume, 1.0)
 
             visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu_name="vesta")
             assert callable(visu)

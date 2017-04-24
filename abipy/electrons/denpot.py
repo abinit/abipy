@@ -26,7 +26,7 @@ class DenNcReader(ElectronsReader, FieldReader):
     """Object used to read data from DEN.nc files."""
 
 
-class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class _NcFileWithDensity(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Base class providing commong methods for files with densities/potentials
     """
@@ -74,7 +74,7 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         return "\n".join(lines)
 
 
-class DensityNcFile(_NcFileWithField):
+class DensityNcFile(_NcFileWithDensity):
     """
     Netcdf File containing the electronic density.
 
