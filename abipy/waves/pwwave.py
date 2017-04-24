@@ -344,8 +344,14 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
-    def get_interpolator(self):
-        return PWWaveFunctionInterpolator(self.structure, self.ur)
+    def get_interpolator(self, kpoint=None):
+        """
+        Return an interpolator object that interpolates periodic functions in real space.
+        Args:
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+        """
+        from abipy.tools.numtools import BlochRegularGridInterpolator
+        return BlochRegularGridInterpolator(self.structure, self.ur, kpoint=kpoint)
 
     #def pww_translation(self, gvector, rprimd):
     #    """Returns the pwwave of the kpoint translated by one gvector."""
@@ -424,7 +430,7 @@ class PWWaveFunction(WaveFunction):
         return new
 
     @add_fig_kwargs
-    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, **kwargs):
+    def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False, ax=None, **kwargs):
         """
         Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.
 
@@ -439,23 +445,22 @@ class PWWaveFunction(WaveFunction):
             `matplotlib` figure
         """
         # Interpolate along line.
-        interpolator = self.get_interpolator()
+        interpolator = self.get_interpolator(kpoint=None if not with_krphase else self.kpoint)
         dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
-        print(values.shape, values.dtype)
 
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        which = r"\psi(r)" if with_krphase else "u(r)"
         for ispinor in range(self.nspinor):
             ur = values[ispinor]
-            ax.plot(dist, ur.real) #, label=texlabel_ispden(ispden, self.nspden))
-            ax.plot(dist, ur.imag) #, label=texlabel_ispden(ispden, self.nspden))
-            ax.plot(dist, ur.real**2 + ur.imag**2) #, label=texlabel_ispden(ispden, self.nspden))
+            ax.plot(dist, ur.real, label=r"$\Re %s$" % which)
+            ax.plot(dist, ur.imag, label=r"$\Im %s$" % which)
+            ax.plot(dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$")
 
         ax.grid(True)
         ax.set_xlabel("Distance [Angstrom]")
         #ax.set_ylabel(self.latex_label)
-        #if self.nspden > 1:
-        #    ax.legend(loc="best")
+        ax.legend(loc="best")
 
         return fig
 
@@ -464,9 +469,3 @@ class PAW_WaveFunction(WaveFunction):
     """
     All the methods that are related to the all-electron representation should start with ae.
     """
-
-
-from abipy.core.fields import _FieldInterpolator
-class PWWaveFunctionInterpolator(_FieldInterpolator):
-    """Wavefunction Interpolator."""
-

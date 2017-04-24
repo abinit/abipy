@@ -13,9 +13,7 @@ class TestWFKFile(AbipyTest):
 
     def test_read_wfkfile(self):
         """Testing WfkFile and waves from NC example data files."""
-        filepath = abidata.ref_file("si_nscf_WFK.nc")
-
-        wfk = WfkFile(filepath)
+        wfk = WfkFile(abidata.ref_file("si_nscf_WFK.nc"))
         repr(wfk); str(wfk)
         assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
 
@@ -81,6 +79,7 @@ class TestWFKFile(AbipyTest):
 
         if self.has_matplotlib():
             assert wave.plot_line(0, 1, num=100, show=False)
+            assert wave.plot_line([0, 0, 0], [2, 2, 2], num=100, with_krphase=True, show=False)
 
         if self.has_nbformat():
             wfk.write_notebook(nbpath=self.get_tmpname(text=True))

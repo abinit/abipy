@@ -279,8 +279,15 @@ class _Field(Has_Structure):
         else:
             raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 
-    def get_interpolator(self):
-        return _FieldInterpolator(self.structure, self.datar)
+    def get_interpolator(self, kpoint=None):
+        """
+        Return an interpolator object that interpolates periodic functions in real space.
+
+        Args:
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+        """
+        from abipy.tools.numtools import BlochRegularGridInterpolator
+        return BlochRegularGridInterpolator(self.structure, self.datar, kpoint=kpoint)
 
     #def fourier_interp(self, new_mesh):
         #intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
@@ -315,7 +322,7 @@ class _Field(Has_Structure):
             `matplotlib` figure
         """
         # Interpolate along line.
-        interpolator = self.get_interpolator()
+        interpolator = self.get_interpolator(kpoint=None)
         dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
 
         # Plot data.
@@ -359,7 +366,7 @@ class _Field(Has_Structure):
         nrows = len(nn_list)
         fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
 
-        interpolator = self.get_interpolator()
+        interpolator = self.get_interpolator(kpoint=None)
 
         for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
             nn_site, nn_dist, nn_sc_index  = nn
@@ -792,89 +799,6 @@ class VhartreePotential(_PotentialField):
 class VhxcPotential(_PotentialField):
     netcdf_name = "vhxc"
     latex_label = "vhxc $[eV/A^3]"
-
-
-class _FieldInterpolator(object):
-
-    def __init__(self, structure, datar, add_replicas=True, qpoint=None):
-        """
-        Args:
-            structure: :class:`Structure` object.
-            datar: [nspden, nx, ny, nz] array
-            add_replicas: If True, data is padded with redundant data points.
-                in order to have a periodic 3D array of shape=[nspden, nx+1, ny+1, nz+1].
-        """
-        from abipy.tools import add_periodic_replicas
-        from scipy.interpolate import RegularGridInterpolator
-        self.structure = structure
-
-        self.qpoint = qpoint
-        if qpoint is not None:
-            raise NotImplementedError()
-
-        if add_replicas:
-            datar = add_periodic_replicas(datar)
-
-        self.dtype = datar.dtype
-        nx, ny, nz = datar.shape[-3:]
-        datar = np.reshape(datar, (-1,) + (nx, ny, nz))
-        self.nspden = len(datar)
-        x = np.linspace(0, 1, num=nx)
-        y = np.linspace(0, 1, num=ny)
-        z = np.linspace(0, 1, num=nz)
-
-        # Build nspden interpolators. Note that RegularGridInterpolator supports
-        # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # nspden components and this complicates the declation of callbacks
-        # operating on a single `ispden` component.
-        self._interpolator_ispden = [None] * self.nspden
-        for ispden in range(self.nspden):
-            self._interpolator_ispden[ispden] = RegularGridInterpolator((x, y, z), datar[ispden])
-
-    def eval_line(self, point1, point2, num=200, cartesian=False):
-        """
-        Interpolate values along a line.
-        """
-        if duck.is_intlike(point1):
-            site1 = self.structure[point1]
-            point1 = site1.coords if cartesian else site1.frac_coords
-
-        if duck.is_intlike(point2):
-            site2 = self.structure[point2]
-            point2 = site2.coords if cartesian else site2.frac_coords
-
-        point1 = np.reshape(point1, (3,))
-        point2 = np.reshape(point2, (3,))
-        if cartesian:
-            red_from_cart = self.structure.lattice.inv_matrix.T
-            point1 = np.dot(red_from_cart, point1)
-            point2 = np.dot(red_from_cart, point2)
-
-        p21 = point2 - point1
-        line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
-        dist = self.structure.lattice.norm(line_points)
-        line_points += point1
-
-        return dist, self.eval_points(line_points)
-
-    def eval_points(self, frac_coords, ispden=None, cartesian=False):
-        """
-        Interpolate values on an arbitrary list of points.
-        """
-        frac_coords = np.reshape(frac_coords, (-1, 3))
-        if cartesian:
-            red_from_cart = self.structure.lattice.inv_matrix.T
-            frac_coords = [np.dot(red_from, v) for v in frac_coords]
-
-        frac_coords = np.reshape(frac_coords, (-1, 3)) % 1
-
-        if ispden is None:
-            values = np.empty((self.nspden, len(frac_coords)), dtype=self.dtype)
-            for ispden in range(self.nspden):
-                values[ispden] = self._interpolator_ispden[ispden](frac_coords)
-            return values
-        else:
-            return self._interpolator_ispden[ispden](frac_coords)
 
 
 class FieldReader(ETSF_Reader):
