@@ -314,14 +314,6 @@ class _Field(Has_Structure):
         Return:
             `matplotlib` figure
         """
-        if duck.is_intlike(point1):
-            site1 = self.structure[point1]
-            point1 = site1.coords if cartesian else site1.frac_coords
-
-        if duck.is_intlike(point2):
-            site2 = self.structure[point2]
-            point2 = site2.coords if cartesian else site2.frac_coords
-
         # Interpolate along line.
         interpolator = self.get_interpolator()
         dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
@@ -804,23 +796,29 @@ class VhxcPotential(_PotentialField):
 
 class _FieldInterpolator(object):
 
-    def __init__(self, structure, datar, add_replicas=True):
+    def __init__(self, structure, datar, add_replicas=True, qpoint=None):
         """
         Args:
             structure: :class:`Structure` object.
             datar: [nspden, nx, ny, nz] array
             add_replicas: If True, data is padded with redundant data points.
-                in order to have a periodic 3D array of shape=(nspden, nx+1, ny+1, nz+1).
+                in order to have a periodic 3D array of shape=[nspden, nx+1, ny+1, nz+1].
         """
         from abipy.tools import add_periodic_replicas
         from scipy.interpolate import RegularGridInterpolator
         self.structure = structure
 
+        self.qpoint = qpoint
+        if qpoint is not None:
+            raise NotImplementedError()
+
         if add_replicas:
             datar = add_periodic_replicas(datar)
 
         self.dtype = datar.dtype
-        self.nspden, nx, ny, nz = datar.shape
+        nx, ny, nz = datar.shape[-3:]
+        datar = np.reshape(datar, (-1,) + (nx, ny, nz))
+        self.nspden = len(datar)
         x = np.linspace(0, 1, num=nx)
         y = np.linspace(0, 1, num=ny)
         z = np.linspace(0, 1, num=nz)
@@ -837,6 +835,14 @@ class _FieldInterpolator(object):
         """
         Interpolate values along a line.
         """
+        if duck.is_intlike(point1):
+            site1 = self.structure[point1]
+            point1 = site1.coords if cartesian else site1.frac_coords
+
+        if duck.is_intlike(point2):
+            site2 = self.structure[point2]
+            point2 = site2.coords if cartesian else site2.frac_coords
+
         point1 = np.reshape(point1, (3,))
         point2 = np.reshape(point2, (3,))
         if cartesian:
@@ -855,10 +861,12 @@ class _FieldInterpolator(object):
         """
         Interpolate values on an arbitrary list of points.
         """
-        frac_coords = np.reshape(frac_coords, (-1, 3)) % 1
+        frac_coords = np.reshape(frac_coords, (-1, 3))
         if cartesian:
             red_from_cart = self.structure.lattice.inv_matrix.T
             frac_coords = [np.dot(red_from, v) for v in frac_coords]
+
+        frac_coords = np.reshape(frac_coords, (-1, 3)) % 1
 
         if ispden is None:
             values = np.empty((self.nspden, len(frac_coords)), dtype=self.dtype)

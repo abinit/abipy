@@ -147,7 +147,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Istantiate the wavefunction object and set the FFT mesh
         # using the divisions reported in the WFK file.
-        wave = PWWaveFunction(self.nspinor, spin, band, self.gspheres[k], ug_skb)
+        wave = PWWaveFunction(self.structure, self.nspinor, spin, band, self.gspheres[k], ug_skb)
         wave.set_mesh(self.fft_mesh)
 
         return wave
@@ -164,9 +164,9 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Export data uding the format specified by filename.
         if visu is None:
-            return wave.export_ur2(filepath, self.structure)
+            return wave.export_ur2(filepath)
         else:
-            return wave.export_ur2(filepath, self.structure, visu=visu)
+            return wave.export_ur2(filepath, visu=visu)
 
     def visualize_ur2(self, spin, kpoint, band, visu_name):
         """

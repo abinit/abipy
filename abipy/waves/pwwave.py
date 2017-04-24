@@ -8,10 +8,12 @@ import six
 import itertools
 import numpy as np
 
-from abipy.iotools import Visualizer
-from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
 from abipy.core import Mesh3D
 from abipy.core.kpoints import Kpoint
+from abipy.iotools import Visualizer
+from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+
 
 __all__ = [
     "PWWaveFunction",
@@ -212,17 +214,19 @@ class PWWaveFunction(WaveFunction):
     """
     This object describes a wavefunction expressed in a plane-wave basis set.
     """
-    def __init__(self, nspinor, spin, band, gsphere, ug):
+    def __init__(self, structure, nspinor, spin, band, gsphere, ug):
         """
         Creation method.
 
         Args:
+            structure: Structure object.
             nspinor: number of spinorial components.
             spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
             gsphere :class:`GSphere` instance.
             ug: 2D array containing u[nspinor,G] for G in gsphere.
         """
+        self.structure = structure
         self.nspinor, self.spin, self.band = nspinor, spin, band
         # Sanity check.
         assert ug.ndim == 2
@@ -245,7 +249,7 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % space)
 
-    def export_ur2(self, filename, structure, visu=None):
+    def export_ur2(self, filename, visu=None):
         """
         Export u(r)**2 on file filename.
 
@@ -253,7 +257,6 @@ class PWWaveFunction(WaveFunction):
             filename: String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example,
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            structure: :class:`Structure` object.
             visu: :class:`Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of
@@ -278,8 +281,8 @@ class PWWaveFunction(WaveFunction):
         with open(filename, mode="wt") as fh:
             if ext == "xsf":
                 # xcrysden
-                xsf_write_structure(fh, structures=[structure])
-                xsf_write_data(fh, structure, ur2, add_replicas=True)
+                xsf_write_structure(fh, structures=[self.structure])
+                xsf_write_data(fh, self.structure, ur2, add_replicas=True)
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
 
@@ -288,7 +291,7 @@ class PWWaveFunction(WaveFunction):
         else:
             return visu(filename)
 
-    def visualize_ur2(self, structure, visu_name):
+    def visualize_ur2(self, visu_name):
         """
         Visualize u(r)**2 visualizer.
 
@@ -302,7 +305,7 @@ class PWWaveFunction(WaveFunction):
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export_ur2(ext, structure, visu=visu)
+                return self.export_ur2(ext, visu=visu)
             except visu.Error:
                 pass
         else:
@@ -341,10 +344,13 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
+    def get_interpolator(self):
+        return PWWaveFunctionInterpolator(self.structure, self.ur)
+
     #def pww_translation(self, gvector, rprimd):
     #    """Returns the pwwave of the kpoint translated by one gvector."""
     #    gsph = self.gsphere.copy()
-    #    wpww = PWWaveFunction(self.nspinor, self.spin, self.band, gsph, self.ug.copy())
+    #    wpww = PWWaveFunction(self.structure, self.nspinor, self.spin, self.band, gsph, self.ug.copy())
     #    wpww.mesh = self.mesh
     #    wpww.pww_translation_inplace(gvector, rprimd)
     #    return wpww
@@ -373,7 +379,7 @@ class PWWaveFunction(WaveFunction):
     #def pwwtows(self):
     #    """Return the pwwave of the kpoint wrapped to the interval ]-1/2,1/2]."""
     #    gsph = self.gsphere.copy()
-    #    wpww = PWWaveFunction(self.nspinor, self.spin, self.band, gsph, self.ug.copy())
+    #    wpww = PWWaveFunction(self.structure, self.nspinor, self.spin, self.band, gsph, self.ug.copy())
     #    wpww.pwwtows_inplace()
     #    wpww.mesh = self.mesh
     #    return wpww
@@ -417,8 +423,50 @@ class PWWaveFunction(WaveFunction):
         new.set_mesh(mesh if mesh is not None else self.mesh)
         return new
 
+    @add_fig_kwargs
+    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, **kwargs):
+        """
+        Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.
+
+        Args:
+            point1:
+            point2:
+            num:
+            cartesian:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Return:
+            `matplotlib` figure
+        """
+        # Interpolate along line.
+        interpolator = self.get_interpolator()
+        dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
+        print(values.shape, values.dtype)
+
+        # Plot data.
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for ispinor in range(self.nspinor):
+            ur = values[ispinor]
+            ax.plot(dist, ur.real) #, label=texlabel_ispden(ispden, self.nspden))
+            ax.plot(dist, ur.imag) #, label=texlabel_ispden(ispden, self.nspden))
+            ax.plot(dist, ur.real**2 + ur.imag**2) #, label=texlabel_ispden(ispden, self.nspden))
+
+        ax.grid(True)
+        ax.set_xlabel("Distance [Angstrom]")
+        #ax.set_ylabel(self.latex_label)
+        #if self.nspden > 1:
+        #    ax.legend(loc="best")
+
+        return fig
+
 
 class PAW_WaveFunction(WaveFunction):
     """
     All the methods that are related to the all-electron representation should start with ae.
     """
+
+
+from abipy.core.fields import _FieldInterpolator
+class PWWaveFunctionInterpolator(_FieldInterpolator):
+    """Wavefunction Interpolator."""
+
