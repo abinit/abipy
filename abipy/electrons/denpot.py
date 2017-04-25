@@ -20,21 +20,31 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "DensityNcFile",
+    "VhartreeNcFile",
+    "VxcNcFile",
+    "VhxcNcFile",
+    "PotNcFile",
 ]
 
 
 class _DenPotNcReader(ElectronsReader, FieldReader):
-    """Object used to read data from DEN.nc files."""
+    """Object used to read data from density/potential files in netcdf format."""
 
 
-class _NcFileWithDensity(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    Base class providing commong methods for files with densities/potentials
+    Base class providing commong methods for netcdf files with density/potential
     """
+    _field_name = None
+
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
+
+    def __init__(self, filepath):
+        super(_NcFileWithField, self).__init__(filepath)
+        self.reader = _DenPotNcReader(filepath)
 
     @lazy_property
     def ebands(self):
@@ -51,10 +61,23 @@ class _NcFileWithDensity(AbinitNcFile, Has_Structure, Has_ElectronBands, Noteboo
         """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
 
+    @lazy_property
+    def _field(self):
+        """
+        The field object provided by the subclass.
+        Methods of this base class should use self._field to implement
+        logic common to the sub-classes.
+        """
+        return getattr(self, self.__class__._field_name)
+
     def close(self):
         self.reader.close()
 
-    def to_string(self, field=None, verbose=0):
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 
@@ -68,14 +91,33 @@ class _NcFileWithDensity(AbinitNcFile, Has_Structure, Has_ElectronBands, Noteboo
         app("XC functional: %s" % str(self.xc))
 
         # Add info on the field
-        if field is not None:
-            app(marquee(field.__class__.__name__, mark="="))
-            app(str(field))
+        app(marquee(self._field.__class__.__name__, mark="="))
+        app(str(self._field))
 
         return "\n".join(lines)
 
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-class DensityNcFile(_NcFileWithDensity):
+        nb.cells.extend([
+            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("fig = ncfile.ebands.kpoints.plot()"),
+            nbv.new_code_cell("fig = ncfile.ebands.plot()"),
+            nbv.new_code_cell("fig = ncfile.ebands.get_edos().plot()"),
+            nbv.new_code_cell("#cube = ncfile.write_cube(filename=None)"),
+            nbv.new_code_cell("#xsf_path = ncfile.write_xsf(filename=None"),
+            nbv.new_code_cell("#chgcar = ncfile.write_chgcar(filename=None"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class DensityNcFile(_NcFileWithField):
     """
     Netcdf File containing the electronic density.
 
@@ -87,14 +129,7 @@ class DensityNcFile(_NcFileWithDensity):
             ncfile.density
             ncfile.ebands.plot()
     """
-
-    def __init__(self, filepath):
-        super(DensityNcFile, self).__init__(filepath)
-        self.reader = _DenPotNcReader(filepath)
-
-    def __str__(self):
-        """String representation."""
-        return self.to_string(field=self.density)
+    _field_name = "density"
 
     @lazy_property
     def density(self):
@@ -127,25 +162,41 @@ class DensityNcFile(_NcFileWithDensity):
 
         return self.density.export_to_cube(filename, spin=spin)
 
-    def write_notebook(self, nbpath=None):
-        """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("denc = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(denc)"),
-            nbv.new_code_cell("fig = denc.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = denc.ebands.plot()"),
-            nbv.new_code_cell("fig = denc.ebands.get_edos().plot()"),
-            nbv.new_code_cell("#cube = denc.write_cube(filename=None)"),
-            nbv.new_code_cell("#xsf_path = denc.write_xsf(filename=None"),
-            nbv.new_code_cell("#chgcar = denc.write_chgcar(filename=None"),
-        ])
+class VhartreeNcFile(_NcFileWithField):
+    _field_name = "vh"
 
-        return self._write_nb_nbpath(nb, nbpath)
+    @lazy_property
+    def vh(self):
+        """Hartree potential."""
+        return self.reader.read_vh()
+
+
+class VxcNcFile(_NcFileWithField):
+    _field_name = "vxc"
+
+    @lazy_property
+    def vxc(self):
+        """XC potential."""
+        return self.reader.read_vxc()
+
+
+class VhxcNcFile(_NcFileWithField):
+    _field_name = "vhxc"
+
+    @lazy_property
+    def vhxc(self):
+        """Hartree + XC potential."""
+        return self.reader.read_vhxc()
+
+
+class PotNcFile(_NcFileWithField):
+    _field_name = "vks"
+
+    @lazy_property
+    def vks(self):
+        """Hartree + XC potential + sum of local pseudo-potential terms."""
+        return self.reader.read_vks()
 
 
 class DensityFortranFile(AbinitFortranFile):

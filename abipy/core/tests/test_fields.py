@@ -20,7 +20,7 @@ class TestScalarField(AbipyTest):
         structure = abidata.structure_from_ucell("Si")
         nspinor, nsppol, nspden = 1, 1, 1
         xyz_shape = (2, 3, 4)
-        datar = np.zeros((nsppol,) + xyz_shape)
+        datar = np.random.rand(*((nsppol,) + xyz_shape))
 
         field = _Field(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
@@ -42,6 +42,7 @@ class TestScalarField(AbipyTest):
         visu = field.visualize("vesta")
         assert callable(visu)
 
+        # Field "algebra"
         #assert field.datar_xyz.ndim == 4
         #assert field.datar_xyz.shape[-3:], xyz_shape)
         other = field + field
@@ -51,8 +52,21 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(other.datar, field.datar)
         self.assert_almost_equal(other.datag, field.datag)
         other = -field
+        self.assert_equal(other.datar, -field.datar)
+        self.assert_equal(other.datag, -field.datag)
         assert other.structure == field.structure
-        self.assert_almost_equal(other.datar, -field.datar)
+
+        other = field * np.pi
+        self.assert_equal(other.datar, field.datar * np.pi)
+        self.assert_almost_equal(other.datag, field.datag * np.pi)
+        self.assert_equal((np.pi * field).datar, other.datar)
+
+        other = field / np.pi
+        self.assert_equal(other.datar, field.datar / np.pi)
+        #other = np.pi / field
+        #self.assert_equal(other.datar, np.pi / field.datar)
+
+        self.assert_equal(abs(field).datar, np.abs(field.datar))
 
         with self.assertRaises(TypeError):
             field + "hello"
@@ -227,4 +241,4 @@ class TestScalarField(AbipyTest):
         assert vhxc.is_potential_like
 
         # VH + VXC = VHXC
-        self.assert_almost_equal((vh + vxc).datar, vhxc.datar)
+        self.assert_almost_equal((vh + 1.0 * vxc).datar, vhxc.datar)

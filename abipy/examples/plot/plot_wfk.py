@@ -41,3 +41,5 @@ wave.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], with_krphase=True, num=400)
 # To plot the wavefunction along the lines connect the firt atom in the structure
 # and all the neighbors within a sphere of radius 3 Angstrom:
 #wave.plot_line_neighbors(site_index=0, radius=3)
+
+ncfile.close()

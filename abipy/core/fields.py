@@ -26,6 +26,7 @@ __all__ = [
     "VxcPotential",
     "VhartreePotential",
     "VhxcPotential",
+    "VksPotential",
 ]
 
 
@@ -55,7 +56,7 @@ class _Field(Has_Structure):
         latex_label: String used in plot to set the axis label.
     """
     netcdf_name = "Unknown"
-    latex_label = "Unknown"
+    latex_label = " "
 
     @classmethod
     def from_file(cls, filepath):
@@ -111,22 +112,56 @@ class _Field(Has_Structure):
     def __add__(self, other):
         """self + other"""
         self._check_other(other)
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              datar=self.datar + other.datar,
-                              structure=self.structure, iorder="c")
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=self.datar + other.datar,
+                      structure=self.structure, iorder="c")
 
     def __sub__(self, other):
         """self - other"""
         self._check_other(other)
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              datar=self.datar - other.datar,
-                              structure=self.structure, iorder="c")
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=self.datar - other.datar,
+                      structure=self.structure, iorder="c")
+
+    def __mul__(self, other):
+        """self * other"""
+        if isinstance(other, _Field):
+            self._check_other(other)
+            v = other.datar
+        else:
+            v = float(other)
+
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=self.datar * v,
+                      structure=self.structure, iorder="c")
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        """self / other"""
+        if isinstance(other, _Field):
+            self._check_other(other)
+            v = other.datar
+        else:
+            v = float(other)
+
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=self.datar / v,
+                      structure=self.structure, iorder="c")
+
+    __div__ = __truediv__
 
     def __neg__(self):
         """-self"""
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              datar=-self.datar,
-                              structure=self.structure, iorder="c")
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=-self.datar,
+                      structure=self.structure, iorder="c")
+
+    def __abs__(self):
+        """abs(self)"""
+        return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
+                      datar=np.abs(self.datar),
+                      structure=self.structure, iorder="c")
 
     @property
     def structure(self):
@@ -803,12 +838,19 @@ class VxcPotential(_PotentialField):
 class VhartreePotential(_PotentialField):
     """Hartree Potential."""
     netcdf_name = "vhartree"
-    latex_label = "vh $[eV/A^3]"
+    latex_label = "vh $[eV/A^3]$"
 
 
 class VhxcPotential(_PotentialField):
+    """Hartree + XC"""
     netcdf_name = "vhxc"
-    latex_label = "vhxc $[eV/A^3]"
+    latex_label = "vhxc $[eV/A^3]$"
+
+
+class VksPotential(_PotentialField):
+    """Hartree + XC + sum of local pseudo-potential terms."""
+    netcdf_name = "vtrial"
+    latex_label = "vks $[eV/A^3]$"
 
 
 class FieldReader(ETSF_Reader):
@@ -839,6 +881,10 @@ class FieldReader(ETSF_Reader):
 
     def read_vhxc(self, field_cls=VhxcPotential):
         """Read potential data. Return :class:`VhxcPotential` object."""
+        return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
+    def read_vks(self, field_cls=VksPotential):
+        """Read potential data. Return :class:`VksPotential` object."""
         return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
     def read_denpot(self, varname, field_cls):

@@ -44,16 +44,17 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-#from abipy.electrons.sigmaph import SigmaPhFile
-from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
+
+from abipy.electrons.denpot import DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
-#from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
+#from abipy.dfpt.gruneisen import GrunsFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
+#from abipy.electrons.sigmaph import SigmaPhFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -86,10 +87,10 @@ abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
-    #("VHA.nc", VhartreeNcFile),
-    #("VXC.nc", VxcNcFile),
-    #("VHXC.nc", VhxcNcFile),
-    #("POT.nc", VpotNcFile),
+    ("VHA.nc", VhartreeNcFile),
+    ("VXC.nc", VxcNcFile),
+    ("VHXC.nc", VhxcNcFile),
+    ("POT.nc", PotNcFile),
     ("WFK.nc", WfkFile),
     ("HIST.nc", HistFile),
     ("PSPS.nc", PspsFile),
