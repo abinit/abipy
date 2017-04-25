@@ -60,17 +60,12 @@ class DensityNcFileTest(AbipyTest):
 
             # Kpoint sampling
             # ngkpt 6 6 6 nshiftk  4
-            # shiftk   1/2 1/2 1/2
-            #          1/2 0.0 0.0
-            #          0.0 1/2 0.0
-            #          0.0 0.0 1/2
+            # shiftk   1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
             assert not denc.ebands.kpoints.is_mpmesh
             assert not denc.ebands.kpoints.is_path
             ksamp = denc.ebands.kpoints.ksampling
-            print(ksamp)
-
+            repr(ksamp); str(ksamp)
             assert ksamp.mpdivs is None
-            #assert 0
 
             self.assert_equal(ksamp.kptrlatt_orig, 6 * np.eye(3, 3))
             self.assert_equal(ksamp.shifts_orig.flatten(), [
@@ -94,3 +89,46 @@ class DensityNcFileTest(AbipyTest):
             # Test ipython notebooks.
             if self.has_nbformat():
                 denc.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+#class VxcNcFileTest(AbipyTest):
+#
+#    def test_vxc_ncfile(self):
+#        """Testing VHXC netcdf file."""
+#
+#        with abilab.abiopen(abidata.ref_file("ni_666k_VXC.nc"))) as ncfile:
+#            repr(ncfile); str(ncfile)
+#            assert ncfile.ebands.nsppol == 2 and ncfile.ebands.nspden == 2
+#            assert ncfile.structure.formula == "Ni1"
+#            assert ncfile.ebands.structure == ncfile.structure
+#            assert str(ncfile.xc) == "LDA_XC_TETER93"
+#
+#            # Kpoint sampling
+#            # kptopt1 1 ngkpt1 8 8 8 nshiftk1 1 shiftk1   0 0 0
+#            assert ncfile.ebands.kpoints.is_mpmesh
+#            assert not ncfile.ebands.kpoints.is_path
+#
+#            ksamp = ncfile.ebands.kpoints.ksampling
+#            str(ksamp); repr(ksamp)
+#
+#            self.assert_equal(ksamp.mpdivs, [8, 8, 8])
+#            self.assert_equal(ksamp.kptrlatt_orig, 8 * np.eye(3, 3))
+#            self.assert_equal(ksamp.shifts_orig, 0)
+#
+#            self.assert_equal(ksamp.kptrlatt, 8 * np.eye(3, 3))
+#            self.assert_almost_equal(ksamp.shifts.flatten(), [0.0, 0.0, 0.0])
+#            assert ksamp.kptopt == 1
+#            assert ksamp.is_mesh
+#
+#            density = ncfile.density
+#            assert density.nspinor == 1 and density.nsppol == 1 and density.nspden == 1
+#            self.assert_almost_equal(density.get_nelect(), 8)
+#
+#            # Test converters.
+#            ncfile.write_chgcar(filename=self.get_tmpname(text=True))
+#            ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
+#            ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+#
+#            # Test ipython notebooks.
+#            if self.has_nbformat():
+#                ncfile.write_notebook(nbpath=self.get_tmpname(text=True))

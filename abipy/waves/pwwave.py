@@ -116,19 +116,19 @@ class WaveFunction(object):
         except AttributeError:
             pass
 
-    @property
-    def ur_xyz(self):
-        """
-        Returns a copy with ur[nspinor, nx, ny, nz]. Mainly used for post-processing.
-        """
-        return self.mesh.reshape(self.ur).copy()
+    #@property
+    #def ur_xyz(self):
+    #    """
+    #    Returns a copy with ur[nspinor, nx, ny, nz]. Mainly used for post-processing.
+    #    """
+    #    return self.mesh.reshape(self.ur).copy()
 
-    @property
-    def ur2_xyz(self):
-        """
-        Returns ur2[nx, ny, nz]. Mainly used for post-processing.
-        """
-        return self.mesh.reshape(self.ur2)
+    #@property
+    #def ur2_xyz(self):
+    #    """
+    #    Returns ur2[nx, ny, nz]. Mainly used for post-processing.
+    #    """
+    #    return self.mesh.reshape(self.ur2)
 
     @property
     def mesh(self):
@@ -136,14 +136,14 @@ class WaveFunction(object):
         return self._mesh
 
     def set_mesh(self, mesh):
-        """Set the FFT mesh. :math:`u(r)` is computed on this box."""
+        """Change the FFT mesh. `u(r)` will be computed on this box."""
         assert isinstance(mesh, Mesh3D)
         self._mesh = mesh
         self.delete_ur()
 
-    def deepcopy(self):
-        """Deep copy of self."""
-        return copy.deepcopy(self)
+    #def deepcopy(self):
+    #    """Deep copy of self."""
+    #    return copy.deepcopy(self)
 
     def get_ug_mesh(self, mesh=None):
         """
@@ -187,27 +187,23 @@ class WaveFunction(object):
         """String representation."""
         lines = []
         app = lines.append
-        app("%s: nspinor = %d, spin = %d, band = %d " % (
+        app("%s: nspinor: %d, spin: %d, band: %d " % (
             self.__class__.__name__, self.nspinor, self.spin, self.band))
 
-        if hasattr(self, "gsphere"):
-            app(self.gsphere.tostring(prtvol))
-
-        if hasattr(self, "mesh"):
-            app(self.mesh.to_string(prtvol))
+        if hasattr(self, "gsphere"): app(self.gsphere.tostring(prtvol))
+        if hasattr(self, "mesh"): app(self.mesh.to_string(prtvol))
 
         return "\n".join(lines)
 
+    # TODO: get_ur2?
     @property
     def ur2(self):
-        """Return :math:`||u(r)||^2` in real space."""
-        ur2 = self.ur.conj() * self.ur
-        #ur2 = self.ur[0].conj() * self.ur[0]
-        #if self.nspinor == 2:
-        #    ur2 += self.ur[1].conj() * self.ur[1]
-
-        # copy to have contiguous data.
-        return ur2.real.copy()
+        """
+        [nx, ny, nz] array with :math:`||u(r)||^2` in real space.
+        """
+        ur2 = (self.ur.conj() * self.ur).real.copy()
+        #if self.nspinor == 2: ur2 = ur2.sum(axis=3)
+        return ur2
 
 
 class PWWaveFunction(WaveFunction):
@@ -242,12 +238,10 @@ class PWWaveFunction(WaveFunction):
 
         if space == "g":
             return np.real(np.vdot(self.ug, self.ug))
-
         elif space == "r":
             return np.real(self.mesh.integrate(self.ur2))
-
         else:
-            raise ValueError("Wrong space: %s" % space)
+            raise ValueError("Wrong space: %s" % str(space))
 
     def export_ur2(self, filename, visu=None):
         """
@@ -320,6 +314,7 @@ class PWWaveFunction(WaveFunction):
         """
         Returns the scalar product <u1|u2> of the periodic part of two wavefunctions
         computed in G-space or r-space, depending on the value of space.
+        Note that selection rules introduced by k-points is not taken into accout.
 
         Args:
             other: Other wave (right-hand side)
@@ -334,13 +329,10 @@ class PWWaveFunction(WaveFunction):
             ug1_mesh = self.gsphere.tofftmesh(self.mesh, self.ug)
             ug2_mesh = other.gsphere.tofftmesh(self.mesh, other.ug)
             return np.vdot(ug1_mesh, ug2_mesh)
-
         elif space == "gsphere":
             return np.vdot(self.ug, other.ug)
-
         elif space == "r":
             return np.vdot(self.ur, other.ur) * self.mesh.dv
-
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
@@ -390,7 +382,7 @@ class PWWaveFunction(WaveFunction):
 
     def rotate(self, symmop, mesh=None):
         """
-        Rotate the pwwave by the symmetry operation symmop.
+        Apply the symmetry operation `symmop` to the periodic part.
 
         Args:
             symmop: :class:`Symmetry` operation
@@ -451,7 +443,6 @@ class PWWaveFunction(WaveFunction):
         interpolator = self.get_interpolator()
         r = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian,
                                    kpoint=None if not with_krphase else self.kpoint)
-
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         which = r"\psi(r)" if with_krphase else "u(r)"

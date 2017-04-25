@@ -25,8 +25,9 @@ class TestWFKFile(AbipyTest):
         repr(wave); str(wave)
         assert wave.structure is wfk.structure
         assert wave.shape == (wfk.nspinor, wave.npw)
-        other_wave = wfk.get_wave(spin, kpoint, band + 1)
+        assert wave.isnc and not wave.ispaw
 
+        other_wave = wfk.get_wave(spin, kpoint, band + 1)
         assert wave == wave
         assert wave != other_wave
 
@@ -65,6 +66,11 @@ class TestWFKFile(AbipyTest):
         same_ur = wave.mesh.fft_g2r(ug_mesh)
 
         self.assert_almost_equal(wave.ur, same_ur)
+        ur2 = wave.ur2
+        assert not np.iscomplexobj(ur2) and np.all(ur2 >= 0)
+        assert ur2.shape == wave.mesh.shape
+        #assert ur2.shape == wave.shape
+        self.assert_almost_equal(ur2[0, 0, 0], 0.71185883486624901)
 
         # Back to the sphere
         same_ug = wave.gsphere.fromfftmesh(wave.mesh, ug_mesh)
