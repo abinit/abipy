@@ -14,21 +14,25 @@ class TestMesh3D(AbipyTest):
         """Testing mesh3d methods"""
         rprimd = np.reshape([1., 0, 0, 0, 1, 0, 0, 0, 1], (3, 3))
 
-        mesh_443 = Mesh3D((4,4,3), rprimd)
+        mesh_443 = Mesh3D((4, 4, 3), rprimd)
         assert len(mesh_443) == 4 * 4 * 3
         assert mesh_443.nx == 4 and mesh_443.ny == 4 and mesh_443.nz == 3
         self.serialize_with_pickle(mesh_443)
 
-        mesh_444 = Mesh3D((4,4,4), rprimd)
+        mesh_444 = Mesh3D((4, 4, 4), rprimd)
 
         # Test __eq__
         assert mesh_443 == mesh_443
         assert mesh_443 != mesh_444
 
-        repr(mesh_444)
-        str(mesh_444)
-        mesh_444.gvecs
-        mesh_444.rpoints
+        repr(mesh_444); str(mesh_444)
+        gmvecs = mesh_444.gvecs
+        assert gmvecs.shape == (64, 3)
+        assert gmvecs is mesh_444.gvecs
+
+        rpoints = mesh_444.rpoints
+        assert rpoints.shape == (64, 3)
+        assert rpoints is mesh_444.rpoints
 
         empty = mesh_444.empty()
         assert empty.shape == mesh_444.shape and empty.dtype == np.float
@@ -71,10 +75,10 @@ class TestMesh3D(AbipyTest):
     def test_fft(self):
         """Test FFT transforms with mesh3d"""
         rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
-        mesh = Mesh3D( (12,3,5), rprimd)
+        rprimd.shape = (3, 3)
+        mesh = Mesh3D( (12, 3, 5), rprimd)
 
-        extra_dims = [(), 1, (2,), (3,1)]
+        extra_dims = [(), 1, (2,), (3, 1)]
         types = [np.float, np.complex]
 
         for exdim in extra_dims:

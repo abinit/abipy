@@ -171,6 +171,8 @@ class TestScalarField(AbipyTest):
 
         if self.has_matplotlib():
             assert ni_den.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)
+            assert ni_def.plot_line_neighbors(site_index=0, radius=1, num=50, max_nn=10) is None
+            assert ni_def.plot_line_neighbors(site_index=0, radius=3, num=50, max_nn=10, show=False)
 
         # Export data in xsf format.
         visu = ni_den.export(".xsf")

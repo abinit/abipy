@@ -287,13 +287,22 @@ class Mesh3D(object):
 
     @lazy_property
     def gvecs(self):
-        """Array with the reduced coordinates of the G-vectors."""
+        """
+        Array with the reduced coordinates of the G-vectors.
+
+        .. note::
+
+            These are the G-vectors of the FFT box and should be used
+            when we compute quantities on the FFT mesh.
+            These vectors differ from the gvecs stored in `GSphere` that
+            are k-centered and enclosed by a sphere whose radius is defined by ecut.
+        """
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
         #print(gz_list, gy_list, gx_list)
 
-        gvecs = np.empty((self.size,3), dtype=np.int)
+        gvecs = np.empty((self.size, 3), dtype=np.int)
 
         idx = -1
         for gx in gx_list:
@@ -308,7 +317,7 @@ class Mesh3D(object):
     def rpoints(self):
         """Array with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
-        rpoints = np.empty((self.size,3))
+        rpoints = np.empty((self.size, 3))
 
         for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
             rpoints[ifft,:] = p1_fft[0]/nx, p1_fft[1]/ny, p1_fft[2]/nz

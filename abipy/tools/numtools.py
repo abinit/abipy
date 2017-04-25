@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import bisect as bs
 
+from monty.collections import dict2namedtuple
 from abipy.tools import duck
 
 #########################################################################################
@@ -429,22 +430,16 @@ class BlochRegularGridInterpolator(object):
     This object interpolates the periodic part of a Bloch state in real space.
     """
 
-    def __init__(self, structure, datar, kpoint=None, add_replicas=True):
+    def __init__(self, structure, datar, add_replicas=True):
         """
         Args:
             structure: :class:`Structure` object.
-            datar: [ndt, nx, ny, nz] array
-            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+            datar: [ndt, nx, ny, nz] array.
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndt, nx+1, ny+1, nz+1].
         """
         from scipy.interpolate import RegularGridInterpolator
         self.structure = structure
-
-        self.kpoint = None
-        if kpoint is not None:
-            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
-            self.kpoint = np.reshape(kpoint, (3,))
 
         if add_replicas:
             datar = add_periodic_replicas(datar)
@@ -466,15 +461,38 @@ class BlochRegularGridInterpolator(object):
         for i in range(self.ndt):
             self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i])
 
-    def eval_line(self, point1, point2, num=200, cartesian=False):
+    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None):
         """
         Interpolate values along a line.
+
+        Args:
+            point1: First point of the line. Accepts 3d vector or integer.
+                The vector is in reduced coordinates unless `cartesian == True`.
+                If integer, the first point of the line is given by the i-th site of the structure
+                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as `point1`.
+            num: Number of points sampled along the line.
+            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+                coordinates (if not integers). Use True to pass points in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return: named tuple with
+            site1, site2: None if the points do not represent atomic sites.
+            points: Points in fractional coords.
+            dist: the distance of points along the line in Ang.
+            values: numpy array of shape [ndt, num] with interpolated values.
         """
+        site1 = None
         if duck.is_intlike(point1):
+            if point1 > len(self.structure):
+                raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
             site1 = self.structure[point1]
             point1 = site1.coords if cartesian else site1.frac_coords
 
+        site2 = None
         if duck.is_intlike(point2):
+            if point2 > len(self.structure):
+                raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
             site2 = self.structure[point2]
             point2 = site2.coords if cartesian else site2.frac_coords
 
@@ -490,11 +508,21 @@ class BlochRegularGridInterpolator(object):
         dist = self.structure.lattice.norm(line_points)
         line_points += point1
 
-        return dist, self.eval_points(line_points)
+        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
+                               values=self.eval_points(line_points, kpoint=kpoint))
 
-    def eval_points(self, frac_coords, idt=None, cartesian=False):
+    def eval_points(self, frac_coords, idt=None, cartesian=False, kpoint=None):
         """
         Interpolate values on an arbitrary list of points.
+
+        Args:
+            frac_coords: List of points in reduced coordinates unless `cartesian`.
+            idt: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
+            cartesian: True if points are in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return:
+            [ndt, npoints] array or [1, npoints] if idt is not None
         """
         frac_coords = np.reshape(frac_coords, (-1, 3))
         if cartesian:
@@ -510,7 +538,9 @@ class BlochRegularGridInterpolator(object):
         else:
             values = self._interpolators[idt](uc_coords)
 
-        if self.kpoint is not None:
-            values *= np.exp(2j * np.pi * np.dot(frac_coords, self.kpoint))
+        if kpoint is not None:
+            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
+            kpoint = np.reshape(kpoint, (3,))
+            values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
 
         return values

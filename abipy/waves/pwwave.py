@@ -344,14 +344,12 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
-    def get_interpolator(self, kpoint=None):
+    def get_interpolator(self):
         """
         Return an interpolator object that interpolates periodic functions in real space.
-        Args:
-            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
         """
         from abipy.tools.numtools import BlochRegularGridInterpolator
-        return BlochRegularGridInterpolator(self.structure, self.ur, kpoint=kpoint)
+        return BlochRegularGridInterpolator(self.structure, self.ur)
 
     #def pww_translation(self, gvector, rprimd):
     #    """Returns the pwwave of the kpoint translated by one gvector."""
@@ -435,30 +433,36 @@ class PWWaveFunction(WaveFunction):
         Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.
 
         Args:
-            point1:
-            point2:
-            num:
-            cartesian:
+            point1: First point of the line. Accepts 3d vector or integer.
+                The vector is in reduced coordinates unless `cartesian == True`.
+                If integer, the first point of the line is given by the i-th site of the structure
+                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as `point1`.
+            num: Number of points sampled along the line.
+            with_krphase: True to include the e^{ikr} phase-factor.
+            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+                coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Return:
             `matplotlib` figure
         """
         # Interpolate along line.
-        interpolator = self.get_interpolator(kpoint=None if not with_krphase else self.kpoint)
-        dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
+        interpolator = self.get_interpolator()
+        r = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian,
+                                   kpoint=None if not with_krphase else self.kpoint)
 
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         which = r"\psi(r)" if with_krphase else "u(r)"
         for ispinor in range(self.nspinor):
-            ur = values[ispinor]
-            ax.plot(dist, ur.real, label=r"$\Re %s$" % which)
-            ax.plot(dist, ur.imag, label=r"$\Im %s$" % which)
-            ax.plot(dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$")
+            ur = r.values[ispinor]
+            ax.plot(r.dist, ur.real, label=r"$\Re %s$" % which)
+            ax.plot(r.dist, ur.imag, label=r"$\Im %s$" % which)
+            ax.plot(r.dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$")
 
         ax.grid(True)
-        ax.set_xlabel("Distance [Angstrom]")
+        ax.set_xlabel("Distance from site1 [Angstrom]")
         #ax.set_ylabel(self.latex_label)
         ax.legend(loc="best")
 

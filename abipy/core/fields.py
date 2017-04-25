@@ -9,6 +9,7 @@ import pymatgen.core.units as pmgu
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import is_string
+from monty.termcolor import cprint
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Chgcar
 from abipy.core.structure import Structure
@@ -279,15 +280,12 @@ class _Field(Has_Structure):
         else:
             raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 
-    def get_interpolator(self, kpoint=None):
+    def get_interpolator(self):
         """
         Return an interpolator object that interpolates periodic functions in real space.
-
-        Args:
-            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
         """
         from abipy.tools.numtools import BlochRegularGridInterpolator
-        return BlochRegularGridInterpolator(self.structure, self.datar, kpoint=kpoint)
+        return BlochRegularGridInterpolator(self.structure, self.datar)
 
     #def fourier_interp(self, new_mesh):
         #intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
@@ -309,29 +307,34 @@ class _Field(Has_Structure):
     @add_fig_kwargs
     def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, **kwargs):
         """
-        Plot (interpolated) density in real space along a line defined by `point1` and `point2`.
+        Plot (interpolated) density/potential in real space along a line defined
+        by `point1` and `point2`.
 
         Args:
-            point1:
-            point2:
-            num:
-            cartesian:
+            point1: First point of the line. Accepts 3d vector or integer.
+                The vector is in reduced coordinates unless `cartesian == True`.
+                If integer, the first point of the line is given by the i-th site of the structure
+                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as `point1`.
+            num: Number of points sampled along the line.
+            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+                coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Return:
             `matplotlib` figure
         """
         # Interpolate along line.
-        interpolator = self.get_interpolator(kpoint=None)
-        dist, values = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
+        interpolator = self.get_interpolator()
+        r = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
 
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for ispden in range(self.nspden):
-            ax.plot(dist, values[ispden], label=texlabel_ispden(ispden, self.nspden))
+            ax.plot(r.dist, r.values[ispden], label=texlabel_ispden(ispden, self.nspden))
 
         ax.grid(True)
-        ax.set_xlabel("Distance [Angstrom]")
+        ax.set_xlabel("Distance from site1 [Angstrom]")
         ax.set_ylabel(self.latex_label)
         if self.nspden > 1:
             ax.legend(loc="best")
@@ -341,77 +344,84 @@ class _Field(Has_Structure):
     @add_fig_kwargs
     def plot_line_neighbors(self, site_index, radius, num=200, max_nn=10, **kwargs):
         """
-        Get all neighbors to a site within a sphere of radius r.
-        Excludes the site itself.
+        Plot (interpolated) density/potential in real space along the lines connecting
+        an atom specified by `site_index` and all neighbors within a sphere of given `radius`.
+
+        .. warning:
+
+            This routine can produce lots of plots! Be careful with the value of `radius`.
+            See also `max_nn`.
 
         Args:
-            site_index:
-            radius: radius of sphere.
-            num:
-            max_nn
+            site_index: Index of the atom in the structure.
+            radius: Radius of the sphere in Angstrom
+            num: Number of points sampled along the line.
+            max_nn: By default, only the first `max_nn` neighbors are showed.
+
+        Return:
+            `matplotlib` figure
         """
         site = self.structure[site_index]
         nn_list = self.structure.get_neighbors(site, radius, include_index=True)
         if not nn_list:
-            cprint("Zero neighbors found for radius %s. Returning None." % radius, "yellow")
+            cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
 
+        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
+
         if max_nn is not None and len(nn_list) > max_nn:
-            nn_list = nn_list[:max_nn]
-            cprint("For radius %s, found %s neighbors but only max_nn %s sites will be included." %
+            cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
                     (radius, len(nn_list), max_nn), "yellow")
+            nn_list = nn_list[:max_nn]
 
         # Get grid of axes.
         import matplotlib.pyplot as plt
         nrows = len(nn_list)
         fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
 
-        interpolator = self.get_interpolator(kpoint=None)
+        interpolator = self.get_interpolator()
 
         for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
             nn_site, nn_dist, nn_sc_index  = nn
-            title = "%s, %s, dist=%s" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
+            title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
-            dist, values = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num)
+            r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
 
             for ispden in range(self.nspden):
-                ax.plot(dist, values[ispden],
+                ax.plot(r.dist, r.values[ispden],
                         label=texlabel_ispden(ispden, self.nspden) if i == 0 else None)
 
             ax.set_title(title)
             ax.grid(True)
 
             if i == nrows - 1:
-                ax.set_xlabel("Distance [Angstrom]")
+                ax.set_xlabel("Distance from site_index %s [Angstrom]" % site_index)
                 ax.set_ylabel(self.latex_label)
                 if self.nspden > 1:
                     ax.legend(loc="best")
 
         return fig
 
-    #def integrate_spheres(self):
-    #    from scipy.integrate import nquad
-    #    interpolator = self.get_interpolator()
+    def integrate_spheres(self, rcut_symbol=None):
+        # Initialize rcut_symbol map.
+        if rcut_symbol is None:
+            from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+            rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
 
-    #    ispden = 0
-    #    cart2red = self.structure.lattice.inv_matrix.T
+        # Compute rmax and spline bessel integrals.
+        datag = self.datag
+        gvecs = self.mesh.gvecs
+        #gmods = np.dot(gvecs, np.dot(gmet, gvecs))
+        gmax = gmods.max()
+        rmax = max(rcut_symbol[s] for s in rcut_symbol)
+        spline_gmods = spline_int_jlqr(0, gmax, rmax, num)
 
-    #    #def func(theta, phi, r):
-    #    def func(r, theta, phi):
-    #        #return r ** 2 * np.sin(theta)
-    #        sinth = np.sin(theta)
-    #        rcart = r * np.array((sinth * np.cos(phi), sinth * np.sin(phi), np.cos(theta)))
-    #        #r2 = np.dot(rcart, rcart)
-    #        rfract = np.dot(cart2red, rcart)
-    #        v = r ** 2 * sinth * interpolator.eval_points(rfract, ispden=ispden)[0]
-    #        #print(v)
-    #        return v
-
-    #    rcut = 1
-    #    ranges = ([0, rcut], [0, np.pi], [0, 2 * np.pi])
-    #    #ranges = ([0, np.pi], [0, 2 * np.pi], [0, rcut])
-    #    result, abserr = nquad(func, ranges, args=None, opts=None, full_output=False)
-    #    #print(result, (4/3) * np.pi * rcut ** 3)
+        results = []
+        for iatom, site in enumerate(self.structure):
+            phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
+            vg = phases * spline_gmods(gmods)
+            results.append(np.sum(vg * datag))
+            #results.append([(vg * datag[ispden]).sum() for ispden in range(self.nspden)]
 
 
 class _DensityField(_Field):
