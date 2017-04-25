@@ -12,7 +12,7 @@ from abipy.core.mixins import (AbinitNcFile, Has_Structure, Has_ElectronBands, N
 from abipy.core.fields import FieldReader
 from abipy.electrons.ebands import ElectronsReader
 #from abipy.tools import duck
-#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt # set_axlims,
+#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,7 +22,8 @@ __all__ = [
     "DensityNcFile",
 ]
 
-class DenNcReader(ElectronsReader, FieldReader):
+
+class _DenPotNcReader(ElectronsReader, FieldReader):
     """Object used to read data from DEN.nc files."""
 
 
@@ -89,7 +90,7 @@ class DensityNcFile(_NcFileWithDensity):
 
     def __init__(self, filepath):
         super(DensityNcFile, self).__init__(filepath)
-        self.reader = DenNcReader(filepath)
+        self.reader = _DenPotNcReader(filepath)
 
     def __str__(self):
         """String representation."""

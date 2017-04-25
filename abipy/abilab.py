@@ -89,7 +89,7 @@ abiext2ncfile = collections.OrderedDict([
     #("VHA.nc", VhartreeNcFile),
     #("VXC.nc", VxcNcFile),
     #("VHXC.nc", VhxcNcFile),
-    #("POT.nc", ),
+    #("POT.nc", VpotNcFile),
     ("WFK.nc", WfkFile),
     ("HIST.nc", HistFile),
     ("PSPS.nc", PspsFile),

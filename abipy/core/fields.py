@@ -366,7 +366,7 @@ class _Field(Has_Structure):
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
-
+        # Sorte sites by distance.
         nn_list = list(sorted(nn_list, key=lambda t: t[1]))
 
         if max_nn is not None and len(nn_list) > max_nn:
@@ -402,26 +402,26 @@ class _Field(Has_Structure):
 
         return fig
 
-    def integrate_spheres(self, rcut_symbol=None):
-        # Initialize rcut_symbol map.
-        if rcut_symbol is None:
-            from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
-            rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
+    #def integrate_spheres(self, rcut_symbol=None):
+    #    # Initialize rcut_symbol map.
+    #    if rcut_symbol is None:
+    #        from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+    #        rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
 
-        # Compute rmax and spline bessel integrals.
-        datag = self.datag
-        gvecs = self.mesh.gvecs
-        #gmods = np.dot(gvecs, np.dot(gmet, gvecs))
-        gmax = gmods.max()
-        rmax = max(rcut_symbol[s] for s in rcut_symbol)
-        spline_gmods = spline_int_jlqr(0, gmax, rmax, num)
+    #    # Compute rmax and spline bessel integrals.
+    #    datag = self.datag
+    #    gvecs = self.mesh.gvecs
+    #    #gmods = np.dot(gvecs, np.dot(gmet, gvecs))
+    #    gmax = gmods.max()
+    #    rmax = max(rcut_symbol[s] for s in rcut_symbol)
+    #    spline_gmods = spline_int_jlqr(0, gmax, rmax, num)
 
-        results = []
-        for iatom, site in enumerate(self.structure):
-            phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
-            vg = phases * spline_gmods(gmods)
-            results.append(np.sum(vg * datag))
-            #results.append([(vg * datag[ispden]).sum() for ispden in range(self.nspden)]
+    #    results = []
+    #    for iatom, site in enumerate(self.structure):
+    #        phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
+    #        vg = phases * spline_gmods(gmods)
+    #        results.append(np.sum(vg * datag))
+    #        #results.append([(vg * datag[ispden]).sum() for ispden in range(self.nspden)]
 
 
 class _DensityField(_Field):

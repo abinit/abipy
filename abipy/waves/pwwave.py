@@ -311,7 +311,7 @@ class PWWaveFunction(WaveFunction):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
-    #def tkin(self):
+    #def kinetic_energy(self):
     #    """Computes the matrix element of the kinetic operator in reciprocal space."""
     #    tug = -0.5 * self.gsphere.kpg2 * self.ug
     #    return np.vdot(self.ug, tug).sum()
@@ -463,7 +463,6 @@ class PWWaveFunction(WaveFunction):
 
         ax.grid(True)
         ax.set_xlabel("Distance from site1 [Angstrom]")
-        #ax.set_ylabel(self.latex_label)
         ax.legend(loc="best")
 
         return fig
