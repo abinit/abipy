@@ -135,6 +135,19 @@ class DensityNcFile(_NcFileWithField):
     def density(self):
         return self.reader.read_density()
 
+    def to_string(self, verbose=0):
+        s = super(DensityNcFile, self).to_string(verbose=verbose)
+
+        # Add density related stuff.
+        lines = [" "]
+        app = lines.append
+        app("Integrated electronic and magnetization densities in atomic spheres:")
+        df = self.density.integrate_in_spheres(rcut_symbol=None, out=False)
+        app(str(df))
+        app("Total magnetization from unit cell integration: %s" % str(self.density.magnetization))
+
+        return s + "\n".join(lines)
+
     def write_chgcar(self, filename=None):
         """
         Write density in CHGCAR format. Return :class:`ChgCar` instance.

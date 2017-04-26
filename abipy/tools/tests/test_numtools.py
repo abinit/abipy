@@ -10,12 +10,11 @@ class TestTools(AbipyTest):
     def test_transpose_last3dims(self):
         """test transpose_last3dims"""
         arr = np.arange(120)
-        arr.shape = (2,2,10,3)
+        arr.shape = (2, 2, 10, 3)
 
         same_arr = transpose_last3dims(arr)
         same_arr = transpose_last3dims(same_arr)
-
-        self.assertTrue( np.all(arr == same_arr) )
+        assert np.all(arr == same_arr)
 
     def test_add_periodic_replicas(self):
         """test add_periodic_replicas"""

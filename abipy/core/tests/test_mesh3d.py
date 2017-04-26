@@ -20,15 +20,23 @@ class TestMesh3D(AbipyTest):
         self.serialize_with_pickle(mesh_443)
 
         mesh_444 = Mesh3D((4, 4, 4), rprimd)
+        repr(mesh_444); str(mesh_444)
 
         # Test __eq__
         assert mesh_443 == mesh_443
         assert mesh_443 != mesh_444
 
-        repr(mesh_444); str(mesh_444)
-        gmvecs = mesh_444.gvecs
-        assert gmvecs.shape == (64, 3)
-        assert gmvecs is mesh_444.gvecs
+        self.assert_almost_equal(np.dot(mesh_444.vectors, mesh_444.inv_vectors), np.eye(3))
+        gvecs = mesh_444.gvecs
+        assert gvecs is mesh_444.gvecs
+        assert gvecs.shape == (64, 3)
+        self.assert_equal(gvecs[1], [0, 0, 1])
+
+        gmods = mesh_444.gmods
+        assert gmods.shape == mesh_444.size
+
+        assert gmods[0] == 0
+        self.assert_almost_equal(gmods[1], 2 * np.pi)
 
         rpoints = mesh_444.rpoints
         assert rpoints.shape == (64, 3)
@@ -70,7 +78,6 @@ class TestMesh3D(AbipyTest):
                     self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
                     r += shift
                     self.assert_equal(mesh_443.i_closest_gridpoints(r), [[ix, iy, iz]])
-
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""

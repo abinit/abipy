@@ -409,7 +409,7 @@ class PWWaveFunction(WaveFunction):
         else:
             rot_ug = self.ug.copy()
 
-        # Invert the collinear spin if we have an AFM operation
+        # Invert the collinear spin if we have an AFM operation.
         rot_spin = self.spin
         if self.nspinor == 1:
             rot_spin = self.spin if symmop.is_fm else (self.spin + 1) % 2

@@ -17,19 +17,19 @@ with abiopen(abidata.ref_file("ni_666k_POT.nc")) as ncfile:
 with abiopen(abidata.ref_file("ni_666k_VHA.nc")) as ncfile:
     vh = ncfile.vh
 
-#vh.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{hartree}(r)$")
+vh.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{hartree}(r)$")
 
 # XC potential.
 with abiopen(abidata.ref_file("ni_666k_VXC.nc")) as ncfile:
     vxc = ncfile.vxc
 
-#vxc.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{xc}(r)$")
+vxc.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{xc}(r)$")
 
 # Hartree + XC potential.
 with abiopen(abidata.ref_file("ni_666k_VHXC.nc")) as ncfile:
     vhxc = ncfile.vhxc
 
-#vhxc.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{hxc}(r)$")
+vhxc.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{hxc}(r)$")
 
 vloc = vks - vhxc
 vloc.plot_line(point1=[0, 0, 0], point2=[0, 4, 0], num=400, title="$V_{loc}(r)$")

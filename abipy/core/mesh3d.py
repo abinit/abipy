@@ -3,8 +3,9 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-from itertools import product as iproduct
 
+from itertools import product as iproduct
+from collections import deque
 from monty.functools import lazy_property
 from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
@@ -48,7 +49,7 @@ class Mesh3D(object):
             shape:
                 3 int's Number of grid points along axes.
             vectors:
-                unit cell vectors
+                unit cell vectors in real space.
 
         Attributes:
 
@@ -57,9 +58,9 @@ class Mesh3D(object):
         ``dv``      Volume per grid point.
         ==========  ========================================================
         """
-        self.shape = tuple( np.asarray(shape, np.int) )
+        self.shape = tuple(np.asarray(shape, np.int))
         self.size = np.prod(self.shape)
-        self.vectors = np.reshape(vectors, (3,3))
+        self.vectors = np.reshape(vectors, (3, 3))
 
         cross12 = np.cross(self.vectors[1], self.vectors[2])
         self.dv = abs(np.sum(self.vectors[0] * cross12.T)) / self.size
@@ -101,8 +102,8 @@ class Mesh3D(object):
         return ix * self.dvx + iy * self.dvy + iz * self.dvz
 
     def to_string(self, prtvol=0):
-        s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
-        return s
+        """String representation."""
+        return self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
 
     @property
     def nx(self):
@@ -309,9 +310,23 @@ class Mesh3D(object):
             for gy in gy_list:
                 for gz in gz_list:
                     idx += 1
-                    gvecs[idx,:] = gx, gy, gz
+                    gvecs[idx, :] = gx, gy, gz
 
         return gvecs
+
+    @lazy_property
+    def gmods(self):
+        """[ng] array with |G|"""
+        gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
+        gmods = np.empty(self.size)
+        for i, g in enumerate(self.gvecs):
+            gmods[i] = np.dot(g, np.dot(gmet, g))
+
+        return 2 * np.pi * np.sqrt(gmods)
+
+    #@lazy_property
+    #def gmax(self)
+    #    return self.gmods.max()
 
     @lazy_property
     def rpoints(self):

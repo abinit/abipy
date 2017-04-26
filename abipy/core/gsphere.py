@@ -91,7 +91,7 @@ class GSphere(collections.Sequence):
                 self.istwfk == other.istwfk)
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def copy(self):
         """Deep copy."""
@@ -100,7 +100,7 @@ class GSphere(collections.Sequence):
     def to_string(self, prtvol=0):
         """String representation."""
         name = str(self.__class__)
-        s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % self.__dict__
+        s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
         return s
 
     # TODO: Alias To be removed in 0.4

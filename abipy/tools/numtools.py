@@ -14,7 +14,9 @@ from abipy.tools import duck
 
 
 def transpose_last3dims(arr):
-    """Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x)."""
+    """
+    Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
+    """
     axes = np.arange(arr.ndim)
     axes[-3:] = axes[::-1][:3]
 
@@ -236,33 +238,6 @@ def smooth(x, window_len=11, window='hanning'):
     e = s + len(x)
     #return y
     return y[s:e]
-
-
-def integrator_linspace(y, dx=1, method="simps", axis=-1):
-    """
-    Integrate y using samples along the given axis with spacing dx.
-    method is in ['simps', 'trapz', 'romb']. Note that romb requires len(y) = 2**k + 1.
-
-    Example:
-    >>> nx = 2**8+1
-    >>> x = np.linspace(0, np.pi, nx)
-    >>> dx = np.pi/(nx-1)
-    >>> y = np.sin(x)
-    >>> for method in ["simps", "trapz", "romb"]: print(integrator_linspace(y, dx=dx, method=method))
-    2.00000000025
-    1.99997490024
-    2.0
-    """
-    from scipy.integrate import simps, trapz, romb
-
-    if method == "simps":
-        return simps(y, x=None, dx=dx, axis=axis, even='avg')
-    elif method == "trapz":
-        return trapz(y, x=None, dx=dx, axis=axis)
-    elif method == "romb":
-        return romb(y, dx=dx, axis=axis, show=False)
-    else:
-        raise ValueError("Wrong method: %s" % method)
 
 
 class Interpol3D(object):

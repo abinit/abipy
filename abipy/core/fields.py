@@ -6,6 +6,7 @@ import numpy as np
 import collections
 import pymatgen.core.units as pmgu
 
+from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import is_string
@@ -70,7 +71,8 @@ class _Field(Has_Structure):
             nspinor: Number of spinorial components.
             nsppol: Number of spins.
             nspden: Number of spin density components.
-            datar: numpy array with the scalar field in real space. shape [..., nx, ny, nz]
+            datar: [nspden, nx, ny, nz] array with the scalar field in real space.
+                See also `read_denpot`.
             structure: :class:`Structure` object describing the crystalline structure.
             iorder: Order of the array. "c" for C ordering, "f" for Fortran ordering.
         """
@@ -170,7 +172,7 @@ class _Field(Has_Structure):
 
     def to_string(self, prtvol=0):
         """String representation"""
-        lines = ["%s: nspinor = %i, nsppol = %i, nspden = %i" %
+        lines = ["%s: nspinor: %i, nsppol: %i, nspden: %i" %
                  (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
         app = lines.append
         app(self.mesh.to_string(prtvol))
@@ -437,26 +439,84 @@ class _Field(Has_Structure):
 
         return fig
 
-    #def integrate_spheres(self, rcut_symbol=None):
-    #    # Initialize rcut_symbol map.
-    #    if rcut_symbol is None:
-    #        from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
-    #        rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
+    def integrate_in_spheres(self, rcut_symbol=None, out=True):
+        """
+        Integrate field (e.g. density/potential) inside atom-centered spheres of given radius.
+        Can be used to get a rough estimate of the charge/magnetization associated to a given site.
 
-    #    # Compute rmax and spline bessel integrals.
-    #    datag = self.datag
-    #    gvecs = self.mesh.gvecs
-    #    #gmods = np.dot(gvecs, np.dot(gmet, gvecs))
-    #    gmax = gmods.max()
-    #    rmax = max(rcut_symbol[s] for s in rcut_symbol)
-    #    spline_gmods = spline_int_jlqr(0, gmax, rmax, num)
+        Args:
+            rcut_symbol: Dictionary mapping chemical element to the radius of the sphere in Angstrom.
+                If None, covalent radii are used.
+            out: Set it to False to disable output of final results
 
-    #    results = []
-    #    for iatom, site in enumerate(self.structure):
-    #        phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
-    #        vg = phases * spline_gmods(gmods)
-    #        results.append(np.sum(vg * datag))
-    #        #results.append([(vg * datag[ispden]).sum() for ispden in range(self.nspden)]
+        Return
+            pandas :class:`DataFrame` with computed results (integrated density, integrated magnetization, ...)
+        """
+        # Initialize rcut_symbol map.
+        if rcut_symbol is None:
+            from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+            rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
+
+        # Compute rmax and spline bessel integrals.
+        datag = np.reshape(self.datag, (self.nspden, -1))
+        print("datag[0]", datag[0, 0] * self.structure.volume, datag.shape)
+        gvecs = self.mesh.gvecs
+        #print(gvecs[:92])
+        gmods = self.mesh.gmods #/ (2 * np.pi)
+        gmax = gmods.max() #/ (2 * np.pi)
+        rmax = max(rcut_symbol[s] for s in rcut_symbol)
+        from abipy.tools import bessel
+        spline_gmods = bessel.spline_int_jlqr(0, gmax, rmax)
+
+        rows = []
+        for iatom, site in enumerate(self.structure):
+            symbol = site.specie.symbol
+            phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
+            #phases = np.exp(np.dot(gvecs, site.frac_coords))
+            s = spline_gmods(gmods)
+            #s = np.ones_like(gmods)
+            #print("spline:", s)
+            vg = phases * s
+            res_nspden = np.sum(datag * vg, axis=1) # * 2 * np.pi
+            print(res_nspden.shape, (datag * vg).shape)
+            print("result:", res_nspden)
+
+            # Compute densities and magnetization.
+            ntot, nup, ndown, mx, my, mz = 6 * (None,)
+            if self.nspinor == 1:
+                res_nspden = res_nspden.real
+                if self.nspden == 1:
+                    ntot = res_nspden[0]
+                elif self.nspden == 2:
+                    nup, ndown = res_nspden
+                    ntot, mz = nup + ndown, nup - ndown
+
+            elif self.nspinor == 2:
+                raise NotImplementedError()
+                ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
+                nup, ndown = 0.5 * (ntot + mz), 0.5 * (ntot - mz)
+
+            # Fill DataFrame row.
+            rows.append(OrderedDict([
+                ("iatom", iatom), ("symbol", symbol),
+                ("ntot", ntot), ("nup", nup), ("ndown", ndown),
+                ("mx", mx), ("my", my), ("mz", mz),
+                ("rsphere", rcut_symbol[symbol]),
+                ("frac_coords", site.frac_coords),
+            ]))
+
+        import pandas as pd
+        df = pd.DataFrame(rows, columns=list(rows[0].keys()))
+        # Use iatom as index and remove columns with None.
+        df = df.set_index("iatom").dropna(axis="columns", how='any')
+
+        if out:
+            print(self.structure)
+            print()
+            print(df)
+
+        return df
+
 
 
 class _DensityField(_Field):
@@ -594,6 +654,7 @@ class Density(_DensityField):
             nelect = self.mesh.integrate(self.datar)
             return np.sum(nelect) if spin is None else nelect[spin]
         else:
+            raise NotImplementedError()
             return self.mesh.integrate(self.datar[0])
 
     @lazy_property
@@ -899,8 +960,15 @@ class FieldReader(ETSF_Reader):
         # rhor(nfft, nspden) = electron density in real-space.
         # (if spin polarized, array contains total density in first half and spin-up density in second half)
         # (for non-collinear magnetism, first element: total density, 3 next ones: mx, my, mz in units of hbar/2)
-        rhor = self.read_value(varname)
-        cplex = rhor.shape[-1]
+        datar = self.read_value(varname)
+
+        # Get rid of fake last dimensions if cplex == 1 or convert to complex array if cplex == 2.
+        # Remember that datar has been written from Fortran --> (n3, n2, n1).
+        cplex = datar.shape[-1]
+        if cplex == 1:
+            datar = np.reshape(datar, (dims.nspden, dims.nfft3, dims.nfft2, dims.nfft1))
+        else:
+            datar = datar[..., 0] + 1j * datar[..., 1]
 
         if dims.nspinor == 1:
             if dims.nspden == 1:
@@ -908,38 +976,43 @@ class FieldReader(ETSF_Reader):
 
             elif dims.nspden == 2:
                 assert dims.nsppol == 2
-                # Store rho_up, rho_down instead of rho_total, rho_up
-                total = rhor[0].copy()
-                rhor[0] = rhor[1]
-                rhor[1] = total - rhor[1]
+                if issubclass(field_cls, _DensityField):
+                    # If Density: store rho_up, rho_down instead of rho_total, rho_up.
+                    total = datar[0].copy()
+                    datar[0] = datar[1].copy()
+                    datar[1] = total - datar[0]
 
             else:
                 raise ValueError("Invalid nspinor: %s, nspden: %s and nsppol: %s" % (
                     dims.nspinor, dims.nspden, dims%nsppol))
+                #if issubclass(field_cls, _DensityField):
+                #elif issubclass(field_cls, _PotentialFieldField):
+                #else:
+                #    raise TypeError("Don't know how to handle class: %s" % type(field_cls)
 
         else:
             if dims.nspden == 4:
                 raise NotImplementedError()
-                #rhor_ab = np.empty_like(rhor)
-                #rhor_ab[0] = (rhor[0] + rhor[3]) / 2    # (n + mz) / 2
-                #rhor_ab[1] = (rho[1] - 1j*rho[2]) / 2   # (mx - jmy) / 2
-                #rhor_ab[2] = (rho[1] + 1j*rho[2]) / 2   # (mx + jmy) /2
-                #rhor_ab[3] = (rho[0] - rho[3]) / 2      # (n - mz) / 2
-                #rhor = rhor_ab
+                #datar_ab = np.empty_like(datar)
+                #datar_ab[0] = (datar[0] + datar[3]) / 2  # (n + mz) / 2
+                #datar_ab[1] = (rho[1] - 1j*rho[2]) / 2   # (mx - jmy) / 2
+                #datar_ab[2] = (rho[1] + 1j*rho[2]) / 2   # (mx + jmy) /2
+                #datar_ab[3] = (rho[0] - rho[3]) / 2      # (n - mz) / 2
+                #datar = datar_ab
             else:
                 raise NotImplementedError()
 
         # Structure uses Angstrom. Abinit uses Bohr.
-        if issubclass(field_cls, _DensityField): fact = 1 / pmgu.bohr_to_angstrom ** 3
-        if issubclass(field_cls, _PotentialField): fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
-        rhor *= fact
+        if issubclass(field_cls, _DensityField):
+            fact = 1 / pmgu.bohr_to_angstrom ** 3
+        if issubclass(field_cls, _PotentialField):
+            fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
+
+        datar *= fact
 
         # use iorder="f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while AbiPy uses C-ordering.
         if cplex == 1:
-            # Get rid of fake last dimensions (cplex).
-            rhor = np.reshape(rhor, (dims.nspden, dims.nfft1, dims.nfft2, dims.nfft3))
-            return field_cls(dims.nspinor, dims.nsppol, dims.nspden, rhor, structure, iorder="f")
-
+            return field_cls(dims.nspinor, dims.nsppol, dims.nspden, datar, structure, iorder="f")
         else:
             raise NotImplementedError("cplex %s not coded" % cplex)

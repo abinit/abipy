@@ -222,8 +222,8 @@ class TestScalarField(AbipyTest):
         assert vxc.is_potential_like
         assert vxc.datar.dtype == np.float
         fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
-        self.assert_almost_equal(vxc.datar[0, 0, 0, 0] + vxc.datar[1, 0, 0, 0] , -2.40411892342838 * fact)
-        self.assert_almost_equal(vxc.datar[0, 0, 0, 1] + vxc.datar[1, 0, 0, 1] , -2.31753083824603 * fact)
+        self.assert_almost_equal(vxc.datar[0, 0, 0, 0], -2.40411892342838 * fact)
+        self.assert_almost_equal(vxc.datar[0, 0, 0, 1], -2.31753083824603 * fact)
 
         if self.has_matplotlib():
             assert vxc.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)

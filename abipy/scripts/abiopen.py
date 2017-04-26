@@ -14,6 +14,7 @@ import argparse
 import tempfile
 
 from monty.os.path import which
+from monty.termcolor import cprint
 from monty.functools import prof_main
 from abipy import abilab
 
@@ -98,8 +99,8 @@ File extensions supported:
                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
-    #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-    #                     help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                         help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     parser.add_argument('--foreground', action='store_true', default=False,
@@ -128,7 +129,13 @@ File extensions supported:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
         if options.print:
-            print(abifile)
+            try:
+                s = abifile.to_string(verbose=options.verbose)
+                print(s)
+            except Exception as exc:
+                cprint("abifile.to_string raised:\n %s" % str(exc), "yellow")
+                print(abifile)
+
             return 0
 
         import IPython
