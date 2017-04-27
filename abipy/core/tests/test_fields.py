@@ -91,6 +91,8 @@ class TestScalarField(AbipyTest):
         assert si_den.is_density_like
         assert not si_den.is_potential_like
 
+        self.assert_almost_equal(si_den.mesh.fft_g2r(si_den.datag), si_den.datar)
+
         # Read data directly from file.
         with ETSF_Reader(abidata.ref_file("si_DEN.nc")) as r:
             nelect_file = r.read_value("number_of_electrons")
@@ -117,6 +119,12 @@ class TestScalarField(AbipyTest):
         assert nup == ndown
         self.assert_almost_equal(nup, ne / 2)
         self.assert_almost_equal(si_den.zeta, 0)
+
+        df = si_den.integrate_in_spheres(rcut_symbol=None)
+        assert "frac_coords" in df
+        self.assert_almost_equal(df["ntot"].values, 2 * [2.010537])
+        self.assert_almost_equal(df["rsph_ang"].values, 2 * [1.11])
+        df = si_den.integrate_in_spheres(rcut_symbol=2, out=False)
 
         if self.has_matplotlib():
             assert si_den.plot_line(0, 1, num=1000, show=False)
@@ -153,8 +161,13 @@ class TestScalarField(AbipyTest):
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""
         ni_den = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
-
         repr(ni_den); str(ni_den)
+
+        self.assert_almost_equal(ni_den.mesh.vectors, pmgu.bohr_to_angstrom *
+            np.reshape([0.0000000, 3.3259180, 3.3259180,
+                        3.3259180, 0.0000000, 3.3259180,
+                        3.3259180, 3.3259180, 0.0000000], (3, 3)))
+
         assert ni_den.nspinor == 1 and ni_den.nsppol == 2 and ni_den.nspden == 2
         assert ni_den.is_collinear
         assert ni_den.structure.formula == "Ni1"
@@ -168,6 +181,7 @@ class TestScalarField(AbipyTest):
 
         totden = ni_den.total_rhor_as_density()
         self.assert_equal(totden.datar.flatten(), ni_den.total_rhor.flatten())
+        self.assert_almost_equal(ni_den.mesh.fft_g2r(ni_den.datag), ni_den.datar)
 
         other = ni_den - ni_den
         assert other.nspden == ni_den.nspden
@@ -182,6 +196,14 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(nup, 9.32507195)
         self.assert_almost_equal(ndown, 8.674928)
         self.assert_almost_equal(ni_den.zeta[3, 3, 3], 0.31311881970587324)
+
+        df = ni_den.integrate_in_spheres(rcut_symbol=None)
+        assert "frac_coords" in df
+        self.assert_almost_equal(df["nup"].values, 8.9778673)
+        self.assert_almost_equal(df["ndown"].values, 8.2989892)
+        self.assert_almost_equal(df["mz"].values, 0.6788782)
+        self.assert_almost_equal(df["rsph_ang"].values, 1.24)
+        self.assert_almost_equal(df["nup"].values + df["ndown"].values, df["ntot"].values)
 
         if self.has_matplotlib():
             assert ni_den.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)

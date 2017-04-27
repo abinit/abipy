@@ -439,14 +439,14 @@ class _Field(Has_Structure):
 
         return fig
 
-    def integrate_in_spheres(self, rcut_symbol=None, out=True):
+    def integrate_in_spheres(self, rcut_symbol=None, out=False):
         """
         Integrate field (e.g. density/potential) inside atom-centered spheres of given radius.
         Can be used to get a rough estimate of the charge/magnetization associated to a given site.
 
         Args:
-            rcut_symbol: Dictionary mapping chemical element to the radius of the sphere in Angstrom.
-                If None, covalent radii are used.
+            rcut_symbol: dictionary mapping chemical element to the radius of the sphere in Angstrom.
+                or number if each element should have the same sphere. If None, covalent radii are used.
             out: Set it to False to disable output of final results
 
         Return
@@ -456,30 +456,27 @@ class _Field(Has_Structure):
         if rcut_symbol is None:
             from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
             rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
+            rcut_symbol = {s: 2 for s in self.structure.symbol_set}
+        elif duck.is_number_like(rcut_symbol):
+            rcut_symbol = {s: float(rcut_symbol) for s in self.structure.symbol_set}
 
-        # Compute rmax and spline bessel integrals.
+        # Spline bessel integrals.
         datag = np.reshape(self.datag, (self.nspden, -1))
-        print("datag[0]", datag[0, 0] * self.structure.volume, datag.shape)
+        #print("datag[0]", datag[0, 0] * self.structure.volume, datag.shape)
         gvecs = self.mesh.gvecs
-        #print(gvecs[:92])
-        gmods = self.mesh.gmods #/ (2 * np.pi)
-        gmax = gmods.max() #/ (2 * np.pi)
-        rmax = max(rcut_symbol[s] for s in rcut_symbol)
+        gmods = self.mesh.gmods
+        gmax = gmods.max()
         from abipy.tools import bessel
-        spline_gmods = bessel.spline_int_jlqr(0, gmax, rmax)
+        splines = {s: bessel.spline_int_jlqr(0, gmax, rcut_symbol[s]) for s in self.structure.symbol_set}
 
+        # 4 pi sum_G n(G) e^{iGRo} int_0^{rcut} r**2 j_l(Gr} dr
         rows = []
         for iatom, site in enumerate(self.structure):
             symbol = site.specie.symbol
             phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
-            #phases = np.exp(np.dot(gvecs, site.frac_coords))
-            s = spline_gmods(gmods)
-            #s = np.ones_like(gmods)
-            #print("spline:", s)
-            vg = phases * s
-            res_nspden = np.sum(datag * vg, axis=1) # * 2 * np.pi
-            print(res_nspden.shape, (datag * vg).shape)
-            print("result:", res_nspden)
+            fg = datag * phases * splines[symbol](gmods)
+            res_nspden = np.sum(fg, axis=1)  * (4 * np.pi)
+            #print("result:", res_nspden, res_nspden.shape, (datag * fg).shape)
 
             # Compute densities and magnetization.
             ntot, nup, ndown, mx, my, mz = 6 * (None,)
@@ -501,8 +498,7 @@ class _Field(Has_Structure):
                 ("iatom", iatom), ("symbol", symbol),
                 ("ntot", ntot), ("nup", nup), ("ndown", ndown),
                 ("mx", mx), ("my", my), ("mz", mz),
-                ("rsphere", rcut_symbol[symbol]),
-                ("frac_coords", site.frac_coords),
+                ("rsph_ang", rcut_symbol[symbol]), ("frac_coords", site.frac_coords),
             ]))
 
         import pandas as pd
@@ -516,7 +512,6 @@ class _Field(Has_Structure):
             print(df)
 
         return df
-
 
 
 class _DensityField(_Field):

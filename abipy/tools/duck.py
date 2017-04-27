@@ -26,6 +26,15 @@ def is_intlike(obj):
         return False
 
 
+def is_number_like(obj):
+    """True if obj represents a number."""
+    try:
+        obj - 1
+        return True
+    except TypeError:
+        return False
+
+
 def is_listlike(obj):
     #if isinstance(branch, (list, tuple, np.ndarray)):
     if isinstance(obj, np.ndarray): return True
