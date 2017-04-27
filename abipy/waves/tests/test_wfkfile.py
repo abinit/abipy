@@ -23,6 +23,7 @@ class TestWFKFile(AbipyTest):
 
         wave = wfk.get_wave(spin, kpoint, band)
         repr(wave); str(wave)
+        assert len(wave.to_string(verbose=1))
         assert wave.structure is wfk.structure
         assert wave.shape == (wfk.nspinor, wave.npw)
         assert wave.isnc and not wave.ispaw
@@ -86,6 +87,9 @@ class TestWFKFile(AbipyTest):
         if self.has_matplotlib():
             assert wave.plot_line(0, 1, num=100, show=False)
             assert wave.plot_line([0, 0, 0], [2, 2, 2], num=100, with_krphase=True, show=False)
+            assert wave.plot_line_neighbors(0, 3, num=100, with_krphase=False, show=False)
+            assert wave.plot_line_neighbors(0, 3, num=100, with_krphase=True, show=False)
+            assert wfk.ebands.plot(show=False)
 
         if self.has_nbformat():
             wfk.write_notebook(nbpath=self.get_tmpname(text=True))

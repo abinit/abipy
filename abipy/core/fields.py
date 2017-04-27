@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 
-def texlabel_ispden(ispden, nspden):
+def latexlabel_ispden(ispden, nspden):
     if nspden == 1:
         return None
 
@@ -100,55 +100,44 @@ class _Field(Has_Structure):
     def __str__(self):
         return self.to_string()
 
-    def _check_other(self, other):
-        """Consistency check"""
+    def _check_and_get_datar(self, other):
+        """Perform consistency check and return datar values."""
         if not isinstance(other, _Field):
-            raise TypeError('object of class %s is not an instance of _Field' % other.__class__)
+            try:
+                return float(other)
+            except:
+                raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' % other.__class__)
 
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
             raise ValueError('Incompatible scalar fields')
 
-        return True
+        return other.datar
 
     def __add__(self, other):
         """self + other"""
-        self._check_other(other)
         return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                      datar=self.datar + other.datar,
+                      datar=self.datar + self._check_and_get_datar(other),
                       structure=self.structure, iorder="c")
 
     def __sub__(self, other):
         """self - other"""
-        self._check_other(other)
         return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                      datar=self.datar - other.datar,
+                      datar=self.datar - self._check_and_get_datar(other),
                       structure=self.structure, iorder="c")
 
     def __mul__(self, other):
         """self * other"""
-        if isinstance(other, _Field):
-            self._check_other(other)
-            v = other.datar
-        else:
-            v = float(other)
-
         return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                      datar=self.datar * v,
+                      datar=self.datar * self._check_and_get_datar(other),
                       structure=self.structure, iorder="c")
 
     __rmul__ = __mul__
 
     def __truediv__(self, other):
         """self / other"""
-        if isinstance(other, _Field):
-            self._check_other(other)
-            v = other.datar
-        else:
-            v = float(other)
-
         return _Field(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                      datar=self.datar / v,
+                      datar=self.datar / self._check_and_get_datar(other),
                       structure=self.structure, iorder="c")
 
     __div__ = __truediv__
@@ -170,13 +159,14 @@ class _Field(Has_Structure):
         """Structure object."""
         return self._structure
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """String representation"""
         lines = ["%s: nspinor: %i, nsppol: %i, nspden: %i" %
                  (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
         app = lines.append
-        app(self.mesh.to_string(prtvol))
-        if prtvol > 0: app(str(self.structure))
+        app(self.mesh.to_string(verbose=verbose))
+        if verbose > 0:
+            app(str(self.structure))
 
         return "\n".join(lines)
 
@@ -330,7 +320,7 @@ class _Field(Has_Structure):
 
     #def braket_waves(self, bra_wave, ket_wave):
     #    """
-    #    Compute the matrix element of <bra_wave| self.datar |ket_wave> in real space
+    #    Compute the matrix element of <bra_wave| self.datar |ket_wave> in real space.
     #    """
     #    bra_ur = bra_wave.get_ur_mesh(self.mesh, copy=False)
     #    ket_ur = ket_wave.get_ur_mesh(self.mesh, copy=False)
@@ -368,7 +358,7 @@ class _Field(Has_Structure):
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for ispden in range(self.nspden):
-            ax.plot(r.dist, r.values[ispden], label=texlabel_ispden(ispden, self.nspden))
+            ax.plot(r.dist, r.values[ispden], label=latexlabel_ispden(ispden, self.nspden))
 
         ax.grid(True)
         ax.set_xlabel("Distance from site1 [Angstrom]")
@@ -426,7 +416,7 @@ class _Field(Has_Structure):
 
             for ispden in range(self.nspden):
                 ax.plot(r.dist, r.values[ispden],
-                        label=texlabel_ispden(ispden, self.nspden) if i == 0 else None)
+                        label=latexlabel_ispden(ispden, self.nspden) if i == 0 else None)
 
             ax.set_title(title)
             ax.grid(True)

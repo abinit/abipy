@@ -8,6 +8,7 @@ import six
 import itertools
 import numpy as np
 
+from monty.termcolor import cprint
 from abipy.core import Mesh3D
 from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
@@ -18,6 +19,15 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 __all__ = [
     "PWWaveFunction",
 ]
+
+def latex_label_ispinor(ispinor, nspinor):
+    if nspinor == 1:
+        return ""
+    elif nspinor == 2:
+        return {k: v.replace("myuparrow", "uparrow") for k, v in
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+    else:
+        raise ValueError("Wrong value for nspinor: %s" % nspinor)
 
 
 class WaveFunction(object):
@@ -183,15 +193,17 @@ class WaveFunction(object):
         ug_mesh = self.get_ug_mesh(mesh=mesh)
         return mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
         app("%s: nspinor: %d, spin: %d, band: %d " % (
             self.__class__.__name__, self.nspinor, self.spin, self.band))
 
-        if hasattr(self, "gsphere"): app(self.gsphere.tostring(prtvol))
-        if hasattr(self, "mesh"): app(self.mesh.to_string(prtvol))
+        if hasattr(self, "gsphere"):
+            app(self.gsphere.tostring(verbose=verbose))
+        if hasattr(self, "mesh"):
+            app(self.mesh.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -447,14 +459,80 @@ class PWWaveFunction(WaveFunction):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         which = r"\psi(r)" if with_krphase else "u(r)"
         for ispinor in range(self.nspinor):
+            spinor_label = latex_label_ispinor(ispinor, self.nspinor)
             ur = r.values[ispinor]
-            ax.plot(r.dist, ur.real, label=r"$\Re %s$" % which)
-            ax.plot(r.dist, ur.imag, label=r"$\Im %s$" % which)
-            ax.plot(r.dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$")
+            ax.plot(r.dist, ur.real, label=r"$\Re %s$ %s" % (which, spinor_label))
+            ax.plot(r.dist, ur.imag, label=r"$\Im %s$ %s" % (which, spinor_label))
+            ax.plot(r.dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$ %s" % spinor_label)
 
         ax.grid(True)
         ax.set_xlabel("Distance from site1 [Angstrom]")
         ax.legend(loc="best")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, max_nn=10, **kwargs):
+        """
+        Plot (interpolated) density/potential in real space along the lines connecting
+        an atom specified by `site_index` and all neighbors within a sphere of given `radius`.
+
+        .. warning:
+
+            This routine can produce lots of plots! Be careful with the value of `radius`.
+            See also `max_nn`.
+
+        Args:
+            site_index: Index of the atom in the structure.
+            radius: Radius of the sphere in Angstrom
+            num: Number of points sampled along the line.
+            with_krphase: True to include the e^{ikr} phase-factor.
+            max_nn: By default, only the first `max_nn` neighbors are showed.
+
+        Return:
+            `matplotlib` figure
+        """
+        site = self.structure[site_index]
+        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
+        if not nn_list:
+            cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
+            return None
+        # Sorte sites by distance.
+        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
+
+        if max_nn is not None and len(nn_list) > max_nn:
+            cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
+                    (radius, len(nn_list), max_nn), "yellow")
+            nn_list = nn_list[:max_nn]
+
+        # Get grid of axes.
+        import matplotlib.pyplot as plt
+        nrows = len(nn_list)
+        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
+
+        interpolator = self.get_interpolator()
+        kpoint = None if not with_krphase else self.kpoint
+        which = r"\psi(r)" if with_krphase else "u(r)"
+
+        for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
+            nn_site, nn_dist, nn_sc_index  = nn
+            title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
+
+            r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=kpoint)
+
+            for ispinor in range(self.nspinor):
+                spinor_label = latex_label_ispinor(ispinor, self.nspinor)
+                ur = r.values[ispinor]
+                ax.plot(r.dist, ur.real, label=r"$\Re %s$ %s" % (which, spinor_label))
+                ax.plot(r.dist, ur.imag, label=r"$\Im %s$ %s" % (which, spinor_label))
+                ax.plot(r.dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$ %s" % spinor_label)
+
+            ax.set_title(title)
+            ax.grid(True)
+
+            if i == nrows - 1:
+                ax.set_xlabel("Distance from site_index %s [Angstrom]" % site_index)
+                ax.legend(loc="best")
 
         return fig
 

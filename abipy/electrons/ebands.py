@@ -2966,19 +2966,11 @@ class ElectronDosPlotter(NotebookWriter):
         plotter.add_edos("bar dos", "bar.nc")
         fig = plotter.gridplot()
     """
-    #_LINE_COLORS = ["b", "r",]
-    #_LINE_STYLES = ["-",":","--","-.",]
-    #_LINE_WIDTHS = [2,]
 
     def __init__(self, key_edos=None, edos_kwargs=None):
         if key_edos is None: key_edos = []
         key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]
         self.edoses_dict = OrderedDict(key_edos)
-
-    #def iter_lineopt(self):
-    #    """Generates style options for lines."""
-    #    for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
-    #        yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     @property
     def edos_list(self):

@@ -101,7 +101,7 @@ class Mesh3D(object):
         """The vector corresponding to the (ix, iy, iz) indices"""
         return ix * self.dvx + iy * self.dvy + iz * self.dvz
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """String representation."""
         return self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
 

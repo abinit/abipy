@@ -66,7 +66,9 @@ class TestScalarField(AbipyTest):
         #other = np.pi / field
         #self.assert_equal(other.datar, np.pi / field.datar)
 
-        self.assert_equal(abs(field).datar, np.abs(field.datar))
+        other = field + 3
+        other = (field / field)
+        self.assert_equal(other.datar, 1.0)
 
         with self.assertRaises(TypeError):
             field + "hello"
@@ -120,7 +122,7 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(nup, ne / 2)
         self.assert_almost_equal(si_den.zeta, 0)
 
-        df = si_den.integrate_in_spheres(rcut_symbol=None)
+        df = si_den.integrate_in_spheres(rcut_symbol=None, out=True)
         assert "frac_coords" in df
         self.assert_almost_equal(df["ntot"].values, 2 * [2.010537])
         self.assert_almost_equal(df["rsph_ang"].values, 2 * [1.11])
@@ -197,7 +199,7 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(ndown, 8.674928)
         self.assert_almost_equal(ni_den.zeta[3, 3, 3], 0.31311881970587324)
 
-        df = ni_den.integrate_in_spheres(rcut_symbol=None)
+        df = ni_den.integrate_in_spheres(rcut_symbol=None, out=True)
         assert "frac_coords" in df
         self.assert_almost_equal(df["nup"].values, 8.9778673)
         self.assert_almost_equal(df["ndown"].values, 8.2989892)

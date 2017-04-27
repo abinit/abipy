@@ -131,10 +131,10 @@ to install the package in developmental mode
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
+To run the suite of unit tests, make sure you have ``pytest`` (recommended) 
 or ``nose`` installed and then just type::
 
-    $ py.test
+    $ pytest
 
 or::
 
@@ -150,7 +150,7 @@ In order to run the tests, you need a working set of Abinit executables and
 a ``manager.yml`` configuration file.
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
 
-    $ conda install abinit -c gmatteo
+    $ conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
 `workflows <http://pythonhosted.org/abipy/workflows.html>`_ section.

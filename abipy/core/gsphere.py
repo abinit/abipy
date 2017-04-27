@@ -97,7 +97,7 @@ class GSphere(collections.Sequence):
         """Deep copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """String representation."""
         name = str(self.__class__)
         s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
