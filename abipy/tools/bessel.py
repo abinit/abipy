@@ -1,5 +1,5 @@
 # coding: utf-8
-""""""
+"""This module provides functions to compute integrals of Bessel functions."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np

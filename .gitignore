@@ -2,6 +2,9 @@
 abinit_vars.pickle
 Profile.prof
 abipy/data/runs/flow_*
+_debug
+abinb_*.ipynb
+*.pickle
 
 # cython generated code
 abipy/extensions/*.c

@@ -1187,10 +1187,11 @@ class ElectronBands(Has_Structure):
             prune_step: Optional argument used to select a subset of the irreducible points found.
             If `prune_step` is None, all irreducible k-points are used.
         """
-        from abipy.core.kpoints import find_irred_kpoints_generic
-
         # Get the index of the irreducible kpoints.
-        irred_map = find_irred_kpoints_generic(self.structure, self.kpoints.frac_coords)
+        from abipy.core.kpoints import find_irred_kpoints_generic
+        nmt = find_irred_kpoints_generic(self.structure, self.kpoints.frac_coords)
+        irred_map = nmt.irred_map
+
         if prune_step is not None:
             irred_map = irred_map[::prune_step].copy()
 

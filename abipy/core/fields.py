@@ -456,7 +456,8 @@ class _Field(Has_Structure):
         if rcut_symbol is None:
             from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
             rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
-            rcut_symbol = {s: 2 for s in self.structure.symbol_set}
+            #rcut_symbol = {s: 2 for s in self.structure.symbol_set}
+            #rcut_symbol = {s: 1 for s in self.structure.symbol_set}
         elif duck.is_number_like(rcut_symbol):
             rcut_symbol = {s: float(rcut_symbol) for s in self.structure.symbol_set}
 

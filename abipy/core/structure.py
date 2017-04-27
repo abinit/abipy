@@ -1517,7 +1517,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("print(structure.abi_string)"),
             nbv.new_code_cell("structure"),
             nbv.new_code_cell("print(structure.spglib_summary())"),
-            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup"),
+            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("fig = structure.show_bz()"),
             nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),

@@ -11,7 +11,7 @@ import numpy as np
 from itertools import product
 from tabulate import tabulate
 from monty.json import MSONable, MontyEncoder
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
@@ -345,37 +345,65 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
 #def find_irred_kpoints_kmesh(structure, kfrac_coords):
 #    """
 #    Remove k-points that are connected to each other by one of the
-#    symmetry operations of the space group. Return new list of k-points.
+#    symmetry operations of the space group. Assume k-points
+#    belonging to a homogeneous mesh.
+#
+#    Args:
+#        structure: Structure object.
+#        kfrac_coords: Reduced coordinates of the k-points.
+#
+#    Return:
 #    """
 #    # Wrap in [0,1[ interval.
 #    uc_kcoords = np.reshape(kfrac_coords, (-1, 3)) % 1
 #    numk = len(uc_kcoords)
 #    nx, ny, nz = np.int(np.floor(1 / uc_kcoords.min(axis=0)))
 #
-#    # Compute rank. invrank
+#    # Compute rank and invrank
 #    rank = np.array(numk, dtype=np.int)
-#    invrank =   {}
-#    #for ik, kk in enumerate(uc_kcoords):
-#    #    rk = iz + iy * nz + ix * ny * nz
-#    #    rank[ik] = rk
-#    #    invrank[rank] = ik
+#    invrank = {}
+#    for ik, kk in enumerate(uc_kcoords):
+#        rk = iz + iy * nz + ix * ny * nz
+#        rank[ik] = rk
+#        invrank[rank] = ik
 #
-#    return irred_map
+#    irred_map = collections.deque()
+#    irred_map.append(0)
+#    kpts2irred = collections.deque()
+#    kpts2irred.append((0, 0, +1))
+#
+#    for ik, kk in enumerate(uc_kcoords[1:]):
+#        ik += 1
+#        found = False
+#        for ik_irr in irred_map:
+#            kirr = kfrac_coords[ik_irr]
+#            for isym, symmop in enumerate(structure.abi_spacegroup):
+#                krot = symmop.rotate_k(kirr)
+#                new_frac_coords = krot.frac_coords % 1
+#                if issamek(krot, kk):
+#                    #kpts2irred[ik] = ik_irr
+#                    #kpts2irred[ik] = isym
+#                    found = True
+#                    break
+#
+#    #return irred_map
 
 
 def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
     """
     Remove the k-points that are connected to each other by one of the
     symmetry operations of the space group. No assumption is done
-    on the initial k-point sampling.
+    on the initial k-point sampling, this means that one can call this
+    function to treat points on a path in reciprocal space.
 
     Args:
         structure: Structure object.
         kfrac_coords: Reduced coordinates of the k-points.
 
     Return:
+        irred_map: Index of the i-th irreducible k-point in the input kfrac_coords array.
 
-    .. warning:
+    .. warning::
 
         In the worst case, the algorithm scales as nkpt ** 2 * nsym.
         hence this routine should be used only if `kfrac_coords` represents
@@ -387,11 +415,10 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
     # Wrap points in [0,1[ interval.
     uc_kcoords = np.reshape(kfrac_coords, (-1, 3)) % 1
 
-    #irred_map = []
     irred_map = collections.deque()
     irred_map.append(0)
     kpts2irred = collections.deque()
-    kpts2irred.append(0)
+    kpts2irred.append((0, 0, +1))
 
     for ik, kk in enumerate(uc_kcoords[1:]):
         ik += 1
@@ -401,9 +428,8 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
             for isym, symmop in enumerate(structure.abi_spacegroup):
                 krot = symmop.rotate_k(kirr)
                 if issamek(krot, kk):
-                    #kpts2irred[ik] = ik_irr
-                    #kpts2irred[ik] = isym
                     found = True
+                    #kpts2irred[ik] = (ik_irr, isym, symmops.time_sign)
                     break
 
         if not found:
@@ -414,7 +440,7 @@ def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
         print("Entered with ", len(uc_kcoords), "k-points")
         print("Found ", len(irred_map), "irred k-points")
 
-    return np.array(irred_map, dtype=np.int)
+    return dict2namedtuple(irred_map=np.array(irred_map, dtype=np.int))
 
 
 class KpointsError(Exception):
