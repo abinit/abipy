@@ -1,6 +1,6 @@
 # Crystalline alpha-quartz
 iomode 3
-ndtset 2
+ndtset 3
 nband 50
 
 # DATASET 1 : GS calculation 
@@ -28,7 +28,7 @@ kptbounds2
 optdriver3   3        # Screening run
 getwfk3      1        # To read the WFK file.
 symchi3      1        # Use symmetries to speedup the BZ integration
-ecutwfn3     10       # Cutoff for the wavefunctions.
+ecutwfn3     8       # Cutoff for the wavefunctions.
 ecuteps3     0.4      # Cutoff for the polarizability.
 inclvkb3     2        # Correct treatment of the optical limit.
 
@@ -46,7 +46,7 @@ timopt -1
 #################### COMMON PART #########################
 
 # energy cutoff [Ha]:
-ecut         10
+ecut         8
 
 #Definition of the k-point grid
 occopt 1           # Semiconductor

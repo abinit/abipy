@@ -6,10 +6,9 @@ import numpy as np
 import six
 import abc
 
-#from collections import OrderedDict
 from monty.string import marquee # is_string, list_strings,
-#from monty.collections import AttrDict
-#from monty.functools import lazy_property
+from monty.collections import AttrDict
+from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from pymatgen.core.units import Ha_to_eV, eV_to_Ha
 from abipy.core.func1d import Function1D
@@ -24,7 +23,242 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class _AwggMat(object):
+class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
+    """
+    ScrFile produced by the Abinit GW code.
+
+    Usage example:
+
+    .. code-block:: python
+
+        with ScrFile("foo_SCR.nc") as scr:
+            print(scr)
+            em1 = scr.get_em1(kpoint=[0, 0, 0])
+            em1.plot_w()
+    """
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize the object from a Netcdf file"""
+        return cls(filepath)
+
+    def __init__(self, filepath):
+        super(ScrFile, self).__init__(filepath)
+
+        # Keep a reference to the reader.
+        self.reader = ScrReader(filepath)
+
+    def close(self):
+        self.reader.close()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+        app("")
+        app(marquee("K-points for screening function", mark="="))
+        app(str(self.kpoints))
+        app("")
+        #app("  Number of G-vectors: %d" % self.ng)
+        #app("  Number of frequencies: %d (real:%d, imag%d)" % (self.nw, self.nrew, self.nimw))
+
+        if verbose:
+            app(str(self.params))
+
+        return "\n".join(lines)
+
+    @property
+    def structure(self):
+        """Crystalline structure."""
+        return self.reader.structure
+
+    @property
+    def kpoints(self):
+        """List of q-points for the dielectric function."""
+        return self.reader.kpoints
+
+    @property
+    def wpoints(self):
+        """
+        Read the frequencies of the dielectric function in Ha.
+        Returns numpy array of complex numbers.
+        """
+        return self.reader.wpoints
+
+    @property
+    def netcdf_name(self):
+        """The etsf-io name associated to the data on disk."""
+        return self.reader.netcdf_name
+
+    @lazy_property
+    def params(self):
+        """
+        :class:`AttrDict` with the most important parameters used to compute the screening
+        keys can be accessed with the dot notation i.e. params.zcut
+        """
+        return self.reader.read_params()
+
+    def get_em1(self, kpoint):
+        return self.reader.read_wggmat(kpoint, InverseDielectricFunction)
+
+    @add_fig_kwargs
+    def plot_emacro(self, kpoint=(0, 0, 0), g0=0, g1=0, **kwargs):
+        """
+        Plot the macroscopic dielectric function with/without local-field effects.
+
+        Returns:
+            matplotlib figure.
+        """
+        #return self.reader.read_emacro_lf().plot(**kwargs)
+        dataw = self.reader.read_wslice(kpoint, g0=g0, g1=g1)
+        print(dataw)
+
+    #@add_fig_kwargs
+    #def plot_eelf(self, **kwargs):
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("scr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(scr)"),
+            #nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
+            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class ScrReader(ETSF_Reader):
+    """
+    This object reads the results stored in the SCR (Screening) file produced by ABINIT.
+    It provides helper functions to access the most important quantities.
+    """
+    def __init__(self, filepath):
+        super(ScrReader, self).__init__(filepath)
+
+        # Read and store important quantities.
+        self.structure = self.read_structure()
+        qred_coords = self.read_value("qpoints_dielectric_function")
+        self.kpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
+        self.wpoints = self.read_value("frequencies_dielectric_function", cmode="c")
+
+        netcdf_names = ["polarizability", "dielectric_function", "inverse_dielectric_function"]
+        nfound = 0
+        for tryname in netcdf_names:
+            if tryname in self.rootgrp.variables:
+                self.netcdf_name = tryname
+                nfound += 1
+
+        if nfound == 0:
+            raise RuntimeError("Cannot find %s in netcdf file" % str(netcdf_names))
+        if nfound > 1:
+            raise RuntimeError("Find multiple netcdf arrays (%s)to in netcdf file" % str(netcdf_names))
+
+    def read_params(self):
+        """
+        Read the most important parameters used to compute the screening i.e.
+        the parameters that may be subject to convergence studies.
+
+        Returns:
+            :class:`AttrDict` a dictionary whose keys can be accessed
+            with the dot notation i.e. d.key.
+        """
+        # TODO: ecuteps is missing!
+        keys = ["ikxc", "inclvkb", "gwcalctyp", "nbands_used", "npwwfn_used",
+                "spmeth", "test_type", "tordering", "awtr", "icutcoul", "gwcomp",
+                "gwgamma", "mbpt_sciss", "spsmear", "zcut", "gwencomp"]
+
+        return AttrDict({k: self.read_value(k) for k in keys})
+
+    def find_kpoint_fileindex(self, kpoint):
+        """
+        Returns the k-point and the index of in the netcdf file.
+        Accepts `Kpoint` instance or integer
+
+        Raise:
+            `KpointsError` if kpoint cannot be found.
+        """
+        if duck.is_intlike(kpoint):
+            ik = int(kpoint)
+        else:
+            ik = self.kpoints.index(kpoint)
+
+        return self.kpoints[ik], ik
+
+    def read_wslice(self, kpoint, g0=0, g1=0):
+        kpoint, ik = self.find_kpoint_fileindex(kpoint)
+	#double inverse_dielectric_function(number_of_qpoints_dielectric_function,
+        # number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
+        # number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex) ;
+
+        #var = self.read_value(cls.netcdf_name, cmode="c")
+        ig0, ig1 = g0, g1
+        var = self.rootgrp.variables[self.netcdf_name]
+        values = var[ik, :, 0, 0, ig0, ig1, :]
+        return values[:, 0] + 1j * values[:, 1]
+
+    def read_emacro_lf(self, kpoint=(0, 0, 0)):
+        """
+        Read the macroscopic dielectric function *with* local field effects
+
+            1/ em1_{0,0)(kpoint, omega).
+
+        Return :class:`Function1D`
+        """
+        em1 = self.get_em1(kpoint=kpoint)
+        emacro = 1 / em1.wggmat[:, 0, 0]
+        return Function1D(em1.real_wpoints, emacro[:em1.nrew])
+
+    def read_emacro_nlf(self, kpoint=(0, 0, 0)):
+        """
+        Read the macroscopic dielectric function *without* local field effects.
+
+            e_{0,0)(kpoint, omega).
+
+        Return: :class:`Function1D`
+
+        .. warning::
+
+            This function performs the inversion of e-1 to get e.
+            that can be quite expensive and memory demanding for large matrices!
+        """
+        em1 = self.get_em1(kpoint=kpoint)
+        e = np.linalg.inv(em1.wggmat[:em1.nrew, :, :])
+
+        return Function1D(em1.real_wpoints, e[:, 0, 0])
+
+    def read_wggmat(self, kpoint, cls):
+        """
+        Read data at the given q-point and return an instance
+        of `cls` where `cls` is a subclass of `_AwggMatrix`
+        """
+        kpoint, ik = self.find_kpoint_fileindex(kpoint)
+        # TODO: I don't remember how to slice in python-netcdf
+        # ecuteps
+        all_gvecs = self.read_value("reduced_coordinates_plane_waves_dielectric_function")
+        ecuteps = 2
+        # TODO: Gpshere.find is very slow if we don't take advantage of shells
+        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, kpoint, all_gvecs[ik])
+
+        full_wggmat = self.read_value(cls.netcdf_name, cmode="c")
+        wggmat = full_wggmat[ik]
+
+        return cls(self.wpoints, gsphere, wggmat, inord="F")
+
+
+class _AwggMatrix(object):
     r"""
     Base class for two-point functions expressed in reciprocal space
     i.e. a complex matrix $A_{G,G'}(\omega)$ where G, G' are reciprocal
@@ -39,7 +273,7 @@ class _AwggMat(object):
         nrew:
         nwim:
     """
-    netcdf_name = "_AwggMat"
+    netcdf_name = "_AwggMatrix"
     latex_name = "Unknown"
 
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
@@ -84,8 +318,8 @@ class _AwggMat(object):
         lines = []
         app = lines.append
 
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        #app(marquee("Structure", mark="="))
+        #app(str(self.structure))
         #app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 
         app(self.netcdf_name)
@@ -116,14 +350,18 @@ class _AwggMat(object):
 
     @property
     def real_wpoints(self):
-        """Real frequencies in Hartree. Empty list if not available."""
+        """
+        Real frequencies in Hartree. Empty list if not available.
+        """
         if self.nrew > 0:
             return np.real(self.wpoints[:self.nrew])
         return []
 
     @property
     def imag_wpoints(self):
-        """Imaginary frequencies in Hartree. Empty list if not available."""
+        """
+        Imaginary frequencies in Hartree. Empty list if not available.
+        """
         if self.nimw > 0:
             return self.wpoints[self.nrew:]
         return []
@@ -217,8 +455,8 @@ class _AwggMat(object):
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
         ax.set_title("%s, kpoint: %s" % (self.netcdf_name, self.kpoint))
-        ax.legend(loc="upper right")
-        #ax.legend(loc="best")
+        ax.legend(loc="best")
+        #ax.legend(loc="upper right")
 
         return fig
 
@@ -260,17 +498,17 @@ class _AwggMat(object):
         return plotter.plot(show=False, **kwargs)
 
 
-class Polarizability(_AwggMat):
-    netcdf_name = "dielectric_function"
-    latex_name = "\\tilde chi"
+class Polarizability(_AwggMatrix):
+    netcdf_name = "polarizability"
+    latex_name = r"\tilde chi"
 
 
-class DielectricFunction(_AwggMat):
+class DielectricFunction(_AwggMatrix):
     netcdf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
 
-class InverseDielectricFunction(_AwggMat):
+class InverseDielectricFunction(_AwggMatrix):
     netcdf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 
@@ -327,133 +565,6 @@ class InverseDielectricFunction(_AwggMat):
         return fig
 
 
-class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
-    """
-    ScrFile produced by the Abinit GW code.
-
-    Usage example:
-
-    .. code-block:: python
-
-        with ScrFile("foo_SCR.nc") as scr:
-            print(scr)
-            em1 = scr.get_em1(kpoint=0)
-            em1.plot_w()
-    """
-
-    @classmethod
-    def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file"""
-        return cls(filepath)
-
-    def __init__(self, filepath):
-        super(ScrFile, self).__init__(filepath)
-
-        # Keep a reference to the reader.
-        self.reader = r = ScrReader(filepath)
-
-        # Read important parameters.
-        #self.params = self.reader.read_params()
-
-    def close(self):
-        self.reader.close()
-
-    def __str__(self):
-        return self.to_string()
-
-    def to_string(self, verbose=0):
-        lines = []; app = lines.append
-
-        app(marquee("File Info", mark="="))
-        app(self.filestat(as_string=True))
-        app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
-        app("")
-        app(marquee("Q-points", mark="="))
-        app(str(self.kpoints))
-        app("")
-        #app("  Number of G-vectors: %d" % self.ng)
-        #app("  Number of frequencies: %d (real:%d, imag%d)" % (self.nw, self.nrew, self.nimw))
-
-        return "\n".join(lines)
-
-    @property
-    def structure(self):
-        """Crystalline structure."""
-        return self.reader.structure
-
-    @property
-    def kpoints(self):
-        """List of q-points for the dielectric function."""
-        return self.reader.kpoints
-
-    @property
-    def wpoints(self):
-        """
-        Read the frequencies of the dielectric function in Ha.
-        Returns numpy array of complex numbers.
-        """
-        return self.reader.wpoints
-
-    def get_emacro_nlf(self, kpoint=(0, 0, 0)):
-        """
-        Compute the macroscopic dielectric function *without* local field effects.
-        e_{0,0)(q=0, w).
-
-        Return :class:`Function1D`
-
-        .. warning:
-
-            This function performs the inversion of e-1 to get e.
-            that can be quite expensive and memory demanding for large matrices!
-        """
-        em1 = self.get_em1(kpoint=kpoint)
-        e = np.linalg.inv(em1.wggmat[:em1.nrew, :, :])
-
-        return Function1D(em1.real_wpoints, e[:, 0, 0])
-
-    def get_emacro_lf(self, kpoint=(0, 0, 0)):
-        """
-        Compute the macroscopic dielectric function *with* local field effects
-        1/ em1_{0,0)(q=0, w).
-
-        Return :class:`Function1D`
-        """
-        em1 = self.get_em1(kpoint=kpoint)
-        emacro = 1 / em1.wggmat[:, 0, 0]
-        return Function1D(em1.real_wpoints, emacro[:em1.nrew])
-
-    def get_em1(self, kpoint):
-        return self.reader.read_wggfunc(kpoint, InverseDielectricFunction)
-
-    #@add_fig_kwargs
-    #def plot_emacro_lf(self, **kwargs):
-    #    """
-    #    Plot the macroscopic dielectric function with local-field effects.
-
-    #    Returns:
-    #        matplotlib figure.
-    #    """
-    #    return self.get_emacro_lf().plot(**kwargs)
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        nb.cells.extend([
-            nbv.new_code_cell("scr = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(scr)"),
-            #nbv.new_code_cell("fig = scr.plot_emacro_lf()"),
-            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
-
-
 class PPModel(six.with_metaclass(abc.ABCMeta, object)):
     """
     Abstract base class for Plasmonpole models.
@@ -499,7 +610,7 @@ class GodbyNeeds(PPModel):
         if iw0 == -1:
             raise ValueError("Cannot find omega=0 in em1")
         if iw1 == -1:
-            raise ValueError("Cannot find second imag frequency at %s in em1!" % wplasma)
+            raise ValueError("Cannot find second imaginary frequency at %s in em1!" % wplasma)
 
         w0gg = em1.wggmat[iw0, :, :]
         w1gg = em1.wggmat[iw1, :, :]
@@ -548,63 +659,3 @@ class GodbyNeeds(PPModel):
             (r"$\\tilde\Omega^2_{G, G'}$", self.bigomegatwsq)])
 
         return plotter.plot(show=False, **kwargs)
-
-
-class ScrReader(ETSF_Reader):
-    """
-    This object reads the results stored in the SCR (Screening) file produced by ABINIT.
-    It provides helper functions to access the most important quantities.
-    """
-    def __init__(self, filepath):
-        super(ScrReader, self).__init__(filepath)
-
-        # Read and store important quantities.
-        self.structure = self.read_structure()
-        qred_coords = self.read_value("qpoints_dielectric_function")
-        self.kpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
-        self.wpoints = self.read_value("frequencies_dielectric_function", cmode="c")
-
-    #def read_params(self):
-    #    """
-    #    Read the most importan parameters used to generate the data, i.e.
-    #    the parameters that may be subject to convergence studies.
-
-    #    Returns:
-    #        :class:`AttrDict` a dictionary whose keys can be accessed
-    #        with the dot notation i.e. d.key.
-    #    """
-    #    keys = ["npwwfn_used", "nbands_used",]
-    #    return AttrDict({k: self.read_value(k) for k in keys})
-
-    def find_kpoint_fileindex(self, kpoint):
-        """
-        Returns the q-point and the index of in the netcdf file.
-        Accepts `Kpoint` instance or integer
-
-        Raise:
-            `KpointsError` if kpoint cannot be found.
-        """
-        if duck.is_intlike(kpoint):
-            ik = int(kpoint)
-        else:
-            ik = self.kpoints.index(kpoint)
-
-        return self.kpoints[ik], ik
-
-    def read_wggfunc(self, kpoint, cls):
-        """
-        Read data at the given q-point and return an instance
-        of `cls` where `cls` is a subclass of `_AwggMat`
-        """
-        kpoint, iq = self.find_kpoint_fileindex(kpoint)
-        # TODO: I don't remember how to slice in python-netcdf
-        # ecuteps
-        all_gvecs = self.read_value("reduced_coordinates_plane_waves_dielectric_function")
-        ecuteps = 2
-        # TODO: Gpshere.find is very slow if we don't take advantage of shells
-        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, kpoint, all_gvecs[iq])
-
-        full_wggmat = self.read_value(cls.netcdf_name, cmode="c")
-        wggmat = full_wggmat[iq]
-
-        return cls(self.wpoints, gsphere, wggmat, inord="F")

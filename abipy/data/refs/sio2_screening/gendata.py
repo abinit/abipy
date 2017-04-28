@@ -14,7 +14,7 @@ class MyGenerator(AbinitFilesGenerator):
     # Mapping old_name --> new_name for the output files that must be preserved.
     files_to_save = {
         "out_DS1_DEN.nc": "sio2_DEN.nc",
-        "out_DS2_GSR.nc": "sio2_nscf_GSR.nc",
+        "out_DS2_GSR.nc": "sio2_kpath_GSR.nc",
         "out_DS3_SCR.nc": "sio2_SCR.nc",
         "out_DS3_EM1_NLF": "sio2_EM1_NLF",
         "out_DS3_EM1_LF": "sio2_EM1_LF",
