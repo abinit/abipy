@@ -334,22 +334,22 @@ class SymmOp(Operation, SlotPickleMixin):
 
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
-    def rotate_gvecs(self, gvecs):
-        """
-        Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
+    #def rotate_gvecs(self, gvecs):
+    #    """
+    #    Apply the symmetry operation to the list of gvectors gvecs in reduced coordinates.
 
-        Args:
-            gvecs: `ndarray` with shape [ng, 3] containing the reduced coordinates of the G-vectors.
+    #    Args:
+    #        gvecs: `ndarray` with shape [ng, 3] containing the reduced coordinates of the G-vectors.
 
-        Returns:
-            rot_gvecs: `ndarray` with shape [ng, 3] containing the result of self(G).
-        """
-        rot_gvecs = np.empty_like(gvecs)
+    #    Returns:
+    #        rot_gvecs: `ndarray` with shape [ng, 3] containing the result of self(G).
+    #    """
+    #    rot_gvecs = np.empty_like(gvecs)
 
-        for ig, gvec in enumerate(gvecs):
-            rot_gvecs[ig] = np.dot(self.rot_g, gvec) * self.time_sign
+    #    for ig, gvec in enumerate(gvecs):
+    #        rot_gvecs[ig] = np.dot(self.rot_g, gvec) * self.time_sign
 
-        return rot_gvecs
+    #    return rot_gvecs
 
 
 class OpSequence(collections.Sequence):
@@ -565,7 +565,7 @@ class AbinitSpaceGroup(OpSequence):
             that can be passes to Fortran routines.
         """
         self.spgid = spgid
-        assert self.spgid in range(0, 233)
+        assert 233 > self.spgid >= 0
 
         # Time reversal symmetry.
         self._has_timerev = has_timerev
@@ -578,7 +578,6 @@ class AbinitSpaceGroup(OpSequence):
 
         inord = inord.upper()
         assert inord in ["F", "C"]
-
         if inord == "F":
             # Fortran to C.
             for isym in range(len(self.symrel)):
@@ -770,7 +769,7 @@ class LittleGroup(OpSequence):
         """
         self.kpoint = kpoint
         self._ops = symmops
-        self.g0vecs = np.reshape(g0vecs, (-1,3))
+        self.g0vecs = np.reshape(g0vecs, (-1, 3))
         assert len(self.symmops) == len(self.g0vecs)
 
         # Find the point group of k so that we know how to access the Bilbao database.
@@ -827,15 +826,6 @@ class LittleGroup(OpSequence):
         return "\n".join(lines)
 
     #def iter_symmop_g0_byclass(self):
-    #def bilbao_character_table(self):
-    #    """Returns table, info"""
-    #    bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
-    #    table = bilbao_ptgrp.character_table
-    #    info = repr(self)
-    #    return table, info
-
-
-
 
 
 class LatticePointGroup(OpSequence):

@@ -347,7 +347,7 @@ Has to be all integers. Several options are possible:
         print("\n# K-path in reduced coordinates:")
         print("# tolwfr 1e-20 iscf -2 getden ??")
         print(" ndivsm 10")
-        print(" kptopt", -(len(structure.hsym_kpoints)-1))
+        print(" kptopt", -(len(structure.hsym_kpoints) - 1))
         print(" kptbounds")
         for k in structure.hsym_kpoints:
             print("    %.5f  %.5f  %.5f" % tuple(k.frac_coords), "#", k.name)

@@ -39,7 +39,7 @@ class _AwggMat(object):
         nrew:
         nwim:
     """
-    etsf_name = "_AwggMat"
+    netcdf_name = "_AwggMat"
     latex_name = "Unknown"
 
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
@@ -84,14 +84,11 @@ class _AwggMat(object):
         lines = []
         app = lines.append
 
-        #app(marquee("File Info", mark="="))
-        #app(self.filestat(as_string=True))
-        #app("")
-        #app(marquee("Structure", mark="="))
-        #app(str(self.structure))
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
         #app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 
-        app(self.etsf_name)
+        app(self.netcdf_name)
         app("  k-point: %s" % self.kpoint)
         app("  Number of G-vectors: %d" % self.ng)
         app("  Total number of frequencies: %d (real: %s, imag: %s)" % (self.nw, self.nrew, self.nimw))
@@ -219,7 +216,7 @@ class _AwggMat(object):
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
-        ax.set_title("%s, kpoint: %s" % (self.etsf_name, self.kpoint))
+        ax.set_title("%s, kpoint: %s" % (self.netcdf_name, self.kpoint))
         ax.legend(loc="upper right")
         #ax.legend(loc="best")
 
@@ -264,17 +261,17 @@ class _AwggMat(object):
 
 
 class Polarizability(_AwggMat):
-    etsf_name = "dielectric_function"
+    netcdf_name = "dielectric_function"
     latex_name = "\\tilde chi"
 
 
 class DielectricFunction(_AwggMat):
-    etsf_name = "dielectric_function"
+    netcdf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
 
 class InverseDielectricFunction(_AwggMat):
-    etsf_name = "inverse_dielectric_function"
+    netcdf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 
     def _add_ppmodel(self, ppm):
@@ -457,66 +454,6 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class ScrReader(ETSF_Reader):
-    """
-    This object reads the results stored in the SCR (Screening) file produced by ABINIT.
-    It provides helper functions to access the most important quantities.
-    """
-    def __init__(self, filepath):
-        super(ScrReader, self).__init__(filepath)
-
-        # Read and store important quantities.
-        self.structure = self.read_structure()
-        qred_coords = self.read_value("qpoints_dielectric_function")
-        self.kpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
-        self.wpoints = self.read_value("frequencies_dielectric_function", cmode="c")
-
-    #def read_params(self):
-    #    """
-    #    Read the most importan parameters used to generate the data, i.e.
-    #    the parameters that may be subject to convergence studies.
-
-    #    Returns:
-    #        :class:`AttrDict` a dictionary whose keys can be accessed
-    #        with the dot notation i.e. d.key.
-    #    """
-    #    keys = ["npwwfn_used", "nbands_used",]
-    #    return AttrDict({k: self.read_value(k) for k in keys})
-
-    def find_kpoint_fileindex(self, kpoint):
-        """
-        Returns the q-point and the index of in the netcdf file.
-        Accepts `Kpoint` instance or integer
-
-        Raise:
-            `KpointsError` if kpoint cannot be found.
-        """
-        if duck.is_intlike(kpoint):
-            ik = int(kpoint)
-        else:
-            ik = self.kpoints.index(kpoint)
-
-        return self.kpoints[ik], ik
-
-    def read_wggfunc(self, kpoint, cls):
-        """
-        Read data at the given q-point and return an instance
-        of `cls` where `cls` is a subclass of `_AwggMat`
-        """
-        kpoint, iq = self.find_kpoint_fileindex(kpoint)
-        # TODO: I don't remember how to slice in python-netcdf
-        # ecuteps
-        all_gvecs = self.read_value("reduced_coordinates_plane_waves_dielectric_function")
-        ecuteps = 2
-        # TODO: Gpshere.find is very slow if we don't take advantage of shells
-        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, kpoint, all_gvecs[iq])
-
-        full_wggmat = self.read_value(cls.etsf_name, cmode="c")
-        wggmat = full_wggmat[iq]
-
-        return cls(self.wpoints, gsphere, wggmat, inord="F")
-
-
 class PPModel(six.with_metaclass(abc.ABCMeta, object)):
     """
     Abstract base class for Plasmonpole models.
@@ -611,3 +548,63 @@ class GodbyNeeds(PPModel):
             (r"$\\tilde\Omega^2_{G, G'}$", self.bigomegatwsq)])
 
         return plotter.plot(show=False, **kwargs)
+
+
+class ScrReader(ETSF_Reader):
+    """
+    This object reads the results stored in the SCR (Screening) file produced by ABINIT.
+    It provides helper functions to access the most important quantities.
+    """
+    def __init__(self, filepath):
+        super(ScrReader, self).__init__(filepath)
+
+        # Read and store important quantities.
+        self.structure = self.read_structure()
+        qred_coords = self.read_value("qpoints_dielectric_function")
+        self.kpoints = KpointList(self.structure.reciprocal_lattice, qred_coords)
+        self.wpoints = self.read_value("frequencies_dielectric_function", cmode="c")
+
+    #def read_params(self):
+    #    """
+    #    Read the most importan parameters used to generate the data, i.e.
+    #    the parameters that may be subject to convergence studies.
+
+    #    Returns:
+    #        :class:`AttrDict` a dictionary whose keys can be accessed
+    #        with the dot notation i.e. d.key.
+    #    """
+    #    keys = ["npwwfn_used", "nbands_used",]
+    #    return AttrDict({k: self.read_value(k) for k in keys})
+
+    def find_kpoint_fileindex(self, kpoint):
+        """
+        Returns the q-point and the index of in the netcdf file.
+        Accepts `Kpoint` instance or integer
+
+        Raise:
+            `KpointsError` if kpoint cannot be found.
+        """
+        if duck.is_intlike(kpoint):
+            ik = int(kpoint)
+        else:
+            ik = self.kpoints.index(kpoint)
+
+        return self.kpoints[ik], ik
+
+    def read_wggfunc(self, kpoint, cls):
+        """
+        Read data at the given q-point and return an instance
+        of `cls` where `cls` is a subclass of `_AwggMat`
+        """
+        kpoint, iq = self.find_kpoint_fileindex(kpoint)
+        # TODO: I don't remember how to slice in python-netcdf
+        # ecuteps
+        all_gvecs = self.read_value("reduced_coordinates_plane_waves_dielectric_function")
+        ecuteps = 2
+        # TODO: Gpshere.find is very slow if we don't take advantage of shells
+        gsphere = GSphere(ecuteps, self.structure.reciprocal_lattice, kpoint, all_gvecs[iq])
+
+        full_wggmat = self.read_value(cls.netcdf_name, cmode="c")
+        wggmat = full_wggmat[iq]
+
+        return cls(self.wpoints, gsphere, wggmat, inord="F")

@@ -61,8 +61,10 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(other.datag, field.datag * np.pi)
         self.assert_equal((np.pi * field).datar, other.datar)
 
-        other = field / np.pi
-        self.assert_equal(other.datar, field.datar / np.pi)
+        other = - field / np.pi
+        self.assert_equal(other.datar, - field.datar / np.pi)
+        other = abs(field)
+        self.assert_equal(other.datar, abs(field.datar))
         #other = np.pi / field
         #self.assert_equal(other.datar, np.pi / field.datar)
 
@@ -164,6 +166,7 @@ class TestScalarField(AbipyTest):
         """Testing density object (spin polarized, collinear)."""
         ni_den = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
         repr(ni_den); str(ni_den)
+        ni_den.to_string(verbose=1)
 
         self.assert_almost_equal(ni_den.mesh.vectors, pmgu.bohr_to_angstrom *
             np.reshape([0.0000000, 3.3259180, 3.3259180,

@@ -27,8 +27,7 @@ class AwggMatTest(AbipyTest):
         wggmat = np.empty((nw, ng, ng), dtype=np.complex)
 
         f = _AwggMat(wpoints, gsphere, wggmat, inord="C")
-        repr(f)
-        str(f)
+        repr(f); str(f)
 
         assert f.kpoint == gsphere.kpoint
         assert f.ng == len(gsphere)
@@ -57,13 +56,12 @@ class AwggMatTest(AbipyTest):
 class ScrFileTest(AbipyTest):
 
     def test_scrfile(self):
-        with ScrFile(abidata.ref_file("foo_SCR.nc")) as scr:
-            repr(scr)
-            str(scr)
-            #assert scr.structure.formula ==
-            assert len(scr.kpoints) == ?
+        with ScrFile(abidata.ref_file("foo_SCR.nc")) as ncfile:
+            repr(ncfile); str(nscfile)
+            #assert nscfile.structure.formula ==
+            assert len(ncfile.kpoints) == ?
 
-            em_nlf = scr.get_emacro_nlf(self, kpoint=(0, 0, 0)):
-            em_lf = scr.get_emacro_lf(self, kpoint=(0, 0, 0)):
-            em1 = scr.get_em1(kpoint)
+            em_nlf = ncfile.get_emacro_nlf(self, kpoint=(0, 0, 0)):
+            em_lf = ncfile.get_emacro_lf(self, kpoint=(0, 0, 0)):
+            em1 = ncfile.get_em1(kpoint)
 """

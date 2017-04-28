@@ -207,6 +207,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    ik = self.kindex(kpoint)
     #    kpoint = self.kpoints[ik]
     #    lgk = self.structure.abi_spacegroup.find_little_group(kpoint)
+    #    #wclass = WavefuntionsClassifier(kpoint)
 
     #    # Select bands to include, find degenerate states and group them.
     #    from abipy.core.skw import find_degs_sk
@@ -235,9 +236,11 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #            print(cmat)
     #            mats.append(cmat)
 
-    #        #lgk.classify_matrices(mats)
+    #        #if wclass.classify_characters(deg, mats) /= 0:
+    #        #    cprint("Warning")
+    #        #    wclass.classify_characters_accidental(deg, full_mats)
 
-    #    #return classifier
+    #    #return wclass
 
     def write_notebook(self, nbpath=None):
         """

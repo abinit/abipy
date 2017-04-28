@@ -73,12 +73,14 @@ class TestSymmetries(AbipyTest):
 
         self.assert_almost_equal(si_tnons, spgrp.tnons)
         self.assert_almost_equal(si_symafm, spgrp.symafm)
+        assert not spgrp.afm_symmops
 
         for idx, symmop in enumerate(spgrp):
+            repr(symmop); str(symmop)
             assert symmop in spgrp
             assert spgrp.count(symmop) == 1
             assert spgrp.find(symmop) == idx
-            assert abs(symmop.det) == 1
+            if symmop.det == 1: assert symmop.is_proper
 
         # Test pickle
         self.serialize_with_pickle(spgrp[0], protocols=None, test_eq=True)
@@ -143,7 +145,9 @@ class LatticeRotationTest(AbipyTest):
         I = LatticeRotation([-1,  0,  0, 0, -1,  0, 0,  0, -1])
 
         assert E.isE and E.is_proper and E.inverse() == E
+        assert E.name == "1+"
         assert I.isI and not I.is_proper and I.inverse() == I
+        assert I.name == "-2-"
 
         # Test Basic operations
         assert E != I
@@ -151,8 +155,11 @@ class LatticeRotationTest(AbipyTest):
         assert -I == E
         assert E * I == I
         assert E ** 2 == E
+        assert E ** -1 == E
         assert I ** 0 == E
+        assert I ** -1 == I
         assert I ** 3 == I
+        assert I ** -3 == I
 
         # Test pickle.
         self.serialize_with_pickle([E, I])
