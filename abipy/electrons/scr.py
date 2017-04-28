@@ -84,6 +84,13 @@ class _AwggMat(object):
         lines = []
         app = lines.append
 
+        #app(marquee("File Info", mark="="))
+        #app(self.filestat(as_string=True))
+        #app("")
+        #app(marquee("Structure", mark="="))
+        #app(str(self.structure))
+        #app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+
         app(self.etsf_name)
         app("  k-point: %s" % self.kpoint)
         app("  Number of G-vectors: %d" % self.ng)

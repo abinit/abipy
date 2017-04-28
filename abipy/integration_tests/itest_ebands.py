@@ -40,6 +40,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
     # Dataset 1 (GS run)
     multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    #multi[0].set_vars(prtden=1, prtpot=1, prtvha=1, prtvxc=1, prtvhxc=1)
     multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
@@ -125,7 +126,7 @@ def itest_unconverged_scf(fwp, tvars):
 
     # Test inspect methods
     if has_matplotlib():
-        t0.inspect(show=False)
+        assert t0.inspect(show=False)
 
     # Test get_results
     t0.get_results()
@@ -133,8 +134,6 @@ def itest_unconverged_scf(fwp, tvars):
 
     # Build tarball file.
     tarfile = flow.make_tarfile()
-
-    #assert flow.validate_json_schema()
 
     # Test reset_from_scratch
     t0.reset_from_scratch()
@@ -264,9 +263,6 @@ def itest_bandstructure_flow(fwp, tvars):
         denfile.get_3d_indexed("den.data_indexed", workdir=workdir)
         denfile.get_3d_formatted("den.data_formatted", workdir=workdir)
 
-    #assert flow.validate_json_schema()
-    #assert 0
-
 
 def itest_bandstructure_schedflow(fwp, tvars):
     """
@@ -323,9 +319,6 @@ def itest_bandstructure_schedflow(fwp, tvars):
             #    assert ebands.has_bzmesh
             #    gsr.bands.get_edos()
 
-    #assert flow.validate_json_schema()
-    #assert 0
-
 
 def itest_htc_bandstructure(fwp, tvars):
     """Test band-structure calculations done with the HTC interface."""
@@ -380,5 +373,3 @@ def itest_htc_bandstructure(fwp, tvars):
                 # DOS case
                 assert ebands.has_bzmesh
                 gsr.bands.get_edos()
-
-    #assert flow.validate_json_schema()

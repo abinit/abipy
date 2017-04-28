@@ -11,9 +11,10 @@ import numpy as np
 import spglib
 
 from six.moves import cStringIO
+from tabulate import tabulate
 from monty.string import is_string
 from monty.itertools import iuptri
-from monty.pprint import pprint_table
+
 from monty.functools import lazy_property
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.serializers.pickle_coders import SlotPickleMixin
@@ -195,8 +196,7 @@ class SymmOp(Operation, SlotPickleMixin):
         return (np.all(self.rot_r == other.rot_r) and
                 is_integer(self.tau - other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
-                self.time_sign == other.time_sign
-                )
+                self.time_sign == other.time_sign)
 
     def __mul__(self, other):
         """
@@ -205,10 +205,10 @@ class SymmOp(Operation, SlotPickleMixin):
 
         {R,t} {S,u} = {RS, Ru + t}
         """
-        return SymmOp(rot_r=np.dot(self.rot_r, other.rot_r),
-                      tau=self.tau + np.dot(self.rot_r, other.tau),
-                      time_sign=self.time_sign * other.time_sign,
-                      afm_sign=self.afm_sign * other.afm_sign)
+        return self.__class__(rot_r=np.dot(self.rot_r, other.rot_r),
+                              tau=self.tau + np.dot(self.rot_r, other.tau),
+                              time_sign=self.time_sign * other.time_sign,
+                              afm_sign=self.afm_sign * other.afm_sign)
 
     def __hash__(self):
         """
@@ -219,31 +219,30 @@ class SymmOp(Operation, SlotPickleMixin):
 
     def inverse(self):
         """Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}."""
-        return SymmOp(rot_r=self.rotm1_r,
-                      tau=-np.dot(self.rotm1_r, self.tau),
-                      time_sign=self.time_sign,
-                      afm_sign=self.afm_sign)
+        return self.__class__(rot_r=self.rotm1_r,
+                              tau=-np.dot(self.rotm1_r, self.tau),
+                              time_sign=self.time_sign,
+                              afm_sign=self.afm_sign)
 
     @property
     def isE(self):
-        """True is self is the identity operator."""
+        """True if identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
                 is_integer(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
                 self.afm_sign == 1)
     # end operator protocol.
 
-    @staticmethod
-    def _vec2str(vec):
-        return "%2d,%2d,%2d" % tuple(v for v in vec)
-
     def __repr__(self):
         return str(self)
 
     def __str__(self):
+        def vec2str(vec):
+            return "%2d,%2d,%2d" % tuple(v for v in vec)
+
         s = ""
         for i in range(3):
-            s +=  "[" + self._vec2str(self.rot_r[i]) + ", %.3f]  " % self.tau[i] + "[" + self._vec2str(self.rot_g[i]) + "] "
+            s +=  "[" + vec2str(self.rot_r[i]) + ", %.3f]  " % self.tau[i] + "[" + vec2str(self.rot_g[i]) + "] "
             if i == 0:
                 s += " time_sign=%2d, afm_sign=%2d, det=%2d" % (self.time_sign, self.afm_sign, self.det)
             s += "\n"
@@ -260,7 +259,6 @@ class SymmOp(Operation, SlotPickleMixin):
         """Determinant of the rotation matrix [-1, +1]."""
         try:
             return self._det
-
         except AttributeError:
             self._det = _get_det(self.rot_r)
             return self._det
@@ -270,7 +268,6 @@ class SymmOp(Operation, SlotPickleMixin):
         """Trace of the rotation matrix."""
         try:
             return self._trace
-
         except AttributeError:
             self._trace = self.rot_r.trace()
             return self._trace
@@ -428,7 +425,7 @@ class OpSequence(collections.Sequence):
             return -1
 
     def is_group(self):
-        """Returns True if self is a group."""
+        """True if the list of operations represent a group."""
         check = 0
 
         # Identity must be present.
@@ -525,7 +522,7 @@ class OpSequence(collections.Sequence):
                         found[kk] = True
                         class_indices[num_classes].append(kk)
 
-        class_indices = class_indices[:num_classes+1]
+        class_indices = class_indices[:num_classes + 1]
         assert sum(len(c) for c in class_indices) == len(self)
         return class_indices
 
@@ -545,7 +542,9 @@ class OpSequence(collections.Sequence):
 
 
 class AbinitSpaceGroup(OpSequence):
-    """Container storing the space group symmetries."""
+    """
+    Container storing the space group symmetries.
+    """
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
@@ -592,7 +591,6 @@ class AbinitSpaceGroup(OpSequence):
         all_syms = []
         for time_sign in self._time_signs:
             for isym in range(len(self.symrel)):
-
                 all_syms.append(SymmOp(rot_r=self.symrel[isym],
                                        tau=self.tnons[isym],
                                        time_sign=time_sign,
@@ -645,20 +643,24 @@ class AbinitSpaceGroup(OpSequence):
                    inord="C")
 
     def __repr__(self):
-        return str(self)
+        return "spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
+            self.spgid, self.num_spatial_symmetries, self.has_timerev)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         """String representation."""
         lines = ["spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
             self.spgid, self.num_spatial_symmetries, self.has_timerev)]
-        app = lines.append
 
+        app = lines.append
         for op in self.symmops(time_sign=+1):
             app(str(op))
 
         return "\n".join(lines)
 
-    @property
+    @lazy_property
     def is_symmorphic(self):
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
@@ -725,24 +727,9 @@ class AbinitSpaceGroup(OpSequence):
 
         return tuple(symmops)
 
-    #def to_arrays(self, order="c"):
-    #    spg_arrays = collections.namedtuple("SpaceGroupArrays", "symrel symrec tnons symafm timrev order")
-    #    symrel = np.asfortranarray(self.symrel.T)
-    #    symrec = np.asfortranarray(self.symrec.T)
-    #    for isym in range(self.num_spatial_symmetries):
-    #        symrel[:,:,isym] = symrel[:,:,isym].T
-    #        symrec[:,:,isym] = symrec[:,:,isym].T
-    #    return spg_arrays(
-    #        symrel=symrel,
-    #        symrec=symrec,
-    #        tnons =np.asfortranarray(self.tnons.T),
-    #        symafm=self.symafm,
-    #        timrev = 2 if self.has_timerev else 1
-    #    )
-
     def find_little_group(self, kpoint):
         """
-        Find the little group of the kpoint
+        Find the little group of the kpoint.
 
         Args:
             kpoint: Accept vector with the reduced coordinates or :class:`Kpoint` object.
@@ -789,8 +776,31 @@ class LittleGroup(OpSequence):
         # Find the point group of k so that we know how to access the Bilbao database.
         # (note that operations are in reciprocal space, afm and time_reversal are taken out
         krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
-
         self.kgroup = LatticePointGroup(krots)
+
+    @lazy_property
+    def is_symmorphic(self):
+        """True if there's at least one operation with non-zero fractional translation."""
+        return any(op.is_symmorphic for op in self)
+
+    @property
+    def symmops(self):
+        return self._ops
+
+    @lazy_property
+    def on_bz_border(self):
+        """
+        True if the k-point is on the border of the BZ.
+        """
+        from abipy.core.kpoints import wrap_to_ws
+        frac_coords = np.array(self.kpoint)
+        kreds = wrap_to_ws(frac_coords)
+        diff = np.abs(np.abs(kreds) - 0.5)
+        return np.any(diff < 1e-8)
+
+    def iter_symmop_g0(self):
+        for symmop, g0 in zip(self.symmops, self.g0vecs):
+            yield symmop, g0
 
     def __repr__(self):
         return "Kpoint Group: %s, Kpoint: %s" % (self.kgroup, self.kpoint)
@@ -799,18 +809,24 @@ class LittleGroup(OpSequence):
         return self.to_string()
 
     def to_string(self, verbose=0):
-        lines = [repr(self)]
+        """String representation of little group."""
+        lines = ["Kpoint-group: %s, Kpoint: %s, Symmorphic: %s" % (self.kgroup, self.kpoint, self.is_symmorphic)]
+        app = lines.append
+        app(" ")
 
-        strio = cStringIO()
+        # Add character_table from Bilbao database.
         bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
-        bilbao_ptgrp.show_character_table(stream=strio)
-        strio.seek(0)
-        # TODO
-        #lines += ["Irreducible representations, zone-border_and_nonsymmorphic %s" % self.kpoint.zoneborder_]
-        lines.extend(l.strip() for l in strio.readlines())
+        lines.extend(l.strip() for l in bilbao_ptgrp.to_string().splitlines())
+        app("")
+
+        # Write warning if non-symmorphic little group with k-point at zone border.
+        if self.is_symmorphic and self.on_bz_border:
+            app("WARNING: non-symmorphic little group with k at zone-border.")
+            app("Electronic states cannot be classified with this character table.")
 
         return "\n".join(lines)
 
+    #def iter_symmop_g0_byclass(self):
     #def bilbao_character_table(self):
     #    """Returns table, info"""
     #    bilbao_ptgrp = bilbao_ptgroup(self.kgroup.sch_symbol)
@@ -818,22 +834,8 @@ class LittleGroup(OpSequence):
     #    info = repr(self)
     #    return table, info
 
-    #@lazy_property
-    #def onborder_and_nonsymmorphic(self):
-    #    """
-    #    True if the k-point is on the border of the BZ and we have non-symmorphic operations.
-    #    """
-    #    return self.kpoint.on_border and any(not op.is_symmorphic for op in self)
 
-    @property
-    def symmops(self):
-        return self._ops
 
-    def iter_symmop_g0(self):
-        for symmop, g0 in zip(self.symmops, self.g0vecs):
-            yield symmop, g0
-
-    #def iter_symmop_g0_byclass(self):
 
 
 class LatticePointGroup(OpSequence):
@@ -851,7 +853,7 @@ class LatticePointGroup(OpSequence):
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 
     #@classmethod
-    #def from_lattice(cls, lattice)
+    #def from_vectors(cls, vectors)
 
     def __repr__(self):
         return "%s: %s, %s (%d)" % (self.__class__.__name__, self.herm_symbol, self.sch_symbol, self.spgid)
@@ -882,7 +884,7 @@ class LatticeRotation(Operation):
 
     .. note::
 
-        This object is immutable and therefor we do not inherit from `ndarray` or from `np.matrix`
+        This object is immutable and therefore we do not inherit from `ndarray``
     """
     _E3D = np.identity(3,  np.int)
 
@@ -1160,9 +1162,9 @@ class BilbaoPointGroup(object):
 
     @property
     def character_table(self):
-        """Return a table of strings with the character of the irreps."""
+        """Table of strings with the character of the irreps."""
         # 1st row: ptgroup_name class names and multiplicity of each class
-        name_mult = [ name + " [" + str(mult) +"]" for (name, mult) in zip(self.class_names, self.class_len)]
+        name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
         table = [[self.sch_symbol] + name_mult]
         app = table.append
 
@@ -1173,9 +1175,14 @@ class BilbaoPointGroup(object):
 
         return table
 
-    def show_character_table(self, stream=sys.stdout):
-        """Write a string with the character_table on the given stream."""
-        pprint_table(self.character_table, out=stream)
+    def to_string(self, tablefmt="simple", numalign="left"):
+        """
+        Write a string with the character_table to the given `stream`.
+        `tablefmt` and `numalign` options are passed to `tabulate`.
+        """
+        s = tabulate(self.character_table[1:], headers=self.character_table[0],
+                     tablefmt=tablefmt, numalign=numalign)
+        return s
 
     #def show_irrep(self, irrep_name):
     #    """Show the mapping rotation --> irrep mat."""
@@ -1193,8 +1200,7 @@ class BilbaoPointGroup(object):
 
     def auto_test(self):
         """
-        Returns:
-            Return code (0 if success).
+        Perform internal consistency check. Return 0 if success
         """
         rot_group = LatticePointGroup(self.rotations)
         if not rot_group.is_group():
@@ -1255,13 +1261,13 @@ _PTG_IDS = [
     ("Ci" , "-1",    2),
     ("C2" , "2",     3),
     ("Cs" , "m",     6),
-    ("C2h", "2/m",	 10),
-    ("D2" , "222",	 16),
+    ("C2h", "2/m",   10),
+    ("D2" , "222",   16),
     ("C2v", "mm2",   25),
     ("D2h", "mmm",   47),
     ("C4" , "4",     75),
     ("S4" , "-4",    81),
-    ("C4h", "4/m",	 83),
+    ("C4h", "4/m",   83),
     ("D4" , "422",   89),
     ("C4v", "4mm",   99),
     ("D2d", "-42m",  111),
@@ -1275,7 +1281,7 @@ _PTG_IDS = [
     ("C3h", "-6",    174),
     ("C6h", "6/m",   175),
     ("D6" , "622",   177),
-    ("C6v", "6mm",	 183),
+    ("C6v", "6mm",   183),
     ("D3h", "-6m2",  189),
     ("D6h", "6/mmm", 191),
     ("T"  , "23",    195),
@@ -1291,6 +1297,7 @@ _SPGID2SCH = {t[2]: t[0] for t in _PTG_IDS}
 _SCH2SPGID = {t[0]: t[2] for t in _PTG_IDS}
 
 sch_symbols = list(_SCH2HERM.keys())
+
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""

@@ -15,6 +15,7 @@ class TestWFKFile(AbipyTest):
         """Testing WfkFile and waves from NC example data files."""
         wfk = WfkFile(abidata.ref_file("si_nscf_WFK.nc"))
         repr(wfk); str(wfk)
+        assert len(wfk.to_string(verbose=1))
         assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
 
         spin, kpoint, band = (0, 0, 0)
@@ -36,19 +37,19 @@ class TestWFKFile(AbipyTest):
             assert np.all(g == wave.gvecs[ig])
             assert np.all(u_g == wave.ug[:,ig])
             if ig == 5: break
-        #print(wave[0:1])
 
         # Test the norm
-        for space in ["g", "r"]:
+        for space in ["g", "gsphere", "r"]:
             norm2 = wave.norm2(space=space)
-            if space == "r": norm2 = norm2 / wave.structure.volume
             self.assert_almost_equal(norm2, 1.0)
 
-        # Test bracket with the same wave.
+        # Test bracket with the same wave and other.
         for space in ["g", "gsphere", "r"]:
             norm2 = wave.braket(wave, space=space)
-            if space == "r": norm2 = norm2 / wave.structure.volume
             self.assert_almost_equal(norm2, 1.0)
+
+            cdot = wave.braket(other_wave, space=space)
+            self.assert_almost_equal(cdot, 0.0)
 
         ur = wave.get_ur_mesh(wave.mesh, copy=False)
         assert ur is wave.ur

@@ -213,7 +213,7 @@ Has to be all integers. Several options are possible:
 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
-        print(structure.spglib_summary(verbose=options.verbose))
+        print(structure.spget_summary(verbose=options.verbose))
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
@@ -383,7 +383,7 @@ Has to be all integers. Several options are possible:
 
         print()
         print(marquee("Structure", mark="="))
-        print(structure.spglib_summary(verbose=options.verbose))
+        print(structure.spget_summary(verbose=options.verbose))
         print("\n")
 
         print(marquee("Little Group", mark="="))

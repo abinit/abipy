@@ -46,6 +46,9 @@ class DensityNcFileTest(AbipyTest):
             denc.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             denc.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
+            if self.has_matplotlib():
+                assert denc.ebands.plot(show=False)
+
             # Test ipython notebooks.
             if self.has_nbformat():
                 denc.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -89,6 +92,9 @@ class DensityNcFileTest(AbipyTest):
             denc.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             denc.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
+            if self.has_matplotlib():
+                assert denc.ebands.plot(show=False)
+
             # Test ipython notebooks.
             if self.has_nbformat():
                 denc.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -121,6 +127,9 @@ class VxcNcFileTest(AbipyTest):
             #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
+            if self.has_matplotlib():
+                assert ncfile.ebands.plot(show=False)
+
             # Test ipython notebooks.
             if self.has_nbformat():
                 ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -150,6 +159,9 @@ class VxcNcFileTest(AbipyTest):
             #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
             #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+
+            if self.has_matplotlib():
+                assert ncfile.ebands.plot(show=False)
 
             # Test ipython notebooks.
             if self.has_nbformat():
@@ -182,6 +194,9 @@ class VxcNcFileTest(AbipyTest):
             #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
+            if self.has_matplotlib():
+                assert ncfile.ebands.plot(show=False)
+
             # Test ipython notebooks.
             if self.has_nbformat():
                 ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -205,6 +220,9 @@ class VxcNcFileTest(AbipyTest):
             #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
             #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
             #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+
+            if self.has_matplotlib():
+                assert ncfile.ebands.plot(show=False)
 
             # Test ipython notebooks.
             if self.has_nbformat():

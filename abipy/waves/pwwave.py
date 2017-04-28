@@ -244,83 +244,29 @@ class PWWaveFunction(WaveFunction):
         self._gsphere = gsphere
         self._ug = np.array(ug)
 
-    def norm2(self, space="g"):
-        r"""Return :math:`||\psi||^2` computed in G- or r-space."""
-        space = space.lower()
-
-        if space == "g":
-            return np.real(np.vdot(self.ug, self.ug))
-        elif space == "r":
-            return np.real(self.mesh.integrate(self.ur2))
-        else:
-            raise ValueError("Wrong space: %s" % str(space))
-
-    def export_ur2(self, filename, visu=None):
-        """
-        Export u(r)**2 on file filename.
-
-        Args:
-            filename: String specifying the file path and the file format.
-                The format is defined by the file extension. filename="prefix.xsf", for example,
-                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            visu: :class:`Visualizer` subclass. By default, this method returns the first available
-                visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of
-                applications and formats supported.
-
-        Returns:
-            Instance of :class:`Visualizer`
-        """
-        if "." not in filename:
-            raise ValueError("Cannot detect file extension in: %s" % filename)
-
-        tokens = filename.strip().split(".")
-        ext = tokens[-1]
-
-        if not tokens[0]: # fname == ".ext" ==> Create temporary file.
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
-            print("Creating temporary file: %s" % filename)
-
-        # Compute |u(r)|2 and write data according to ext.
-        ur2 = np.reshape(self.ur2, (1,) + self.ur2.shape)
-
-        with open(filename, mode="wt") as fh:
-            if ext == "xsf":
-                # xcrysden
-                xsf_write_structure(fh, structures=[self.structure])
-                xsf_write_data(fh, self.structure, ur2, add_replicas=True)
-            else:
-                raise NotImplementedError("extension %s is not supported." % ext)
-
-        if visu is None:
-            return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
-
-    def visualize_ur2(self, visu_name):
-        """
-        Visualize u(r)**2 visualizer.
-
-        See :class:`Visualizer` for the list of applications and formats supported.
-        """
-        # Get the Visualizer subclass from the string.
-        visu = Visualizer.from_name(visu_name)
-
-        # Try to export data to one of the formats supported by the visualizer
-        # Use a temporary file (note "." + ext)
-        for ext in visu.supported_extensions():
-            ext = "." + ext
-            try:
-                return self.export_ur2(ext, visu=visu)
-            except visu.Error:
-                pass
-        else:
-            raise visu.Error("Don't know how to export data for %s" % visu_name)
-
     #def kinetic_energy(self):
     #    """Computes the matrix element of the kinetic operator in reciprocal space."""
     #    tug = -0.5 * self.gsphere.kpg2 * self.ug
     #    return np.vdot(self.ug, tug).sum()
+
+    def norm2(self, space="g"):
+        r"""
+        Return :math:`||\psi||^2` computed in G- or r-space.
+
+        space:  Integration space. Possible values ["g", "gsphere", "r"]
+            if "g" or "r" the scalar product is computed in G- or R-space on the FFT box.
+            if "gsphere" the integration is done on the G-sphere.
+        """
+        space = space.lower()
+
+        if space == "g":
+            return np.real(np.vdot(self.ug, self.ug))
+        elif space == "gsphere":
+            return np.real(np.vdot(self.ug, self.ug))
+        elif space == "r":
+            return np.vdot(self.ur, self.ur) / self.mesh.size
+        else:
+            raise ValueError("Wrong space: %s" % str(space))
 
     def braket(self, other, space="g"):
         """
@@ -332,19 +278,19 @@ class PWWaveFunction(WaveFunction):
             other: Other wave (right-hand side)
             space:  Integration space. Possible values ["g", "gsphere", "r"]
                 if "g" or "r" the scalar product is computed in G- or R-space on the FFT box.
-                if space="gsphere" the integration is done on the G-sphere. Note that
+                if "gsphere" the integration is done on the G-sphere. Note that
                 this option assumes that self and other have the same list of G-vectors.
         """
         space = space.lower()
 
         if space == "g":
             ug1_mesh = self.gsphere.tofftmesh(self.mesh, self.ug)
-            ug2_mesh = other.gsphere.tofftmesh(self.mesh, other.ug)
+            ug2_mesh = other.gsphere.tofftmesh(self.mesh, other.ug) if other is not self else ug1_mesh
             return np.vdot(ug1_mesh, ug2_mesh)
         elif space == "gsphere":
             return np.vdot(self.ug, other.ug)
         elif space == "r":
-            return np.vdot(self.ur, other.ur) * self.mesh.dv
+            return np.vdot(self.ur, other.ur) / self.mesh.size
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
@@ -392,44 +338,44 @@ class PWWaveFunction(WaveFunction):
     #    wpww.mesh = self.mesh
     #    return wpww
 
-    def rotate(self, symmop, mesh=None):
-        """
-        Apply the symmetry operation `symmop` to the periodic part.
+    #def rotate(self, symmop, mesh=None):
+    #    """
+    #    Apply the symmetry operation `symmop` to the periodic part.
 
-        Args:
-            symmop: :class:`Symmetry` operation
-            mesh: mesh for the FFT, if None the mesh of self is used.
+    #    Args:
+    #        symmop: :class:`Symmetry` operation
+    #        mesh: mesh for the FFT, if None the mesh of self is used.
 
-        Returns:
-            New wavefunction object.
-        """
-        if self.nspinor != 1:
-            raise ValueError("Spinor rotation not available yet.")
+    #    Returns:
+    #        New wavefunction object.
+    #    """
+    #    if self.nspinor != 1:
+    #        raise ValueError("Spinor rotation not available yet.")
 
-        rot_gsphere = self.gsphere.rotate(symmop)
-        #rot_istwfk = istwfk(rot_kpt)
+    #    rot_gsphere = self.gsphere.rotate(symmop)
+    #    #rot_istwfk = istwfk(rot_kpt)
 
-        if not np.allclose(symmop.tau, np.zeros(3)):
-            rot_ug = np.empty_like(self.ug)
-            rot_gvecs = rot_gsphere.gvecs
-            rot_kpt = rot_gsphere.kpoint.frac_coords
+    #    if not np.allclose(symmop.tau, np.zeros(3)):
+    #        rot_ug = np.empty_like(self.ug)
+    #        rot_gvecs = rot_gsphere.gvecs
+    #        rot_kpt = rot_gsphere.kpoint.frac_coords
 
-            ug = self._ug
-            #phase = np.exp(-2j * np.pi * (np.dot(rot_gvecs + rot_kpt, symmop.tau)))
-            for ig in range(self.npw):
-                rot_ug[:, ig] = ug[:, ig] * np.exp(-2j * np.pi * (np.dot(rot_gvecs[ig] + rot_kpt, symmop.tau)))
-        else:
-            rot_ug = self.ug.copy()
+    #        ug = self._ug
+    #        #phase = np.exp(-2j * np.pi * (np.dot(rot_gvecs + rot_kpt, symmop.tau)))
+    #        for ig in range(self.npw):
+    #            rot_ug[:, ig] = ug[:, ig] * np.exp(-2j * np.pi * (np.dot(rot_gvecs[ig] + rot_kpt, symmop.tau)))
+    #    else:
+    #        rot_ug = self.ug.copy()
 
-        # Invert the collinear spin if we have an AFM operation.
-        rot_spin = self.spin
-        if self.nspinor == 1:
-            rot_spin = self.spin if symmop.is_fm else (self.spin + 1) % 2
+    #    # Invert the collinear spin if we have an AFM operation.
+    #    rot_spin = self.spin
+    #    if self.nspinor == 1:
+    #        rot_spin = self.spin if symmop.is_fm else (self.spin + 1) % 2
 
-        # Build new wave and set the mesh.
-        new = self.__class__(self.nspinor, rot_spin, self.band, rot_gsphere, rot_ug)
-        new.set_mesh(mesh if mesh is not None else self.mesh)
-        return new
+    #    # Build new wave and set the mesh.
+    #    new = self.__class__(self.nspinor, rot_spin, self.band, rot_gsphere, rot_ug)
+    #    new.set_mesh(mesh if mesh is not None else self.mesh)
+    #    return new
 
     @add_fig_kwargs
     def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False, ax=None, **kwargs):
@@ -505,7 +451,7 @@ class PWWaveFunction(WaveFunction):
                     (radius, len(nn_list), max_nn), "yellow")
             nn_list = nn_list[:max_nn]
 
-        # Get grid of axes.
+        # Get grid of axes (one row for neighbor)
         import matplotlib.pyplot as plt
         nrows = len(nn_list)
         fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
@@ -514,6 +460,7 @@ class PWWaveFunction(WaveFunction):
         kpoint = None if not with_krphase else self.kpoint
         which = r"\psi(r)" if with_krphase else "u(r)"
 
+        # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
             nn_site, nn_dist, nn_sc_index  = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
@@ -535,6 +482,68 @@ class PWWaveFunction(WaveFunction):
                 ax.legend(loc="best")
 
         return fig
+
+    def export_ur2(self, filename, visu=None):
+        """
+        Export u(r)**2 on file filename.
+
+        Args:
+            filename: String specifying the file path and the file format.
+                The format is defined by the file extension. filename="prefix.xsf", for example,
+                will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
+            visu: :class:`Visualizer` subclass. By default, this method returns the first available
+                visualizer that supports the given file format. If visu is not None, an
+                instance of visu is returned. See :class:`Visualizer` for the list of
+                applications and formats supported.
+
+        Returns:
+            Instance of :class:`Visualizer`
+        """
+        if "." not in filename:
+            raise ValueError("Cannot detect file extension in: %s" % filename)
+
+        tokens = filename.strip().split(".")
+        ext = tokens[-1]
+
+        if not tokens[0]: # fname == ".ext" ==> Create temporary file.
+            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
+            print("Creating temporary file: %s" % filename)
+
+        # Compute |u(r)|2 and write data according to ext.
+        ur2 = np.reshape(self.ur2, (1,) + self.ur2.shape)
+
+        with open(filename, mode="wt") as fh:
+            if ext == "xsf":
+                # xcrysden
+                xsf_write_structure(fh, structures=[self.structure])
+                xsf_write_data(fh, self.structure, ur2, add_replicas=True)
+            else:
+                raise NotImplementedError("extension %s is not supported." % ext)
+
+        if visu is None:
+            return Visualizer.from_file(filename)
+        else:
+            return visu(filename)
+
+    def visualize_ur2(self, visu_name):
+        """
+        Visualize u(r)**2 visualizer.
+
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        # Get the Visualizer subclass from the string.
+        visu = Visualizer.from_name(visu_name)
+
+        # Try to export data to one of the formats supported by the visualizer
+        # Use a temporary file (note "." + ext)
+        for ext in visu.supported_extensions():
+            ext = "." + ext
+            try:
+                return self.export_ur2(ext, visu=visu)
+            except visu.Error:
+                pass
+        else:
+            raise visu.Error("Don't know how to export data for %s" % visu_name)
 
 
 class PAW_WaveFunction(WaveFunction):
