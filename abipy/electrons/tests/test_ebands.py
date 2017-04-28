@@ -435,14 +435,23 @@ class ElectronBandsTest(AbipyTest):
         assert all(df["spglib_num"] == df["abispg_num"])
 
 
-#class ElectronBandsFromRestApi(AbipyTest):
-#    def test_sn02(self):
-#        #mpid = "mp-149"
-#        mpid = "mp-856"
-#        ebands = abilab.ElectronBands.from_material_id(mpid)
-#        ebands = ebands.new_with_irred_kpoints(prune_step=2)
-#        r = ebands.interpolate(lpratio=20)
-#        #r.ebands_kpath.plot()
+class ElectronBandsFromRestApi(AbipyTest):
+
+    def test_sn02(self):
+        """Testing interpolation of SnO2 band energies from MP database."""
+        #mpid = "mp-149"
+        mpid = "mp-856"
+        ebands = abilab.ElectronBands.from_material_id(mpid, api_key="8pkvwRLQSCVbW2Fe")
+        # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
+        ebands = ebands.new_with_irred_kpoints(prune_step=2)
+        # Interpolate on k-path + kmesh.
+        # Results are very sensitive to the value of lpratio. The default is not enough in this case!!
+        r = ebands.interpolate(lpratio=50, kmesh=[10, 10, 10])
+
+        if self.has_matplotlib():
+            # Plot bands + dos using interpolated energies.
+            edos = r.ebands_kmesh.get_edos()
+            assert r.ebands_kpath.plot_with_edos(edos, show=False)
 
 
 class ElectronBandsPlotterTest(AbipyTest):

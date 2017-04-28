@@ -15,8 +15,7 @@ class TestQPList(AbipyTest):
 
     def setUp(self):
         self.sigres = sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
-        repr(self.sigres)
-        str(self.sigres)
+        repr(self.sigres); str(self.sigres)
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
 
     def tearDown(self):
@@ -28,8 +27,7 @@ class TestQPList(AbipyTest):
         assert isinstance(qplist, collections.Iterable)
         self.serialize_with_pickle(qplist, protocols=[-1])
 
-        repr(qplist)
-        str(qplist)
+        repr(qplist); str(qplist)
         qplist_copy = qplist.copy()
         assert qplist_copy == qplist
 
@@ -61,7 +59,7 @@ class TestQPList(AbipyTest):
 
         # Test QPState object.
         qp = qplist[0]
-        str(qp)
+        repr(qp); str(qp)
         print(qp.tips)
 
         self.assertAlmostEqual(qp.e0, -5.04619941555265, places=5)
@@ -75,8 +73,7 @@ class TestSigresFile(AbipyTest):
     def test_readall(self):
         for path in abidata.SIGRES_NCFILES:
             with abiopen(path) as sigres:
-                repr(sigres)
-                str(sigres)
+                repr(sigres); str(sigres)
                 assert len(sigres.structure)
 
     def test_base(self):
@@ -189,13 +186,12 @@ class TestSigresPlotter(AbipyTest):
 
         with SigresPlotter() as plotter:
             plotter.add_files(filepaths)
-            repr(plotter)
-            str(plotter)
+            repr(plotter); str(plotter)
             assert len(plotter) == len(filepaths)
 
             if self.has_matplotlib():
-                plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
-                plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
-                plotter.plot_qps_vs_e0(show=False)
+                assert plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
+                assert plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
+                assert plotter.plot_qps_vs_e0(show=False)
 
             plotter.close()

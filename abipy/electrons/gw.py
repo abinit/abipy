@@ -990,7 +990,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.filestat(as_string=True))
         app("")
         app(self.ebands.to_string(title="Kohn-Sham bands"))
-        # TODO: Finalize the implementation.
+
+        # TODO: Finalize the implementation: add GW quantities.
 
         return "\n".join(lines)
 
@@ -1011,8 +1012,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def get_qplist(self, spin, kpoint):
         """Return :class`QPList` for the given (spin, kpoint)"""
-        qplist = self.reader.read_qplist_sk(spin, kpoint)
-        return qplist
+        return self.reader.read_qplist_sk(spin, kpoint)
 
     def get_qpcorr(self, spin, kpoint, band):
         """Returns the :class:`QPState` object for the given (s, k, b)"""
@@ -1579,9 +1579,7 @@ class SigresReader(ETSF_Reader):
         # vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
         self._vxcme = self.read_value("vxcme")
         self._sigxme = self.read_value("sigxme")
-
         self._hhartree = self.read_value("hhartree", cmode="c")
-
         self._vUme = self.read_value("vUme")
         #if self.usepawu == 0: self._vUme.fill(0.0)
 
