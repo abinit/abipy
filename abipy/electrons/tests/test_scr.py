@@ -7,7 +7,7 @@ import abipy.data as abidata
 
 from abipy.core.gsphere import GSphere
 from abipy.core.testing import AbipyTest
-from abipy.electrons.scr import _AwggMatrix, ScrFile
+from abipy.electrons.scr import _AwggMatrix, ScrFile, InverseDielectricFunction
 
 
 class AwggMatTest(AbipyTest):
@@ -29,6 +29,10 @@ class AwggMatTest(AbipyTest):
         f = _AwggMatrix(wpoints, gsphere, data, inord="C")
         repr(f); str(f)
 
+        assert _AwggMatrix.class_from_netcdf_name("inverse_dielectric_function") is InverseDielectricFunction
+        with self.assertRaises(ValueError):
+            _AwggMatrix.class_from_netcdf_name("foobar")
+
         assert f.kpoint == gsphere.kpoint
         assert f.ng == len(gsphere)
         assert f.nw == len(wpoints)
@@ -48,9 +52,6 @@ class AwggMatTest(AbipyTest):
         if self.has_matplotlib():
             assert f.plot_w(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
             assert f.plot_w(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
-            # TODO: FIXME
-            #f.plot_ggmat(cplx_mode="abs", show=False)
-            #f.plot_ggmat(cplx_mode="re", wpos="all", show=False)
 
 
 class ScrFileTest(AbipyTest):
@@ -66,9 +67,8 @@ class ScrFileTest(AbipyTest):
             assert ncfile.kpoints[0] == [0, 0, 0]
             self.assert_almost_equal(ncfile.kpoints[8].frac_coords, [1/4, 1/4, 1/3])
             assert len(ncfile.wpoints) == 35
+            assert ncfile.nw == 35 and ncfile.nrew == 30 and ncfile.nimw == 5
             # TODO Ha or eV?
-            #assert ncfile.nw == 35
-            #assert ncfile.nrew == 30 and ncfile.nimw == 2 and f.nw == 5
             #assert ncfile.ng == 9
 
             params = ncfile.params
@@ -76,13 +76,40 @@ class ScrFileTest(AbipyTest):
             assert params.inclvkb == 2 and params.nbands_used == 50
             assert params.mbpt_sciss == 0 and params.npwwfn_used == 811
 
+            assert len(ncfile.ebands.kpoints) == 9
+            assert ncfile.ebands.kpoints.is_mpmesh
+            # FIXME: workaround required because fermie is not filled.
+            assert ncfile.ebands.fermie == 0
+
             #em1 = ncfile.get_em1(kpoint=[0, 0, 0])
             #em_nlf = ncfile.get_emacro_nlf(kpoint=(0, 0, 0))
             #em_lf = ncfile.get_emacro_lf(kpoint=(0, 0, 0))
 
-            #if self.has_matplotlib():
-            #    assert em_nlf.plot(show=False)
-            #    assert ncfile.plot_emacro(show=False)
+            kpoint = [0.5, 0, 0]
+            em1 = ncfile.reader.read_wggmat(kpoint)
+            repr(em1); str(em1)
+            assert em1.kpoint == kpoint
+            assert em1.nw == 35 and em1.nrew == 30 and em1.nimw == 5
+            #assert em1.real_wpoints
+            #assert em1.imag_wpoints
+            assert em1.windex(em1.real_wpoints[1]) == 1
+            assert em1.windex(em1.imag_wpoints[1]) == em1.nrew + 1
+            assert em1.gindex([0, 0, -1]) == em1.gindex(2)
+            for cplx_mode in ("re", "im", "abs", "angle"):
+                str(em1.latex_label(cplx_mode))
+            with self.assertRaises(ValueError):
+                em1.latex_label("foobar")
+
+            if self.has_matplotlib():
+                # ncfile plot methods
+                #assert em_nlf.plot(show=False)
+                assert ncfile.plot_emacro(show=False)
+                assert ncfile.ebands.plot(show=False)
+                # em1 plot methods
+                assert em1.plot_w(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
+                assert em1.plot_w(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
+                #assert em1.plot_gg(cplx_mode="abs", show=False)
+                #assert em1.plot_gg(cplx_mode="re", wpos="all", show=False)
 
             if self.has_nbformat():
                 assert ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
