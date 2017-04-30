@@ -3,7 +3,9 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import numpy as np
+import pymatgen.core.units as pmgu
 import abipy.data as abidata
+
 
 from abipy.core.gsphere import GSphere
 from abipy.core.testing import AbipyTest
@@ -50,8 +52,8 @@ class AwggMatTest(AbipyTest):
             assert len(f.latex_label(cplx_mode))
 
         if self.has_matplotlib():
-            assert f.plot_w(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
-            assert f.plot_w(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
+            assert f.plot_freq(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
+            assert f.plot_freq(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
 
 
 class ScrFileTest(AbipyTest):
@@ -68,8 +70,7 @@ class ScrFileTest(AbipyTest):
             self.assert_almost_equal(ncfile.kpoints[8].frac_coords, [1/4, 1/4, 1/3])
             assert len(ncfile.wpoints) == 35
             assert ncfile.nw == 35 and ncfile.nrew == 30 and ncfile.nimw == 5
-            # TODO Ha or eV?
-            #assert ncfile.ng == 9
+            assert ncfile.ng == 9
 
             params = ncfile.params
             assert params is ncfile.params
@@ -81,9 +82,20 @@ class ScrFileTest(AbipyTest):
             # FIXME: workaround required because fermie is not filled.
             assert ncfile.ebands.fermie == 0
 
-            #em1 = ncfile.get_em1(kpoint=[0, 0, 0])
-            #em_nlf = ncfile.get_emacro_nlf(kpoint=(0, 0, 0))
-            #em_lf = ncfile.get_emacro_lf(kpoint=(0, 0, 0))
+            emacro_lf = ncfile.reader.read_emacro_lf()
+            mesh, values = emacro_lf.mesh, emacro_lf.values
+            self.assert_almost_equal(mesh[1] * pmgu.Ha_to_eV, 0.68965522717365468)
+            self.assert_almost_equal(values[1], 4.3045172293768923 + 0.048181271128789963j)
+
+            emacro_nlf = ncfile.reader.read_emacro_nlf()
+            mesh, values = emacro_nlf.mesh, emacro_nlf.values
+            self.assert_almost_equal(mesh[3] * pmgu.Ha_to_eV, 2.0689656815209636)
+            self.assert_almost_equal(values[3], 4.8759925663692183 + 0.17078051537847205j)
+
+            eelf = ncfile.reader.read_eelf()
+            mesh, values = eelf.mesh, eelf.values
+            self.assert_almost_equal(mesh[4] * pmgu.Ha_to_eV, 2.7586209086946187)
+            self.assert_almost_equal(values[4], 0.038293723864876617)
 
             kpoint = [0.5, 0, 0]
             em1 = ncfile.reader.read_wggmat(kpoint)
@@ -95,22 +107,21 @@ class ScrFileTest(AbipyTest):
             assert em1.windex(em1.real_wpoints[1]) == 1
             assert em1.windex(em1.imag_wpoints[1]) == em1.nrew + 1
             assert em1.gindex([0, 0, -1]) == em1.gindex(2)
+            assert em1.wggmat.shape == (em1.nw, em1.ng, em1.ng)
+            self.assert_almost_equal(em1.wggmat[1, 1, 0], 0.0014264496999664958-0.0024049081437133571j)
+
             for cplx_mode in ("re", "im", "abs", "angle"):
                 str(em1.latex_label(cplx_mode))
-            with self.assertRaises(ValueError):
-                em1.latex_label("foobar")
 
             if self.has_matplotlib():
                 # ncfile plot methods
-                #assert em_nlf.plot(show=False)
                 assert ncfile.plot_emacro(show=False)
                 assert ncfile.ebands.plot(show=False)
                 # em1 plot methods
-                assert em1.plot_w(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
-                assert em1.plot_w(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
-                #assert em1.plot_gg(cplx_mode="abs", show=False)
-                #assert em1.plot_gg(cplx_mode="re", wpos="all", show=False)
+                assert em1.plot_freq(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
+                assert em1.plot_freq(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
+                assert em1.plot_gg(cplx_mode="abs", show=False)
+                assert em1.plot_gg(cplx_mode="re", wpos="imag", show=False)
 
             if self.has_nbformat():
                 assert ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
-

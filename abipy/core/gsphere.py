@@ -34,7 +34,6 @@ class GSphere(collections.Sequence):
         self.npw = self.gvecs.shape[0]
 
         self.istwfk = istwfk
-
         if istwfk != 1:
             raise NotImplementedError("istwfk %d is not implemented" % self.istwfk)
 
