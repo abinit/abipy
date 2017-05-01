@@ -51,7 +51,7 @@ from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, Phdo
     PhdosReader, phbands_gridplot)
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.anaddbnc import AnaddbNcFile
-#from abipy.dfpt.gruneisen import GrunsFile
+from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
 #from abipy.electrons.sigmaph import SigmaPhFile
@@ -100,7 +100,7 @@ abiext2ncfile = collections.OrderedDict([
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
     #("SIGMAPH.nc", SigmaPhFile),
-    #("GRUNS.nc", GrunsFile),
+    ("GRUNS.nc", GrunsNcFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
 ])

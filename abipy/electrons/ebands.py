@@ -1629,7 +1629,7 @@ class ElectronBands(Has_Structure):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, edos, klabels=None, axlist=None, e0="fermie", ylims=None, **kwargs):
+    def plot_with_edos(self, edos, klabels=None, axlist=None, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS.
 
@@ -1651,6 +1651,7 @@ class ElectronBands(Has_Structure):
                 - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
         Returns:
             `matplotlib` figure.
@@ -1661,7 +1662,7 @@ class ElectronBands(Has_Structure):
         if axlist is None:
             # Build axes and align bands and DOS.
             fig = plt.figure()
-            gspec = GridSpec(1, 2, width_ratios=[2, 1])
+            gspec = GridSpec(1, 2, width_ratios=width_ratios)
             gspec.update(wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2199,7 +2200,6 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
-
         fig = plt.figure()
 
         if self.edoses_dict:

@@ -201,6 +201,13 @@ class PhononBands(object):
 
         raise TypeError("Don't know how to extract a PhononBands from type %s" % type(obj))
 
+    @staticmethod
+    def factor_ev2units(units):
+        """
+        Return conversion factor eV --> units (case-insensitive)
+        """
+        return _factor_ev2units(units)
+
     def read_non_anal_from_file(self, filepath):
         """
         Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified and
@@ -215,6 +222,8 @@ class PhononBands(object):
             qpoints: :class:`KpointList` instance.
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: Displacement in Cartesian coordinates.
+                array of shape (nqpt, 3*natom, 3*natom).
+                The last dimension stores the cartesian components.
             non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
                 None if contribution is not present
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
@@ -651,8 +660,7 @@ class PhononBands(object):
             repetitions: number of repetitions of the cell. List of three integers. Defaults to [3,3,3].
             highsym_qpts: list of tuples. The first element of each tuple should be a list with the coordinates
                 of a high symmetry point, the second element of the tuple should be its label.
-            match_bands: if True tries to follow the band along the path based on the scalar
-                product of the eigenvectors
+            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.
             highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.
                 Accepts the following values:
                     'split' will split the path based on points where the path changes direction in the Brillouin zone.
@@ -2649,7 +2657,7 @@ class PhononBandsPlotter(NotebookWriter):
         import ipywidgets as ipw
         return ipw.interact_manual(
                 plot_callback,
-                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot"],
+                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot", "animate"],
                 units=["eV", "cm-1", "Ha"],
             )
 

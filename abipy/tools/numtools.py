@@ -63,32 +63,6 @@ def add_periodic_replicas(arr):
     return oarr
 
 #########################################################################################
-# Bisection algorithms
-#########################################################################################
-
-
-def minloc(iterable):
-    """Return the min value and its position."""
-    min_val, min_idx = iterable[0], 0
-
-    for idx, item in enumerate(iterable[1:]):
-        if item < min_val:
-            min_val, min_idx = item, idx
-
-    return min_val, min_idx
-
-
-def maxloc(iterable):
-    """Return the max value and its position."""
-    max_val, max_idx = iterable[0], 0
-
-    for idx, item in enumerate(iterable[1:]):
-        if item > max_val:
-            max_val, max_idx = item, idx
-
-    return max_val, max_idx
-
-#########################################################################################
 # Tools to facilitate iterations
 #########################################################################################
 
@@ -144,18 +118,6 @@ def prune_ord(alist):
 #########################################################################################
 
 
-def gauss_ufunc(width, center=0.0, height=None):
-    """
-    Returns a gaussian (u)function with the given parameters.
-
-    If height is None, a normalized gaussian is returned.
-    """
-    if height is None:
-        height = 1.0 / (width * np.sqrt(2 * np.pi))
-
-    return lambda x: height * np.exp(-((x - center) / width) ** 2 / 2.)
-
-
 def gaussian(x, width, center=0.0, height=None):
     """
     Returns the values of gaussian(x) where x is array-like.
@@ -172,7 +134,6 @@ def gaussian(x, width, center=0.0, height=None):
 #=====================================
 # === Data Interpolation/Smoothing ===
 #=====================================
-
 
 def smooth(x, window_len=11, window='hanning'):
     """
