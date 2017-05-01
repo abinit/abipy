@@ -13,11 +13,10 @@ class GrunsFileTest(AbipyTest):
 
     def test_gruns_ncfile(self):
         """Testsing GrunsFile."""
-        filepath = "/Users/gmatteo/git_repos/abinit_eph/build_gcc/tests/grunesein/run.abo_GRUNS.nc"
-        with abilab.abiopen(filepath) as ncfile:
+        with abilab.abiopen(abidata.ref_file("mg2si_GRUNS.nc")) as ncfile:
             repr(ncfile); str(ncfile)
-            #assert ncfile.structure.formula == "Si2"
-            assert ncfile.iv0 == 2
+            assert ncfile.structure.formula == "Mg2 Si1"
+            assert ncfile.iv0 == 1
 
             d = ncfile.doses
             assert d is ncfile.doses
@@ -29,15 +28,16 @@ class GrunsFileTest(AbipyTest):
             assert "grun" in df and "freq" in df
 
             if self.has_matplotlib():
-                ncfile.plot_doses(title="DOSes")
-                ncfile.plot_doses(with_idos=False, xlims=None)
+                assert ncfile.plot_doses(title="DOSes", show=False)
+                assert ncfile.plot_doses(with_idos=False, xlims=None, show=False)
 
                 # Arrow up for positive values, down for negative values.
-                ncfile.plot_phbands_with_gruns(title="bands with gamma markers + DOSes")
-                ncfile.plot_phbands_with_gruns(with_doses=None, gamma_fact=2, units="cm-1", match_bands=False)
+                assert ncfile.plot_phbands_with_gruns(title="bands with gamma markers + DOSes", show=False)
+                assert ncfile.plot_phbands_with_gruns(with_doses=None, gamma_fact=2, units="cm-1", match_bands=False)
 
                 plotter = ncfile.get_plotter()
-                plotter.combiboxplot()
+                assert plotter.combiboxplot(show=False)
+                assert plotter.animate()
 
             if self.has_nbformat():
                 assert ncfile.write_notebook(nbpath=self.get_tmpname(text=True))

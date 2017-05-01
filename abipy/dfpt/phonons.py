@@ -221,8 +221,7 @@ class PhononBands(object):
             structure: :class:`Structure` object.
             qpoints: :class:`KpointList` instance.
             phfreqs: Phonon frequencies in eV.
-            phdispl_cart: Displacement in Cartesian coordinates.
-                array of shape (nqpt, 3*natom, 3*natom).
+            phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
                 The last dimension stores the cartesian components.
             non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
                 None if contribution is not present
@@ -818,7 +817,7 @@ class PhononBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
 
-        if "color" not in kwargs:
+        if "color" not in kwargs and not match_bands:
             kwargs["color"] = "black"
 
         if "linewidth" not in kwargs:
@@ -1414,7 +1413,7 @@ class PHBST_Reader(ETSF_Reader):
 
     def read_phdispl_cart(self):
         """
-        Complex array with the Cartesian displacements in Angstrom
+        Complex array with the Cartesian displacements in **Angstrom**
         shape is (num_qpoints,  mu_mode,  cart_direction).
         """
         return self.read_value("phdispl_cart", cmode="c")
@@ -2915,7 +2914,8 @@ class NonAnalyticalPh(Has_Structure):
             structure: :class:`Structure` object.
             directions: Cartesian directions along which the non analytical frequencies have been calculated
             phfreqs: Phonon frequencies with non analytical contribution in eV along directions
-            phdispl_cart: Displacement in Cartesian coordinates with non analytical contribution along directions
+            phdispl_cart: Displacement in Angstromg in Cartesian coordinates with non analytical contribution
+                along directions
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation
         """

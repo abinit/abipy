@@ -3,7 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import pymatgen.core.units as pmgu
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import marquee, list_strings
@@ -205,7 +205,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return plotter
 
     @add_fig_kwargs
-    def plot_phbands_with_gruns(self, gamma_fact=50, with_doses="all", units="eV",
+    def plot_phbands_with_gruns(self, gamma_fact=50, alpha=0.6, with_doses="all", units="eV",
                                 ylims=None, match_bands=False, **kwargs):
         """
         Plot the phonon bands corresponding to V0 (the central point) with markers
@@ -214,6 +214,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Args:
             gamma_fact: Scaling factor for Grunesein parameters.
                 Up triangle for positive values, down triangles for negative values.
+            alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)
             with_doses: "all" to plot all DOSes available, `None` to disable DOS plotting,
                 else list of strings with the name of the DOSes to plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -253,16 +254,16 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         xvals = np.arange(len(phbands.phfreqs))
         for nu in phbands.branches:
             omegas = phbands.phfreqs[:, nu] * factor
-            sizes = phbands.grun_vals[:, nu].copy()
+            sizes = phbands.grun_vals[:, nu].copy() * gamma_fact
 
             # Use different symbols depending on the value of s. Cannot use negative s.
             xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] >= 0]).T.copy()
             if xys.size:
-                ax_bands.scatter(xys[0], xys[1], s=xys[2] * gamma_fact, marker="^", label=" >0", color="blue")
+                ax_bands.scatter(xys[0], xys[1], s=xys[2], marker="^", label=" >0", color="blue", alpha=alpha)
 
             xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] < 0]).T.copy()
             if xys.size:
-                ax_bands.scatter(xys[0], xys[1], s=np.abs(xys[2]) * gamma_fact, marker="v", label=" <0", color="blue")
+                ax_bands.scatter(xys[0], xys[1], s=np.abs(xys[2]), marker="v", label=" <0", color="blue", alpha=alpha)
 
         set_axlims(ax_bands, ylims, "x")
 
@@ -336,6 +337,8 @@ class GrunsReader(ETSF_Reader):
     #nctkarr_t("gruns_gvals_qpath", "dp", "number_of_phonon_modes, gruns_nqpath")
     #nctkarr_t("gruns_wvols_qpath", "dp", "number_of_phonon_modes, gruns_nvols, gruns_nqpath")
     #nctkarr_t("gruns_dwdq_qpath", "dp", "three, number_of_phonon_modes, gruns_nqpath")
+    #nctkarr_t("gruns_rprimd", "dp", "three, three, gruns_nvols"), &
+    #nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
     def __init__(self, filepath):
         super(GrunsReader, self).__init__(filepath)
@@ -344,9 +347,9 @@ class GrunsReader(ETSF_Reader):
         self.structure = self.read_structure()
 
         self.num_volumes = self.read_dimvalue("gruns_nvols")
-        self.iv0 = 3 - 1  # F --> C
-        # TODO
-        #self.iv0 = self.read_value("gruns_iv0")
+        # The index of the volume used for the finite difference.
+        self.iv0 = self.read_value("gruns_iv0") - 1  #  F --> C
+        assert self.iv0 == 1
 
     def read_doses(self):
         """
@@ -354,7 +357,7 @@ class GrunsReader(ETSF_Reader):
         DOSes are not available.
         """
         if "gruns_nomega" not in self.rootgrp.dimensions:
-            cprint("File %s does not contain ph-DOSes, returning empty dict" % self.path, "yellow")
+            cprint("File `%s` does not contain ph-DOSes, returning empty dict" % self.path, "yellow")
             return {}
 
         # Read q-point sampling used to compute DOSes.
@@ -392,16 +395,50 @@ class GrunsReader(ETSF_Reader):
         freqs_vol = self.read_value("gruns_wvols_qpath")
         dwdw = self.read_value("gruns_dwdq_qpath")
 
+        amuz = self.read_amuz_dict()
+        #print("amuz", amuz)
+
+        # nctkarr_t("gruns_phdispl_cart_qpath", "dp", &
+        # "two, number_of_phonon_modes, number_of_phonon_modes, gruns_nvols, gruns_nqpath") &
+        # NOTE: in GRUNS the displacements are in Bohr. here we convert to Ang to be
+        # consistent with the PhononBands API.
+        phdispl_cart_qptsvol = self.read_value("gruns_phdispl_cart_qpath", cmode="c") * abu.Bohr_Ang
+
+        lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang #, "dp", "three, three, gruns_nvols")
+        gruns_xred = self.read_value("gruns_xred")                     #, "dp", "three, number_of_atoms, gruns_nvols")
+
         phbands_qpath_vol = []
         for ivol in range(self.num_volumes):
-            # TODO structure depends on vol, non_anal_ph, amu, phdispl_cart ...
-            structure = self.structure
+            # TODO structure depends on:
+            # volumes
+            # non_anal_ph
+            # amu: DONE
+            # phdispl_cart DONE
+            if ivol == self.iv0:
+                structure = self.structure
+            else:
+                structure = self.structure.__class__(lattices[ivol], self.structure.species, gruns_xred[ivol])
+
             qpoints = Kpath(structure.reciprocal_lattice, qfrac_coords)
-            #phdispl_cart = np.zeros(
-            phdispl_cart = None
-            phb = PhononBands(structure, qpoints, freqs_vol[:, ivol], phdispl_cart, non_anal_ph=None, amu=None)
-            # Add grunesein parameters.
+            phdispl_cart = phdispl_cart_qptsvol[:, ivol].copy()
+            phb = PhononBands(structure, qpoints, freqs_vol[:, ivol], phdispl_cart, non_anal_ph=None, amu=amuz)
+            # Add Grunesein parameters.
             if ivol == self.iv0: phb.grun_vals = grun_vals
             phbands_qpath_vol.append(phb)
 
         return phbands_qpath_vol
+
+    def read_amuz_dict(self):
+        """
+        dictionary that associates the atomic number to the values of the atomic
+        mass units used for the calculation
+        """
+        amu_typat = self.read_value("atomic_mass_units")
+        znucl_typat = self.read_value("atomic_numbers")
+
+        amuz = {}
+        for symbol in self.chemical_symbols:
+           type_idx = self.typeidx_from_symbol(symbol)
+           amuz[znucl_typat[type_idx]] = amu_typat[type_idx]
+
+        return amuz

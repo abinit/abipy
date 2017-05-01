@@ -1,7 +1,5 @@
 # coding: utf-8
-"""
-Interface between phonopy and abipy workflow model.
-"""
+"""Interface between phonopy and abipy workflow model."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
@@ -48,7 +46,7 @@ def structure_from_atoms(atoms):
 
 class PhonopyWork(Work):
     """
-    This work compute the inter-atomic force constants with phonopy.
+    This work computes the inter-atomic force constants with phonopy.
 
     .. attribute:: scdims(3)
 
@@ -197,7 +195,7 @@ class PhonopyWork(Work):
 
 class PhonopyGruneisenWork(Work):
     """
-    This work compute the Grüneisen parameters with phonopy. The workflow is as follows:
+    This work computes the Grüneisen parameters with phonopy. The workflow is as follows:
 
     It is necessary to run three phonon calculations.
     One is calculated at the equilibrium volume and the remaining two are calculated
