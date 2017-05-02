@@ -1306,7 +1306,7 @@ def extract_point_group(symrel, has_timrev):
 
     if not has_inversion and has_timrev:
         # Add inversion.
-        ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
+        ptg_symrel[tmp_nsym:] = -work_symrel[:tmp_nsym]
         for isym in range(tmp_nsym, ptg_nsym):
             ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 
