@@ -20,7 +20,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 
 # DOS name --> meta-data
 _ALL_DOS_NAMES = OrderedDict([
-    ("wdos", dict(latex=r"$DOS$")),
+    ("gruns_wdos", dict(latex=r"$DOS$")),
     ("gruns_grdos", dict(latex=r"$DOS_{\gamma}$")),
     ("gruns_gr2dos", dict(latex=r"$DOS_{\gamma^2}$")),
     ("gruns_vdos", dict(latex=r"$DOS_v$")),
@@ -113,7 +113,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         grun            Gruneisen parameter.
         groupv          Group velocity.
         freq            Phonon frequency in eV.
-        qpoint          :class:`Kpoint` object
         ==============  ==========================
         """
         if "gruns_gvals_qibz" not in self.reader.rootgrp.variables:
@@ -121,11 +120,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                                "Use prtdos in anaddb input file to compute these values in the IBZ")
 
         grun_vals = self.reader.read_value("gruns_gvals_qibz")
-        phfreqs = self.reader.rootgrp.variables["gruns_wvols_qibz"][:, self.iv0, :]
-        #dwdq = self.reader.read_value("gruns_dwdq_qibz")
-        #groupv =
         nqibz, natom3 = grun_vals.shape
-        print("nqibz", nqibz, "natom3", natom3)
+        phfreqs = self.reader.rootgrp.variables["gruns_wvols_qibz"][:, self.iv0, :] * abu.Ha_eV
+        # TODO: units?
+        dwdq = self.reader.read_value("gruns_dwdq_qibz")
+        groupv = np.linalg.norm(dwdq, axis=-1)
 
         import pandas as pd
         rows = []
@@ -135,7 +134,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                            ("qidx", iq),
                            ("mode", nu),
                            ("grun", grun_vals[iq, nu]),
-                           #("groupv", groupv[iq, nu]),
+                           ("groupv", groupv[iq, nu]),
                            ("freq", phfreqs[iq, nu]),
                            #("qpoint", self.qpoints[iq]),
                         ]))
@@ -200,12 +199,13 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         plotter = PhononBandsPlotter()
         for iv, phbands in enumerate(self.phbands_qpath_vol):
-            plotter.add_phbands(str(iv), phbands)
+            label = "V=%.2f $A^3$ " % phbands.structure.volume
+            plotter.add_phbands(label, phbands)
 
         return plotter
 
     @add_fig_kwargs
-    def plot_phbands_with_gruns(self, gamma_fact=50, alpha=0.6, with_doses="all", units="eV",
+    def plot_phbands_with_gruns(self, gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
                                 ylims=None, match_bands=False, **kwargs):
         """
         Plot the phonon bands corresponding to V0 (the central point) with markers
@@ -251,19 +251,26 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         phbands.plot(ax=ax_bands, units=units, match_bands=match_bands, show=False)
 
         # Plot gruneisen markers on top of band structure.
+        max_omega = np.abs(phbands.phfreqs).max()
+        max_gamma = np.abs(phbands.grun_vals).max()
         xvals = np.arange(len(phbands.phfreqs))
         for nu in phbands.branches:
-            omegas = phbands.phfreqs[:, nu] * factor
-            sizes = phbands.grun_vals[:, nu].copy() * gamma_fact
+            omegas = phbands.phfreqs[:, nu].copy() * factor
+            sizes = phbands.grun_vals[:, nu].copy() * (gamma_fact * 0.02 * max_omega / max_gamma)
+
+            yup = omegas + np.where(sizes >= 0, sizes, 0)
+            ydown = omegas + np.where(sizes < 0, sizes, 0)
+
+            ax_bands.fill_between(xvals, omegas, yup, alpha=alpha, facecolor="red")
+            ax_bands.fill_between(xvals, ydown, omegas, alpha=alpha, facecolor="blue")
 
             # Use different symbols depending on the value of s. Cannot use negative s.
-            xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] >= 0]).T.copy()
-            if xys.size:
-                ax_bands.scatter(xys[0], xys[1], s=xys[2], marker="^", label=" >0", color="blue", alpha=alpha)
-
-            xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] < 0]).T.copy()
-            if xys.size:
-                ax_bands.scatter(xys[0], xys[1], s=np.abs(xys[2]), marker="v", label=" <0", color="blue", alpha=alpha)
+            #xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] >= 0]).T.copy()
+            #if xys.size:
+            #    ax_bands.scatter(xys[0], xys[1], s=xys[2], marker="^", label=" >0", color="blue", alpha=alpha)
+            #xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] < 0]).T.copy()
+            #if xys.size:
+            #    ax_bands.scatter(xys[0], xys[1], s=np.abs(xys[2]), marker="v", label=" <0", color="blue", alpha=alpha)
 
         set_axlims(ax_bands, ylims, "x")
 
@@ -320,6 +327,7 @@ class GrunsReader(ETSF_Reader):
     It provides helper functions to access the most important quantities.
     """
     # Fortran arrays (remember to transpose dimensions!)
+    # Remember: Atomic units are used everywhere in this file.
     #nctkarr_t("gruns_qptrlatt", "int", "three, three"), &
     #nctkarr_t("gruns_shiftq", "dp", "three, gruns_nshiftq"), &
     #nctkarr_t("gruns_qibz", "dp", "three, gruns_nqibz"), &
@@ -370,15 +378,15 @@ class GrunsReader(ETSF_Reader):
         qpoints = IrredZone(self.structure.reciprocal_lattice, frac_coords_ibz,
                             weights=weights, names=None, ksampling=qsampling)
 
-        return AttrDict(
-            wmesh=self.read_value("gruns_omega_mesh"),
-            wdos=self.read_value("gruns_wdos"),
-            gruns_grdos=self.read_value("gruns_grdos"),
-            gruns_gr2dos=self.read_value("gruns_gr2dos"),
-            gruns_v2dos=self.read_value("gruns_v2dos"),
-            gruns_vdos=self.read_value("gruns_vdos"),
-            qpoints=qpoints,
-        )
+        # DOSes are in 1/Hartree.
+        d = AttrDict(wmesh=self.read_value("gruns_omega_mesh") * abu.Ha_eV, qpoints=qpoints)
+
+        for dos_name in _ALL_DOS_NAMES:
+            dos_idos = self.read_value(dos_name)
+            dos_idos[0] *= abu.eV_Ha  # Here we convert to eV. IDOS are not changed.
+            d[dos_name] = dos_idos
+
+        return d
 
     def read_phbands_on_qpath(self):
         """
@@ -392,7 +400,8 @@ class GrunsReader(ETSF_Reader):
 
         qfrac_coords = self.read_value("gruns_qpath")
         grun_vals = self.read_value("gruns_gvals_qpath")
-        freqs_vol = self.read_value("gruns_wvols_qpath")
+        freqs_vol = self.read_value("gruns_wvols_qpath") * abu.Ha_eV
+        # TODO: Convert?
         dwdw = self.read_value("gruns_dwdq_qpath")
 
         amuz = self.read_amuz_dict()
@@ -405,7 +414,7 @@ class GrunsReader(ETSF_Reader):
         phdispl_cart_qptsvol = self.read_value("gruns_phdispl_cart_qpath", cmode="c") * abu.Bohr_Ang
 
         lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang #, "dp", "three, three, gruns_nvols")
-        gruns_xred = self.read_value("gruns_xred")                     #, "dp", "three, number_of_atoms, gruns_nvols")
+        gruns_xred = self.read_value("gruns_xred")                #, "dp", "three, number_of_atoms, gruns_nvols")
 
         phbands_qpath_vol = []
         for ivol in range(self.num_volumes):
