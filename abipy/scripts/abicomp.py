@@ -407,14 +407,14 @@ Usage example:
   abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
                                                      parse timing data and plot results.
 
-  NOTE: The gsr, ddb, sigres, mdf commands use robots to analyze files.
-  In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
+NOTE: The gsr, ddb, sigres, mdf commands use robots to analyze files.
+In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
 
-      abicomp.py ddb dir1 out_DDB dir2
+    abicomp.py ddb dir1 out_DDB dir2
 
-  Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
-  `abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
-  Use --no-walk to ignore sub-directories when robots are used.
+Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
+`abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
+Use --no-walk to ignore sub-directories when robots are used.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
