@@ -1279,6 +1279,11 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             # Compute PJDOS from self.
             pjdosfile = self
 
+        if not pjdosfile.ebands.kpoints.is_ibz:
+            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), "yellow")
+            cprint("Returning None", "yellow")
+            return None
+
         if edos_kwargs is None: edos_kwargs = {}
 
         # Build plot grid.
@@ -1532,9 +1537,10 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
         nb.cells.extend([
             nbv.new_code_cell("fbnc = abilab.abiopen('%s')\nprint(fbnc)" % self.filepath),
             nbv.new_code_cell("fbnc.structure"),
-            nbv.new_code_cell("fig = fbnc.ebands.kpoints.plot()"),
+            nbv.new_code_cell("# fig = fbnc.ebands.kpoints.plot()"),
             nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
-            #nbv.new_code_cell("fig = fbnc.ebands.plot(ylims=ylims)"),
+            nbv.new_code_cell("# fig = fbnc.ebands.plot(ylims=ylims)"),
+            nbv.new_code_cell("fig = fbnc.ebands.boxplot()"),
         ])
 
         if self.prtdos == 3:

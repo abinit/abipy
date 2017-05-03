@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes for the analysis of electronic structures."""
+"""Classes to analyse electronic structures."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
@@ -2517,12 +2517,13 @@ class ElectronBandsPlotter(NotebookWriter):
         Return an ipython widget with controllers to select the plot.
         """
         def plot_callback(plot_type, e0):
-            return getattr(self, plot_type)(e0=e0)
+            r = getattr(self, plot_type)(e0=e0, show=True)
+            if plot_type == "animate": return r
 
         import ipywidgets as ipw
         return ipw.interact_manual(
                 plot_callback,
-                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot"],
+                plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot", "animate"],
                 e0=["fermie", "0.0"],
             )
 
@@ -3097,7 +3098,7 @@ class ElectronDosPlotter(NotebookWriter):
         Return an ipython widget with controllers to select the plot.
         """
         def plot_callback(plot_type, e0):
-            return getattr(self, plot_type)(e0=e0)
+            getattr(self, plot_type)(e0=e0, show=True)
 
         import ipywidgets as ipw
         return ipw.interact_manual(

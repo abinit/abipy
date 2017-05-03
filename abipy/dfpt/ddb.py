@@ -704,20 +704,41 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("ddb = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ddb)"),
-            nbv.new_code_cell("display(ddb.header)"),
+            nbv.new_code_cell("units = 'eV'\nprint(ddb)"),
+            nbv.new_code_cell("# display(ddb.header)"),
+            nbv.new_markdown_cell("## Invoke `anaddb` to compute bands and dos"),
             nbv.new_code_cell("""\
-bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                   ngqpt=None, lo_to_splitting=False,
-                                   qptbounds=None, anaddb_kwargs=None)
-phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
-            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos)"),
-            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile)"),
-            nbv.new_code_cell("#fig = phbands.plot_colored_matched()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_type()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_type()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site()"),
+bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20,
+    asr=2, chneut=1, dipdip=0, lo_to_splitting=False,
+    dos_method="tetra", ngqpt=None, qptbounds=None, verbose=0, anaddb_kwargs=None)
 
+phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
+            nbv.new_markdown_cell("## q-point path"),
+            nbv.new_code_cell("fig = phbands.qpoints.plot()"),
+            nbv.new_markdown_cell("## Phonon bands with DOS"),
+            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos, units=units)"),
+            nbv.new_markdown_cell("## Phonon fatbands with DOS"),
+            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile, units=units)"),
+            nbv.new_markdown_cell("## Distribution of phonon frequencies wrt mode index"),
+            nbv.new_code_cell("fig = phbands.boxplot(units=units)"),
+            nbv.new_markdown_cell("## Phonon band structure with different color for each line"),
+            nbv.new_code_cell("fig = phbands.plot_colored_matched(units=units)"),
+            nbv.new_markdown_cell("## Type-projected phonon DOS."),
+            nbv.new_code_cell("fig = phdosfile.plot_pjdos_type(units=units)"),
+            nbv.new_markdown_cell("## Type-projected phonon DOS decomposed along the three reduced directions"),
+            nbv.new_code_cell("fig = phdosfile.plot_pjdos_redirs_type(units=units)"),
+            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site(units=units)"),
+            nbv.new_markdown_cell("## Thermodinamic properties within the harmonic approximation"),
+            nbv.new_code_cell("fig = phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300)"),
+
+            nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
+            nbv.new_code_cell("""\
+if False:
+    emacro, becs = ddb.anaget_emacro_and_becs()
+    print(emacro)
+    print(becs)"""),
+
+            nbv.new_markdown_cell("## Call `anaddb` to compute phonon DOS with different BZ samplings"),
             nbv.new_code_cell("""\
 c = None
 if False:
@@ -729,15 +750,23 @@ if c is not None:
     c.plotter.ipw_select_plot()
     #for phdos in c.phdoses"""),
 
+            nbv.new_markdown_cell("## Analysis of the IFCs in real-space"),
             nbv.new_code_cell("""\
-if False:
-    emacro, becs = ddb.anaget_emacro_and_becs()
-    print(emacro)
-    print(becs)"""),
-
-            nbv.new_code_cell("""\
+ifc = None
 if False:
     ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)"""),
+
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
+                                    max_dist=None, ax=None)"""),
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None)"""),
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,
+                                          min_dist=None, max_dist=None, ax=None)"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

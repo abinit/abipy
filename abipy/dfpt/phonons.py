@@ -1321,7 +1321,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the mode index.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -2651,7 +2651,8 @@ class PhononBandsPlotter(NotebookWriter):
         Return an ipython widget with controllers to select the plot.
         """
         def plot_callback(plot_type, units):
-            return getattr(self, plot_type)(units=units)
+            r = getattr(self, plot_type)(units=units, show=True)
+            if plot_type == "animate": return r
 
         import ipywidgets as ipw
         return ipw.interact_manual(
@@ -2858,7 +2859,7 @@ class PhononDosPlotter(NotebookWriter):
         Return an ipython widget with controllers to select the plot.
         """
         def plot_callback(plot_type, units):
-            return getattr(self, plot_type)(units=units)
+            getattr(self, plot_type)(units=units, show=True)
 
         import ipywidgets as ipw
         return ipw.interact_manual(
@@ -2873,8 +2874,8 @@ class PhononDosPlotter(NotebookWriter):
         from the phonon DOS within the harmonic approximation.
         """
         def plot_callback(tstart, tstop, num, units, formula_units):
-            return self.plot_harmonic_thermo(tstart=tstart, tstop=tstop, num=num,
-                                             units=units, formula_units=formula_units)
+            self.plot_harmonic_thermo(tstart=tstart, tstop=tstop, num=num,
+                                      units=units, formula_units=formula_units, show=True)
 
         import ipywidgets as ipw
         return ipw.interact_manual(
@@ -3188,6 +3189,7 @@ class InteratomicForceConstants(Has_Structure):
 
         ax.set_xlabel('Distance [Bohr]')
         ax.set_ylabel(r'IFC [Ha/Bohr$^2$]')
+        ax.grid(True)
 
         ax.plot(dist, filtered_ifc, **kwargs)
 
@@ -3198,6 +3200,7 @@ class InteratomicForceConstants(Has_Structure):
                               max_dist=None, ax=None, **kwargs):
         """
         Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
@@ -3206,6 +3209,7 @@ class InteratomicForceConstants(Has_Structure):
             max_dist: maximum distance between atoms and neighbours.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+
         Returns:
             matplotlib figure
         """
@@ -3229,6 +3233,7 @@ class InteratomicForceConstants(Has_Structure):
             max_dist: maximum distance between atoms and neighbours.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+
         Returns:
             matplotlib figure
         """
@@ -3247,6 +3252,7 @@ class InteratomicForceConstants(Has_Structure):
                                           min_dist=None, max_dist=None, ax=None, **kwargs):
         """
         Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.
+
         Args:
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
@@ -3255,10 +3261,10 @@ class InteratomicForceConstants(Has_Structure):
             max_dist: maximum distance between atoms and neighbours.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
+
         Returns:
             matplotlib figure
         """
-
         if self.local_vectors is None:
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
 

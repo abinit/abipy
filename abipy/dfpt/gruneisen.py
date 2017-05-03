@@ -205,13 +205,15 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return plotter
 
     @add_fig_kwargs
-    def plot_phbands_with_gruns(self, gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
+    def plot_phbands_with_gruns(self, fill_with="gruns", gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
                                 ylims=None, match_bands=False, **kwargs):
         """
         Plot the phonon bands corresponding to V0 (the central point) with markers
         showing the value and the sign of the Grunesein parameters.
 
         Args:
+            fill_with: Define the quantity used to plot stripes. "gruns" for Grunesein parameters,
+                "groupv" for phonon group velocities.
             gamma_fact: Scaling factor for Grunesein parameters.
                 Up triangle for positive values, down triangles for negative values.
             alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)
@@ -250,27 +252,35 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Plot phonon bands.
         phbands.plot(ax=ax_bands, units=units, match_bands=match_bands, show=False)
 
+        if fill_with == "gruns":
+            max_gamma = np.abs(phbands.grun_vals).max()
+        elif fill_with == "groupv":
+            # TODO: units?
+            dwdq_qpath = self.reader.read_value("gruns_dwdq_qpath")
+            groupv = np.linalg.norm(dwdq_qpath, axis=-1)
+            max_gamma = np.abs(groupv).max()
+        else:
+            raise ValueError("Unsupported fill_with: `%s`" % fill_with)
+
         # Plot gruneisen markers on top of band structure.
-        max_omega = np.abs(phbands.phfreqs).max()
-        max_gamma = np.abs(phbands.grun_vals).max()
         xvals = np.arange(len(phbands.phfreqs))
+        max_omega = np.abs(phbands.phfreqs).max()
+
         for nu in phbands.branches:
             omegas = phbands.phfreqs[:, nu].copy() * factor
-            sizes = phbands.grun_vals[:, nu].copy() * (gamma_fact * 0.02 * max_omega / max_gamma)
 
-            yup = omegas + np.where(sizes >= 0, sizes, 0)
-            ydown = omegas + np.where(sizes < 0, sizes, 0)
+            if fill_with == "gruns":
+                # Must handle positive-negative values
+                sizes = phbands.grun_vals[:, nu].copy() * (gamma_fact * 0.02 * max_omega / max_gamma)
+                yup = omegas + np.where(sizes >= 0, sizes, 0)
+                ydown = omegas + np.where(sizes < 0, sizes, 0)
+                ax_bands.fill_between(xvals, omegas, yup, alpha=alpha, facecolor="red")
+                ax_bands.fill_between(xvals, ydown, omegas, alpha=alpha, facecolor="blue")
 
-            ax_bands.fill_between(xvals, omegas, yup, alpha=alpha, facecolor="red")
-            ax_bands.fill_between(xvals, ydown, omegas, alpha=alpha, facecolor="blue")
-
-            # Use different symbols depending on the value of s. Cannot use negative s.
-            #xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] >= 0]).T.copy()
-            #if xys.size:
-            #    ax_bands.scatter(xys[0], xys[1], s=xys[2], marker="^", label=" >0", color="blue", alpha=alpha)
-            #xys = np.array([xos for xos in zip(xvals, omegas, sizes) if xos[2] < 0]).T.copy()
-            #if xys.size:
-            #    ax_bands.scatter(xys[0], xys[1], s=np.abs(xys[2]), marker="v", label=" <0", color="blue", alpha=alpha)
+            elif fill_with == "groupv":
+                sizes = groupv[:, nu].copy() * (gamma_fact * 0.04 * max_omega / max_gamma)
+                ydown, yup = omegas - sizes / 2, omegas + sizes / 2
+                ax_bands.fill_between(xvals, ydown, yup, alpha=alpha, facecolor="red")
 
         set_axlims(ax_bands, ylims, "x")
 
@@ -304,18 +314,20 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("ncfile.structure"),
 
             nbv.new_code_cell("fig = ncfile.plot_doses()"),
             nbv.new_code_cell("fig = ncfile.plot_phbands_with_gruns()"),
 
+            #nbv.new_code_cell("fig = phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile)"),
             nbv.new_code_cell("plotter = ncfile.get_plotter()\nprint(plotter)"),
             nbv.new_code_cell("df_phbands = plotter.get_phbands_frame()\ndisplay(df_phbands)"),
             nbv.new_code_cell("plotter.ipw_select_plot()"),
 
-            nbv.new_code_cell("gruns_data = ncfile.to_dataframe()"),
+            nbv.new_code_cell("gdata = ncfile.to_dataframe()\ngdata.describe()"),
             nbv.new_code_cell("""\
 #import df_widgets.seabornw as snsw
-#snsw.api_selector(gruns_data)"""),
+#snsw.api_selector(gdata)"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -402,7 +414,7 @@ class GrunsReader(ETSF_Reader):
         grun_vals = self.read_value("gruns_gvals_qpath")
         freqs_vol = self.read_value("gruns_wvols_qpath") * abu.Ha_eV
         # TODO: Convert?
-        dwdw = self.read_value("gruns_dwdq_qpath")
+        dwdq_qpath = self.read_value("gruns_dwdq_qpath")
 
         amuz = self.read_amuz_dict()
         #print("amuz", amuz)

@@ -169,6 +169,26 @@ class PhbstFileTest(AbipyTest):
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_phbst_file_with_loto(self):
+        """Testing PHBST file with LOTO terms from anaddb.nc."""
+        with abilab.abiopen(abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")) as ncfile:
+            phbands = ncfile.phbands
+
+        # Phonon frequencies with non analytical contributions, if calculated, are saved
+        # in the anaddb.nc file produced by anaddb. The results should be fetched from there
+        # and added to the phonon bands.
+        phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
+        nana = phbands.non_anal_ph
+        assert nana.structure == phbands.structure
+        print(nana.structure.reciprocal_lattice)
+        self.assert_almost_equal(nana.directions.flat,
+                [0.1234510847, -0.071274517, 0, 0.1646014463, 0, 0, 0, 0, 0.0751616546])
+        for direc in nana.directions:
+            assert nana.has_direction(direc, cartesian=True)
+
+        if self.has_matplotlib():
+            phbands.plot(title="ZnSe with LO-TO splitting", show=False)
+
 
 class PhononBandsPlotterTest(AbipyTest):
 
@@ -361,7 +381,7 @@ class NonAnalyticalPhTest(AbipyTest):
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
 
             assert phbands.non_anal_ph is not None
-            str(phbands.non_anal_ph)
+            repr(phbands.non_anal_ph); str(phbands.non_anal_ph)
             assert phbands.structure == phbands.non_anal_ph.structure
             #assert phbands.non_anal_ph.has_direction(direction= cartesian=False)
 
