@@ -87,13 +87,14 @@
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">deprecated</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">eV_to_Ha</span><span class="p">,</span> <span class="n">Energy</span>
+<span class="kn">from</span> <span class="nn">pymatgen.phonon.bandstructure</span> <span class="k">import</span> <span class="n">PhononBandStructureSymmLine</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_PhononBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">duck</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span>
-<span class="kn">from</span> <span class="nn">pymatgen.phonon.bandstructure</span> <span class="k">import</span> <span class="n">PhononBandStructureSymmLine</span>
+
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -269,6 +270,13 @@
 
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to extract a PhononBands from type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
 
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PhononBands.factor_ev2units"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.factor_ev2units">[docs]</a>    <span class="k">def</span> <span class="nf">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return conversion factor eV --&gt; units (case-insensitive)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="PhononBands.read_non_anal_from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.read_non_anal_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">read_non_anal_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified and</span>
@@ -282,7 +290,8 @@
 <span class="sd">            structure: :class:`Structure` object.</span>
 <span class="sd">            qpoints: :class:`KpointList` instance.</span>
 <span class="sd">            phfreqs: Phonon frequencies in eV.</span>
-<span class="sd">            phdispl_cart: Displacement in Cartesian coordinates.</span>
+<span class="sd">            phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.</span>
+<span class="sd">                The last dimension stores the cartesian components.</span>
 <span class="sd">            non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution</span>
 <span class="sd">                None if contribution is not present</span>
 <span class="sd">            amu: dictionary that associates the atomic species present in the structure to the values of the atomic</span>
@@ -513,8 +522,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Returns the index of the qpoint. Accepts integer or reduced coordinates.</span>
 <span class="sd">	&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">qpoint</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">qpoint</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span></div>
 
@@ -689,17 +698,20 @@
 
             <span class="n">displ_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="p">):</span>
-                <span class="n">displ_list</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,:,</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">*</span>\
-                                    <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">structure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">iqpt</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">))</span>
+                <span class="n">displ_list</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,:,</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> \
+                    <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">structure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">iqpt</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">))</span>
 
             <span class="n">displ_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">displ_list</span><span class="p">,</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">inv_matrix</span><span class="p">),</span> <span class="n">ascii_basis</span><span class="p">)</span> <span class="o">*</span> <span class="n">pre_factor</span>
 
             <span class="k">for</span> <span class="n">imode</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span><span class="p">):</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#metaData: qpt=[</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="n">imode</span><span class="p">]))</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#metaData: qpt=[</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2">;</span><span class="si">{:.6f}</span><span class="s2"> </span><span class="se">\\</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="n">imode</span><span class="p">]))</span>
+
                 <span class="k">for</span> <span class="n">displ</span> <span class="ow">in</span> <span class="n">displ_list</span><span class="p">[</span><span class="n">imode</span><span class="p">]:</span>
                     <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;#; &quot;</span><span class="o">+</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.6f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">displ</span><span class="o">.</span><span class="n">real</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;; &quot;</span> \
                            <span class="o">+</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.6f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">displ</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; </span><span class="se">\\</span><span class="s2">&quot;</span>
                     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;# ]&quot;</span><span class="p">))</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -716,8 +728,7 @@
 <span class="sd">            repetitions: number of repetitions of the cell. List of three integers. Defaults to [3,3,3].</span>
 <span class="sd">            highsym_qpts: list of tuples. The first element of each tuple should be a list with the coordinates</span>
 <span class="sd">                of a high symmetry point, the second element of the tuple should be its label.</span>
-<span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar</span>
-<span class="sd">                product of the eigenvectors</span>
+<span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</span>
 <span class="sd">            highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.</span>
 <span class="sd">                Accepts the following values:</span>
 <span class="sd">                    &#39;split&#39; will split the path based on points where the path changes direction in the Brillouin zone.</span>
@@ -756,7 +767,7 @@
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;lattice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atom_types&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">]</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atom_numbers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span>
-        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;chemical_symbols&quot;</span><span class="p">]</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;chemical_symbols&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atomic_numbers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span><span class="p">))</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;repetitions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repetitions</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
@@ -801,8 +812,8 @@
             <span class="k">for</span> <span class="n">iqpt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qpts</span><span class="p">)):</span>
                 <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">iqpt</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span>
                 <span class="k">for</span> <span class="n">ai</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="p">):</span>
-                    <span class="n">vect</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">3</span><span class="o">*</span><span class="n">ai</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">ai</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">vect</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">3</span><span class="o">*</span><span class="n">ai</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">ai</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">*</span> \
-                                                     <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">ai</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">q</span><span class="p">))</span>
+                    <span class="n">vect</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">3</span><span class="o">*</span><span class="n">ai</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">ai</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">vect</span><span class="p">[</span><span class="n">iqpt</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">3</span><span class="o">*</span><span class="n">ai</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">ai</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> \
+                        <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">ai</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">q</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">match_bands</span><span class="p">:</span>
                 <span class="n">vect</span> <span class="o">=</span> <span class="n">vect</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">vect</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
@@ -875,7 +886,7 @@
         <span class="c1"># Decorate the axis (e.g add ticks and labels).</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">match_bands</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;black&quot;</span>
 
         <span class="k">if</span> <span class="s2">&quot;linewidth&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
@@ -919,8 +930,8 @@
         <span class="k">return</span> <span class="n">lines</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.plot_colored_matched"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_colored_matched">[docs]</a>    <span class="k">def</span> <span class="nf">plot_colored_matched</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;rainbow&quot;</span><span class="p">,</span> <span class="n">max_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.plot_colored_matched"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_colored_matched">[docs]</a>    <span class="k">def</span> <span class="nf">plot_colored_matched</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;rainbow&quot;</span><span class="p">,</span> <span class="n">max_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure with different color for each line.</span>
 
@@ -962,8 +973,8 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_phfreqs</span><span class="p">):</span>
             <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_matched_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">pf</span> <span class="o">=</span> <span class="n">pf</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pf</span><span class="p">))[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ind</span><span class="p">]</span>
-            <span class="n">pf</span> <span class="o">=</span> <span class="n">pf</span><span class="o">*</span><span class="n">factor</span>
-            <span class="n">xx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">first_xx</span><span class="p">,</span> <span class="n">first_xx</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">pf</span><span class="p">))</span>
+            <span class="n">pf</span> <span class="o">=</span> <span class="n">pf</span> <span class="o">*</span> <span class="n">factor</span>
+            <span class="n">xx</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">first_xx</span><span class="p">,</span> <span class="n">first_xx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">pf</span><span class="p">))</span>
             <span class="n">colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">colormap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_colors</span><span class="p">)))</span>
             <span class="k">for</span> <span class="n">branch_i</span> <span class="ow">in</span> <span class="n">branch_range</span><span class="p">:</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
@@ -992,7 +1003,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">split_phdispl_cart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and</span>
-        <span class="c1"># not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not useed</span>
+        <span class="c1"># not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used</span>
         <span class="c1"># most of the times.</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_phdispl_cart</span>
@@ -1175,7 +1186,7 @@
 <span class="sd">                Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.</span>
 <span class="sd">            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
 <span class="sd">            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.</span>
-<span class="sd">            width_rations: Rations between the width of the fatbands plots and the DOS plots.</span>
+<span class="sd">            width_ratios: Ratios between the width of the fatbands plots and the DOS plots.</span>
 <span class="sd">                Used if `phdos_file` is not None</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
@@ -1202,10 +1213,12 @@
         <span class="c1"># Grid with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span> <span class="c1">#, GridSpecFromSubplotSpec</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="p">(</span><span class="n">ntypat</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">ntypat</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="n">width_ratios</span> <span class="k">if</span> <span class="n">ncols</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                          <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+
         <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
         <span class="n">qq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">))</span>
 
@@ -1264,9 +1277,6 @@
 
         <span class="c1"># Type projected DOSes.</span>
         <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Dictionary symbol --&gt; partial PhononDos</span>
-            <span class="n">pjdos_symbol</span> <span class="o">=</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">pjdos_type_dict</span>
-
             <span class="n">ax01</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ax_row</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
                 <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ax_row</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
@@ -1274,7 +1284,8 @@
                 <span class="k">if</span> <span class="n">ax_row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax01</span> <span class="o">=</span> <span class="n">ax</span>
 
                 <span class="c1"># Get PJDOS</span>
-                <span class="n">pjdos</span> <span class="o">=</span> <span class="n">pjdos_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+                <span class="c1"># Dictionary symbol --&gt; partial PhononDos</span>
+                <span class="n">pjdos</span> <span class="o">=</span> <span class="n">phdos_file</span><span class="o">.</span><span class="n">pjdos_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">factor</span><span class="p">,</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">factor</span>
 
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
@@ -1311,6 +1322,7 @@
 
         <span class="k">if</span> <span class="n">axlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Build axes and align bands and DOS.</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
             <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
             <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
             <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1318,6 +1330,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Take them from axlist.</span>
             <span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">axlist</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">}</span>
@@ -1342,14 +1355,13 @@
         <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
         <span class="c1">#ax2.yaxis.set_label_position(&quot;right&quot;)</span>
 
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="PhononBands.to_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a pandas DataFrame with the following columns:</span>
 
-<span class="sd">          [&#39;qidx&#39;, &#39;mode&#39;, &#39;freq&#39;, &#39;qpoint&#39;]</span>
+<span class="sd">            [&#39;qidx&#39;, &#39;mode&#39;, &#39;freq&#39;, &#39;qpoint&#39;]</span>
 
 <span class="sd">        where:</span>
 
@@ -1378,7 +1390,7 @@
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="PhononBands.boxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.boxplot">[docs]</a>    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.</span>
+<span class="sd">        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the mode index.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
@@ -1470,7 +1482,7 @@
 
     <span class="k">def</span> <span class="nf">read_phdispl_cart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Complex array with the Cartesian displacements in Angstrom</span>
+<span class="sd">        Complex array with the Cartesian displacements in **Angstrom**</span>
 <span class="sd">        shape is (num_qpoints,  mu_mode,  cart_direction).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;phdispl_cart&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
@@ -1511,20 +1523,24 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phbands</span>
 
 <div class="viewcode-block" id="PhbstFile.close"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="PhbstFile.qindex"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.qindex">[docs]</a>    <span class="k">def</span> <span class="nf">qindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the index of the qpoint. Accepts integer or reduced coordinates.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">qpoint</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the index of the qpoint. Accepts integer or reduced coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">qpoint</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PhbstFile.qindex_qpoint"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.qindex_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">qindex_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns (qindex, qpoint) from an integer or a qpoint.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns (qindex, qpoint) from an integer or a qpoint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qindex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qindex</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>
-        <span class="n">qpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">qindex</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">qindex</span><span class="p">,</span> <span class="n">qpoint</span></div>
+        <span class="k">return</span> <span class="n">qindex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">qindex</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="PhbstFile.get_phframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhbstFile.get_phframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_phframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1725,10 +1741,10 @@
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
 
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">height_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
         <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">):</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -1803,16 +1819,6 @@
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entropy</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">uz</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">uz</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
-
-        <span class="c1">#tmesh = np.linspace(tstart, tstop, num=num)</span>
-        <span class="c1">#w, gw = self.mesh[self.iw0:], self.values[self.iw0:]</span>
-        <span class="c1">#vals = np.empty(len(tmesh))</span>
-        <span class="c1">#for it, temp in enumerate(tmesh):</span>
-        <span class="c1">#    kt = abu.kb_eVK * temp</span>
-        <span class="c1">#    wd2kt = w / (2 * kt)</span>
-        <span class="c1">#    vals[it] = kt * np.trapz(np.log(2 * np.sinh(wd2kt)) * gw, x=w)</span>
-
-        <span class="c1">#return Function1D(tmesh, vals + self.zero_point_energy)</span>
 
 <div class="viewcode-block" id="PhononDos.get_cv"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_cv">[docs]</a>    <span class="k">def</span> <span class="nf">get_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1908,48 +1914,54 @@
         <span class="sd">&quot;&quot;&quot;The frequency mesh for the PH-DOS in eV.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;wmesh&quot;</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosReader.pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosReader.read_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">read_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;[ntypat, nomega] array with PH-DOS projected over atom types.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;pjdos_type&quot;</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosReader.pjdos_type_rc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.pjdos_type_rc">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos_type_rc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[ntypat, 3, nomega] array with PH-DOS projected over atom types and reduced directions&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;pjdos_rc_type&quot;</span><span class="p">)</span></div>
-
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosReader.pjdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.pjdos">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[natom, three, nomega] array with PH-DOS projected over atoms and reduced directions&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PhdosReader.read_pjdos_atdir"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_pjdos_atdir">[docs]</a>    <span class="k">def</span> <span class="nf">read_pjdos_atdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return [natom, three, nomega] array with Phonon DOS projected over atoms and reduced directions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;pjdos&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PhdosReader.read_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">read_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the :class:`PhononDOS`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return the :class:`PhononDOS`. with the total phonon DOS&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PhononDos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;phdos&quot;</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="PhdosReader.read_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">read_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosReader.read_pjdos_symbol_rc_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_rc_dict">[docs]</a>    <span class="k">def</span> <span class="nf">read_pjdos_symbol_rc_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :class:`PhononDos` with the contribution to the DOS due to the atoms of given chemical symbol.</span>
+<span class="sd">        Return `OrderedDict` mapping element symbol --&gt; [3, nomega] array</span>
+<span class="sd">        with the the phonon DOSes summed over atom-types and decomposed along</span>
+<span class="sd">        the three reduced directions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">type_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">typeidx_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">PhononDos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pjdos_type</span><span class="p">[</span><span class="n">type_idx</span><span class="p">])</span></div></div>
+        <span class="c1"># phdos_rc_type[ntypat, 3, nomega]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;pjdos_rc_type&quot;</span><span class="p">)</span>
 
-    <span class="c1"># def read_pjdos(self, atom_idx=None):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     projected DOS (over atoms)</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     return self.read_value(&quot;phonon_frequencies&quot;)</span>
+        <span class="n">od</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">:</span>
+           <span class="n">type_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">typeidx_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+           <span class="n">od</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">type_idx</span><span class="p">]</span>
 
-    <span class="c1"># def read_pjdos_rc_type(self, symbol=None):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     phdos(3,ntypat,nomega)</span>
-    <span class="c1">#     phonon DOS contribution arising from a particular atom-type</span>
-    <span class="c1">#     decomposed along the three reduced directions.</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     return self.read_value(&quot;phonon_frequencies&quot;)</span>
+        <span class="k">return</span> <span class="n">od</span></div>
+
+<div class="viewcode-block" id="PhdosReader.read_pjdos_symbol_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_dict">[docs]</a>    <span class="k">def</span> <span class="nf">read_pjdos_symbol_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ordered dictionary mapping element symbol --&gt; `PhononDos`</span>
+<span class="sd">        where PhononDos is the contribution to the total DOS summed over atoms</span>
+<span class="sd">        with chemical symbol `symbol`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># [ntypat, nomega] array with PH-DOS projected over atom types.&quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_pjdos_type</span><span class="p">()</span>
+
+        <span class="n">od</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">:</span>
+            <span class="n">type_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">typeidx_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+            <span class="n">od</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">PhononDos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="n">type_idx</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">od</span></div></div>
 
     <span class="c1"># TODO</span>
-    <span class="c1">#double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies) ;</span>
+    <span class="c1">#double msqd_dos_atom(number_of_atoms, three, three, number_of_frequencies)</span>
 
 
 <div class="viewcode-block" id="PhdosFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile">[docs]</a><span class="k">class</span> <span class="nc">PhdosFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -1981,19 +1993,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_phdos</span><span class="p">()</span></div>
 
     <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosFile.pjdos_type_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.pjdos_type_dict">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos_type_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.pjdos_symbol"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.pjdos_symbol">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Dictionary symbol --&gt; PhononDos</span>
-<span class="sd">        where PhononDos is the contribution to the total DOS summed over atoms with chemical symbol `symbol`.</span>
+<span class="sd">        Ordered dictionary mapping element symbol --&gt; `PhononDos`</span>
+<span class="sd">        where PhononDos is the contribution to the total DOS summed over atoms</span>
+<span class="sd">        with chemical symbol `symbol`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pjdos_type_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">:</span>
-            <span class="n">pjdos_type_dict</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_pjdos_type</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">pjdos_type_dict</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_pjdos_symbol_dict</span><span class="p">()</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhdosFile.plot_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.plot_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                        <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot type-projected phonon DOS.</span>
 
@@ -2005,6 +2015,9 @@
 <span class="sd">                `here &lt;http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html&gt;`_</span>
 <span class="sd">                and decide which one you&#39;d like:</span>
 <span class="sd">            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylims: y-axis limits.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib figure.</span>
@@ -2016,16 +2029,16 @@
         <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PJDOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
         <span class="c1"># Type projected DOSes.</span>
-        <span class="n">num_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pjdos_type_dict</span><span class="p">)</span>
+        <span class="n">num_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pjdos_symbol</span><span class="p">)</span>
         <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">))</span>
 
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">pjdos</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pjdos_type_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">pjdos</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pjdos_symbol</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">factor</span><span class="p">,</span> <span class="n">pjdos</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">factor</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
@@ -2043,7 +2056,8 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                               <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot type-projected phonon DOS decomposed along the three reduced directions.</span>
 <span class="sd">        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.</span>
@@ -2055,6 +2069,9 @@
 <span class="sd">                `here &lt;http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html&gt;`_</span>
 <span class="sd">                and decide which one you&#39;d like:</span>
 <span class="sd">            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylims: y-axis limits.</span>
 <span class="sd">            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.</span>
 
 <span class="sd">        Returns:</span>
@@ -2074,9 +2091,9 @@
             <span class="n">axlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axlist</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
         <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
-        <span class="n">xlims</span><span class="p">,</span> <span class="n">ylims</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="c1">#double pjdos_type_rc(number_of_atom_species, three, number_of_frequencies)</span>
-        <span class="n">pjdos_type_rc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">pjdos_type_rc</span>
+
+        <span class="c1"># symbol --&gt; [three, number_of_frequencies]</span>
+        <span class="n">pjdos_symbol_rc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_pjdos_symbol_rc_dict</span><span class="p">()</span>
 
         <span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">factor</span>
         <span class="k">for</span> <span class="n">idir</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axlist</span><span class="p">):</span>
@@ -2090,12 +2107,10 @@
                     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
             <span class="c1"># Plot Type projected DOSes along reduced direction idir</span>
-            <span class="c1">#for i, (symbol, pjdos) in enumerate(self.pjdos_type_dict.items()):</span>
             <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">itype</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntypat</span><span class="p">):</span>
-                <span class="n">symbol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">itype</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">):</span>
                 <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">itype</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="n">yy</span> <span class="o">=</span> <span class="n">pjdos_type_rc</span><span class="p">[</span><span class="n">itype</span><span class="p">,</span> <span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">factor</span>
+                <span class="n">yy</span> <span class="o">=</span> <span class="n">pjdos_symbol_rc</span><span class="p">[</span><span class="n">symbol</span><span class="p">][</span><span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">factor</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
@@ -2112,7 +2127,7 @@
 
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_site"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_site">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
-                               <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                               <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot phonon PJDOS for each atom in the unit cell. By default, only &quot;inequivalent&quot; atoms are shown.</span>
 
@@ -2122,6 +2137,8 @@
 <span class="sd">            stacked: True if DOS partial contributions should be stacked on top of each other.</span>
 <span class="sd">            colormap: matplotlib colormap.</span>
 <span class="sd">            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.</span>
@@ -2133,7 +2150,6 @@
         <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">natom</span><span class="p">,</span> <span class="n">ntypat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">xlims</span><span class="p">,</span> <span class="n">ylims</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="ow">or</span> <span class="n">natom</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">iatom_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">natom</span><span class="p">)</span>
@@ -2157,7 +2173,7 @@
             <span class="n">axlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axlist</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
         <span class="c1"># [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions&quot;&quot;&quot;</span>
-        <span class="n">pjdos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">pjdos</span>
+        <span class="n">pjdos_atdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_pjdos_atdir</span><span class="p">()</span>
 
         <span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">factor</span>
         <span class="k">for</span> <span class="n">idir</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axlist</span><span class="p">):</span>
@@ -2176,7 +2192,7 @@
                 <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span>
                 <span class="n">symbol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
                 <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">iatom</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">iatom_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="n">yy</span> <span class="o">=</span> <span class="n">pjdos</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">factor</span>
+                <span class="n">yy</span> <span class="o">=</span> <span class="n">pjdos_atdir</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">factor</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">symbol</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
@@ -2462,7 +2478,7 @@
     <span class="c1">#    return &quot;\n\n&quot;.join(text)</span>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the band structure and the DOS on the same figure.</span>
 <span class="sd">        Use `gridplot` to plot band structures on different figures.</span>
@@ -2471,13 +2487,8 @@
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.</span>
 <span class="sd">                The values are the labels e.g. klabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}.</span>
-
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        kwargs          Meaning</span>
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        xlims            x-axis limits. None (default) for automatic determination.</span>
-<span class="sd">        ylims            y-axis limits. None (default) for automatic determination.</span>
-<span class="sd">        ==============  ==============================================================</span>
+<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib figure.</span>
@@ -2486,6 +2497,7 @@
         <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
 
         <span class="c1"># Build grid of plots.</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdoses_dict</span><span class="p">:</span>
             <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
             <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
@@ -2493,18 +2505,17 @@
             <span class="c1"># Align bands and DOS.</span>
             <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
             <span class="n">ax_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">]</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
             <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
             <span class="n">ax_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax1</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_list</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">ylims</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ylims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ylims</span><span class="p">)</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_list</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_list</span><span class="p">:</span>
+                <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
         <span class="c1"># Plot bands.</span>
         <span class="n">lines</span><span class="p">,</span> <span class="n">legends</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -2633,17 +2644,89 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+<div class="viewcode-block" id="PhononBandsPlotter.animate"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.animate">[docs]</a>    <span class="k">def</span> <span class="nf">animate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use matplotlib to animate a list of band structure plots (with or without DOS).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            interval: draws a new frame every interval milliseconds.</span>
+<span class="sd">            savefile: Use e.g. &#39;myanimation.mp4&#39; to save the animation in mp4 format.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
+<span class="sd">            width_ratios: Defines the ratio between the band structure plot and the dos plot.</span>
+<span class="sd">                Used when there are DOS stored in the plotter.</span>
+<span class="sd">            show: True if the animation should be shown immediately</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Animation object.</span>
+
+<span class="sd">        See also:</span>
+<span class="sd">            http://matplotlib.org/api/animation_api.html</span>
+<span class="sd">            http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            It would be nice to animate the title of the plot, unfortunately</span>
+<span class="sd">            this feature is not available in the present version of matplotlib.</span>
+<span class="sd">            See: http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phbands_list</span><span class="p">,</span> <span class="n">phdos_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdoses_list</span>
+        <span class="k">if</span> <span class="n">phdos_list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">phdos_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">phbands_list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The number of objects for DOS must be equal to the number of bands&quot;</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plotax_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">}</span>
+
+        <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">phdos_list</span><span class="p">:</span>
+            <span class="c1"># Animation with band structures</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">phbands_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">phbands</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phbands_list</span><span class="p">):</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">plotax_kwargs</span><span class="p">)</span>
+                <span class="c1">#if titles is not None: lines += [ax.set_title(titles[i])]</span>
+                <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Animation with band structures + DOS.</span>
+            <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
+            <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+            <span class="n">phbands_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">)</span>
+            <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+            <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">phbands</span><span class="p">,</span> <span class="n">phdos</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">phbands_list</span><span class="p">,</span> <span class="n">phdos_list</span><span class="p">)):</span>
+                <span class="n">phbands_lines</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">plotax_kwargs</span><span class="p">)</span>
+                <span class="n">phdos_lines</span> <span class="o">=</span> <span class="n">phdos</span><span class="o">.</span><span class="n">plot_dos_idos</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">plotax_kwargs</span><span class="p">)</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">phbands_lines</span> <span class="o">+</span> <span class="n">phdos_lines</span>
+                <span class="c1">#if titles is not None: lines += [ax.set_title(titles[i])]</span>
+                <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="k">as</span> <span class="nn">animation</span>
+        <span class="n">anim</span> <span class="o">=</span> <span class="n">animation</span><span class="o">.</span><span class="n">ArtistAnimation</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">artists</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+                                         <span class="n">blit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="c1"># True is faster but then the movie starts with an empty frame!</span>
+                                         <span class="c1">#repeat_delay=1000</span>
+                                         <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">savefile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">anim</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">savefile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">anim</span></div>
+
 <div class="viewcode-block" id="PhononBandsPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an ipython widget with controllers to select the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">plot_callback</span><span class="p">(</span><span class="n">plot_type</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">)(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">)(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s2">&quot;animate&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">r</span>
 
         <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
         <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">interact_manual</span><span class="p">(</span>
                 <span class="n">plot_callback</span><span class="p">,</span>
-                <span class="n">plot_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiboxplot&quot;</span><span class="p">],</span>
+                <span class="n">plot_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;combiboxplot&quot;</span><span class="p">,</span> <span class="s2">&quot;animate&quot;</span><span class="p">],</span>
                 <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="s2">&quot;Ha&quot;</span><span class="p">],</span>
             <span class="p">)</span></div>
 
@@ -2708,26 +2791,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_phdoses_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">PhononDos</span><span class="o">.</span><span class="n">as_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">phdos_kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDosPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDosPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the the DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.</span>
+<span class="sd">        Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
-
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        kwargs          Meaning</span>
-<span class="sd">        ==============  ==============================================================</span>
-<span class="sd">        xlims           x-axis limits. None (default) for automatic determination.</span>
-<span class="sd">        ylims           y-axis limits.  None (default) for automatic determination.</span>
-<span class="sd">        ==============  ==============================================================</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylims: y-axis limits.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;xlims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ylims&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
@@ -2747,7 +2826,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDosPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.gridplot">[docs]</a>    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDosPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.gridplot">[docs]</a>    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot multiple DOSes on a grid.</span>
 
@@ -2784,6 +2863,7 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+            <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
@@ -2848,7 +2928,7 @@
 <span class="sd">        Return an ipython widget with controllers to select the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">plot_callback</span><span class="p">(</span><span class="n">plot_type</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">)(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">)(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
         <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">interact_manual</span><span class="p">(</span>
@@ -2863,8 +2943,8 @@
 <span class="sd">        from the phonon DOS within the harmonic approximation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">plot_callback</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">formula_units</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_harmonic_thermo</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span>
-                                             <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="n">formula_units</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_harmonic_thermo</span><span class="p">(</span><span class="n">tstart</span><span class="o">=</span><span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="n">tstop</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span>
+                                      <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="n">formula_units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
         <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">interact_manual</span><span class="p">(</span>
@@ -2904,7 +2984,8 @@
 <span class="sd">            structure: :class:`Structure` object.</span>
 <span class="sd">            directions: Cartesian directions along which the non analytical frequencies have been calculated</span>
 <span class="sd">            phfreqs: Phonon frequencies with non analytical contribution in eV along directions</span>
-<span class="sd">            phdispl_cart: Displacement in Cartesian coordinates with non analytical contribution along directions</span>
+<span class="sd">            phdispl_cart: Displacement in Angstromg in Cartesian coordinates with non analytical contribution</span>
+<span class="sd">                along directions</span>
 <span class="sd">            amu: dictionary that associates the atomic species present in the structure to the values of the atomic</span>
 <span class="sd">                mass units used for the calculation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3177,6 +3258,7 @@
 
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance [Bohr]&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;IFC [Ha/Bohr$^2$]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">filtered_ifc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -3187,6 +3269,7 @@
                               <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the total longitudinal ifcs in local coordinates, filtered according to the optional arguments.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
 <span class="sd">            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.</span>
@@ -3195,6 +3278,7 @@
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3218,6 +3302,7 @@
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3236,6 +3321,7 @@
                                           <span class="n">min_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the Ewald part of the ifcs in local coordinates, filtered according to the optional arguments.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.</span>
 <span class="sd">            atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.</span>
@@ -3244,10 +3330,10 @@
 <span class="sd">            max_dist: maximum distance between atoms and neighbours.</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to blue, symbol to &#39;o&#39; and lw to 0</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            matplotlib figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Local coordinates are missing. Run anaddb with ifcana=1&quot;</span><span class="p">)</span>
 
@@ -3297,8 +3383,8 @@
     <span class="n">prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()))</span>
 
     <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
-    <span class="n">missing_v1</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
-    <span class="n">missing_v2</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+    <span class="n">missing_v1</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+    <span class="n">missing_v2</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">prod</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)):</span>
         <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">prod</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">missing_v1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">missing_v2</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>

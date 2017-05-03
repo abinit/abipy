@@ -75,11 +75,13 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span> <span class="c1"># is_string, list_strings,</span>
 <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">Mesh3D</span><span class="p">,</span> <span class="n">GSphere</span><span class="p">,</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">Visualizer</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
 <span class="kn">from</span> <span class="nn">abipy.waves.pwwave</span> <span class="k">import</span> <span class="n">PWWaveFunction</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;WfkFile&quot;</span><span class="p">,</span>
@@ -98,15 +100,13 @@
 <span class="sd">        wfk = WfkFile(&quot;foo_WFK.nc&quot;)</span>
 
 <span class="sd">        # Plot band energies.</span>
-<span class="sd">        wfk.plot_ebands()</span>
+<span class="sd">        wfk.ebands.plot_ebands()</span>
 
 <span class="sd">        # Visualize crystalline structure with vesta.</span>
-<span class="sd">        visu = wfk.visualize_structure_with(&quot;vesta&quot;)</span>
-<span class="sd">        visu()</span>
+<span class="sd">        visu = wfk.visualize_structure_with(&quot;vesta&quot;)()</span>
 
 <span class="sd">        # Visualize u(r)**2 with vesta.</span>
-<span class="sd">        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu=&quot;vesta&quot;)</span>
-<span class="sd">        visu()</span>
+<span class="sd">        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu=&quot;vesta&quot;)()</span>
 
 <span class="sd">        # Get a wavefunction.</span>
 <span class="sd">        wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)</span>
@@ -117,13 +117,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WfkFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">reader</span> <span class="o">=</span> <span class="n">WFK_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">reader</span><span class="o">.</span><span class="n">has_pwbasis_set</span>
 
         <span class="c1"># Read the electron bands</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span>
 
-        <span class="k">assert</span> <span class="n">reader</span><span class="o">.</span><span class="n">has_pwbasis_set</span>
-        <span class="k">assert</span> <span class="n">reader</span><span class="o">.</span><span class="n">cplex_ug</span> <span class="o">==</span> <span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">nspinor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">npwarr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">nband_sk</span>
 
@@ -168,24 +166,21 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="WfkFile.to_string"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.wfkfile.WfkFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="WfkFile.to_string"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.wfkfile.WfkFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            prtvol: verbosity level.</span>
+<span class="sd">            verbose: verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nspinor&quot;</span><span class="p">,</span> <span class="s2">&quot;nspden&quot;</span><span class="p">]</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">prtvol</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                    <span class="k">continue</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">pass</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
@@ -205,18 +200,17 @@
 <span class="sd">            returns:</span>
 <span class="sd">                :class:`WaveFunction` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="n">ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">spin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">)</span> <span class="ow">or</span>
-            <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span> <span class="ow">or</span>
-            <span class="n">band</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">spin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ik</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="n">band</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">])):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong (spin, band, kpt) indices&quot;</span><span class="p">)</span>
 
         <span class="n">ug_skb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ug</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
 
         <span class="c1"># Istantiate the wavefunction object and set the FFT mesh</span>
         <span class="c1"># using the divisions reported in the WFK file.</span>
-        <span class="n">wave</span> <span class="o">=</span> <span class="n">PWWaveFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gspheres</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ug_skb</span><span class="p">)</span>
+        <span class="n">wave</span> <span class="o">=</span> <span class="n">PWWaveFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gspheres</span><span class="p">[</span><span class="n">ik</span><span class="p">],</span> <span class="n">ug_skb</span><span class="p">)</span>
         <span class="n">wave</span><span class="o">.</span><span class="n">set_mesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fft_mesh</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">wave</span></div>
@@ -233,9 +227,9 @@
 
         <span class="c1"># Export data uding the format specified by filename.</span>
         <span class="k">if</span> <span class="n">visu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">wave</span><span class="o">.</span><span class="n">export_ur2</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">wave</span><span class="o">.</span><span class="n">export_ur2</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">wave</span><span class="o">.</span><span class="n">export_ur2</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="n">visu</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">wave</span><span class="o">.</span><span class="n">export_ur2</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="n">visu</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WfkFile.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.wfkfile.WfkFile.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -252,6 +246,70 @@
                 <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for visualizer </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
+
+    <span class="c1">#def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Classify electronic eigenstates</span>
+
+    <span class="c1">#    Args:</span>
+    <span class="c1">#        spin: spin index. Must be in (0, 1)</span>
+    <span class="c1">#        kpoint: Either :class:`Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).</span>
+    <span class="c1">#        band_range: Define the set of bands included in the classification. See also `energy_range`.</span>
+    <span class="c1">#            `None` means all bands available in the WFK file. Accepts also range object, use e.g.</span>
+    <span class="c1">#            `band_range=(0, 5)` to include [0, 1, 2, 3, 4].</span>
+    <span class="c1">#        energy_range: Define the set of bands included in the classification. Mutually exclusive with `band_range`.</span>
+    <span class="c1">#            Accepts: &quot;gap&quot;</span>
+    <span class="c1">#        atol: Absolute tolerance on the energy in eV. Two states are considered degerate if</span>
+    <span class="c1">#            their energy differ by less than `atol`.</span>
+
+    <span class="c1">#    Return:</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    if band_range is not None and energy_range is not None:</span>
+    <span class="c1">#        raise ValueError(&quot;band_range and energy_range are mutually exclusive.&quot;)</span>
+
+    <span class="c1">#    if energy_range is None:</span>
+    <span class="c1">#        bids = ... if band_range is None else list(range(band_range))</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        raise NotImplementedError(&quot;energy_range&quot;)</span>
+
+    <span class="c1">#    # Find little group of the k-point.</span>
+    <span class="c1">#    ik = self.kindex(kpoint)</span>
+    <span class="c1">#    kpoint = self.kpoints[ik]</span>
+    <span class="c1">#    lgk = self.structure.abi_spacegroup.find_little_group(kpoint)</span>
+    <span class="c1">#    #wclass = WavefuntionsClassifier(kpoint)</span>
+
+    <span class="c1">#    # Select bands to include, find degenerate states and group them.</span>
+    <span class="c1">#    from abipy.core.skw import find_degs_sk</span>
+    <span class="c1">#    enes = self.ebands.eigens[spin, ik, bids]</span>
+    <span class="c1">#    deg_list = find_degs_sk(enes, atol)</span>
+
+    <span class="c1">#    for deg in deg_list:</span>
+    <span class="c1">#        print(&quot;deg&quot;, deg)</span>
+    <span class="c1">#        nb = len(deg)</span>
+    <span class="c1">#        waves = [self.get_wave(spin, ik, band) for band in deg]</span>
+    <span class="c1">#        mats = []</span>
+    <span class="c1">#        for iclass, op_class in enumerate(lgk.groupby_class()):</span>
+    <span class="c1">#            op = op_class[0]</span>
+    <span class="c1">#            #print(&quot;op_class[0]\n&quot;, op)</span>
+    <span class="c1">#            #op_waves = [wave.rotate(op) for wave in waves]</span>
+    <span class="c1">#            op_waves = waves</span>
+
+    <span class="c1">#            # Compute &lt;u1|Op|u2&gt;</span>
+    <span class="c1">#            cmat = np.empty((nb, nb), dtype=np.complex)</span>
+    <span class="c1">#            for i in range(nb):</span>
+    <span class="c1">#                #print(&quot;int&quot;, waves[i].norm2())</span>
+    <span class="c1">#                for j in range(nb):</span>
+    <span class="c1">#                    cmat[i, j] = waves[i].braket(op_waves[j], space=&quot;r&quot;)</span>
+    <span class="c1">#                    #cmat[i, j] = 1.0</span>
+
+    <span class="c1">#            print(cmat)</span>
+    <span class="c1">#            mats.append(cmat)</span>
+
+    <span class="c1">#        #if wclass.classify_characters(deg, mats) /= 0:</span>
+    <span class="c1">#        #    cprint(&quot;Warning&quot;)</span>
+    <span class="c1">#        #    wclass.classify_characters_accidental(deg, full_mats)</span>
+
+    <span class="c1">#    #return wclass</span>
 
 <div class="viewcode-block" id="WfkFile.write_notebook"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.wfkfile.WfkFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -279,12 +337,12 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">WFK_Reader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_kpoints</span><span class="p">()</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">nfft1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector1&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nfft2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector2&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nfft3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector3&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cplex_ug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;real_or_complex_coefficients&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">cplex_ug</span> <span class="o">==</span> <span class="mi">2</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_spinor_components&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_spins&quot;</span><span class="p">)</span>
@@ -295,15 +353,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;istwfk&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;number_of_coefficients&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Gvectors</span>
+        <span class="c1"># Store G-vectors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_coordinates_of_plane_waves&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Wavefunctions (complex array)</span>
-        <span class="c1"># TODO use variables to avoid storing the full block.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cplex_ug</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ug_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;coefficients_of_wavefunctions&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
     <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">basis_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -330,8 +381,8 @@
 
 <span class="sd">        Accepts: :class:`Kpoint` instance or integer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">kpoint</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">kpoint</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
 
@@ -340,16 +391,21 @@
 <span class="sd">        Read the set of G-vectors and the value of istwfk for the given k-point.</span>
 <span class="sd">        Accepts :class:`Kpoint` object or integer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
-        <span class="n">npw_k</span><span class="p">,</span> <span class="n">istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kg</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:</span><span class="n">npw_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">istwfk</span>
+        <span class="n">ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="n">npw_k</span><span class="p">,</span> <span class="n">istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span><span class="p">[</span><span class="n">ik</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kg</span><span class="p">[</span><span class="n">ik</span><span class="p">,</span> <span class="p">:</span><span class="n">npw_k</span><span class="p">,</span> <span class="p">:],</span> <span class="n">istwfk</span>
 
     <span class="k">def</span> <span class="nf">read_ug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Read the Fourier components of the wavefunction.&quot;&quot;&quot;</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
-        <span class="n">npw_k</span><span class="p">,</span> <span class="n">istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-        <span class="c1"># TODO use variables to avoid storing the full block.</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ug_block</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">npw_k</span><span class="p">]</span>
+        <span class="n">ik</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kindex</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="n">npw_k</span><span class="p">,</span> <span class="n">istwfk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npwarr</span><span class="p">[</span><span class="n">ik</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cplex_ug</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Read data from file (we don&#39;t store the full block full block in memory!).</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;coefficients_of_wavefunctions&quot;</span><span class="p">]</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">npw_k</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># Build complex array</span>
 </pre></div>
 
           </div>

@@ -91,6 +91,7 @@
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBands</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.scissors</span> <span class="k">import</span> <span class="n">Scissors</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">ArrayPlotter</span><span class="p">,</span> <span class="n">plot_array</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">Marker</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -156,15 +157,18 @@
         <span class="sd">&quot;&quot;&quot;Ordered dictionary mapping fields --&gt; strings.&quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span>
+            <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">Kpoint</span><span class="p">):</span>
                 <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span>
+
             <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.e-3</span><span class="p">:</span>
                     <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="o">.</span><span class="n">real</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%.2f%+.2f</span><span class="s2">j&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span>
+
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span>
@@ -594,13 +598,13 @@
 
 <span class="sd">    &gt;&gt;&gt; list(torange(1))</span>
 <span class="sd">    [1]</span>
-<span class="sd">    &gt;&gt;&gt; list(torange(slice(0,4,2)))</span>
+<span class="sd">    &gt;&gt;&gt; list(torange(slice(0, 4, 2)))</span>
 <span class="sd">    [0, 2]</span>
-<span class="sd">    &gt;&gt;&gt; list(torange([1,4,2]))</span>
+<span class="sd">    &gt;&gt;&gt; list(torange([1, 4, 2]))</span>
 <span class="sd">    [1, 4, 2]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">start</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
@@ -1055,7 +1059,8 @@
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Kohn-Sham bands&quot;</span><span class="p">))</span>
-        <span class="c1"># TODO: Finalize the implementation.</span>
+
+        <span class="c1"># TODO: Finalize the implementation: add GW quantities.</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
@@ -1076,8 +1081,7 @@
 
 <div class="viewcode-block" id="SigresFile.get_qplist"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.get_qplist">[docs]</a>    <span class="k">def</span> <span class="nf">get_qplist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return :class`QPList` for the given (spin, kpoint)&quot;&quot;&quot;</span>
-        <span class="n">qplist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_qplist_sk</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">qplist</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_qplist_sk</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigresFile.get_qpcorr"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.get_qpcorr">[docs]</a>    <span class="k">def</span> <span class="nf">get_qpcorr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the :class:`QPState` object for the given (s, k, b)&quot;&quot;&quot;</span>
@@ -1644,9 +1648,7 @@
         <span class="c1"># vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vxcme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;vxcme&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sigxme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;sigxme&quot;</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_hhartree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;hhartree&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_vUme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;vUme&quot;</span><span class="p">)</span>
         <span class="c1">#if self.usepawu == 0: self._vUme.fill(0.0)</span>
 
@@ -1689,7 +1691,7 @@
 <span class="sd">            This function is needed since arrays in the netcdf file are dimensioned</span>
 <span class="sd">            with the total number of k-points in the IBZ.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="k">return</span> <span class="n">kpoint</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">kpoint</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">gwkpt2seqindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gwkpoint</span><span class="p">):</span>
@@ -1697,8 +1699,8 @@
 <span class="sd">        This function returns the index of the GW k-point in (0:nkptgw)</span>
 <span class="sd">        Used to access data in the arrays that are dimensioned [0:nkptgw] e.g. minbnd.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gwkpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">gwkpoint</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">gwkpoint</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">gwkpoint</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwkpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">gwkpoint</span><span class="p">)</span>
 

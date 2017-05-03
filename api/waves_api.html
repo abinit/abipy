@@ -97,14 +97,15 @@
 <p>This module contains the class describing a planewave wavefunction.</p>
 <dl class="class">
 <dt id="abipy.waves.pwwave.PWWaveFunction">
-<em class="property">class </em><code class="descclassname">abipy.waves.pwwave.</code><code class="descname">PWWaveFunction</code><span class="sig-paren">(</span><em>nspinor</em>, <em>spin</em>, <em>band</em>, <em>gsphere</em>, <em>ug</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">abipy.waves.pwwave.</code><code class="descname">PWWaveFunction</code><span class="sig-paren">(</span><em>structure</em>, <em>nspinor</em>, <em>spin</em>, <em>band</em>, <em>gsphere</em>, <em>ug</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.waves.pwwave.WaveFunction</span></code></p>
 <p>This object describes a wavefunction expressed in a plane-wave basis set.</p>
 <dl class="method">
 <dt id="abipy.waves.pwwave.PWWaveFunction.braket">
 <code class="descname">braket</code><span class="sig-paren">(</span><em>other</em>, <em>space='g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.braket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.braket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the scalar product &lt;u1|u2&gt; of the periodic part of two wavefunctions
-computed in G-space or r-space, depending on the value of space.</p>
+computed in G-space or r-space, depending on the value of space.
+Note that selection rules introduced by k-points is not taken into accout.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -113,7 +114,7 @@ computed in G-space or r-space, depending on the value of space.</p>
 <li><strong>other</strong> &#8211; Other wave (right-hand side)</li>
 <li><strong>space</strong> &#8211; Integration space. Possible values [&#8220;g&#8221;, &#8220;gsphere&#8221;, &#8220;r&#8221;]
 if &#8220;g&#8221; or &#8220;r&#8221; the scalar product is computed in G- or R-space on the FFT box.
-if space=&#8221;gsphere&#8221; the integration is done on the G-sphere. Note that
+if &#8220;gsphere&#8221; the integration is done on the G-sphere. Note that
 this option assumes that self and other have the same list of G-vectors.</li>
 </ul>
 </td>
@@ -124,7 +125,7 @@ this option assumes that self and other have the same list of G-vectors.</li>
 
 <dl class="method">
 <dt id="abipy.waves.pwwave.PWWaveFunction.export_ur2">
-<code class="descname">export_ur2</code><span class="sig-paren">(</span><em>filename</em>, <em>structure</em>, <em>visu=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.export_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.export_ur2" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export_ur2</code><span class="sig-paren">(</span><em>filename</em>, <em>visu=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.export_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.export_ur2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export u(r)**2 on file filename.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -134,7 +135,6 @@ this option assumes that self and other have the same list of G-vectors.</li>
 <li><strong>filename</strong> &#8211; String specifying the file path and the file format.
 The format is defined by the file extension. filename=&#8221;prefix.xsf&#8221;, for example,
 will produce a file in XSF format. An <em>empty</em> prefix, e.g. &#8221;.xsf&#8221; makes the code use a temporary file.</li>
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
 <li><strong>visu</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> subclass. By default, this method returns the first available
 visualizer that supports the given file format. If visu is not None, an
 instance of visu is returned. See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of
@@ -150,27 +150,123 @@ applications and formats supported.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.waves.pwwave.PWWaveFunction.norm2">
-<code class="descname">norm2</code><span class="sig-paren">(</span><em>space='g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.norm2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.norm2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <img src="../_images/mathmpl/math-e1520270d0.png" style="position: relative; bottom: -7px"/> computed in G- or r-space.</p>
+<dt id="abipy.waves.pwwave.PWWaveFunction.get_interpolator">
+<code class="descname">get_interpolator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.get_interpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.get_interpolator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an interpolator object that interpolates periodic functions in real space.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.waves.pwwave.PWWaveFunction.rotate">
-<code class="descname">rotate</code><span class="sig-paren">(</span><em>symmop</em>, <em>mesh=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.rotate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rotate the pwwave by the symmetry operation symmop.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>symmop</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Symmetry</span></code> operation</li>
-<li><strong>mesh</strong> &#8211; mesh for the FFT, if None the mesh of self is used.</li>
-</ul>
-</td>
+<dt id="abipy.waves.pwwave.PWWaveFunction.norm2">
+<code class="descname">norm2</code><span class="sig-paren">(</span><em>space='g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.norm2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.norm2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <img src="../_images/mathmpl/math-e1520270d0.png" style="position: relative; bottom: -7px"/> computed in G- or r-space.</p>
+<dl class="docutils">
+<dt>space:  Integration space. Possible values [&#8220;g&#8221;, &#8220;gsphere&#8221;, &#8220;r&#8221;]</dt>
+<dd>if &#8220;g&#8221; or &#8220;r&#8221; the scalar product is computed in G- or R-space on the FFT box.
+if &#8220;gsphere&#8221; the integration is done on the G-sphere.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.plot_line">
+<code class="descname">plot_line</code><span class="sig-paren">(</span><em>point1</em>, <em>point2</em>, <em>num=200</em>, <em>with_krphase=False</em>, <em>cartesian=False</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.plot_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.plot_line" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) wavefunction in real space along a line defined by <cite>point1</cite> and <cite>point2</cite>.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>point1: First point of the line. Accepts 3d vector or integer.</dt>
+<dd>The vector is in reduced coordinates unless <cite>cartesian == True</cite>.
+If integer, the first point of the line is given by the i-th site of the structure
+e.g. <cite>point1=0, point2=1</cite> gives the line passing through the first two atoms.</dd>
+</dl>
+<p>point2: Second point of the line. Same API as <cite>point1</cite>.
+num: Number of points sampled along the line.
+with_krphase: True to include the e^{ikr} phase-factor.
+cartesian: By default, <cite>point1</cite> and <cite>point1</cite> are interpreted as points in fractional</p>
+<blockquote>
+<div>coordinates (if not integers). Use True to pass points in cartesian coordinates.</div></blockquote>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Return:</dt>
+<dd><cite>matplotlib</cite> figure</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">New wavefunction object.</p>
-</td>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.waves.pwwave.PWWaveFunction.plot_line_neighbors">
+<code class="descname">plot_line_neighbors</code><span class="sig-paren">(</span><em>site_index</em>, <em>radius</em>, <em>num=200</em>, <em>with_krphase=False</em>, <em>max_nn=10</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.plot_line_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.plot_line_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) density/potential in real space along the lines connecting
+an atom specified by <cite>site_index</cite> and all neighbors within a sphere of given <cite>radius</cite>.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>site_index: Index of the atom in the structure.
+radius: Radius of the sphere in Angstrom
+num: Number of points sampled along the line.
+with_krphase: True to include the e^{ikr} phase-factor.
+max_nn: By default, only the first <cite>max_nn</cite> neighbors are showed.</dd>
+<dt>Return:</dt>
+<dd><cite>matplotlib</cite> figure</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -178,7 +274,7 @@ applications and formats supported.</li>
 
 <dl class="method">
 <dt id="abipy.waves.pwwave.PWWaveFunction.visualize_ur2">
-<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>structure</em>, <em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.visualize_ur2" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.visualize_ur2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize u(r)**2 visualizer.</p>
 <p>See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
 </dd></dl>
@@ -199,15 +295,13 @@ the data stored in the WFK file produced by ABINIT.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">wfk</span> <span class="o">=</span> <span class="n">WfkFile</span><span class="p">(</span><span class="s2">&quot;foo_WFK.nc&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot band energies.</span>
-<span class="n">wfk</span><span class="o">.</span><span class="n">plot_ebands</span><span class="p">()</span>
+<span class="n">wfk</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_ebands</span><span class="p">()</span>
 
 <span class="c1"># Visualize crystalline structure with vesta.</span>
-<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_structure_with</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
-<span class="n">visu</span><span class="p">()</span>
+<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_structure_with</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)()</span>
 
 <span class="c1"># Visualize u(r)**2 with vesta.</span>
-<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_ur2</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">)</span>
-<span class="n">visu</span><span class="p">()</span>
+<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_ur2</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">)()</span>
 
 <span class="c1"># Get a wavefunction.</span>
 <span class="n">wave</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -284,13 +378,13 @@ the data stored in the WFK file produced by ABINIT.</p>
 
 <dl class="method">
 <dt id="abipy.waves.wfkfile.WfkFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>prtvol=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prtvol</strong> &#8211; verbosity level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
 </tr>
 </tbody>
 </table>

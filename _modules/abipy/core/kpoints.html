@@ -74,19 +74,23 @@
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
 <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
 <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">MontyEncoder</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="kn">from</span> <span class="nn">pymatgen.serializers.pickle_coders</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.derivatives</span> <span class="k">import</span> <span class="n">finite_diff</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">add_periodic_replicas</span>
+
+<span class="c1">#from numba import jit</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -164,11 +168,15 @@
 <span class="sd">    True if k1 and k2 are equal modulo a lattice vector.</span>
 <span class="sd">    Use _ATOL_KDIFF is atol is None.</span>
 
-<span class="sd">    &gt;&gt;&gt; assert issamek([1,1,1], [0,0,0])</span>
-<span class="sd">    &gt;&gt;&gt; assert issamek([1.1,1,1], [0,0,0], atol=0.1)</span>
+<span class="sd">    &gt;&gt;&gt; assert issamek([1, 1, 1], [0, 0, 0])</span>
+<span class="sd">    &gt;&gt;&gt; assert issamek([1.1, 1, 1], [0, 0, 0], atol=0.1)</span>
 <span class="sd">    &gt;&gt;&gt; assert not issamek(0.00003, 1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">is_integer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">k2</span><span class="p">),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span></div>
+    <span class="n">k1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span>
+    <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">k2</span><span class="p">)</span>
+    <span class="c1">#if k1.shape != k2.shape:</span>
+
+    <span class="k">return</span> <span class="n">is_integer</span><span class="p">(</span><span class="n">k1</span> <span class="o">-</span> <span class="n">k2</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="wrap_to_ws"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.wrap_to_ws">[docs]</a><span class="k">def</span> <span class="nf">wrap_to_ws</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -289,7 +297,9 @@
     <span class="n">abispg</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span>
     <span class="k">if</span> <span class="n">abispg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structure does not contain the Abinit spacegroup!&quot;</span><span class="p">)</span>
-    <span class="n">symrec_fm</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">afm</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">abispg</span><span class="o">.</span><span class="n">symrec</span><span class="p">,</span> <span class="n">abispg</span><span class="o">.</span><span class="n">symafm</span><span class="p">)</span> <span class="k">if</span> <span class="n">afm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Extract rotations in reciprocal space (FM part).</span>
+    <span class="n">symrec_fm</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">rot_g</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">abispg</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">]</span>
 
     <span class="c1"># Compute TS k_ibz.</span>
     <span class="n">bzgrid2ibz</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
@@ -335,10 +345,10 @@
 
 <span class="k">def</span> <span class="nf">has_timrev_from_kptopt</span><span class="p">(</span><span class="n">kptopt</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    True if time-reversal symmetry can be used in the generation of the k-points in the IBZ.</span>
+<span class="sd">    True if time-reversal symmetry can be used to generate k-points in the IBZ.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">kptopt</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kptopt</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">kptopt</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="k">else</span> <span class="kc">True</span>
+    <span class="c1"># note: We assume TR if negative value i.e. band structure k-sampling.</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">kptopt</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">map_kpoints</span><span class="p">(</span><span class="n">other_kpoints</span><span class="p">,</span> <span class="n">other_lattice</span><span class="p">,</span> <span class="n">ref_lattice</span><span class="p">,</span> <span class="n">ref_kpoints</span><span class="p">,</span> <span class="n">ref_symrecs</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">):</span>
@@ -399,6 +409,107 @@
                         <span class="k">break</span>
 
         <span class="k">return</span> <span class="n">o2r_map</span><span class="p">,</span> <span class="n">o2r_map</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+
+<span class="c1">#def find_irred_kpoints_kmesh(structure, kfrac_coords):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Remove k-points that are connected to each other by one of the</span>
+<span class="c1">#    symmetry operations of the space group. Assume k-points</span>
+<span class="c1">#    belonging to a homogeneous mesh.</span>
+<span class="c1">#</span>
+<span class="c1">#    Args:</span>
+<span class="c1">#        structure: Structure object.</span>
+<span class="c1">#        kfrac_coords: Reduced coordinates of the k-points.</span>
+<span class="c1">#</span>
+<span class="c1">#    Return:</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    # Wrap in [0,1[ interval.</span>
+<span class="c1">#    uc_kcoords = np.reshape(kfrac_coords, (-1, 3)) % 1</span>
+<span class="c1">#    numk = len(uc_kcoords)</span>
+<span class="c1">#    nx, ny, nz = np.int(np.floor(1 / uc_kcoords.min(axis=0)))</span>
+<span class="c1">#</span>
+<span class="c1">#    # Compute rank and invrank</span>
+<span class="c1">#    rank = np.array(numk, dtype=np.int)</span>
+<span class="c1">#    invrank = {}</span>
+<span class="c1">#    for ik, kk in enumerate(uc_kcoords):</span>
+<span class="c1">#        rk = iz + iy * nz + ix * ny * nz</span>
+<span class="c1">#        rank[ik] = rk</span>
+<span class="c1">#        invrank[rank] = ik</span>
+<span class="c1">#</span>
+<span class="c1">#    irred_map = collections.deque()</span>
+<span class="c1">#    irred_map.append(0)</span>
+<span class="c1">#    kpts2irred = collections.deque()</span>
+<span class="c1">#    kpts2irred.append((0, 0, +1))</span>
+<span class="c1">#</span>
+<span class="c1">#    for ik, kk in enumerate(uc_kcoords[1:]):</span>
+<span class="c1">#        ik += 1</span>
+<span class="c1">#        found = False</span>
+<span class="c1">#        for ik_irr in irred_map:</span>
+<span class="c1">#            kirr = kfrac_coords[ik_irr]</span>
+<span class="c1">#            for isym, symmop in enumerate(structure.abi_spacegroup):</span>
+<span class="c1">#                krot = symmop.rotate_k(kirr)</span>
+<span class="c1">#                new_frac_coords = krot.frac_coords % 1</span>
+<span class="c1">#                if issamek(krot, kk):</span>
+<span class="c1">#                    #kpts2irred[ik] = ik_irr</span>
+<span class="c1">#                    #kpts2irred[ik] = isym</span>
+<span class="c1">#                    found = True</span>
+<span class="c1">#                    break</span>
+<span class="c1">#</span>
+<span class="c1">#    #return irred_map</span>
+
+
+<span class="k">def</span> <span class="nf">find_irred_kpoints_generic</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kfrac_coords</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove the k-points that are connected to each other by one of the</span>
+<span class="sd">    symmetry operations of the space group. No assumption is done</span>
+<span class="sd">    on the initial k-point sampling, this means that one can call this</span>
+<span class="sd">    function to treat points on a path in reciprocal space.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure: Structure object.</span>
+<span class="sd">        kfrac_coords: Reduced coordinates of the k-points.</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        irred_map: Index of the i-th irreducible k-point in the input kfrac_coords array.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        In the worst case, the algorithm scales as nkpt ** 2 * nsym.</span>
+<span class="sd">        hence this routine should be used only if `kfrac_coords` represents</span>
+<span class="sd">        e.g. a path in the brillouin zone or an arbitrary set of points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Removing redundant k-points. This is gonna take a while... &quot;</span><span class="p">)</span>
+
+    <span class="c1"># Wrap points in [0,1[ interval.</span>
+    <span class="n">uc_kcoords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kfrac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">%</span> <span class="mi">1</span>
+
+    <span class="n">irred_map</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">()</span>
+    <span class="n">irred_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">kpts2irred</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">()</span>
+    <span class="n">kpts2irred</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">uc_kcoords</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">ik</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">ik_irr</span> <span class="ow">in</span> <span class="n">irred_map</span><span class="p">:</span>
+            <span class="n">kirr</span> <span class="o">=</span> <span class="n">kfrac_coords</span><span class="p">[</span><span class="n">ik_irr</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">isym</span><span class="p">,</span> <span class="n">symmop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="p">):</span>
+                <span class="n">krot</span> <span class="o">=</span> <span class="n">symmop</span><span class="o">.</span><span class="n">rotate_k</span><span class="p">(</span><span class="n">kirr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">issamek</span><span class="p">(</span><span class="n">krot</span><span class="p">,</span> <span class="n">kk</span><span class="p">):</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="c1">#kpts2irred[ik] = (ik_irr, isym, symmops.time_sign)</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">irred_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Completed in&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot;[s]&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered with &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">uc_kcoords</span><span class="p">),</span> <span class="s2">&quot;k-points&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">irred_map</span><span class="p">),</span> <span class="s2">&quot;irred k-points&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_map</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">irred_map</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span>
 
 
 <span class="k">class</span> <span class="nc">KpointsError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -858,9 +969,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span> <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="c1"># Test if kptrlatt is diagonal.</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">m</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">shifts</span>
 
     <span class="nd">@property</span>
@@ -874,7 +983,9 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frac_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frac_coords</span>
 
     <span class="nd">@property</span>
@@ -926,6 +1037,7 @@
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot k-points with matplotlib.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span>
         <span class="n">fold</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -1004,14 +1116,12 @@
                 <span class="n">next_k</span> <span class="o">=</span> <span class="n">k0</span> <span class="o">+</span> <span class="n">dk</span> <span class="o">*</span> <span class="n">ii</span> <span class="o">/</span> <span class="n">numk</span>
                 <span class="n">frac_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_k</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">knames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
         <span class="n">knames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vnames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">frac_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vertices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span>
-                   <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">,</span>
-                   <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">names</span><span class="o">=</span><span class="n">knames</span><span class="p">,</span>
-                   <span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">,</span>
+                   <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">knames</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
@@ -1045,6 +1155,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">&quot;*&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vids</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
             <span class="p">])</span>
+
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">)])</span></div>
 
     <span class="nd">@lazy_property</span>
@@ -1175,7 +1286,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="IrredZone.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="IrredZone.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
@@ -1185,8 +1296,7 @@
             <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shifts</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh with divisions: </span><span class="si">%s</span><span class="s2">, shifts: </span><span class="si">%s</span><span class="s2">, kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div></div>
 
@@ -1229,6 +1339,19 @@
     <span class="c1">#    return kx, ky, plane</span>
 
 
+<span class="k">def</span> <span class="nf">is_diagonal</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return True if matrix is diagonal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">matrix</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">m</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">atol</span><span class="p">)</span>
+
+
 <span class="k">class</span> <span class="nc">KSamplingInfo</span><span class="p">(</span><span class="n">AttrDict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Store metadata defining the k-point sampling according to the abinit conventions.</span>
@@ -1237,13 +1360,35 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">KNOWN_KEYS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
-        <span class="s2">&quot;mpdivs&quot;</span><span class="p">,</span>          <span class="c1"># Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None</span>
-        <span class="s2">&quot;kptrlatt&quot;</span><span class="p">,</span>        <span class="c1"># [3,3] matrix defined only if we have a sampling else None</span>
-        <span class="s2">&quot;kptrlatt_orig&quot;</span><span class="p">,</span>   <span class="c1"># Original set of shifts. Defined only if we have a sampling else None</span>
-        <span class="s2">&quot;shifts&quot;</span><span class="p">,</span>          <span class="c1"># Actual shifts (Usually one). Defined only if we have a sampling else None</span>
-        <span class="s2">&quot;shifts_orig&quot;</span><span class="p">,</span>     <span class="c1"># Original shifts specified by the user. Defined only if we have a sampling else None</span>
-        <span class="s2">&quot;kptopt&quot;</span>           <span class="c1"># Options for k-point generation. Negative if we have a k-path (nbounds - 1)</span>
+        <span class="s2">&quot;mpdivs&quot;</span><span class="p">,</span>          <span class="c1"># Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None.</span>
+        <span class="s2">&quot;kptrlatt&quot;</span><span class="p">,</span>        <span class="c1"># [3,3] matrix defined only if we have a sampling else None.</span>
+        <span class="s2">&quot;kptrlatt_orig&quot;</span><span class="p">,</span>   <span class="c1"># Original set of shifts. Defined only if we have a sampling else None.</span>
+        <span class="s2">&quot;shifts&quot;</span><span class="p">,</span>          <span class="c1"># Actual shifts (Usually one). Defined only if we have a sampling else None.</span>
+        <span class="s2">&quot;shifts_orig&quot;</span><span class="p">,</span>     <span class="c1"># Original shifts specified by the user. Defined only if we have a sampling else None.</span>
+        <span class="s2">&quot;kptopt&quot;</span><span class="p">,</span>          <span class="c1"># Options for k-point generation. Negative if we have a k-path (nbounds - 1).</span>
     <span class="p">])</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">as_ksampling</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Convert obj into a `KSamplingInfo` instance.</span>
+<span class="sd">        Accepts: KSamplingInfo instance, None (if info are not available), Dict-like object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span> <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">kptrlatt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">kptrlatt_orig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">shifts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">shifts_orig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">kptopt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Assume dict-like object.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to convert </span><span class="si">%s</span><span class="s2"> into KSamplingInfo object:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_mpdivs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">kptopt</span><span class="p">):</span>
@@ -1253,6 +1398,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">kptrlatt_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">mpdivs</span><span class="p">)</span>
         <span class="n">shifts</span> <span class="o">=</span> <span class="n">shifts_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shifts</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="n">shifts</span><span class="p">,</span> <span class="n">shifts_orig</span><span class="o">=</span><span class="n">shifts_orig</span><span class="p">,</span>
                    <span class="n">kptrlatt</span><span class="o">=</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="n">kptrlatt_orig</span><span class="o">=</span><span class="n">kptrlatt_orig</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">)</span>
 
@@ -1262,20 +1408,22 @@
 <span class="sd">        Homogeneous sampling specified in terms of `kptrlatt`</span>
 <span class="sd">        the set of `shifts` and the value of `kptopt`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">kptrlatt_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="n">kptrlatt</span> <span class="o">=</span> <span class="n">kptrlatt_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">shifts</span> <span class="o">=</span> <span class="n">shifts_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shifts</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="c1"># Test if kptrlatt is diagonal.</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">kptrlatt</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">mpdivs</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">m</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">)</span>
+        <span class="n">mpdivs</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">kptrlatt</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="n">shifts</span><span class="p">,</span> <span class="n">shifts_orig</span><span class="o">=</span><span class="n">shifts_orig</span><span class="p">,</span>
                    <span class="n">kptrlatt</span><span class="o">=</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="n">kptrlatt_orig</span><span class="o">=</span><span class="n">kptrlatt_orig</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_kbounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">kbounds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Metadata associated to a k-path specified in terms of boundaries.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metadata associated to a k-path specified in terms of boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mpdivs</span><span class="p">,</span> <span class="n">kptrlatt</span><span class="p">,</span> <span class="n">kptrlatt_orig</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">shifts_orig</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
-        <span class="n">kptopt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># Note -1</span>
+        <span class="n">kptopt</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Note -1</span>
+
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="n">shifts</span><span class="p">,</span> <span class="n">shifts_orig</span><span class="o">=</span><span class="n">shifts_orig</span><span class="p">,</span>
                    <span class="n">kptrlatt</span><span class="o">=</span><span class="n">kptrlatt</span><span class="p">,</span> <span class="n">kptrlatt_orig</span><span class="o">=</span><span class="n">kptrlatt_orig</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">)</span>
 
@@ -1285,29 +1433,55 @@
            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">KNOWN_KEYS</span><span class="p">:</span>
                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknow key </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span>
 
-    <span class="c1">#def __str__(self):</span>
-    <span class="c1">#    lines = []</span>
-    <span class="c1">#    app = lines.append</span>
-    <span class="c1">#    return &quot;\n&quot;.join(lines)</span>
+        <span class="c1"># FIXME: monkhorst_pack_folding is not written in e.g. DEN.nc files</span>
+        <span class="c1"># so we get crazy results because of netCDF4._default_fillvals</span>
+        <span class="c1"># This part set the value of mpdivs from kptrlatt.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e+6</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># We have a sampling</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding variables has not been written to netcdf file.&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Received </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]),</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Set mpdivs to None, this could create problems in post-processing tools.&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;mpdivs: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">is_homogeneous</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if we have a homogeneous sampling of the BZ.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">is_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if we have a path in the BZ.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if we have a path in the BZ.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span> <span class="o">&lt;</span> <span class="mi">0</span>
 
     <span class="c1">#@property</span>
-    <span class="c1">#def sampling_with_diagonal_kptrlatt(self)</span>
-    <span class="c1">#    if self.kptrlatt is None: return False</span>
-    <span class="c1">#    # Test if kptrlatt is diagonal.</span>
-    <span class="c1">#    m = self.kptrlatt.copy()</span>
-    <span class="c1">#    np.fill_diagonal(m, 0)</span>
-    <span class="c1">#    if np.any(m != 0): return False</span>
-    <span class="c1">#    return True</span>
+    <span class="c1">#def is_homogeneous(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;True if we have a homogeneous sampling of the BZ.&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.kptopt &gt; 0 and (self.mpdivs is not None or self.kptrlatt is not None)</span>
 
-    <span class="c1">#@property</span>
-    <span class="c1">#def is_path(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;True if we have a path in the BZ.&quot;&quot;&quot;</span>
-    <span class="c1">#    return self.kptopt &lt; 0</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_diagonal_kptrlatt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if sampling with diagonal kptrlatt.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">KpointsReaderMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1343,11 +1517,13 @@
         <span class="c1"># We have a homogeneous sampling of the BZ.</span>
         <span class="k">return</span> <span class="n">IrredZone</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">ksampling</span><span class="p">)</span>
 
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-          <span class="s2">&quot;Only homogeneous samplings or paths are supported!&quot;</span>
-          <span class="s2">&quot;ksamping info:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ksampling</span><span class="p">))</span>
+        <span class="c1">#raise ValueError(&quot;Only homogeneous samplings or paths are supported!\n&quot;</span>
+        <span class="c1">#                 &quot;ksampling info:\n%s&quot; % str(ksampling))</span>
 
     <span class="k">def</span> <span class="nf">read_ksampling_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information on the k-point sampling. Return `KSamplingInfo` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig</span>
         <span class="n">kptrlatt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_kptrlatt</span><span class="p">()</span>
         <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_kshifts</span><span class="p">()</span>
@@ -1386,11 +1562,6 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kptrlatt&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kpoint_grid_vectors&quot;</span><span class="p">)</span>
-
-    <span class="c1">#@returns_None_onfail</span>
-    <span class="c1">#def read_kptopt(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;Returns the ABINIT variable kptopt. None if not found.&quot;&quot;&quot;</span>
-    <span class="c1">#    return int(self.read_value(&quot;kptopt&quot;))</span>
 
 
 <span class="k">class</span> <span class="nc">KpointsReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">KpointsReaderMixin</span><span class="p">):</span>

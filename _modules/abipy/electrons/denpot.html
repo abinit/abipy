@@ -68,7 +68,7 @@
             
   <h1>Source code for abipy.electrons.denpot</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;Density/potential files in netcdf format.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;Density/potential files in netcdf/fortran format.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -78,8 +78,10 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">,</span>
     <span class="n">AbinitFortranFile</span><span class="p">,</span> <span class="n">CubeFile</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">DensityReader</span>
+<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">FieldReader</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+<span class="c1">#from abipy.tools import duck</span>
+<span class="c1">#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -87,39 +89,65 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;DensityNcFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VhartreeNcFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VxcNcFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VhxcNcFile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PotNcFile&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="k">class</span> <span class="nc">DenNcReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">DensityReader</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Object used to read data from DEN.nc files.&quot;&quot;&quot;</span>
+
+<span class="k">class</span> <span class="nc">_DenPotNcReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">FieldReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Object used to read data from density/potential files in netcdf format.&quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="DensityNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile">[docs]</a><span class="k">class</span> <span class="nc">DensityNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">_NcFileWithField</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Netcdf File containing the electronic density.</span>
-
-<span class="sd">    Usage example:</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        with DensityNcFile(&quot;foo_DEN.nc&quot;) as ncfile:</span>
-<span class="sd">            ncfile.density</span>
-<span class="sd">            ncfile.ebands.plot()</span>
+<span class="sd">    Base class providing commong methods for netcdf files with density/potential</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="DensityNcFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DensityNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">DenNcReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">_DenPotNcReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">xc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`XcFunc` object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span>
+
+    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The field object provided by the subclass.</span>
+<span class="sd">        Methods of this base class should use self._field to implement</span>
+<span class="sd">        logic common to the sub-classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_field_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="DensityNcFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
@@ -131,29 +159,63 @@
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;XC functional: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xc</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="c1"># Add info on the field</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.ebands.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.ebands.get_edos().plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#cube = ncfile.write_cube(filename=None)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#xsf_path = ncfile.write_xsf(filename=None&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#chgcar = ncfile.write_chgcar(filename=None&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DensityNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile">[docs]</a><span class="k">class</span> <span class="nc">DensityNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Netcdf File containing the electronic density.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with DensityNcFile(&quot;foo_DEN.nc&quot;) as ncfile:</span>
+<span class="sd">            ncfile.density</span>
+<span class="sd">            ncfile.ebands.plot()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;density&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="DensityNcFile.density"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.density">[docs]</a>    <span class="k">def</span> <span class="nf">density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_density</span><span class="p">()</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="DensityNcFile.ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.ebands">[docs]</a>    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span></div>
+<div class="viewcode-block" id="DensityNcFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DensityNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+        <span class="c1"># Add density related stuff.</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot; &quot;</span><span class="p">]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Integrated electronic and magnetization densities in atomic spheres:&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">integrate_in_spheres</span><span class="p">(</span><span class="n">rcut_symbol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Total magnetization from unit cell integration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">magnetization</span><span class="p">))</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="DensityNcFile.xc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.xc">[docs]</a>    <span class="k">def</span> <span class="nf">xc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`XcFunc` object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="DensityNcFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DensityNcFile.write_chgcar"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_chgcar">[docs]</a>    <span class="k">def</span> <span class="nf">write_chgcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -162,6 +224,7 @@
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;_CHGCAR&quot;</span><span class="p">)</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in CHGCAR format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">to_chgcar</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DensityNcFile.write_xsf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_xsf">[docs]</a>    <span class="k">def</span> <span class="nf">write_xsf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -171,33 +234,51 @@
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;.xsf&quot;</span><span class="p">)</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in XSF format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DensityNcFile.write_cube"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_cube">[docs]</a>    <span class="k">def</span> <span class="nf">write_cube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;.cube&quot;</span><span class="p">)</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Writing density in CUBE format to file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">export_to_cube</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DensityNcFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
-<span class="sd">        working directory is created. Return path to the notebook.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="o">.</span><span class="n">export_to_cube</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">)</span></div></div>
 
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;denc = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(denc)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = denc.ebands.get_edos().plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#cube = denc.write_cube(filename=None)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#xsf_path = denc.write_xsf(filename=None&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#chgcar = denc.write_chgcar(filename=None&quot;</span><span class="p">),</span>
-        <span class="p">])</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+<div class="viewcode-block" id="VhartreeNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhartreeNcFile">[docs]</a><span class="k">class</span> <span class="nc">VhartreeNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vh&quot;</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="VhartreeNcFile.vh"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhartreeNcFile.vh">[docs]</a>    <span class="k">def</span> <span class="nf">vh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hartree potential.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_vh</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="VxcNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VxcNcFile">[docs]</a><span class="k">class</span> <span class="nc">VxcNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vxc&quot;</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="VxcNcFile.vxc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VxcNcFile.vxc">[docs]</a>    <span class="k">def</span> <span class="nf">vxc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;XC potential.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_vxc</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="VhxcNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhxcNcFile">[docs]</a><span class="k">class</span> <span class="nc">VhxcNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vhxc&quot;</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="VhxcNcFile.vhxc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhxcNcFile.vhxc">[docs]</a>    <span class="k">def</span> <span class="nf">vhxc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hartree + XC potential.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_vhxc</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="PotNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.PotNcFile">[docs]</a><span class="k">class</span> <span class="nc">PotNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
+    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vks&quot;</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="PotNcFile.vks"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.PotNcFile.vks">[docs]</a>    <span class="k">def</span> <span class="nf">vks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hartree + XC potential + sum of local pseudo-potential terms.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_vks</span><span class="p">()</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">DensityFortranFile</span><span class="p">(</span><span class="n">AbinitFortranFile</span><span class="p">):</span>

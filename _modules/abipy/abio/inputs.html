@@ -91,6 +91,7 @@
 <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
 <span class="kn">from</span> <span class="nn">abipy.htc.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">is_abivar</span><span class="p">,</span> <span class="n">is_anaddb_var</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span>
@@ -159,6 +160,16 @@
     <span class="s2">&quot;irdwfq&quot;</span><span class="p">,</span>
     <span class="s2">&quot;ird1wf&quot;</span><span class="p">,</span>
 <span class="p">])</span>
+
+<span class="c1"># FIXME __mul__ operator in pymatgen should allow for grouping atoms by individual cells</span>
+<span class="c1"># The present version group by image.</span>
+<span class="c1">#def _repeat_array(name, values, from_natom, numcells):</span>
+<span class="c1">#    if name in {&quot;spinat&quot;,}:</span>
+<span class="c1">#        # [:, natom]</span>
+<span class="c1">#        values = np.reshape(values, (-1, from_natom))</span>
+<span class="c1">#        return np.repeat(values, numcells, axis=0)</span>
+<span class="c1">#    else:</span>
+<span class="c1">#        raise ValueError(&quot;Don&#39;t know how to reallocate variable %s&quot; % str(name))</span>
 
 
 <div class="viewcode-block" id="AbstractInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput">[docs]</a><span class="k">class</span> <span class="nc">AbstractInput</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
@@ -315,9 +326,6 @@
 <div class="viewcode-block" id="AbinitInputError"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInputError">[docs]</a><span class="k">class</span> <span class="nc">AbinitInputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base error class for exceptions raised by `AbinitInput`&quot;&quot;&quot;</span></div>
 
-
-<span class="c1"># TODO: API to understand if one can use time-reversal symmetry and/or spatial symmetries</span>
-<span class="c1">#       Very important especially when we have to select the value of kptopt</span>
 
 <div class="viewcode-block" id="AbinitInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput">[docs]</a><span class="k">class</span> <span class="nc">AbinitInput</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -557,6 +565,13 @@
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">uses_ktimereversal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if time-reversal symmetry is used to generate k-points in the IBZ.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">has_timrev_from_kptopt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
 <div class="viewcode-block" id="AbinitInput.set_spell_check"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_spell_check">[docs]</a>    <span class="k">def</span> <span class="nf">set_spell_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">false_or_true</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Activate/Deactivate spell-checking&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">false_or_true</span><span class="p">)</span></div>
@@ -566,7 +581,7 @@
         <span class="sd">&quot;&quot;&quot;True if spell checking is activated.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spell_check</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="c1"># TODO: This is to maintain compatibility with pickle</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>  <span class="c1"># TODO: This is to maintain compatibility with pickle</span>
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="AbinitInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -574,7 +589,8 @@
 <span class="sd">        String representation.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            sortmode: &quot;a&quot; for alphabetical order, None if no sorting is wanted</span>
+<span class="sd">            sortmode: &quot;section&quot; if variables should be gruped by sections.</span>
+<span class="sd">                &quot;a&quot; for alphabetical order, None if no sorting is wanted.</span>
 <span class="sd">            with_mnemonics: True if mnemonics should be added.</span>
 <span class="sd">            post: String that will be appended to the name of the variables</span>
 <span class="sd">                Note that post is usually autodetected when we have multiple datatasets</span>
@@ -856,6 +872,7 @@
             <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
             <span class="n">inp</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="n">inps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">inps</span></div>
 
 <div class="viewcode-block" id="AbinitInput.arange"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.arange">[docs]</a>    <span class="k">def</span> <span class="nf">arange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
@@ -881,6 +898,7 @@
             <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
             <span class="n">inp</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="n">inps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">inps</span></div>
 
 <div class="viewcode-block" id="AbinitInput.product"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.product">[docs]</a>    <span class="k">def</span> <span class="nf">product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">):</span>
@@ -930,39 +948,39 @@
 
     <span class="c1">#def new_with_supercell(self, scdims):</span>
     <span class="c1">#    sucell = self.structure * scdims</span>
-    <span class="c1">#    return new_with_structure(sucell, scdims)</span>
+    <span class="c1">#    return new_with_structure(sucell, scdims=scdims)</span>
 
-<div class="viewcode-block" id="AbinitInput.new_with_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_structure">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">scdims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.new_with_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_structure">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_structure</span><span class="p">,</span> <span class="n">scdims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a new :class:`AbinitInput` with a different structure</span>
-<span class="sd">        (see notes below for the constraints that must be fulfilled by the new structure)</span>
+<span class="sd">        Return a new :class:`AbinitInput` with different structure.</span>
+<span class="sd">        See notes below for the constraints that must be fulfilled by the new structure</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object</span>
+<span class="sd">            new_structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object</span>
 <span class="sd">                file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</span>
 <span class="sd">            scdims: 3 integer giving with the number of cells in the supercell along the three reduced directions.</span>
-<span class="sd">                Must be used when structure represents a supercell of the initial structure defined</span>
+<span class="sd">                Must be used when `new_structure` represents a supercell of the initial structure defined</span>
 <span class="sd">                in the input file.</span>
+<span class="sd">            verbose: Verbosity level.</span>
 
 <span class="sd">        .. warning::</span>
 
-<span class="sd">            if scdims is None (i.e. no supercell), the two structure must have the same value of</span>
+<span class="sd">            If `scdims` is None (i.e. no supercell), the two structures must have the same value of</span>
 <span class="sd">            `natom` and `typat`, they can only differ at the level of the lattice and of the atomic positions.</span>
-<span class="sd">            When structure represents a supercell, scdims must be coherent with the structure passed</span>
+<span class="sd">            When structure represents a supercell, `scdims` must be coherent with the `new_structure` passed</span>
 <span class="sd">            as argument.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check structure</span>
         <span class="k">if</span> <span class="n">scdims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Assume same value of natom and typat</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_structure</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structures must have same value of natom&quot;</span><span class="p">)</span>
             <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site1</span><span class="p">,</span> <span class="n">site2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">structure</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site1</span><span class="p">,</span> <span class="n">site2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">new_structure</span><span class="p">)):</span>
                 <span class="k">if</span> <span class="n">site1</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="o">!=</span> <span class="n">site2</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">:</span>
                     <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">site1</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="o">!=</span> <span class="n">site2</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
-                <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Structures must have same order of atomic types:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structures must have same order of atomic types:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">scdims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
@@ -970,18 +988,23 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting 3 int in scdims but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scdims</span><span class="p">))</span>
 
             <span class="n">numcells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span> <span class="o">!=</span> <span class="n">numcells</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span> <span class="o">!=</span> <span class="n">numcells</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">):</span>
                 <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Number of atoms in the input structure should be </span><span class="si">%d</span><span class="s2"> * </span><span class="si">%d</span><span class="s2"> but found </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">numcells</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">))</span>
+                    <span class="n">numcells</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_structure</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">numcells</span> <span class="o">*</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">],</span>
-                                  <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong supercell&quot;</span><span class="p">)</span>
+            <span class="n">expected_symbols</span> <span class="o">=</span> <span class="n">numcells</span> <span class="o">*</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">]</span>
+            <span class="n">supcell_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">new_structure</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">expected_symbols</span><span class="p">,</span> <span class="n">supcell_symbols</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Wrong supercell. The routine assumes the atoms in the other cells have the</span><span class="se">\n</span><span class="s2">&quot;</span>
+                       <span class="s2">&quot;same ordering as the atoms in the original cell.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                       <span class="s2">&quot;expected_symbols: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">supercell_symbols: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">expected_symbols</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">supcell_symbols</span><span class="p">))</span>
+                       <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="c1"># TODO Check angles and lengths</span>
 
         <span class="c1"># Build new input</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">abi_args</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">new_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">abi_args</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
                           <span class="n">decorators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decorators</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">scdims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -990,13 +1013,17 @@
             <span class="c1"># Here we use the database of abinit variables to find the variables whose shape depends on `natom`.</span>
             <span class="c1"># The method raises ValueError if an array that depends on `natom` is found and no handler is implemented.</span>
             <span class="c1"># It&#39;s better to raise an exception here than having a error when Abinit parses the input file!</span>
+
             <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">var</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="c1"># This test is not very robust and can fail.</span>
-                <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">isarray</span> <span class="ow">and</span> <span class="s2">&quot;natom&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">):</span>
+                <span class="c1">#if var.depends_on_dimension(&quot;ntypat&quot;):</span>
+                <span class="c1">#    errors.append(&quot;Found variable %s with ntypat in dimensions %s&quot; % (name, str(var.dimensions)))</span>
+
+                <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">depends_on_dimension</span><span class="p">(</span><span class="s2">&quot;natom&quot;</span><span class="p">):</span>
                     <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Found variable </span><span class="si">%s</span><span class="s2"> with natom in dimensions </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)))</span>
+                    <span class="c1">#new[name] = _repeat_array(name, new[name], len(self.structure), numcells)</span>
 
             <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
                 <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">+</span>
@@ -1007,11 +1034,11 @@
             <span class="n">iscale</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)))</span>
             <span class="k">if</span> <span class="s2">&quot;nband&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">new</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">iscale</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;self[&#39;nband&#39;]&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">],</span> <span class="s2">&quot;new[&#39;nband&#39;]&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;self[&#39;nband&#39;]&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">],</span> <span class="s2">&quot;new[&#39;nband&#39;]&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;nband&quot;</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="s2">&quot;ngkpt&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
                 <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">scdims</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new ngkpt:&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;new ngkpt:&quot;</span><span class="p">,</span> <span class="n">new</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">])</span>
 
             <span class="c1"># TODO</span>
             <span class="k">elif</span> <span class="s2">&quot;kptrlatt&quot;</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
@@ -1149,7 +1176,7 @@
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
         <span class="c1">#perts = self.abiget_irred_phperts(qpt=qpt)</span>
         <span class="c1"># TODO Add symmetries</span>
-        <span class="n">ddk_rfdirs</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="n">ddk_rfdirs</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="n">ddk_inputs</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ddk_rfdirs</span><span class="p">))</span>
@@ -1277,7 +1304,8 @@
             <span class="n">atpol</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="k">if</span> <span class="n">m</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="kc">None</span>
 
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-                <span class="n">d3e_pert1_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Activate the calculation of the electric field perturbation</span>
+                <span class="c1"># Activate the calculation of the electric field perturbation</span>
+                <span class="n">d3e_pert1_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i1pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert2_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert3_elfd</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span> <span class="o">==</span> <span class="n">na</span><span class="o">+</span><span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert1_dir</span><span class="o">=</span><span class="n">rfdir1</span><span class="p">,</span>  <span class="c1"># Direction of the dte perturbation.</span>
@@ -1287,10 +1315,10 @@
                 <span class="n">d3e_pert2_phon</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i2pert</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert3_phon</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">pert</span><span class="o">.</span><span class="n">i3pert</span> <span class="o">&lt;=</span> <span class="n">na</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">d3e_pert1_atpol</span> <span class="o">=</span> <span class="n">atpol</span><span class="p">,</span>
-                <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># One wavevector is to be considered</span>
+                <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>         <span class="c1"># One wavevector is to be considered</span>
                 <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># q-wavevector.</span>
-                <span class="n">optdriver</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>  <span class="c1"># non-linear response functions, using the 2n+1 theorem.</span>
-                <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># Take into account time-reversal symmetry.</span>
+                <span class="n">optdriver</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>    <span class="c1"># non-linear response functions, using the 2n+1 theorem.</span>
+                <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>       <span class="c1"># Take into account time-reversal symmetry.</span>
             <span class="p">)</span>
 
             <span class="n">inp</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
@@ -1484,7 +1512,7 @@
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Last 50 line from </span><span class="si">%s</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
             <span class="n">log_lines</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
             <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">50</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">log_lines</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
 

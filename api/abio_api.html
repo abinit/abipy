@@ -285,6 +285,20 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <dt id="abipy.abio.abivars_db.Variable">
 <em class="property">class </em><code class="descclassname">abipy.abio.abivars_db.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>vartype=None</em>, <em>characteristics=None</em>, <em>definition=None</em>, <em>dimensions=None</em>, <em>default=None</em>, <em>text=None</em>, <em>varname=None</em>, <em>section=None</em>, <em>range=None</em>, <em>commentdefault=None</em>, <em>commentdims=None</em>, <em>requires=None</em>, <em>excludes=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">yaml.YAMLObject</span></code></p>
+<dl class="method">
+<dt id="abipy.abio.abivars_db.Variable.depends_on_dimension">
+<code class="descname">depends_on_dimension</code><span class="sig-paren">(</span><em>dimname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.depends_on_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.depends_on_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if variable is an array whose shape depends on dimension name <cite>dimname</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dimname</strong> &#8211; String of <a class="reference internal" href="#abipy.abio.abivars_db.Variable" title="abipy.abio.abivars_db.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="classmethod">
 <dt id="abipy.abio.abivars_db.Variable.from_dict">
 <em class="property">classmethod </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.from_dict" title="Permalink to this definition">¶</a></dt>
@@ -1349,19 +1363,20 @@ applies the decorators to the input and returns a new <a class="reference intern
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.new_with_structure">
-<code class="descname">new_with_structure</code><span class="sig-paren">(</span><em>structure</em>, <em>scdims=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.new_with_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.new_with_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> with a different structure
-(see notes below for the constraints that must be fulfilled by the new structure)</p>
+<code class="descname">new_with_structure</code><span class="sig-paren">(</span><em>new_structure</em>, <em>scdims=None</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.new_with_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.new_with_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> with different structure.
+See notes below for the constraints that must be fulfilled by the new structure</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; Parameters defining the crystalline structure. Accepts <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object
+<li><strong>new_structure</strong> &#8211; Parameters defining the crystalline structure. Accepts <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object
 file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</li>
 <li><strong>scdims</strong> &#8211; 3 integer giving with the number of cells in the supercell along the three reduced directions.
-Must be used when structure represents a supercell of the initial structure defined
+Must be used when <cite>new_structure</cite> represents a supercell of the initial structure defined
 in the input file.</li>
+<li><strong>verbose</strong> &#8211; Verbosity level.</li>
 </ul>
 </td>
 </tr>
@@ -1369,9 +1384,9 @@ in the input file.</li>
 </table>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">if scdims is None (i.e. no supercell), the two structure must have the same value of
+<p class="last">If <cite>scdims</cite> is None (i.e. no supercell), the two structures must have the same value of
 <cite>natom</cite> and <cite>typat</cite>, they can only differ at the level of the lattice and of the atomic positions.
-When structure represents a supercell, scdims must be coherent with the structure passed
+When structure represents a supercell, <cite>scdims</cite> must be coherent with the <cite>new_structure</cite> passed
 as argument.</p>
 </div>
 </dd></dl>
@@ -1612,7 +1627,8 @@ Return dictionary with the variables that have been removed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sortmode</strong> &#8211; &#8220;a&#8221; for alphabetical order, None if no sorting is wanted</li>
+<li><strong>sortmode</strong> &#8211; &#8220;section&#8221; if variables should be gruped by sections.
+&#8220;a&#8221; for alphabetical order, None if no sorting is wanted.</li>
 <li><strong>with_mnemonics</strong> &#8211; True if mnemonics should be added.</li>
 <li><strong>post</strong> &#8211; String that will be appended to the name of the variables
 Note that post is usually autodetected when we have multiple datatasets
@@ -1628,6 +1644,12 @@ _DS1_ to all the input and output files.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.inputs.AbinitInput.uses_ktimereversal">
+<code class="descname">uses_ktimereversal</code><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.uses_ktimereversal" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if time-reversal symmetry is used to generate k-points in the IBZ.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3172,7 +3194,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.3)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>

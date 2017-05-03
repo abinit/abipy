@@ -13,6 +13,7 @@ plot Examples
     :maxdepth: 1
 
     plot_bz <plot_bz.rst>
+    plot_den <plot_den.rst>
     plot_dfpt_cycle <plot_dfpt_cycle.rst>
     plot_ebands <plot_ebands.rst>
     plot_ebands_boxplot <plot_ebands_boxplot.rst>
@@ -27,6 +28,7 @@ plot Examples
     plot_efatbands_spin <plot_efatbands_spin.rst>
     plot_ejdos <plot_ejdos.rst>
     plot_funcs <plot_funcs.rst>
+    plot_gruneisen <plot_gruneisen.rst>
     plot_gscycle <plot_gscycle.rst>
     plot_hist <plot_hist.rst>
     plot_mdf <plot_mdf.rst>
@@ -38,11 +40,15 @@ plot Examples
     plot_phonons <plot_phonons.rst>
     plot_phonons_lo_to <plot_phonons_lo_to.rst>
     plot_phthermo <plot_phthermo.rst>
+    plot_potentials <plot_potentials.rst>
     plot_qpbands_with_interpolation <plot_qpbands_with_interpolation.rst>
     plot_qpbands_with_scissor <plot_qpbands_with_scissor.rst>
     plot_qpconverge <plot_qpconverge.rst>
     plot_qpmarkers <plot_qpmarkers.rst>
     plot_qps <plot_qps.rst>
     plot_qpscfgw <plot_qpscfgw.rst>
+    plot_scr <plot_scr.rst>
+    plot_scr_matrix <plot_scr_matrix.rst>
     plot_sigmaw <plot_sigmaw.rst>
     plot_spectral_functions <plot_spectral_functions.rst>
+    plot_wfk <plot_wfk.rst>

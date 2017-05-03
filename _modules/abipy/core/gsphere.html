@@ -75,6 +75,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">.kpoints</span> <span class="k">import</span> <span class="n">Kpoint</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
+
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;GSphere&quot;</span><span class="p">,</span>
@@ -101,7 +103,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">npw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">=</span> <span class="n">istwfk</span>
-
         <span class="k">if</span> <span class="n">istwfk</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;istwfk </span><span class="si">%d</span><span class="s2"> is not implemented&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
 
@@ -158,16 +159,16 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GSphere.copy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Deep copy.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ecut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">istwfk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GSphere.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="GSphere.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;: kpoint = </span><span class="si">%(kpoint)s</span><span class="s2">, ecut = </span><span class="si">%(ecut)f</span><span class="s2">, npw = </span><span class="si">%(npw)d</span><span class="s2">, istwfk = </span><span class="si">%(istwfk)d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;: kpoint: </span><span class="si">%(kpoint)s</span><span class="s2">, ecut: </span><span class="si">%(ecut)f</span><span class="s2">, npw: </span><span class="si">%(npw)d</span><span class="s2">, istwfk: </span><span class="si">%(istwfk)d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
     <span class="c1"># TODO: Alias To be removed in 0.4</span>
@@ -177,8 +178,9 @@
         <span class="sd">&quot;&quot;&quot;Returns a numpy array defined on the sphere.&quot;&quot;&quot;</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npw</span><span class="p">,)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">):</span>
             <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+
         <span class="n">shape</span> <span class="o">=</span> <span class="n">extra_dims</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>

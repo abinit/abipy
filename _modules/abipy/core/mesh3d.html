@@ -72,11 +72,14 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">iproduct</span>
 
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">iproduct</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">random</span>
 <span class="kn">from</span> <span class="nn">numpy.fft</span> <span class="k">import</span> <span class="n">fftn</span><span class="p">,</span> <span class="n">ifftn</span><span class="p">,</span> <span class="n">fftshift</span><span class="p">,</span> <span class="n">ifftshift</span><span class="p">,</span> <span class="n">fftfreq</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
+
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;Mesh3D&quot;</span><span class="p">,</span>
@@ -115,7 +118,7 @@
 <span class="sd">            shape:</span>
 <span class="sd">                3 int&#39;s Number of grid points along axes.</span>
 <span class="sd">            vectors:</span>
-<span class="sd">                unit cell vectors</span>
+<span class="sd">                unit cell vectors in real space.</span>
 
 <span class="sd">        Attributes:</span>
 
@@ -124,9 +127,9 @@
 <span class="sd">        ``dv``      Volume per grid point.</span>
 <span class="sd">        ==========  ========================================================</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
         <span class="n">cross12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dv</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">cross12</span><span class="o">.</span><span class="n">T</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
@@ -167,9 +170,9 @@
         <span class="sd">&quot;&quot;&quot;The vector corresponding to the (ix, iy, iz) indices&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ix</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvx</span> <span class="o">+</span> <span class="n">iy</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvy</span> <span class="o">+</span> <span class="n">iz</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dvz</span></div>
 
-<div class="viewcode-block" id="Mesh3D.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prtvol</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;: nx=</span><span class="si">%d</span><span class="s2">, ny=</span><span class="si">%d</span><span class="s2">, nz=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">return</span> <span class="n">s</span></div>
+<div class="viewcode-block" id="Mesh3D.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;: nx=</span><span class="si">%d</span><span class="s2">, ny=</span><span class="si">%d</span><span class="s2">, nz=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -193,7 +196,9 @@
     <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">):</span>
+            <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+
         <span class="n">shape</span> <span class="o">=</span> <span class="n">extra_dims</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>
@@ -230,7 +235,9 @@
 <div class="viewcode-block" id="Mesh3D.random"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.random">[docs]</a>    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Returns random real array for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">):</span>
+            <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
+
         <span class="n">shape</span> <span class="o">=</span> <span class="n">extra_dims</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
 
         <span class="n">re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
@@ -252,12 +259,14 @@
 
 <span class="sd">        Returns ndarray with 4 dimensions (?,nx,ny,nz) where ?*nx*ny*nz == arr.size</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#if isinstance(extra_dims, int): extra_dims = (extra_dims,)</span>
+        <span class="c1">#if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)</span>
         <span class="c1">#shape = extra_dims + self.shape)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Mesh3D.fft_r2g"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fft_r2g">[docs]</a>    <span class="k">def</span> <span class="nf">fft_r2g</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fr</span><span class="p">,</span> <span class="n">shift_fg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;FFT of array fr given in real space.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        FFT of array fr given in real space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ndim</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">fr</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -281,7 +290,9 @@
         <span class="k">return</span> <span class="n">fg</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span></div>
 
 <div class="viewcode-block" id="Mesh3D.fft_g2r"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fft_g2r">[docs]</a>    <span class="k">def</span> <span class="nf">fft_g2r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">fg_ishifted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;FFT of array fg given in G-space.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        FFT of array fg given in G-space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ndim</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">fg</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">fg</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -328,7 +339,9 @@
     <span class="c1">#    return new_mesh.fft_g2r(intp_datag)</span>
 
 <div class="viewcode-block" id="Mesh3D.integrate"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.integrate">[docs]</a>    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integrate array(s) fr.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Integrate array(s) fr.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">shape</span><span class="p">,</span> <span class="n">ndim</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">fr</span><span class="o">.</span><span class="n">ndim</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span>
 
@@ -344,28 +357,51 @@
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Mesh3D.gvecs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.gvecs">[docs]</a>    <span class="k">def</span> <span class="nf">gvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array with the reduced coordinates of the G-vectors.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Array with the reduced coordinates of the G-vectors.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            These are the G-vectors of the FFT box and should be used</span>
+<span class="sd">            when we compute quantities on the FFT mesh.</span>
+<span class="sd">            These vectors differ from the gvecs stored in `GSphere` that</span>
+<span class="sd">            are k-centered and enclosed by a sphere whose radius is defined by ecut.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fftfreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
         <span class="n">gy_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fftfreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">)</span>
         <span class="n">gz_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fftfreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span><span class="p">)</span>
         <span class="c1">#print(gz_list, gy_list, gx_list)</span>
 
-        <span class="n">gvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">gvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">gx</span> <span class="ow">in</span> <span class="n">gx_list</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">gy</span> <span class="ow">in</span> <span class="n">gy_list</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">gz</span> <span class="ow">in</span> <span class="n">gz_list</span><span class="p">:</span>
                     <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="n">gvecs</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span><span class="p">,</span> <span class="n">gz</span>
+                    <span class="n">gvecs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span><span class="p">,</span> <span class="n">gz</span>
 
         <span class="k">return</span> <span class="n">gvecs</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Mesh3D.gmods"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.gmods">[docs]</a>    <span class="k">def</span> <span class="nf">gmods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[ng] array with |G|&quot;&quot;&quot;</span>
+        <span class="n">gmet</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span><span class="p">)</span>
+        <span class="n">gmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">):</span>
+            <span class="n">gmods</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gmet</span><span class="p">,</span> <span class="n">g</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">gmods</span><span class="p">)</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def gmax(self)</span>
+    <span class="c1">#    return self.gmods.max()</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Mesh3D.rpoints"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.rpoints">[docs]</a>    <span class="k">def</span> <span class="nf">rpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array with the points in real space in reduced coordinates.&quot;&quot;&quot;</span>
         <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span>
-        <span class="n">rpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="n">rpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">ifft</span><span class="p">,</span> <span class="n">p1_fft</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iproduct</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">nz</span><span class="p">))):</span>
             <span class="n">rpoints</span><span class="p">[</span><span class="n">ifft</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">p1_fft</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">nx</span><span class="p">,</span> <span class="n">p1_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">ny</span><span class="p">,</span> <span class="n">p1_fft</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">nz</span>

@@ -236,49 +236,64 @@ and print info on the corresponding file inside the notebook.</p>
 <span id="numtools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">numtools</span></code> Module<a class="headerlink" href="#module-abipy.tools.numtools" title="Permalink to this headline">¶</a></h2>
 <p>Numeric tools.</p>
 <dl class="class">
-<dt id="abipy.tools.numtools.Interpol3D">
-<em class="property">class </em><code class="descclassname">abipy.tools.numtools.</code><code class="descname">Interpol3D</code><span class="sig-paren">(</span><em>mesh_type=None</em>, <em>interpol_scheme=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.tools.numtools.BlochRegularGridInterpolator">
+<em class="property">class </em><code class="descclassname">abipy.tools.numtools.</code><code class="descname">BlochRegularGridInterpolator</code><span class="sig-paren">(</span><em>structure</em>, <em>datar</em>, <em>add_replicas=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#BlochRegularGridInterpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.BlochRegularGridInterpolator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Container to store and apply interpolating schemes.</p>
+<p>This object interpolates the periodic part of a Bloch state in real space.</p>
 <dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.interp">
-<code class="descname">interp</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.interp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.interp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="abipy.tools.numtools.BlochRegularGridInterpolator.eval_line">
+<code class="descname">eval_line</code><span class="sig-paren">(</span><em>point1</em>, <em>point2</em>, <em>num=200</em>, <em>cartesian=False</em>, <em>kpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#BlochRegularGridInterpolator.eval_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.BlochRegularGridInterpolator.eval_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate values along a line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>point1</strong> &#8211; First point of the line. Accepts 3d vector or integer.
+The vector is in reduced coordinates unless <cite>cartesian == True</cite>.
+If integer, the first point of the line is given by the i-th site of the structure
+e.g. <cite>point1=0, point2=1</cite> gives the line passing through the first two atoms.</li>
+<li><strong>point2</strong> &#8211; Second point of the line. Same API as <cite>point1</cite>.</li>
+<li><strong>num</strong> &#8211; Number of points sampled along the line.</li>
+<li><strong>cartesian</strong> &#8211; By default, <cite>point1</cite> and <cite>point1</cite> are interpreted as points in fractional
+coordinates (if not integers). Use True to pass points in cartesian coordinates.</li>
+<li><strong>kpoint</strong> &#8211; k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Return: named tuple with</dt>
+<dd>site1, site2: None if the points do not represent atomic sites.
+points: Points in fractional coords.
+dist: the distance of points along the line in Ang.
+values: numpy array of shape [ndt, num] with interpolated values.</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.interp_cubic_tricos">
-<code class="descname">interp_cubic_tricos</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.interp_cubic_tricos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.interp_cubic_tricos" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.interp_cubic_tricub">
-<code class="descname">interp_cubic_tricub</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.interp_cubic_tricub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.interp_cubic_tricub" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.interp_cubic_trilin">
-<code class="descname">interp_cubic_trilin</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.interp_cubic_trilin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.interp_cubic_trilin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.interp_cubic_tripen">
-<code class="descname">interp_cubic_tripen</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em>, <em>k=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.interp_cubic_tripen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.interp_cubic_tripen" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.set_interpol_scheme">
-<code class="descname">set_interpol_scheme</code><span class="sig-paren">(</span><em>interpol_scheme</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.set_interpol_scheme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.set_interpol_scheme" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.set_mesh_type">
-<code class="descname">set_mesh_type</code><span class="sig-paren">(</span><em>mesh_type</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.set_mesh_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.set_mesh_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.numtools.Interpol3D.set_values">
-<code class="descname">set_values</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#Interpol3D.set_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.Interpol3D.set_values" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="abipy.tools.numtools.BlochRegularGridInterpolator.eval_points">
+<code class="descname">eval_points</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>idt=None</em>, <em>cartesian=False</em>, <em>kpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#BlochRegularGridInterpolator.eval_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.BlochRegularGridInterpolator.eval_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate values on an arbitrary list of points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>frac_coords</strong> &#8211; List of points in reduced coordinates unless <cite>cartesian</cite>.</li>
+<li><strong>idt</strong> &#8211; Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.</li>
+<li><strong>cartesian</strong> &#8211; True if points are in cartesian coordinates.</li>
+<li><strong>kpoint</strong> &#8211; k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">[ndt, npoints] array or [1, npoints] if idt is not None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -328,13 +343,6 @@ By default, vinf = values[-1]</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.tools.numtools.gauss_ufunc">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">gauss_ufunc</code><span class="sig-paren">(</span><em>width</em>, <em>center=0.0</em>, <em>height=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#gauss_ufunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.gauss_ufunc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a gaussian (u)function with the given parameters.</p>
-<p>If height is None, a normalized gaussian is returned.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="abipy.tools.numtools.gaussian">
 <code class="descclassname">abipy.tools.numtools.</code><code class="descname">gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>width</em>, <em>center=0.0</em>, <em>height=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.gaussian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the values of gaussian(x) where x is array-like.</p>
@@ -349,34 +357,6 @@ By default, vinf = values[-1]</li>
 <span class="go">[0, 1, 2, 3, 4]</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.integrator_linspace">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">integrator_linspace</code><span class="sig-paren">(</span><em>y</em>, <em>dx=1</em>, <em>method='simps'</em>, <em>axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#integrator_linspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.integrator_linspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Integrate y using samples along the given axis with spacing dx.
-method is in [&#8216;simps&#8217;, &#8216;trapz&#8217;, &#8216;romb&#8217;]. Note that romb requires len(y) = 2**k + 1.</p>
-<p>Example:
-&gt;&gt;&gt; nx = 2**8+1
-&gt;&gt;&gt; x = np.linspace(0, np.pi, nx)
-&gt;&gt;&gt; dx = np.pi/(nx-1)
-&gt;&gt;&gt; y = np.sin(x)
-&gt;&gt;&gt; for method in [&#8220;simps&#8221;, &#8220;trapz&#8221;, &#8220;romb&#8221;]: print(integrator_linspace(y, dx=dx, method=method))
-2.00000000025
-1.99997490024
-2.0</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.maxloc">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">maxloc</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#maxloc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.maxloc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the max value and its position.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.minloc">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">minloc</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#minloc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.minloc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the min value and its position.</p>
 </dd></dl>
 
 <dl class="function">

@@ -70,6 +70,7 @@
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains objects for the postprocessing of EPH calculations.</span>
+
 <span class="sd">Warning:</span>
 <span class="sd">    Work in progress, DO NOT USE IT</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -82,15 +83,17 @@
 
 
 <div class="viewcode-block" id="EliashbergFunction"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction">[docs]</a><span class="k">class</span> <span class="nc">EliashbergFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This object stores the Eliashberg function a2F(w).&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Eliashberg function a2F(w).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="EliashbergFunction.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize the object from the data stored in a netcdf file.&quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
-            <span class="n">mesh</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get_a2fmesh</span><span class="p">()</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get_a2fvalues</span><span class="p">()</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span></div>
+    <span class="c1">#@classmethod</span>
+    <span class="c1">#def from_file(cls, filepath):</span>
+    <span class="c1">#    &quot;&quot;&quot;Initialize the object from the data stored in a netcdf file.&quot;&quot;&quot;</span>
+    <span class="c1">#    with ETSF_Reader(filepath) as r:</span>
+    <span class="c1">#        mesh = r.get_a2fmesh()</span>
+    <span class="c1">#        values = r.get_a2fvalues()</span>
+    <span class="c1">#        return cls(mesh, values)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
@@ -104,48 +107,51 @@
 
         <span class="c1"># Spin dependent and total a2F(w)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">a2f_spin</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a2f_spin</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">a2f</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">a2f_tot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a2f</span> <span class="o">=</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">a2f_tot</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EliashbergFunction.get_lambdaw"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.get_lambdaw">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambdaw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns lambda(w).&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+    <span class="c1">#def get_lambdaw(self, spin=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;Returns lambda(w).&quot;&quot;&quot;</span>
+    <span class="c1">#    raise NotImplementedError()</span>
 
-<div class="viewcode-block" id="EliashbergFunction.get_momentum"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.get_momentum">[docs]</a>    <span class="k">def</span> <span class="nf">get_momentum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes the momenta of a2F(w)&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+    <span class="c1">#def get_momentum(self, order, spin=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;Computes the momenta of a2F(w)&quot;&quot;&quot;</span>
+    <span class="c1">#    raise NotImplementedError()</span>
 
-<div class="viewcode-block" id="EliashbergFunction.get_mcmillan_Tc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.get_mcmillan_Tc">[docs]</a>    <span class="k">def</span> <span class="nf">get_mcmillan_Tc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mustar</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes the critical temperature with the McMillan equation and the input mustar</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="s2">&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+    <span class="c1">#def get_mcmillan_Tc(self, mustar):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Computes the critical temperature with the McMillan equation and the input mustar</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    raise NotImplementedError()</span>
 
-<div class="viewcode-block" id="EliashbergFunction.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EliashbergFunction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot a2F(w) with matplotlib.</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="s2">&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+    <span class="c1">#def plot(self, ax=None, spin=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Plot a2F(w) with matplotlib.</span>
+    <span class="c1">#    &quot;&quot;&quot;&quot;&quot;</span>
+    <span class="c1">#    raise NotImplementedError()</span>
 
 
-<div class="viewcode-block" id="EPH_Reader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EPH_Reader">[docs]</a><span class="k">class</span> <span class="nc">EPH_Reader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+<div class="viewcode-block" id="EphReader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EphReader">[docs]</a><span class="k">class</span> <span class="nc">EphReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads data from file and constructs objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">EPH_Reader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="c1">#def __init__(self, file):</span>
+    <span class="c1">#    super(EphReader, self).__init__(file)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">eph_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;eph_coupling&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="c1">#    self.eph_lambda = self.read_value(&quot;eph_coupling&quot;)</span>
+    <span class="c1">#    raise NotImplementedError(&quot;&quot;)</span>
 
-<div class="viewcode-block" id="EPH_Reader.read_qpoints"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EPH_Reader.read_qpoints">[docs]</a>    <span class="k">def</span> <span class="nf">read_qpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List of q-points where the EPH quanties are computed.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">qpoints_factor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div>
+    <span class="c1">#def read_qpoints(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;List of q-points where the EPH quanties are computed.&quot;&quot;&quot;</span>
+    <span class="c1">#    return qpoints_factor(self.path)</span>
 
-<div class="viewcode-block" id="EPH_Reader.read_lambda"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.eph.EPH_Reader.read_lambda">[docs]</a>    <span class="k">def</span> <span class="nf">read_lambda</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reads the EPH couping matrix elements </span>
+    <span class="c1">#def read_lambda(self, spin, qpoint=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Reads the EPH couping matrix elements</span>
 
-<span class="sd">        spin: Spin index.</span>
-<span class="sd">        qpoint: Qpoint or int. If None all the matrix elements for this spin are read.</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+    <span class="c1">#    spin: Spin index.</span>
+    <span class="c1">#    qpoint: Qpoint or int. If None all the matrix elements for this spin are read.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
 </pre></div>
 
           </div>

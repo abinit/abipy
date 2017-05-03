@@ -67,11 +67,15 @@
           <div class="body" role="main">
             
   <h1>Source code for abipy.core.wyckoff</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides functions to generate crystalline structures from Wyckoff positions</span>
+<span class="sd">or to retrieve Wyckoff parameters from a given structure.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="c1">#from monty.functools import lazy_property</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">OrderedDict</span>
 
 
@@ -167,13 +171,13 @@
 
 <div class="viewcode-block" id="WyckoffPositions.params_from_frac_coords"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.WyckoffPositions.params_from_frac_coords">[docs]</a>    <span class="k">def</span> <span class="nf">params_from_frac_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the wyckoff parameters from the fractional coordinates.</span>
+<span class="sd">        Compute the Wyckoff parameters from the fractional coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
         <span class="n">equations</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
-            <span class="n">eqs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+            <span class="n">eqs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
             <span class="n">equations</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">eqs</span><span class="p">)</span>
 
         <span class="c1"># Solve the problem.</span>
@@ -192,10 +196,9 @@
 <span class="sd">        Return a numpy array with the difference between the</span>
 <span class="sd">        wyckoff positions computed from the sympy expressions and the input frac_coords</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_validate_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
-
-        <span class="n">_validate_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
         <span class="n">frac_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mult</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
@@ -203,15 +206,18 @@
                 <span class="n">frac_errors</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
 
         <span class="c1"># Modulo lattice vector (with tolerance?)</span>
-        <span class="n">frac_errors</span> <span class="o">=</span> <span class="n">frac_errors</span> <span class="o">%</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">frac_errors</span></div></div>
+        <span class="k">return</span> <span class="n">frac_errors</span> <span class="o">%</span> <span class="mi">1</span></div></div>
 
 
 <div class="viewcode-block" id="Wyckoff"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.Wyckoff">[docs]</a><span class="k">class</span> <span class="nc">Wyckoff</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#@classmethod</span>
+    <span class="c1">#def from_site2wpos_ordict(cls, site2wpos):</span>
+    <span class="c1">#    return cls(site2wpos)</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site2wpos</span><span class="p">):</span>
-        <span class="c1"># Todo: Ordered dict.</span>
+        <span class="c1"># TODO: Ordered dict.</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">site2wpos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">WyckoffPositions</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
@@ -228,7 +234,7 @@
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Wyckoff.gen_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.Wyckoff.gen_structure">[docs]</a>    <span class="k">def</span> <span class="nf">gen_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">site2params</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">struct_cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Wyckoff.generate_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.Wyckoff.generate_structure">[docs]</a>    <span class="k">def</span> <span class="nf">generate_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">site2params</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">struct_cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate structure object from `lattice` and dictionary `site2params`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -258,21 +264,21 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the value of the parameter given a Structure object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fcoords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_symbol2coords</span><span class="p">()</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_symbol2coords</span><span class="p">()</span>
 
         <span class="c1"># Solve the problem.</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">elsym</span><span class="p">,</span> <span class="n">wpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">site2wpos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">params</span><span class="p">[</span><span class="n">elsym</span><span class="p">]</span> <span class="o">=</span> <span class="n">wpos</span><span class="o">.</span><span class="n">params_from_frac_coords</span><span class="p">(</span><span class="n">fcoords</span><span class="p">[</span><span class="n">elsym</span><span class="p">])</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">elsym</span><span class="p">]</span> <span class="o">=</span> <span class="n">wpos</span><span class="o">.</span><span class="n">params_from_frac_coords</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">[</span><span class="n">elsym</span><span class="p">])</span>
 
         <span class="c1"># Return results in a dict with symbol names.</span>
         <span class="k">return</span> <span class="n">params</span></div>
 
 <div class="viewcode-block" id="Wyckoff.error_of_params"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.wyckoff.Wyckoff.error_of_params">[docs]</a>    <span class="k">def</span> <span class="nf">error_of_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
-        <span class="n">fcoords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_symbol2coords</span><span class="p">()</span>
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">get_symbol2coords</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">elsym</span><span class="p">,</span> <span class="n">wpos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">site2wpos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">frac_errors</span> <span class="o">=</span> <span class="n">wpos</span><span class="o">.</span><span class="n">error_of_params</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">elsym</span><span class="p">],</span> <span class="n">fcoords</span><span class="p">[</span><span class="n">elsym</span><span class="p">])</span>
+            <span class="n">frac_errors</span> <span class="o">=</span> <span class="n">wpos</span><span class="o">.</span><span class="n">error_of_params</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">elsym</span><span class="p">],</span> <span class="n">frac_coords</span><span class="p">[</span><span class="n">elsym</span><span class="p">])</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">frac_errors</span><span class="p">)</span></div></div>
 </pre></div>
 

@@ -87,6 +87,7 @@
 <span class="kn">from</span> <span class="nn">abipy.core.tensor</span> <span class="k">import</span> <span class="n">SymmetricTensor</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -217,8 +218,8 @@
 <span class="sd">        ==============  ==============================================================</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Extract the function to plot according to qpoint.</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_func1d</span><span class="p">(</span><span class="n">red_coords</span><span class="p">)[</span><span class="n">what</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">what</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_func1d</span><span class="p">(</span><span class="n">red_coords</span><span class="p">)[</span><span class="nb">int</span><span class="p">(</span><span class="n">what</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">what</span><span class="p">))</span>
 
@@ -366,8 +367,8 @@
 <span class="sd">                    Options can be concated with &quot;-&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Extract the function to plot according to qpoint.</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emacros_q</span><span class="p">[</span><span class="n">qpoint</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">qpoint</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emacros_q</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)]</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">Kpoint</span><span class="p">):</span>
             <span class="n">iq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">qpoint</span><span class="p">)</span>

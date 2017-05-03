@@ -164,8 +164,6 @@
         <span class="c1"># Initialize the electron bands from file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
-        <span class="c1"># TODO: Via ElectronBands Mixin? In this case I have to change Ebands __init__</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_nspinor</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">read_nspden</span><span class="p">()</span>
 
         <span class="c1"># Read metadata so that we know how to handle the content of the file.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;prtdos&quot;</span><span class="p">)</span>
@@ -1350,6 +1348,11 @@
             <span class="c1"># Compute PJDOS from self.</span>
             <span class="n">pjdosfile</span> <span class="o">=</span> <span class="bp">self</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pjdosfile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;DOS requires k-points in the IBZ but got pjdosfile: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pjdosfile</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
         <span class="k">if</span> <span class="n">edos_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">edos_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># Build plot grid.</span>
@@ -1603,9 +1606,10 @@
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">print(fbnc)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.structure&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# fig = fbnc.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;xlims = (None, None)</span><span class="se">\n</span><span class="s2">ylims = (None, None)&quot;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = fbnc.ebands.plot(ylims=ylims)&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# fig = fbnc.ebands.plot(ylims=ylims)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.ebands.boxplot()&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>

@@ -817,7 +817,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </div>
 <div class="section" id="module-abipy.electrons.ebands">
 <span id="ebands-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">ebands</span></code> Module<a class="headerlink" href="#module-abipy.electrons.ebands" title="Permalink to this headline">¶</a></h2>
-<p>Classes for the analysis of electronic structures.</p>
+<p>Classes to analyse electronic structures.</p>
 <dl class="class">
 <dt id="abipy.electrons.ebands.ElectronBands">
 <em class="property">class </em><code class="descclassname">abipy.electrons.ebands.</code><code class="descname">ElectronBands</code><span class="sig-paren">(</span><em>structure</em>, <em>kpoints</em>, <em>eigens</em>, <em>fermie</em>, <em>occfacts</em>, <em>nelect</em>, <em>nspinor</em>, <em>nspden</em>, <em>nband_sk=None</em>, <em>smearing=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands" title="Permalink to this definition">¶</a></dt>
@@ -1044,7 +1044,7 @@ Use finite difference with accuracy <cite>acc</cite>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">numpy array of size nkpt.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">numpy array of size self.nkpt with effective masses.</td>
 </tr>
 </tbody>
 </table>
@@ -1099,6 +1099,72 @@ and the path contains duplicated k-points, the first k-point is selected.</li>
 <dt id="abipy.electrons.ebands.ElectronBands.from_file">
 <em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize an instance of <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> from the netCDF file <cite>filepath</cite>.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.electrons.ebands.ElectronBands.from_material_id">
+<em class="property">classmethod </em><code class="descname">from_material_id</code><span class="sig-paren">(</span><em>material_id</em>, <em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em>, <em>nelect=None</em>, <em>has_timerev=True</em>, <em>nspinor=1</em>, <em>nspden=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_material_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_material_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read bandstructure data corresponding to a materials project material_id.
+and return Abipy ElectronBands object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Materials Project material_id (a string, e.g., mp-1234).</li>
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+REST interface. Please apply on the Materials Project website for one.
+If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in
+your .pmgrc.yaml. If so, it will use that environment
+This makes easier for heavy users to simply add
+this environment variable to their setups and MPRester can
+then be called without any arguments.</li>
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.
+Defaults to the standard Materials Project REST address, but
+can be changed to other urls implementing a similar interface.</li>
+<li><strong>nelect</strong> &#8211; Number of electrons in the unit cell.</li>
+<li><strong>nspinor</strong> &#8211; 1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.electrons.ebands.ElectronBands.from_pymatgen">
+<em class="property">classmethod </em><code class="descname">from_pymatgen</code><span class="sig-paren">(</span><em>pmg_bands</em>, <em>nelect</em>, <em>weights=None</em>, <em>has_timerev=True</em>, <em>ksampling=None</em>, <em>smearing=None</em>, <em>nspinor=1</em>, <em>nspden=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_pymatgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_pymatgen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a pymatgen bandstructure object to an Abipy ElectronBands object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pmg_bands</strong> &#8211; pymatgen bandstructure object.</li>
+<li><strong>nelect</strong> &#8211; Number of electrons in unit cell.</li>
+<li><strong>weights</strong> &#8211; List of K-points weights (normalized to one, same order as pmg_bands.kpoints).
+This argument is optional but recommended when <cite>pmg_bands</cite> represents an IBZ sampling.
+If weights are not provided, Abipy methods requiring integrations in the BZ won&#8217;t work.</li>
+<li><strong>has_timerev</strong> &#8211; True if time-reversal symmetry can be used.</li>
+<li><strong>ksampling</strong> &#8211; dictionary with parameters passed to <code class="xref py py-class docutils literal"><span class="pre">KSamplingInfo</span></code> defining the k-points sampling.
+If None, hard-coded values are used. This argument is recommended if IBZ sampling.</li>
+<li><strong>smearing</strong> &#8211; dictionary with parameters passed to <code class="xref py py-class docutils literal"><span class="pre">Smearing</span></code>
+If None, default hard-coded values are used.</li>
+<li><strong>nspinor</strong> &#8211; Number of spinor components.</li>
+<li><strong>nspden</strong> &#8211; Number of independent spin-density components.
+If None, nspden is automatically computed from nsppol</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The Abipy bandstructure contains more information than the pymatgen object so
+the conversion is not complete, especially if you rely on the default values.
+Please read the docstring and the code carefully and use the optional arguments to pass
+additional data required by Abipy if you need a complete conversion.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -1250,7 +1316,7 @@ and the path contains duplicated k-points, the first k-point is selected.</li>
 <dt id="abipy.electrons.ebands.ElectronBands.interpolate">
 <code class="descname">interpolate</code><span class="sig-paren">(</span><em>lpratio=5</em>, <em>vertices_names=None</em>, <em>line_density=20</em>, <em>kmesh=None</em>, <em>is_shift=None</em>, <em>filter_params=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.interpolate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
-Note that the interpolation will likely fail if there are symmetrical k-points in the input sampling
+Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
 so it&#8217;s recommended to call this method with band structure obtained in the IBZ.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1282,7 +1348,7 @@ the axis in half of adjacent mesh points irrespective of the mesh numbers. None 
 <p>ebands_kpath: <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> with the interpolated band structure on the k-path.
 ebands_kmesh: <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> with the interpolated band structure on the k-mesh.</p>
 <blockquote>
-<div><p>None if kmesh is not given.</p>
+<div><p>None if <cite>kmesh</cite> is not given.</p>
 </div></blockquote>
 <p>interpolator: <code class="xref py py-class docutils literal"><span class="pre">SkwInterpolator</span></code> object.</p>
 </p>
@@ -1369,6 +1435,26 @@ Accepts: <code class="xref py py-class docutils literal"><span class="pre">Kpoin
 <dt id="abipy.electrons.ebands.ElectronBands.nband">
 <code class="descname">nband</code><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.nband" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.new_with_irred_kpoints">
+<code class="descname">new_with_irred_kpoints</code><span class="sig-paren">(</span><em>prune_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.new_with_irred_kpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.new_with_irred_kpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> object in which only the irreducible k-points are kept.
+This method is mainly used to prepare the band structure interpolation as the interpolator
+will likely fail if the input k-path contains symmetrical k-points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>prune_step</strong> &#8211; Optional argument used to select a subset of the irreducible points found.</li>
+<li><strong>prune_step is None</strong><strong>, </strong><strong>all irreducible k-points are used.</strong> (<em>If</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.ebands.ElectronBands.occfacts">
@@ -1520,7 +1606,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_with_edos">
-<code class="descname">plot_with_edos</code><span class="sig-paren">(</span><em>edos</em>, <em>klabels=None</em>, <em>axlist=None</em>, <em>e0='fermie'</em>, <em>ylims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_with_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_with_edos" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_with_edos</code><span class="sig-paren">(</span><em>edos</em>, <em>klabels=None</em>, <em>axlist=None</em>, <em>e0='fermie'</em>, <em>ylims=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_with_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_with_edos" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Plot the band structure and the DOS.</p>
 <dl class="docutils">
@@ -1529,7 +1615,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.</p>
 <blockquote>
 <div>The values are the labels. e.g. <cite>klabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}</cite>.</div></blockquote>
-<dl class="last docutils">
+<dl class="docutils">
 <dt>axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure</dt>
 <dd>is created and the two axes are automatically generated.</dd>
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
@@ -1551,6 +1637,7 @@ the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 </ul>
 </dd>
 </dl>
+<p class="last">width_ratios: Defines the ratio between the band structure plot and the dos plot.</p>
 </dd>
 <dt>Returns:</dt>
 <dd><cite>matplotlib</cite> figure.</dd>
@@ -1779,7 +1866,7 @@ The Fermi energy is saved in frame.fermie</td>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.to_pymatgen">
 <code class="descname">to_pymatgen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.to_pymatgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.to_pymatgen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a pymatgen bandstructure object.</p>
+<dd><p>Return a pymatgen bandstructure object from an Abipt <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> object.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2137,7 +2224,7 @@ Used only if <cite>dos</cite> is not None and it not an ElectronDos instance.</l
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.animate">
-<code class="descname">animate</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>interval=250</em>, <em>savefile=None</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">animate</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>interval=250</em>, <em>savefile=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use matplotlib to animate a list of band structure plots (with or without DOS).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2158,6 +2245,8 @@ See <cite>edos_fermie</cite>.</div></blockquote>
 </li>
 <li><strong>interval</strong> &#8211; draws a new frame every interval milliseconds.</li>
 <li><strong>savefile</strong> &#8211; Use e.g. &#8216;myanimation.mp4&#8217; to save the animation in mp4 format.</li>
+<li><strong>width_ratios</strong> &#8211; Defines the ratio between the band structure plot and the dos plot.
+Used when there are DOS stored in the plotter.</li>
 <li><strong>show</strong> &#8211; True if the animation should be shown immediately</li>
 </ul>
 </td>
@@ -2167,15 +2256,16 @@ See <cite>edos_fermie</cite>.</div></blockquote>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>See also <a class="reference external" href="http://matplotlib.org/api/animation_api.html">http://matplotlib.org/api/animation_api.html</a></dt>
-<dd><a class="reference external" href="http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/">http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/</a></dd>
-</dl>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="http://matplotlib.org/api/animation_api.html">http://matplotlib.org/api/animation_api.html</a>
+<a class="reference external" href="http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/">http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/</a></p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">It would be nice to have the possibility of animating the title of the plot, unfortunately
-this feature is not available in the present version of matplotlib. See
-<a class="reference external" href="http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib">http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib</a></p>
+<p class="last">It would be nice to animate the title of the plot, unfortunately
+this feature is not available in the present version of matplotlib.
+See: <a class="reference external" href="http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib">http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib</a></p>
 </div>
 </dd></dl>
 
@@ -2328,7 +2418,7 @@ the one used to compute the density. See <cite>edos_fermie</cite>.</dd>
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
 <dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
 <dt>width_ratios: Defines the ratio between the band structure plot and the dos plot.</dt>
-<dd>Used when DOS are stored in the plotter.</dd>
+<dd>Used when there are DOS stored in the plotter.</dd>
 </dl>
 </dd>
 <dt>Returns:</dt>
@@ -2478,6 +2568,12 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.plot">
 <code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBandsPlotter.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.write_notebook">
@@ -3544,8 +3640,9 @@ supported by the GSR object.</li>
 
 <dl class="method">
 <dt id="abipy.electrons.gsr.GsrFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.gsr.GsrFile.tsmear">
@@ -4242,11 +4339,11 @@ the values in the sigres.params dictionaries.</p>
 </div>
 <div class="section" id="module-abipy.electrons.denpot">
 <span id="denpot-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">denpot</span></code> Module<a class="headerlink" href="#module-abipy.electrons.denpot" title="Permalink to this headline">¶</a></h2>
-<p>Density/potential files in netcdf format.</p>
+<p>Density/potential files in netcdf/fortran format.</p>
 <dl class="class">
 <dt id="abipy.electrons.denpot.DensityNcFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">DensityNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
 <p>Netcdf File containing the electronic density.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">DensityNcFile</span><span class="p">(</span><span class="s2">&quot;foo_DEN.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
@@ -4254,39 +4351,15 @@ the values in the sigres.params dictionaries.</p>
     <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl class="method">
-<dt id="abipy.electrons.denpot.DensityNcFile.close">
-<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="abipy.electrons.denpot.DensityNcFile.density">
 <code class="descname">density</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.density" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="abipy.electrons.denpot.DensityNcFile.ebands">
-<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code> object.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.electrons.denpot.DensityNcFile.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the object from a Netcdf file</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.electrons.denpot.DensityNcFile.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="abipy.electrons.denpot.DensityNcFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return string representation.</p>
-</dd></dl>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.denpot.DensityNcFile.write_chgcar">
@@ -4300,22 +4373,57 @@ the values in the sigres.params dictionaries.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.denpot.DensityNcFile.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
-working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="abipy.electrons.denpot.DensityNcFile.write_xsf">
 <code class="descname">write_xsf</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.write_xsf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.write_xsf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write density in XSF format.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.denpot.VhartreeNcFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VhartreeNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhartreeNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
 <dl class="attribute">
-<dt id="abipy.electrons.denpot.DensityNcFile.xc">
-<code class="descname">xc</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.xc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.xc" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">XcFunc</span></code> object with info on the exchange-correlation functional.</p>
+<dt id="abipy.electrons.denpot.VhartreeNcFile.vh">
+<code class="descname">vh</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhartreeNcFile.vh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile.vh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hartree potential.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.denpot.VxcNcFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VxcNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VxcNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.VxcNcFile.vxc">
+<code class="descname">vxc</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VxcNcFile.vxc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile.vxc" title="Permalink to this definition">¶</a></dt>
+<dd><p>XC potential.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.denpot.VhxcNcFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VhxcNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhxcNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.VhxcNcFile.vhxc">
+<code class="descname">vhxc</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhxcNcFile.vhxc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile.vhxc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hartree + XC potential.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.denpot.PotNcFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">PotNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#PotNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.PotNcFile.vks">
+<code class="descname">vks</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#PotNcFile.vks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile.vks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hartree + XC potential + sum of local pseudo-potential terms.</p>
 </dd></dl>
 
 </dd></dl>
@@ -4940,109 +5048,138 @@ Used if dos_filepath is not None.</li>
 </div>
 <div class="section" id="module-abipy.electrons.scr">
 <span id="scr-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">scr</span></code> Module<a class="headerlink" href="#module-abipy.electrons.scr" title="Permalink to this headline">¶</a></h2>
-<p>Objects to analyze the screening file produced by ABINIT.</p>
+<p>Objects to analyze the screening files produced by the GW code (optdriver 3).</p>
 <dl class="class">
 <dt id="abipy.electrons.scr.DielectricFunction">
 <em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">DielectricFunction</code><span class="sig-paren">(</span><em>wpoints</em>, <em>gsphere</em>, <em>wggmat</em>, <em>inord='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#DielectricFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.DielectricFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMat</span></code></p>
-<dl class="attribute">
-<dt id="abipy.electrons.scr.DielectricFunction.etsf_name">
-<code class="descname">etsf_name</code><em class="property"> = 'dielectric_function'</em><a class="headerlink" href="#abipy.electrons.scr.DielectricFunction.etsf_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMatrix</span></code></p>
 <dl class="attribute">
 <dt id="abipy.electrons.scr.DielectricFunction.latex_name">
 <code class="descname">latex_name</code><em class="property"> = '\\epsilon'</em><a class="headerlink" href="#abipy.electrons.scr.DielectricFunction.latex_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.electrons.scr.GodbyNeeds">
-<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">GodbyNeeds</code><span class="sig-paren">(</span><em>gsphere</em>, <em>omegatw</em>, <em>bigomegatwsq</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#GodbyNeeds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.GodbyNeeds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.electrons.scr.PPModel" title="abipy.electrons.scr.PPModel"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr.PPModel</span></code></a></p>
-<dl class="method">
-<dt id="abipy.electrons.scr.GodbyNeeds.eval_em1">
-<code class="descname">eval_em1</code><span class="sig-paren">(</span><em>omegas</em>, <em>zcut</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#GodbyNeeds.eval_em1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.GodbyNeeds.eval_em1" title="Permalink to this definition">¶</a></dt>
+<dl class="attribute">
+<dt id="abipy.electrons.scr.DielectricFunction.netcdf_name">
+<code class="descname">netcdf_name</code><em class="property"> = 'dielectric_function'</em><a class="headerlink" href="#abipy.electrons.scr.DielectricFunction.netcdf_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.electrons.scr.GodbyNeeds.from_em1">
-<em class="property">classmethod </em><code class="descname">from_em1</code><span class="sig-paren">(</span><em>em1</em>, <em>wplasma</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#GodbyNeeds.from_em1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.GodbyNeeds.from_em1" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.scr.GodbyNeeds.plot_ggparams">
-<code class="descname">plot_ggparams</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#GodbyNeeds.plot_ggparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.GodbyNeeds.plot_ggparams" title="Permalink to this definition">¶</a></dt>
-<dd><p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="abipy.electrons.scr.InverseDielectricFunction">
 <em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">InverseDielectricFunction</code><span class="sig-paren">(</span><em>wpoints</em>, <em>gsphere</em>, <em>wggmat</em>, <em>inord='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#InverseDielectricFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMat</span></code></p>
-<dl class="method">
-<dt id="abipy.electrons.scr.InverseDielectricFunction.build_godby_needs_ppmodel">
-<code class="descname">build_godby_needs_ppmodel</code><span class="sig-paren">(</span><em>wplasma</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#InverseDielectricFunction.build_godby_needs_ppmodel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.build_godby_needs_ppmodel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.electrons.scr.InverseDielectricFunction.etsf_name">
-<code class="descname">etsf_name</code><em class="property"> = 'inverse_dielectric_function'</em><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.etsf_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMatrix</span></code></p>
 <dl class="attribute">
 <dt id="abipy.electrons.scr.InverseDielectricFunction.latex_name">
 <code class="descname">latex_name</code><em class="property"> = '\\epsilon^{-1}'</em><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.latex_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.electrons.scr.InverseDielectricFunction.netcdf_name">
+<code class="descname">netcdf_name</code><em class="property"> = 'inverse_dielectric_function'</em><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.netcdf_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.scr.Polarizability">
+<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">Polarizability</code><span class="sig-paren">(</span><em>wpoints</em>, <em>gsphere</em>, <em>wggmat</em>, <em>inord='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#Polarizability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.Polarizability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMatrix</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.scr.Polarizability.latex_name">
+<code class="descname">latex_name</code><em class="property"> = '\\tilde chi'</em><a class="headerlink" href="#abipy.electrons.scr.Polarizability.latex_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.Polarizability.netcdf_name">
+<code class="descname">netcdf_name</code><em class="property"> = 'polarizability'</em><a class="headerlink" href="#abipy.electrons.scr.Polarizability.netcdf_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.scr.ScrFile">
+<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">ScrFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<p>This object provides an interface to the <cite>SCR.nc</cite> file produced by the GW code.</p>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ScrFile</span><span class="p">(</span><span class="s2">&quot;foo_SCR.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+    <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_emacro</span><span class="p">()</span>
+</pre></div>
+</div>
 <dl class="method">
-<dt id="abipy.electrons.scr.InverseDielectricFunction.plot_with_ppmodels">
-<code class="descname">plot_with_ppmodels</code><span class="sig-paren">(</span><em>gvec1</em>, <em>gvec2=None</em>, <em>waxis='real'</em>, <em>cplx_mode='re'</em>, <em>zcut=0.003674932248</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#InverseDielectricFunction.plot_with_ppmodels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.InverseDielectricFunction.plot_with_ppmodels" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.scr.ScrFile.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.ebands">
+<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code> object with the single-particle energies used to compute the screening.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.electrons.scr.ScrFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the object from a Netcdf file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.kpoints">
+<code class="descname">kpoints</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.kpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of k-points in the dielectric function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.netcdf_name">
+<code class="descname">netcdf_name</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.netcdf_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The etsf-io name associated to the data on disk.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.ng">
+<code class="descname">ng</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.ng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of G-vectors in screening matrices.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.nimw">
+<code class="descname">nimw</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.nimw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of imaginary frequencies.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.nrew">
+<code class="descname">nrew</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.nrew" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of real frequencies.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.nw">
+<code class="descname">nw</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.nw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of frequencies.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.electrons.scr.ScrFile.params">
+<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">AttrDict</span></code> with the most important parameters used to compute the screening
+keys can be accessed with the dot notation i.e. <cite>params.zcut</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrFile.plot_eelf">
+<code class="descname">plot_eelf</code><span class="sig-paren">(</span><em>ax=None</em>, <em>xlims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.plot_eelf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.plot_eelf" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
-<div><dl class="docutils">
+<div><p>Plot electron energy loss function.</p>
+<dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">gvec1, gvec2:
-waxis: &#8220;real&#8221; to plot along the real axis, &#8220;imag&#8221; for the imaginary axis.
-cplx_mode: string defining the data to print.</p>
-<blockquote>
-<div>Possible choices are (case-insensitive): <cite>re</cite> for the real part
-&#8220;im&#8221; for the imaginary part, &#8220;abs&#8221; for the absolute value.
-&#8220;angle&#8221; will display the phase of the complex number in radians.
-Options can be concatenated with &#8220;-&#8221; e.g. &#8220;re-im&#8221;</div></blockquote>
-<p class="last">zcut: Small shift along the imaginary axis to avoid poles. 0.1 eV is the Abinit default.
-ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+<dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
+xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. <cite>(left, right)</cite></p>
+<blockquote class="last">
+<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
 </dd>
 <dt>Returns:</dt>
 <dd>matplotlib figure.</dd>
@@ -5080,85 +5217,58 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </table>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.electrons.scr.PPModel">
-<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">PPModel</code><a class="reference internal" href="../_modules/abipy/electrons/scr.html#PPModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.PPModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Abstract base class for Plasmonpole models.</p>
 <dl class="method">
-<dt id="abipy.electrons.scr.PPModel.eval_em1">
-<code class="descname">eval_em1</code><span class="sig-paren">(</span><em>omegas</em>, <em>zcut</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#PPModel.eval_em1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.PPModel.eval_em1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the plasmon-pole model at frequency omega (Ha units).</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.electrons.scr.Polarizability">
-<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">Polarizability</code><span class="sig-paren">(</span><em>wpoints</em>, <em>gsphere</em>, <em>wggmat</em>, <em>inord='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#Polarizability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.Polarizability" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.scr._AwggMat</span></code></p>
-<dl class="attribute">
-<dt id="abipy.electrons.scr.Polarizability.etsf_name">
-<code class="descname">etsf_name</code><em class="property"> = 'dielectric_function'</em><a class="headerlink" href="#abipy.electrons.scr.Polarizability.etsf_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.electrons.scr.Polarizability.latex_name">
-<code class="descname">latex_name</code><em class="property"> = '\\tilde chi'</em><a class="headerlink" href="#abipy.electrons.scr.Polarizability.latex_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.electrons.scr.ScrFile">
-<em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">ScrFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>ScrFile produced by the Abinit GW code.</p>
-<p>Usage example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ScrFile</span><span class="p">(</span><span class="s2">&quot;foo_SCR.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">scr</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">scr</span><span class="p">)</span>
-    <span class="n">em1</span> <span class="o">=</span> <span class="n">scr</span><span class="o">.</span><span class="n">get_em1</span><span class="p">(</span><span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">em1</span><span class="o">.</span><span class="n">plot_w</span><span class="p">()</span>
-</pre></div>
-</div>
-<dl class="method">
-<dt id="abipy.electrons.scr.ScrFile.close">
-<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.electrons.scr.ScrFile.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the object from a Netcdf file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.scr.ScrFile.get_em1">
-<code class="descname">get_em1</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.get_em1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.get_em1" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.scr.ScrFile.get_emacro_lf">
-<code class="descname">get_emacro_lf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.get_emacro_lf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.get_emacro_lf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the macroscopic dielectric function <em>with</em> local field effects
-1/ em1_{0,0)(q=0, w).</p>
-<p>Return <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.scr.ScrFile.get_emacro_nlf">
-<code class="descname">get_emacro_nlf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.get_emacro_nlf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.get_emacro_nlf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the macroscopic dielectric function <em>without</em> local field effects.
-e_{0,0)(q=0, w).</p>
-<p>Return <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.electrons.scr.ScrFile.kpoints">
-<code class="descname">kpoints</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.kpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of q-points for the dielectric function.</p>
+<dt id="abipy.electrons.scr.ScrFile.plot_emacro">
+<code class="descname">plot_emacro</code><span class="sig-paren">(</span><em>cplx_mode='re-im'</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.plot_emacro"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.plot_emacro" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot the macroscopic dielectric function with local-field effects.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>cplx_mode: string defining the data to print.</dt>
+<dd>Possible choices are (case-insensitive): <cite>re</cite> for the real part
+&#8220;im&#8221; for the imaginary part, &#8220;abs&#8221; for the absolute value.
+&#8220;angle&#8221; will display the phase of the complex number in radians.
+Options can be concatenated with &#8220;-&#8221; e.g. &#8220;re-im&#8221;</dd>
+<dt>xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. <cite>(left, right)</cite></dt>
+<dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
+</dl>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -5170,19 +5280,19 @@ e_{0,0)(q=0, w).</p>
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>String representation.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.scr.ScrFile.wpoints">
 <code class="descname">wpoints</code><a class="headerlink" href="#abipy.electrons.scr.ScrFile.wpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the frequencies of the dielectric function in Ha.
-Returns numpy array of complex numbers.</p>
+<dd><p>Array of complex numbers with the frequencies of the dielectric function in Ha.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -5194,22 +5304,78 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="iotools_api.html#abipy.iotools.ETSF_Reader" title="abipy.iotools.ETSF_Reader"><code class="xref py py-class docutils literal"><span class="pre">abipy.iotools.ETSF_Reader</span></code></a></p>
 <p>This object reads the results stored in the SCR (Screening) file produced by ABINIT.
 It provides helper functions to access the most important quantities.</p>
+<p>#double inverse_dielectric_function(number_of_qpoints_dielectric_function,
+# number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
+# number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</p>
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrReader.find_kpoint_fileindex">
 <code class="descname">find_kpoint_fileindex</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.find_kpoint_fileindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.find_kpoint_fileindex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the q-point and the index of in the netcdf file.
-Accepts <cite>Kpoint</cite> instance or integer</p>
-<dl class="docutils">
-<dt>Raise:</dt>
-<dd><cite>KpointsError</cite> if kpoint cannot be found.</dd>
-</dl>
+<dd><p>Returns the k-point and the index of the k-point in the netcdf file.
+Accepts <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> or integer</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.scr.ScrReader.read_wggfunc">
-<code class="descname">read_wggfunc</code><span class="sig-paren">(</span><em>kpoint</em>, <em>cls</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_wggfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_wggfunc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read data at the given q-point and return an instance
-of <cite>cls</cite> where <cite>cls</cite> is a subclass of <cite>_AwggMat</cite></p>
+<dt id="abipy.electrons.scr.ScrReader.read_eelf">
+<code class="descname">read_eelf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_eelf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_eelf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read electron energy loss function</p>
+<blockquote>
+<div><ul class="simple">
+<li>Im(1/ emacro)</li>
+</ul>
+</div></blockquote>
+<p>Return: <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrReader.read_emacro_lf">
+<code class="descname">read_emacro_lf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_emacro_lf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_emacro_lf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the macroscopic dielectric function <em>with</em> local field effects</p>
+<blockquote>
+<div>1/ em1_{0,0)(kpoint, omega).</div></blockquote>
+<p>Return: <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrReader.read_emacro_nlf">
+<code class="descname">read_emacro_nlf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_emacro_nlf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_emacro_nlf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the macroscopic dielectric function <em>without</em> local field effects.</p>
+<blockquote>
+<div>e_{0,0)(kpoint, omega).</div></blockquote>
+<p>Return: <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code></p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This function performs the inversion of e-1 to get e.
+that can be quite expensive and memory demanding for large matrices!</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrReader.read_params">
+<code class="descname">read_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the most important parameters used to compute the screening i.e.
+the parameters that may be subject to convergence studies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">AttrDict</span></code> a dictionary whose keys can be accessed
+with the dot notation i.e. d.key.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrReader.read_wggmat">
+<code class="descname">read_wggmat</code><span class="sig-paren">(</span><em>kpoint</em>, <em>spin1=0</em>, <em>spin2=0</em>, <em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_wggmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_wggmat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read data at the given k-point and return an instance of <cite>cls</cite> where
+<cite>cls</cite> is a subclass of <cite>_AwggMatrix</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.scr.ScrReader.read_wslice">
+<code class="descname">read_wslice</code><span class="sig-paren">(</span><em>kpoint</em>, <em>ig1=0</em>, <em>ig2=0</em>, <em>spin1=0</em>, <em>spin2=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_wslice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_wslice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read slice along the frequency dimension.</p>
 </dd></dl>
 
 </dd></dl>

@@ -106,9 +106,10 @@
 <span class="n">ebands</span> <span class="o">=</span> <span class="n">gsr_file</span><span class="o">.</span><span class="n">ebands</span>
 
 <span class="n">xys</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">derivatives</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">xys</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">derivatives</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">xys</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">derivatives</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">xys</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">derivatives</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;xys</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">xys</span><span class="p">)</span>
+<span class="c1">#xys = ebands.derivatives(spin=0, band=1, order=1)</span>
+<span class="c1">#xys = ebands.derivatives(spin=0, band=2, order=1)</span>
+<span class="c1">#xys = ebands.derivatives(spin=0, band=3, order=1)</span>
 
 <span class="c1">#ebands.plot()</span>
 
@@ -123,6 +124,8 @@
 
 <span class="c1">#emasses = ebands.effective_masses(spin=0, band=4, acc=2)</span>
 <span class="c1">#print(&quot;emasses&quot;, emasses)</span>
+
+<span class="n">gsr_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>

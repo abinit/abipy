@@ -220,7 +220,20 @@
             <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="p">(</span><span class="n">Range</span><span class="p">,))</span> <span class="ow">or</span>
             <span class="n">is_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
             <span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Variable.depends_on_dimension"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.depends_on_dimension">[docs]</a>    <span class="k">def</span> <span class="nf">depends_on_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if variable is an array whose shape depends on dimension name `dimname`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dimname: String of :class:`Variable` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimname</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span> <span class="n">dimname</span> <span class="o">=</span> <span class="n">dimname</span><span class="o">.</span><span class="n">varname</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isarray</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># This test is not very robust and can fail.</span>
+        <span class="k">if</span> <span class="n">dimname</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">):</span> <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
 
 
 <div class="viewcode-block" id="ValueWithUnit"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.ValueWithUnit">[docs]</a><span class="k">class</span> <span class="nc">ValueWithUnit</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">YAMLObject</span><span class="p">):</span>
