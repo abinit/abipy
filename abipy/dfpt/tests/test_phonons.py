@@ -45,8 +45,10 @@ class PhononBandsTest(AbipyTest):
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
-            same_phbands = PhononBands.as_phbands(nc)
-            self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
+            same_phbands_nc = PhononBands.as_phbands(nc)
+            self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
+            # a + b gives plotter
+            assert hasattr(same_phbands_nc + phbands, "combiplot")
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 
@@ -56,6 +58,10 @@ class PhononBandsTest(AbipyTest):
             pickle.dump(phbands, fh)
         same_phbands = PhononBands.as_phbands(tmp_path)
         self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
+
+        # a + b + c gives plotter
+        p = phbands + same_phbands + same_phbands_nc
+        assert hasattr(p, "combiplot")
 
         assert phbands.minfreq == 0.0
         #self.assertEqual(phbands.maxfreq, 30)

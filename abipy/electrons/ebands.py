@@ -518,12 +518,33 @@ class ElectronBands(Has_Structure):
                     kpoint.set_name(name)
         return _auto_klabels
 
-    #def __repr__(self):
-    #    """String representation (short version)"""
+    def __repr__(self):
+        """String representation (short version)"""
+        return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.nkpt, self.structure.formula, id(self))
 
     def __str__(self):
         """String representation"""
         return self.to_string()
+
+    def __add__(self, other):
+        """self + other returns an ElectronBandsPlotter."""
+        if not isinstance(other, (ElectronBands, ElectronBandsPlotter)):
+            raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
+
+        if isinstance(other, ElectronBandsPlotter):
+            self_key = repr(self)
+            other.add_ebands(self_key, self)
+            return other
+        else:
+            plotter = ElectronBandsPlotter()
+            self_key = repr(self)
+            plotter.add_ebands(self_key, self)
+            self_key = repr(self)
+            other_key = repr(other)
+            plotter.add_ebands(other_key, other)
+            return plotter
+
+    __radd__ = __add__
 
     # Handy variables used to loop
     @property
@@ -2511,6 +2532,10 @@ class ElectronBandsPlotter(NotebookWriter):
         if show: plt.show()
 
         return anim
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.ipw_select_plot()
 
     def ipw_select_plot(self):
         """

@@ -100,7 +100,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 
     # Subparser for abispg command.
     p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
-                                      help="Extract Abinit spacegroup info from fileb.")
+                                      help="Extract Abinit spacegroup info from file.")
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
@@ -370,7 +370,6 @@ Has to be all integers. Several options are possible:
             k.print_bz2ibz()
 
     elif options.command == "lgk":
-
         structure = abilab.Structure.from_file(options.filepath)
         spgrp = structure.abi_spacegroup
 

@@ -140,6 +140,10 @@ class ElectronBandsTest(AbipyTest):
         self.assert_equal(mpdivs, [8, 8, 8])
         self.assert_equal(shifts.flatten(), [0, 0, 0])
 
+        # Test __add__ and __radd__ (should return ElectronBandsPlotter)
+        p = ni_ebands_kmesh + r.ebands_kmesh + r.ebands_kpath
+        assert hasattr(p, "combiplot")
+
         # Test plot methods
         if self.has_matplotlib():
             elims = [-10, 2]
@@ -437,10 +441,11 @@ class ElectronBandsTest(AbipyTest):
 
 class ElectronBandsFromRestApi(AbipyTest):
 
-    def test_sn02(self):
+    def test_from_material_id(self):
         """Testing interpolation of SnO2 band energies from MP database."""
         #mpid = "mp-149"
-        mpid = "mp-856"
+        #mpid = "mp-856"
+        mpid = "mp-3079"
         ebands = abilab.ElectronBands.from_material_id(mpid, api_key="8pkvwRLQSCVbW2Fe")
         # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
         ebands = ebands.new_with_irred_kpoints(prune_step=2)

@@ -250,6 +250,10 @@ class PhononBands(object):
         self.non_anal_ph = non_anal_ph
         self.amu = amu
 
+    def __repr__(self):
+        """String representation (short version)"""
+        return "<%s, nk=%d, %s, id=%s>" % (self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
+
     def __str__(self):
         return self.to_string()
 
@@ -284,6 +288,26 @@ class PhononBands(object):
             app("")
 
         return "\n".join(lines)
+
+    def __add__(self, other):
+        """self + other returns an PhononBandsPlotter."""
+        if not isinstance(other, (PhononBands, PhononBandsPlotter)):
+            raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
+
+        if isinstance(other, PhononBandsPlotter):
+            self_key = repr(self)
+            other.add_phbands(self_key, self)
+            return other
+        else:
+            plotter = PhononBandsPlotter()
+            self_key = repr(self)
+            plotter.add_phbands(self_key, self)
+            self_key = repr(self)
+            other_key = repr(other)
+            plotter.add_phbands(other_key, other)
+            return plotter
+
+    __radd__ = __add__
 
     #def displ_of_specie(self, specie):
     #    """Returns the displacement vectors for the given specie."""
@@ -2660,6 +2684,10 @@ class PhononBandsPlotter(NotebookWriter):
                 plot_type=["combiplot", "gridplot", "boxplot", "combiboxplot", "animate"],
                 units=["eV", "cm-1", "Ha"],
             )
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.ipw_select_plot()
 
     def write_notebook(self, nbpath=None):
         """
