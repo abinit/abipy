@@ -30,7 +30,7 @@ class TestSkwInterpolator(AbipyTest):
             skw = SkwInterpolator(lpratio, kcoords, ebands.eigens, ebands.fermie, ebands.nelect, cell,
                                   fm_symrel, has_timrev, filter_params=None, verbose=1)
 
-        print(skw)
+        repr(skw); print(skw)
         assert skw.occtype == "insulator"
         assert skw.use_cache
         assert skw.lpratio == lpratio

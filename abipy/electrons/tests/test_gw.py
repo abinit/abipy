@@ -99,11 +99,13 @@ class TestSigresFile(AbipyTest):
         qpgaps = [3.53719151871085, 4.35685250045637, 4.11717896881632,
                   8.71122659251508, 3.29693118466282, 3.125545059031]
 
-        self.assert_almost_equal(sigres.qpgaps, np.reshape(qpgaps, (1,6)))
-        ik = 0
+        self.assert_almost_equal(sigres.qpgaps, np.reshape(qpgaps, (1, 6)))
+        ik = 2
         df = sigres.get_dataframe_sk(spin=0, kpoint=ik)
         same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
         assert np.all(df["qpe"] == same_df["qpe"])
+
+        full_df = sigres.to_dataframe()
 
         marker = sigres.get_marker("qpeme0")
         assert marker and len(marker.x)

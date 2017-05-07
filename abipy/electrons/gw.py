@@ -1157,6 +1157,19 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
+    def to_dataframe(self):
+        """
+        Returns pandas DataFrame with QP results for all k-points included in the GW calculation
+        """
+        import pandas as pd
+        df_list = []
+        for spin in range(self.nsppol):
+            for gwkpoint in self.gwkpoints:
+                df_sk = self.get_dataframe_sk(spin, gwkpoint)
+                df_list.append(df_sk)
+
+        return pd.concat(df_list)
+
     def get_dataframe_sk(self, spin, kpoint, index=None):
         """
         Returns pandas DataFrame with QP results for the given (spin, k-point).
