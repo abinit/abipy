@@ -84,7 +84,7 @@ def expand_star_syntax(s):
     >>> assert expand_star_syntax("3*2") == '2 2 2'
     >>> assert expand_star_syntax("2 *1") == '1 1'
     >>> assert expand_star_syntax("1 2*2") == '1 2 2'
-    >>> assert expand_star_syntax("*2") == '* 2'
+    >>> assert expand_star_syntax("*2") == '*2'
     """
     s = s.strip()
     if "*" not in s:
@@ -95,11 +95,12 @@ def expand_star_syntax(s):
 
     s = s.replace("*", " * ").strip()
     tokens = s.split()
+    #tokens = [c.rstrip().lstrip() for c in s.split()]
 
-    # Handle "*2" case i.e. return "* 2"
+    # Handle "*2" case i.e. return "*2"
     if len(tokens) == 2 and tokens[0] == "*":
         assert tokens[1] != "*"
-        return " ".join(tokens)
+        return "".join(tokens)
 
     #print(s, tokens)
     l = []
@@ -210,6 +211,14 @@ class Dataset(dict, Has_Structure):
             print("  typat", typat)
             print("  kwargs", kwargs)
             raise exc
+
+    def get_vars(self):
+        """
+        Return dictionary with variables. The variables describing the crystalline structure
+        are removed from the output dictionary.
+        """
+        geovars = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
+        return {k: self[k] for k in self if k not in geovars}
 
     def __str__(self):
         """string representation."""
@@ -356,7 +365,6 @@ class AbinitInputParser(object):
         # 2) split string in tokens.
         # 3) Evaluate star syntax i.e. "3*2" ==> '2 2 2'
         # 4) Evaluate operators e.g. sqrt(0.75)
-
         tokens = " ".join(lines).split()
         # Step 3 is needed because we are gonna use python to evaluate the operators and
         # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!

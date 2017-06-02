@@ -91,18 +91,19 @@ For example, you can install ``pyyaml`` and ``netcdf4`` with::
     $ conda install pyyaml netcdf4
 
 Remember that if a package is not available in the official conda repository, you can always
-use ``pip install`` or download the package from one of the conda channels.
-For example, if you encounter problems while installing the spacegroup library
-with ``pip install pyspglib``, you can install the pre-compiled library from the ``jochym`` channel with::
+download the package from one of the conda channels or use ``pip install`` if no conda package is available.
 
-    $ conda install -c jochym pyspglib
+Fortunately there are conda channels providing all dependencies needed by AbiPy.
+To install ``pymatgen`` from the ``matsci`` channel, use::
 
-Now you can install the stable version of ``abipy`` with::
+    $ conda install pymatgen --channel matsci
 
-    $ pip install abipy
+then install Abipy from the abinit channel with::
 
-If you want to use the developmental version, clone (or fork and clone) the repositories on github
-(see also the :ref:`developmental_version` section).
+    $ conda install pymatgen --channel abinit
+
+Visit `materials.sh <http://materials.sh>`_ for instructions on how to use the
+matsci channel to install pymatgen and other packages.
 
 Once you have completed the installation of AbiPy and pymatgen, open the ``ipython`` shell and type::
 
@@ -172,7 +173,7 @@ For further information on the syntax of the configuration file, please consult 
 
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
 
-    $ conda install abinit -c gmatteo
+    $ conda install abinit -c abinit
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -329,12 +330,51 @@ You may want to consult the official `netcdf4-python documentation <http://unida
 Troubleshooting
 ---------------
 
+^^^^^^^^^^^^^^^^^^^^^
+unknown locale: UTF-8
+^^^^^^^^^^^^^^^^^^^^^
+
 If python stops with the error message::
 
     "ValueError: unknown locale: UTF-8"
 
 add the following line to your ``.bashrc`` file inside your ``$HOME`` (``.profile`` if MacOSx)::
 
-    export LC_ALL=C
+    $ export LC_ALL=C
 
 reload the environment with ``source ~/.bashrc`` and rerun the code.
+
+^^^^^^^^^^^^^^^^^^^^
+netcdf does not work
+^^^^^^^^^^^^^^^^^^^^
+
+The version of hdf5 installed by conda may not be compatible with python netcdf.
+Try the hdf5/netcdf4 libraries provided by conda forge::
+
+    $ conda uninstall hdf4 hdf5
+    $ conda config --add channels conda-forge
+    $ conda install netcdf4
+
+These packages are known to work on MacOsX::
+
+    $ conda list hdf4
+    hdf4                      4.2.12                        0    conda-forge
+    $ conda list hdf5
+    hdf5                      1.8.17                        9    conda-forge
+    $ conda list netcdf4
+    netcdf4                   1.2.7               np112py36_0    conda-forge
+
+^^^^^^^^^^^^^^^^^^^
+UnicodeDecodeError
+^^^^^^^^^^^^^^^^^^^
+
+Python2.7 raises an `UnicodeDecodeError: 'ascii' codec can't decode byte ...`
+when trying to open files with abiopen. Add
+
+.. code-block:: python
+
+    import sys
+    reload(sys)
+    sys.setdefaultencoding("utf8")
+
+at the beginning of your script.

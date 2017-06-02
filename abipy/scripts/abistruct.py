@@ -50,10 +50,10 @@ Usage example:
     abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
     abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
     abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
-    abistruct.py pmgdata mp-149             => Get structure from pymatgen database and print its JSON representation.
+    abistruct.py pmgdata mp-149             => Get structure from materials project database and print its JSON representation.
                                                Use e.g. `-f abivars` to change format.
 
-Use `abistruct.py COMMAND --help` for futher information.
+Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -201,6 +201,9 @@ Has to be all integers. Several options are possible:
     try:
         options = parser.parse_args()
     except Exception as exc:
+        show_examples_and_exit(error_code=1)
+
+    if not options.command:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.

@@ -78,7 +78,7 @@ class TestAbinitInputFile(AbipyTest):
         s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume
-        print(inp)
+        repr(inp); str(inp)
 
         # same input but with global acell
         s = """
@@ -91,7 +91,10 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.datasets[0].structure
         assert s1 == inp.datasets[1].structure
-        print(inp)
+        repr(inp); str(inp)
+
+        d = inp.datasets[1].get_vars()
+        assert "natom" not in d and len(d) == 0
 
         # same input in terms of an arithmetic series in acell
         s = """
@@ -119,7 +122,7 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.ndtset == 3
         self.assertArrayEqual([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
         self.assertArrayEqual([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
-        print(inp)
+        repr(inp); str(inp)
 
         # Test arithmetic series with xcart.
         s = """

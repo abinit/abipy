@@ -415,6 +415,8 @@ In this case, one can provide a list of files and/or list of directories on the 
 Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
 `abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
 Use --no-walk to ignore sub-directories when robots are used.
+
+Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the documentation for `COMMAND`.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -507,6 +509,9 @@ Use --no-walk to ignore sub-directories when robots are used.
     try:
         options = parser.parse_args()
     except Exception:
+        show_examples_and_exit(error_code=1)
+
+    if not options.command:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.

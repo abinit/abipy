@@ -76,12 +76,39 @@ class TestAbidoc(ScriptTest):
         r = env.run(self.script, "withdim", "natom", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
+class TestAbinp(ScriptTest):
+    script = os.path.join(script_dir, "abinp.py")
+
+    def test_abinp(self):
+        """Testing abinp.py script"""
+        env = self.get_env()
+        runabi = abidata.ref_file("refs/si_ebands/run.abi")
+        # Commands operating on input files.
+        r = env.run(self.script, "validate", runabi, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "autoparal", runabi, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "ibz", runabi, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "phperts", runabi, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+        # Commands generating input files.
+        gan2_cif = abidata.cif_file("gan2.cif")
+        r = env.run(self.script, "gs", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "ebands", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "phonons", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "g0w0", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "anaph", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+
 class TestAbiopen(ScriptTest):
     script = os.path.join(script_dir, "abiopen.py")
 
     def test_abiopen(self):
         """Testing abiopen.py script"""
         env = self.get_env()
+        gan2_cif = abidata.cif_file("gan2.cif")
+        r = env.run(self.script, gan2_cif, "-p", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        for f in ["tgw1_9o_DS4_SIGRES.nc", "si_scf_WFK.nc"]:
+            path = abidata.ref_file(f)
+            r = env.run(self.script, path, "-p", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbistruct(ScriptTest):

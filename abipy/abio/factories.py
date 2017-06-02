@@ -207,7 +207,7 @@ def gs_input(structure, pseudos,
              kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for band structure calculations.
+    Returns a :class:`AbinitInput` for ground-state calculation.
 
     Args:
         structure: :class:`Structure` object.
@@ -507,8 +507,8 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         scf_nband: number of scf bands
         ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
-        nscf_nband: a list of number of bands included in the screening and sigmaruns. The NSCF run will be done on the
-            maximum
+        nscf_nband: a list of number of bands included in the screening and sigmaruns.
+            The NSCF run will be done with the maximum.
         ecuteps: list of Cutoff energy [Ha] for the screening matrix.
         ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.
         accuracy: Accuracy of the calculation.

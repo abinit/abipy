@@ -254,7 +254,10 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(wfk)"),
             nbv.new_code_cell("fig = wfk.ebands.plot()"),
             nbv.new_code_cell("fig = wfk.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = wfk.ebands.get_edos().plot()"),
+            nbv.new_code_cell("fig = wfk.ebands.plot()"),
+            nbv.new_code_cell("""\
+if wfk.ebands.kpoints.is_ibz:
+    fig = wfk.ebands.get_edos().plot()"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -515,7 +515,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except AttributeError:  # TODO: This is to maintain compatibility with pickle
             return False
 
-    def to_string(self, sortmode="section", post=None, with_mnemonics=False, with_structure=True, with_pseudos=True):
+    def to_string(self, sortmode="section", post=None, with_mnemonics=False,
+                  with_structure=True, with_pseudos=True, exclude=None):
         """
         String representation.
 
@@ -532,6 +533,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 _DS1_ to all the input and output files.
             with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
+            exclude: List of variable names that should be ignored.
         """
         lines = []
         app = lines.append
@@ -539,9 +541,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         if self.comment: app("# " + self.comment.replace("\n", "\n#"))
 
         post = post if post is not None else ""
-
         mnemonics = self.mnemonics
         if with_mnemonics: mnemonics = with_mnemonics
+        exclude = set(exclude) if exclude is not None else set()
 
         # If spell checking is deactivates, we cannot use mmemonics or sormode == "section"
         if not self.spell_check:
@@ -553,16 +555,16 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         if sortmode in (None, "a"):
             # Default is no sorting else alphabetical order.
-            keys = list(self.keys())
+            keys = [k for k in self.keys() if k not in exclude]
             if sortmode == "a": keys = sorted(keys)
 
             # Extract the items from the dict and add the geo variables at the end
-            items = list(self.items())
+            items = [(k, self[k]) for k in keys]
             if with_structure:
                 items.extend(list(self.structure.to_abivars().items()))
 
             for name, value in items:
-                if mnemonics:
+                if mnemonics and value is not None:
                     app("# <" + var_database[name].definition + ">")
 
                 # Build variable, convert to string and append it
@@ -571,7 +573,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         elif sortmode == "section":
             # Group variables by section.
             # Get dict mapping section_name --> list of variable names belonging to the section.
-            sec2names = var_database.group_by_section(list(self.keys()))
+            keys = [k for k in self.keys() if k not in exclude]
+            sec2names = var_database.group_by_section(keys)
             w = 92
 
             for sec, names in sec2names.items():
@@ -580,7 +583,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 app(w * "#")
                 for name in names:
                     value = self[name]
-                    if mnemonics:
+                    if mnemonics and value is not None:
                         app("# <" + var_database[name].definition + ">")
 
                     # Build variable, convert to string and append it
@@ -591,7 +594,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 app("#" + ("STRUCTURE").center(w - 1))
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
-                    if mnemonics:
+                    if mnemonics and value is not None:
                         app("# <" + var_database[name].definition + ">")
                     app(str(InputVariable(name + post, value)))
 
@@ -1392,7 +1395,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
-            shiftk = np.reshape(shiftk, (-1,3))
+            shiftk = np.reshape(shiftk, (-1, 3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
@@ -1921,23 +1924,67 @@ class MultiDataset(object):
 
     @property
     def has_same_structures(self):
+        """True if all inputs in MultiDataset are equal."""
         return all(self[0].structure == inp.structure for inp in self)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self):
         """String representation i.e. the input file read by Abinit."""
         if self.ndtset > 1:
             # Multi dataset mode.
             lines = ["ndtset %d" % self.ndtset]
 
-            #same_structures = self.has_same_structures
+            def has_same_variable(kref, vref, other_inp):
+                """True if variable kref is present in other_inp with the same value."""
+                if kref not in other_inp: return False
+                otherv = other_inp[kref]
+                return np.array_equal(vref, otherv)
+                #try:
+                #    return vref == otherv
+                #except:
+                #    # Iterables?
+                #    try:
+                #        return np.array_equal(vref, otherv)
+                #    except:
+                #        return False
+
+            # Don't repeat variable that are common to the different datasets.
+            # Put them in the `Global Variables` section and exclude these variables in inp.to_string
+            global_vars = set()
+            for k0, v0 in self[0].items():
+                isame = True
+                for i in range(1, self.ndtset):
+                    isame = has_same_variable(k0, v0, self[i])
+                    if not isame:
+                        break
+                if isame:
+                    global_vars.add(k0)
+            #print("global_vars vars", global_vars)
+
+            w = 92
+            if global_vars:
+                lines.append(w * "#")
+                lines.append("### Global Variables.")
+                lines.append(w * "#")
+                for key in global_vars:
+                    lines.append(str(InputVariable(key, self[0][key])))
+
+            has_same_structures = self.has_same_structures
+            if has_same_structures:
+                # Write structure here and disable structure output in input.to_string
+                lines.append(w * "#")
+                lines.append("#" + ("STRUCTURE").center(w - 1))
+                lines.append(w * "#")
+                for name, value in self[0].structure.to_abivars().items():
+                    lines.append(str(InputVariable(name, value)))
 
             for i, inp in enumerate(self):
                 header = "### DATASET %d ###" % (i + 1)
                 is_last = (i==self.ndtset - 1)
-                #with_structure = True
-                #if same_structure and not is_last: with_structure = False
-
-                s = inp.to_string(post=str(i+1), with_pseudos=is_last)
+                s = inp.to_string(post=str(i + 1), with_pseudos=is_last,
+                                  with_structure=not has_same_structures, exclude=global_vars)
                 if s:
                     header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
                     s = "\n" + header + s + "\n"
@@ -1982,7 +2029,6 @@ class MultiDataset(object):
 
         if exclude_tags is not None:
             inputs = [i for i in inputs if not exclude_tags.intersection(i.tags)]
-
 
         return MultiDataset.from_inputs(inputs) if inputs else None
 
@@ -2163,28 +2209,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         return new
 
-    #@classmethod
-    #def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1,
-    #           anaddb_args=None, anaddb_kwargs=None):
-    #    """
-    #    Build an anaddb input file for the computation of phonon band structure.
-    #    """
-    #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra",
-    #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
-
-    #@classmethod
-    #def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, dos_method="tetra",
-    #           anaddb_args=None, anaddb_kwargs=None):
-    #    """
-    #    Build an anaddb input file for the computation of phonon DOS.
-    #    """
-    #    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
-    #                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra",
-    #                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
-
     @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),
+    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
                         anaddb_args=None, anaddb_kwargs=None):
         """

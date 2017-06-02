@@ -37,10 +37,10 @@ and the
 `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
 AbiPy supports both Python 2.7 as well as Python >= 3.4.
-Note however that Python 2.7 is more intensively tested than py3k especially at the level of workflows
+Python 2.7 is more intensively tested than py3k especially at the level of workflows
 so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
-Note, however, that the majority of the post-processing tools available in AbiPy require output files in
+Note that the majority of the post-processing tools available in AbiPy require output files in
 ``netcdf`` format so we strongly suggest to compile Abinit with netcdf support
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
@@ -80,7 +80,6 @@ in the form of pre-compiled packages and ``netcdf4`` can be easily installed wit
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://pythonhosted.org/abipy/installation.html>`_.
-
 We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 

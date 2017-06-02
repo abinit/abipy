@@ -128,9 +128,6 @@ def write_open_notebook(flow, options):
     """
     Generate an ipython notebook and open it in the browser.
     Return system exit code.
-
-    See also:
-        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
     import nbformat
     nbf = nbformat.v4
@@ -198,37 +195,46 @@ def main():
     def str_examples():
         return """\
 Usage example:
+
     abirun.py [FLOWDIR] rapid                 => Keep repeating, stop when no task can be executed.
     abirun.py [FLOWDIR] scheduler             => Execute flow with the scheduler.
     abirun.py [FLOWDIR] events                => Print ABINIT events (Warning/Error/Comment).
     abirun.py [FLOWDIR] history               => Print Task history.
+    abirun.py [FLOWDIR] cancel                => Cancel the tasks in the queue.
     abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
-    abirun.py [FLOWDIR] gui                   => Open the GUI.
     abirun.py [FLOWDIR] doc_manager slurm     => Document the TaskManager options availabe for Slurm.
     abirun.py . doc_manager script            => Show the job script that will be produced with the current settings.
     abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
 
-    nohup abirun.py [FLOWDIR] scheduler -s 30 &  => Start the scheduler to schedule task submission.
+If FLOWDIR is not given, abirun.py automatically selects the database located within
+the working directory. An Exception is raised if multiple databases are found.
 
-    If FLOWDIR is not given, abirun.py automatically selects the database located within
-    the working directory. An Exception is raised if multiple databases are found.
+Note, moreover, that one can replace FLOWDIR with the directory of a work/task
+to make the command operate on this node of the flow without having to specify the node ids with --nids.
+For example, to have the list of events of the task in `FLOWDIR/w0/t1` use:
 
-    Note, moreover, that you can also replace FLOWDIR with the directory of a work/task
-    to make the command operate on this node of the flow without having to specify --nids.
-    To have the list of events of the task in `FLOWDIR/w0/t1`, for example, use:
+    $ abirun.py FLOWDIR/w0/t1 events
 
-        abirun.py FLOWDIR/w0/t1 events
+instead of
 
-    instead of
+    $ abirun.py FLOWDIR events -n 123
 
-        abirun.py FLOWDIR events -n 123
+where 123 is the node identifier associated to w0/t1.
 
-    where 123 is the node identifier associated to w0/t1.
+To start the scheduler with a time interval of 30 seconds, use:
 
-Options for developers:
-    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
-    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
+    $ nohup abirun.py [FLOWDIR] scheduler -s 30 &
+
+Alternatively one can specify the scheduler options via the `scheduler.yml` file.
+Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
+in the current working directory and then inside $HOME/.abinit/abipy/
+
+Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
 """
+#Options for developers:
+#    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
+#    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
+
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
@@ -260,9 +266,9 @@ Options for developers:
     flow_selector_parser = argparse.ArgumentParser(add_help=False)
     group = flow_selector_parser.add_mutually_exclusive_group()
     group.add_argument("-n", '--nids', default=None, type=parse_nids, help=(
-        "Node identifier(s) used to select the task. Integer or comma-separated list of integers. "
-        "Use `status` command to get the node ids. "
-        "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11, --nids=2:5:2 to select 2,4."
+        "Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.\n"
+        "Use `status` command to get the node ids.\n"
+        "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11 (slice syntax), --nids=2:5:2 to select 2,4."
         ))
 
     group.add_argument("-w", '--wslice', default=None, type=parse_wslice,
@@ -375,7 +381,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for abibuild
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
-                                        help="Show Abinit build information and exit.")
+                                        help="Show ABINIT build information and exit.")
 
     # Subparser for doc_scheduler
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
@@ -436,7 +442,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for corrections.
     p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser],
-                                          help="Show abipy corrections.")
+                                          help="Show AbiPy corrections.")
 
     # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
@@ -514,6 +520,9 @@ Specify the files to open. Possible choices:
     except Exception as exc:
         show_examples_and_exit(error_code=1)
 
+    if not options.command:
+        show_examples_and_exit(error_code=1)
+
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
@@ -583,8 +592,8 @@ Specify the files to open. Possible choices:
 
         system, node, release, version, machine, processor = platform.uname()
         cprint("Running on %s -- system %s -- Python %s -- %s" % (
-              gethostname(), system, platform.python_version(), "abirun" + "-" + abilab.__version__),
-              'yellow', attrs=['underline'])
+               gethostname(), system, platform.python_version(), "abirun" + "-" + abilab.__version__),
+               'yellow', attrs=['underline'])
 
     wname, tname = None, None
     if options.flowdir is None:
@@ -862,23 +871,33 @@ Specify the files to open. Possible choices:
             pprint(excs)
 
     elif options.command == "reset":
-        # Default status for reset is QCritical
-        if options.task_status is None: options.task_status = Status.as_status("QCritical")
-        print("Will reset tasks with status: %s" % options.task_status)
+
+        if options.nids is None and options.task_status is None:
+            # Default status for reset command is QCritical
+            options.task_status = Status.as_status("QCritical")
+
+        if options.task_status is not None:
+            print("Resetting tasks with status: %s" % options.task_status)
+        else:
+            print("Resetting tasks with node ids: %s" % str(options.nids))
 
         count = 0
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            print("Resetting task %s" % task)
+            print("Resetting task %s... " % task, end="")
             failed = task.reset()
             if failed:
-                print("Task %s couldn't be reset" % task)
+                cprint("[FAILED]", "red")
             else:
+                cprint("[OK]", "green")
                 count += 1
-
         cprint("%d tasks have been reset" % count, "blue")
+
+        # Try to relaunch
+        nlaunch = 0
         if options.relaunch:
             nlaunch = flow.rapidfire()
-            print("Number of tasks launched: %d" % nlaunch)
+            cprint("Number of tasks launched: %d" % nlaunch, "magenta")
+
         flow.show_status()
 
         if nlaunch == 0:
