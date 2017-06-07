@@ -19,6 +19,9 @@ def abicomp_structure(options):
     """
     Compare crystalline structures.
     """
+    if options.group:
+        return compare_structures(options)
+
     paths = options.paths
     index = [os.path.relpath(p) for p in paths]
 
@@ -70,6 +73,32 @@ from abipy import abilab"""),
         abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
     return 0
+
+
+def compare_structures(options):
+    """Inspired to a similar function in pmg_structure."""
+    paths = options.paths
+    if len(paths) < 2:
+        print("You need more than one structure to compare!")
+        return 1
+
+    structures = []
+    try:
+        structures = [abilab.Structure.from_file(p) for p in paths]
+    except Exception as ex:
+        print("Error reading structures from files. Are they in the right format?")
+        print(str(ex))
+        return 1
+
+    from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+
+    mtype = "element"
+    m = StructureMatcher() if mtype == "species" else StructureMatcher(comparator=ElementComparator())
+    for i, grp in enumerate(m.group_structures(structures)):
+        print("Group {}: ".format(i))
+        for s in grp:
+            print("- {} ({})".format(paths[structures.index(s)], s.formula))
+        print()
 
 
 def abicomp_ebands(options):
@@ -210,6 +239,23 @@ def abicomp_phdos(options):
             plotfunc()
 
     return 0
+
+
+def abicomp_attr(options):
+    """
+    Extract attribute from Abipy object for all files listed on the command line and print them.
+    Use `--show` option to list the attributes available (in the first file).
+    """
+    files = []
+    attr_name = options.paths[0]
+    for p in options.paths[1:]:
+        with abilab.abiopen(p) as abifile:
+            if options.show:
+                print("List of attributes available in %s" % p)
+                from pprint import pprint
+                pprint(dir(abifile))
+                return 0
+            print(getattr(abifile, attr_name), "   # File: ", p)
 
 
 ##################
@@ -398,6 +444,7 @@ Usage example:
   abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
   abicomp.py phbands *_PHBST.nc -nb               => Compare phonon bands in the jupyter notebook.
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
+  abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files and print results.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
   abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
@@ -455,6 +502,7 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
 
     # Subparser for structure command.
     p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
+    p_struct.add_argument("--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
@@ -484,6 +532,11 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
                          choices=["gridplot", "combiplot", "None"],
                          help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
+    # Subparser for phdos command.
+    p_attr = subparsers.add_parser('attr', parents=[copts_parser], help=abicomp_attr.__doc__)
+    #p_attr.add_argument('attr_name', help="Attribute name.")
+    p_attr.add_argument('--show', default=False, action="store_true", help="Print attributes available in file")
+
     # Subparser for robot commands
     robot_parents = [copts_parser, ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -509,9 +562,6 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
     try:
         options = parser.parse_args()
     except Exception:
-        show_examples_and_exit(error_code=1)
-
-    if not options.command:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.

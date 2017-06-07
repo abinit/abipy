@@ -47,6 +47,7 @@ Usage example:
                                                "abisanitized" structure to file.
     abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
                                                following doi:10.1016/j.commatsci.2010.05.010
+    abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
     abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
     abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
     abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
@@ -140,6 +141,11 @@ Has to be all integers. Several options are possible:
                                                 "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
     p_conventional.add_argument("--savefile", default="", type=str,
                                 help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+
+    # Subparser for neighbors.
+    p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
+                                        help="Get neighbors for each atom in the unit cell, out to a distance radius.")
+    p_neighbors.add_argument("-r", "--radius", default=2, type=float, help="Radius of the sphere in Angstrom.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
@@ -326,6 +332,21 @@ Has to be all integers. Several options are possible:
             if os.path.exists(options.savefile):
                 raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
             conv.to(filename=options.savefile)
+
+    elif options.command == "neighbors":
+        structure = abilab.Structure.from_file(options.filepath)
+        print("")
+        print(structure)
+        print(" ")
+        print("Getting neighbors for each atom in the unit cell, out to a distance %s [Ang]" % options.radius)
+        print(" ")
+
+        ns = structure.get_all_neighbors(options.radius, include_index=False)
+        for i, (site, sited_list) in enumerate(zip(structure, ns)):
+            print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
+            for s, dist in sorted(sited_list, key=lambda t: t[1]):
+                print("\t", repr(s), " at distance", dist)
+            print()
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)

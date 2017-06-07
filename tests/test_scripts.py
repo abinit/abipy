@@ -157,6 +157,12 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "conventional", ncfile, self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+    def test_neighbors(self):
+        """Testing abistruct neighbors"""
+        env = self.get_env()
+        r = env.run(self.script, "neighbors", abidata.cif_file("gan2.cif"), "--radius=2.5",
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
     def test_kpath(self):
         """Testing abistruct kpath"""
         env = self.get_env()
@@ -188,6 +194,8 @@ class TestAbicomp(ScriptTest):
 
         cif_paths = abidata.cif_files("al.cif", "gan.cif", "gan2.cif")
         r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose, "--group",
                     expect_stderr=self.expect_stderr)
 
         dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")

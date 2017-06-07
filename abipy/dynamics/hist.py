@@ -47,7 +47,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """Return string representation."""
         lines = []; app = lines.append
 
@@ -57,6 +57,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         app(marquee("Final structure", mark="="))
         app("Number of relaxation steps performed: %d" % self.num_steps)
         app(str(self.final_structure))
+        app("")
+
+        an = self.get_relaxation_analyzer()
+        app("Volume change in percentage: %.2f%%" % (an.get_percentage_volume_change() * 100))
+        d = an.get_percentage_lattice_parameter_changes()
+        vals = tuple(d[k] * 100 for k in ("a", "b", "c"))
+        app("Percentage lattice parameter changes:\n\ta: %.2f%%, b: %.2f%%, c: %2.f%%" % vals)
+        #an.get_percentage_bond_dist_changes(max_radius=3.0)
         app("")
 
         cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
@@ -76,6 +84,11 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return list(range(self.num_steps))
 
     @property
+    def initial_structure(self):
+        """The initial structure."""
+        return self.structures[0]
+
+    @property
     def final_structure(self):
         """The structure of the last iteration."""
         return self.structures[-1]
@@ -89,6 +102,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def etotals(self):
         """numpy array with total energies in eV at the different steps."""
         return self.reader.read_eterms().etotals
+
+    def get_relaxation_analyzer(self):
+        """
+        Return a pymatgen :class:`RelaxationAnalyzer object to analyze the relaxation in a calculation.
+        """
+        from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
+        return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
     #def export(self, filename, visu=None):
     #    """

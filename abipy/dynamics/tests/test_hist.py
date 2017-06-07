@@ -12,11 +12,12 @@ class HistFileTest(AbipyTest):
     def test_hist_api(self):
         """Testing HistFile API."""
         hist = HistFile(abidata.ref_file("sic_relax_HIST.nc"))
-        repr(hist)
-        str(hist)
+        repr(hist); str(hist)
 
+        an = hist.get_relaxation_analyzer()
         assert hist.num_steps == 7
         assert len(hist.structures) == hist.num_steps
+        assert hist.initial_structure is hist.structures[0]
         assert hist.final_structure is hist.structures[-1]
         assert hist.final_structure.composition.reduced_formula == "SiC"
         assert len(hist.final_structure) == hist.reader.natom
