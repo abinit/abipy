@@ -654,6 +654,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return abispg
 
+    def print_neighbors(self, radius=2.0):
+        """
+        Get neighbors for each atom in the unit cell, out to a distance `radius` in Angstrom
+        Print results.
+        """
+        print(" ")
+        print("Finding neighbors for each atom in the unit cell, out to a distance %s [Angstrom]" % radius)
+        print(" ")
+
+        ns = self.get_all_neighbors(radius, include_index=False)
+        for i, (site, sited_list) in enumerate(zip(self, ns)):
+            print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
+            for s, dist in sorted(sited_list, key=lambda t: t[1]):
+                print("\t", repr(s), " at distance", dist)
+            print("")
+
     @lazy_property
     def hsym_kpath(self):
         """
@@ -746,8 +762,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Returns:
             one-dimensional `numpy` array.
         """
-        return np.sqrt(self.dot(coords, coords, space=space,
-                                frac_coords=frac_coords))
+        return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
 
     def get_dict4frame(self, with_spglib=True):
         """
@@ -779,7 +794,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         ])
 
     @add_fig_kwargs
-    def show_bz(self, ax=None, pmg_path=True, **kwargs):
+    def plot_bz(self, ax=None, pmg_path=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
 
@@ -796,6 +811,41 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+
+    # To maintain backward compatibility.
+    show_bz = plot_bz
+
+    def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
+                 two_theta_range=(0, 90), annotate_peaks=True, show=True):
+        """
+        Use pymatgen :class:`XRDCalculator` to show the XRD plot.
+
+        Args:
+            wavelength (str/float): The wavelength can be specified as either a
+                float or a string. If it is a string, it must be one of the
+                supported definitions in the AVAILABLE_RADIATION class
+                variable, which provides useful commonly used wavelengths.
+                If it is a float, it is interpreted as a wavelength in
+                angstroms. Defaults to "CuKa", i.e, Cu K_alpha radiation.
+            symprec (float): Symmetry precision for structure refinement. If
+                set to 0, no refinement is done. Otherwise, refinement is
+                performed using spglib with provided precision.
+            debye_waller_factors ({element symbol: float}): Allows the
+                specification of Debye-Waller factors. Note that these
+                factors are temperature dependent.
+            two_theta_range ([float of length 2]): Tuple for range of
+                two_thetas to calculate in degrees. Defaults to (0, 90). Set to
+                None if you want all diffracted beams within the limiting
+                sphere of radius 2 / wavelength.
+            annotate_peaks: Whether to annotate the peaks with plane information.
+        """
+        from pymatgen.analysis.diffraction.xrd import XRDCalculator
+        xrd = XRDCalculator(wavelength=wavelength, symprec=symprec, debye_waller_factors=debye_waller_factors)
+        plt = xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks)
+        if show:
+            plt.show()
+        else:
+            return plt
 
     def export(self, filename, visu=None):
         """

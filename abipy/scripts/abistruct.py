@@ -48,6 +48,7 @@ Usage example:
     abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
                                                following doi:10.1016/j.commatsci.2010.05.010
     abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
+    abistruct.py xrd FILE                   => X-ray diffraction plot.
     abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
     abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
     abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
@@ -147,6 +148,9 @@ Has to be all integers. Several options are possible:
                                         help="Get neighbors for each atom in the unit cell, out to a distance radius.")
     p_neighbors.add_argument("-r", "--radius", default=2, type=float, help="Radius of the sphere in Angstrom.")
 
+    # Subparser for xrd.
+    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector],
+                                  help="X-ray diffraction plot.")
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
                                       help="Open IPython shell for advanced operations on structure object.")
@@ -335,18 +339,11 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "neighbors":
         structure = abilab.Structure.from_file(options.filepath)
-        print("")
-        print(structure)
-        print(" ")
-        print("Getting neighbors for each atom in the unit cell, out to a distance %s [Ang]" % options.radius)
-        print(" ")
+        structure.print_neighbors(radius=options.radius)
 
-        ns = structure.get_all_neighbors(options.radius, include_index=False)
-        for i, (site, sited_list) in enumerate(zip(structure, ns)):
-            print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
-            for s, dist in sorted(sited_list, key=lambda t: t[1]):
-                print("\t", repr(s), " at distance", dist)
-            print()
+    elif options.command == "xrd":
+        structure = abilab.Structure.from_file(options.filepath)
+        structure.plot_xrd()
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)

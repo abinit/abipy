@@ -417,6 +417,16 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest(msg)
 
     @staticmethod
+    def skip_if_not_pseudodojo():
+        """
+        Raise SkipTest if pseudodojo package is not installed.
+        """
+        try:
+            from pseudo_dojo import OfficialTables
+        except ImportError:
+            raise self.SkipTest("This test requires pseudodojo package.")
+
+    @staticmethod
     def get_mock_module():
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()

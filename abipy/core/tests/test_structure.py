@@ -59,6 +59,7 @@ class TestStructure(AbipyTest):
 
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
+        si_wfk.print_neighbors(radius=2.5)
 
         assert si_wfk.has_abi_spacegroup
         # Cannot change spacegroup
@@ -109,6 +110,7 @@ class TestStructure(AbipyTest):
         if self.has_matplotlib():
             si.show_bz(show=False)
             si.show_bz(pmg_path=False, show=False)
+            si.plot_xrd(show=False)
 
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())

@@ -81,6 +81,7 @@ class TestAbinp(ScriptTest):
 
     def test_abinp(self):
         """Testing abinp.py script"""
+        self.skip_if_not_pseudodojo()
         env = self.get_env()
         runabi = abidata.ref_file("refs/si_ebands/run.abi")
         # Commands operating on input files.
