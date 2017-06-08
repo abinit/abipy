@@ -149,8 +149,23 @@ Has to be all integers. Several options are possible:
     p_neighbors.add_argument("-r", "--radius", default=2, type=float, help="Radius of the sphere in Angstrom.")
 
     # Subparser for xrd.
-    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector],
-                                  help="X-ray diffraction plot.")
+    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
+
+    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
+        "The wavelength can be specified as a string. It must be one of the "
+        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
+
+    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
+        "Symmetry precision for structure refinement. "
+        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
+
+    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
+        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
+
+    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
+                       help="Whether to annotate the peaks with plane information.")
+
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
                                       help="Open IPython shell for advanced operations on structure object.")
@@ -213,8 +228,7 @@ Has to be all integers. Several options are possible:
     except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    if not options.command:
-        show_examples_and_exit(error_code=1)
+    if options.verbose > 1: print(options)
 
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
@@ -343,7 +357,9 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "xrd":
         structure = abilab.Structure.from_file(options.filepath)
-        structure.plot_xrd()
+        two_theta_range = tuple(float(t) for t in options.two_theta_range)
+        structure.plot_xrd(wavelength=options.wavelength, two_theta_range=two_theta_range,
+                           symprec=options.symprec, annotate_peaks=not options.no_annotate_peaks)
 
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)

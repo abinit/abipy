@@ -17,7 +17,7 @@ from abipy import abilab
 
 def abicomp_structure(options):
     """
-    Compare crystalline structures.
+    Compare crystalline structures. Use `--group` to compare for similarity."
     """
     if options.group:
         return compare_structures(options)
@@ -94,10 +94,14 @@ def compare_structures(options):
 
     mtype = "element"
     m = StructureMatcher() if mtype == "species" else StructureMatcher(comparator=ElementComparator())
+    print("Grouping %s structures by %s" % (len(structures), mtype))
+
     for i, grp in enumerate(m.group_structures(structures)):
         print("Group {}: ".format(i))
         for s in grp:
-            print("- {} ({})".format(paths[structures.index(s)], s.formula))
+            spg_symbol, international_number = s.get_space_group_info()
+            print("\t- {} ({}), vol: {:.2f} A^3, {} ({})".format(
+                  paths[structures.index(s)], s.formula, s.volume, spg_symbol, international_number, ))
         print()
 
 
@@ -438,6 +442,7 @@ def main():
 Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
+                                                     Use `--group` to compare for similarity
   abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
@@ -445,6 +450,7 @@ Usage example:
   abicomp.py phbands *_PHBST.nc -nb               => Compare phonon bands in the jupyter notebook.
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
   abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files and print results.
+                                                     Use `--show` to get list of possible names.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
   abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
