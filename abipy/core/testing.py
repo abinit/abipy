@@ -424,7 +424,7 @@ class AbipyTest(PymatgenTest):
         try:
             from pseudo_dojo import OfficialTables
         except ImportError:
-            raise self.SkipTest("This test requires pseudodojo package.")
+            raise unittest.SkipTest("This test requires pseudodojo package.")
 
     @staticmethod
     def get_mock_module():

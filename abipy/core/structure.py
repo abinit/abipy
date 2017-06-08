@@ -28,10 +28,98 @@ from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import as_etsfreader, Visualizer,  xsf
 from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
+
 __all__ = [
+    "mpd_match_structure",
+    "mpd_search",
     "Structure",
     "frames_from_structures",
 ]
+
+
+def mpd_match_structure(obj, api_key=None, endpoint=None, final=True):
+    """
+    Finds matching structures on the Materials Project database.
+
+    Args:
+        obj: filename or Structure object.
+        api_key (str): A String API key for accessing the MaterialsProject
+            REST interface.
+        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+        final (bool): Whether to get the final structure, or the initial
+            (pre-relaxation) structure. Defaults to True.
+
+    Returns:
+        List of matching structures. Empty if no match.
+    """
+    structure = Structure.as_structure(obj)
+    # Must use pymatgen structure else server does not know how to handle the JSON doc.
+    structure.__class__ = pymatgen.Structure
+
+    from abipy.core import restapi
+    structures = []
+    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        try:
+            material_ids = rest.find_structure(structure)
+            if material_ids:
+                structures = [Structure.from_material_id(mid, final=final, api_key=api_key, endpoint=endpoint)
+                        for mid in material_ids]
+
+        except rest.Error as exc:
+            cprint(str(exc), "red")
+
+        finally:
+            # Back to abipy structure
+            structure = Structure.as_structure(structure)
+            return structures
+
+
+def mpd_search(chemsys_formula_id, api_key=None, endpoint=None):
+    """
+    Connect to the materials project database.
+    Get a list of structures corresponding to a chemical system, formula, or materials_id.
+
+    Args:
+        chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
+            or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
+        api_key (str): A String API key for accessing the MaterialsProject REST interface.
+            If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+
+    Returns:
+        namedtuple with the following attributes:
+            structures: List of Structure objects.
+            table: Pandas dataframe.
+            data: List of dictionaries with MP data (same order as structures).
+    """
+    from abipy.core import restapi
+    import pandas as pd
+    structures, table, data = [], [], {}
+
+    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        try:
+            data = rest.get_data(chemsys_formula_id, prop="")
+            if data:
+                #print(data[0].keys(), data[0]["cif"])
+                structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
+                                for d in data]
+
+                # Want AbiPy structure.
+                for i, _ in enumerate(structures):
+                    structures[i].__class__ = Structure
+
+                # Build pandas dataframe
+                rows = []
+                for d in data:
+                    d = rest.to_dotdict(d)
+                    rows.append(OrderedDict([(k, d.dotget(k, default=None)) for k in rest.KEYS_FOR_DATAFRAME]))
+                    table = pd.DataFrame(rows, index=[r["material_id"] for r in rows],
+                                         columns=list(rows[0].keys()))
+
+        except rest.Error as exc:
+            cprint(str(exc), "magenta")
+
+        return dict2namedtuple(structures=structures, table=table, data=data)
 
 
 class Structure(pymatgen.Structure, NotebookWriter):
@@ -140,8 +228,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None,
-                         endpoint="https://www.materialsproject.org/rest/v2"):
+    def from_material_id(cls, material_id, final=True, api_key=None, endpoint=None):
         """
         Get a Structure corresponding to a material_id.
 
@@ -151,11 +238,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a `PMG_MAPI_KEY` in
-                your .pmgrc.yaml. If so, it will use that environment
-                This makes easier for heavy users to simply add
-                this environment variable to their setups and MPRester can
-                then be called without any arguments.
+                If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+                If so, it will use that environment
+                This makes easier for heavy users to simply add this environment variable
+                to their setups and MPRester can then be called without any arguments.
             endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
                 Defaults to the standard Materials Project REST address, but
                 can be changed to other urls implementing a similar interface.
@@ -163,15 +249,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Returns:
             Structure object.
         """
-        from pymatgen import SETTINGS
-        if api_key is None:
-            api_key = SETTINGS.get("PMG_MAPI_KEY")
-            if api_key is None:
-                raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
-
         # Get pytmatgen structure and convert it to abipy structure
-        from pymatgen.matproj.rest import MPRester
-        with MPRester(api_key=api_key, endpoint=endpoint) as rest:
+        from abipy.core import restapi
+        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             new = rest.get_structure_by_material_id(material_id, final=final)
             new.__class__ = cls
             return new

@@ -10,6 +10,7 @@ import sys
 import os
 import argparse
 
+from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
@@ -91,18 +92,20 @@ def compare_structures(options):
         return 1
 
     from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+    compareby = "species" if options.anonymous else "element"
+    m = StructureMatcher() if compareby == "species" else StructureMatcher(comparator=ElementComparator())
+    print("Grouping %s structures by `%s` with `anonymous: %s`" % (len(structures), compareby, options.anonymous))
 
-    mtype = "element"
-    m = StructureMatcher() if mtype == "species" else StructureMatcher(comparator=ElementComparator())
-    print("Grouping %s structures by %s" % (len(structures), mtype))
-
-    for i, grp in enumerate(m.group_structures(structures)):
+    for i, grp in enumerate(m.group_structures(structures, anonymous=options.anonymous)):
         print("Group {}: ".format(i))
         for s in grp:
             spg_symbol, international_number = s.get_space_group_info()
             print("\t- {} ({}), vol: {:.2f} A^3, {} ({})".format(
                   paths[structures.index(s)], s.formula, s.volume, spg_symbol, international_number, ))
         print()
+
+    if options.verbose:
+        pprint(m.as_dict())
 
 
 def abicomp_ebands(options):
@@ -256,7 +259,7 @@ def abicomp_attr(options):
         with abilab.abiopen(p) as abifile:
             if options.show:
                 print("List of attributes available in %s" % p)
-                from pprint import pprint
+
                 pprint(dir(abifile))
                 return 0
             print(getattr(abifile, attr_name), "   # File: ", p)
@@ -508,7 +511,9 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
 
     # Subparser for structure command.
     p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
-    p_struct.add_argument("--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
+    p_struct.add_argument("-g", "--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
+    p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
+                          help="Whether to use anonymous mode in StructureMatcher. Default False")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)

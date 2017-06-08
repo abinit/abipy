@@ -392,7 +392,7 @@ class ElectronBands(Has_Structure):
         raise TypeError("Don't know how to extract ebands from object %s" % type(obj))
 
     @classmethod
-    def from_material_id(cls, material_id, api_key=None, endpoint="https://www.materialsproject.org/rest/v2",
+    def from_material_id(cls, material_id, api_key=None, endpoint=None,
                          nelect=None, has_timerev=True, nspinor=1, nspden=None):
         """
         Read bandstructure data corresponding to a materials project material_id.
@@ -413,15 +413,9 @@ class ElectronBands(Has_Structure):
             nelect: Number of electrons in the unit cell.
             nspinor: 1
         """
-        from pymatgen import SETTINGS
-        if api_key is None:
-            api_key = SETTINGS.get("PMG_MAPI_KEY")
-            if api_key is None:
-                raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
-
         # Get pytmatgen structure and convert it to abipy structure
-        from pymatgen.matproj.rest import MPRester
-        with MPRester(api_key=api_key, endpoint=endpoint) as rest:
+        from abipy.core import restapi
+        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)
 
             # Structure is set to None so we have to perform another request and patch the object.

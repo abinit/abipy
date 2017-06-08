@@ -22,6 +22,32 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.core.kpoints import Ktables
 
 
+def handle_structures_and_data(structures, options, data=None, table=None):
+    if not structures:
+        cprint("No structure found in database", "yellow")
+        return 1
+
+    print("\n# Found %s structures in materials project database (use -v to get full info)" % len(structures))
+    if table is not None:
+        abilab.print_frame(table)
+
+    if data is not None and options.verbose:
+        pprint(data)
+
+    for i, structure in enumerate(structures):
+        if data is not None:
+            print(2 * "\n")
+            print(marquee(" %s input for %s" % (options.format, data[i]["material_id"]), mark="#"))
+        print("\n# " + str(structure).replace("\n", "\n# ") + "\n")
+        if options.format == "abivars":
+            print(structure.abi_string)
+        else:
+            print(structure.convert(fmt=options.format))
+        print(" ")
+
+    return 0
+
+
 @prof_main
 def main():
 
@@ -54,6 +80,11 @@ Usage example:
     abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
     abistruct.py pmgdata mp-149             => Get structure from materials project database and print its JSON representation.
                                                Use e.g. `-f abivars` to change format.
+    abistruct.py mpd_match FILE             => Read structure from FILE and find matching structures on the Materials Project site.
+                                               Use e.g. `-f cif` to change output format.
+    abistruct.py mpd_search LiF             => Connect to the materials project database.
+                                               Get structures corresponding to a chemical system or formula e.g. Fe2O3 or Li-Fe-O
+                                               Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
 
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 """
@@ -66,7 +97,8 @@ Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the 
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
-    path_selector.add_argument('filepath', nargs="?", help="File with the crystalline structure (netcdf, cif, input files ...)")
+    path_selector.add_argument('filepath', nargs="?",
+                               help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input files, POSCAR ...)")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -207,16 +239,32 @@ Has to be all integers. Several options are possible:
     p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str, help=("Visualizer name. "
         "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
 
+    # Options for commands accessing the materials project database.
+    mpd_rest_parser = argparse.ArgumentParser(add_help=False)
+    mpd_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+    mpd_rest_parser.add_argument("--endpoint", help="Pymatgen database.",
+                                 default="https://www.materialsproject.org/rest/v2")
+
     # Subparser for pmgdata command.
-    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser],
+    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser, mpd_rest_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
-    p_pmgdata.add_argument("--mapi-key", default=None,
-                           help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
-    p_pmgdata.add_argument("--endpoint", help="Pymatgen database.",
-                           default="https://www.materialsproject.org/rest/v2")
     p_pmgdata.add_argument("-f", '--format', default="json", type=str,
                            help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+
+    # Subparser for mpd_match command.
+    p_mpmatch = subparsers.add_parser('mpd_match', parents=[path_selector, mpd_rest_parser, copts_parser],
+                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+    p_mpmatch.add_argument("-f", '--format', default="abivars", type=str,
+                          help="Format of the output file (abivars, cif, cssr, POSCAR, json, mson).")
+
+    # Subparser for mpd_search command.
+    p_mpdsearch = subparsers.add_parser('mpd_search', parents=[mpd_rest_parser, copts_parser],
+                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+    p_mpdsearch.add_argument("chemsys_formula_id", type=str, default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
+    p_mpdsearch.add_argument("-f", '--format', default="abivars", type=str,
+                              help="Format of the output file (abivars, cif, cssr, POSCAR, json, mson).")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
@@ -436,6 +484,14 @@ Has to be all integers. Several options are possible:
         else:
             # Convert to json and print it.
             print(structure.convert(fmt=options.format))
+
+    elif options.command == "mpd_match":
+        structures = abilab.mpd_match_structure(options.filepath)
+        return handle_structures_and_data(structures, options)
+
+    elif options.command == "mpd_search":
+        r = abilab.mpd_search(options.chemsys_formula_id)
+        return handle_structures_and_data(r.structures, options, data=r.data, table=r.table)
 
     elif options.command == "animate":
         filepath = options.filepath
