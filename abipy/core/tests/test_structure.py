@@ -95,10 +95,14 @@ class TestStructure(AbipyTest):
         same_znse = Structure.as_structure(tmp_path)
         assert same_znse == znse
 
-        for fmt in ["cif", "POSCAR", "json"]:
+        for fmt in ["abivars", "cif", "POSCAR", "json", "xsf"]:
             assert len(znse.convert(fmt=fmt)) > 0
-        with self.assertRaises(ValueError):
-            znse.convert(fmt="foo")
+
+        oxi_znse = znse.get_oxi_state_decorated()
+        assert len(oxi_znse.abi_string)
+        from pymatgen.core.periodic_table import Specie
+        assert Specie("Zn", 2) in oxi_znse.composition.elements
+        assert Specie("Se", -2) in oxi_znse.composition.elements
 
         e = si.spget_equivalent_atoms(printout=True)
         assert len(e.irred_pos) == 1

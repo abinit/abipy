@@ -108,6 +108,29 @@ def compare_structures(options):
         pprint(m.as_dict())
 
 
+def abicomp_xrd(options):
+    """
+    Compare X-ray diffraction plots (requires FILES with structure).
+    """
+    if len(options.paths) < 2:
+        print("You need more than one structure to compare!")
+        return 1
+
+    structures = [abilab.Structure.from_file(p) for p in options.paths]
+
+    dfs = abilab.frames_from_structures(structures, index=[os.path.relpath(p) for p in options.paths])
+    abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+
+    from pymatgen.analysis.diffraction.xrd import XRDCalculator
+    two_theta_range = tuple(float(t) for t in options.two_theta_range)
+    xrd = XRDCalculator(wavelength=options.wavelength, symprec=options.symprec)
+    xrd.plot_structures(structures, two_theta_range=two_theta_range, fontsize=6,
+                        annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
+
+    return 0
+
+
 def abicomp_ebands(options):
     """
     Plot electron bands on a grid.
@@ -446,6 +469,7 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
                                                      Use `--group` to compare for similarity
+  abicomp.py xrd *.cif *.GSR.nc                   => Compare X-ray diffraction plots (requires FILES with structure).
   abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
@@ -463,10 +487,10 @@ Usage example:
   abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
                                                      parse timing data and plot results.
 
-NOTE: The gsr, ddb, sigres, mdf commands use robots to analyze files.
+NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
 In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
 
-    abicomp.py ddb dir1 out_DDB dir2
+    $ abicomp.py ddb dir1 out_DDB dir2
 
 Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
 `abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
@@ -514,6 +538,20 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
     p_struct.add_argument("-g", "--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
                           help="Whether to use anonymous mode in StructureMatcher. Default False")
+
+    # Subparser for xrd.
+    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
+    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
+        "The wavelength can be specified as a string. It must be one of the "
+        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
+    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
+        "Symmetry precision for structure refinement. "
+        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
+    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
+        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
+    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
+                       help="Whether to annotate the peaks with plane information.")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
@@ -586,6 +624,9 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
+
+    if options.verbose > 1:
+        print(options)
 
     # Dispatch
     return globals()["abicomp_" + options.command](options)

@@ -122,6 +122,9 @@ File extensions supported:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
+    if options.verbose > 1:
+        print(options)
+
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
 

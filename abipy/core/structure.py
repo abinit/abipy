@@ -108,7 +108,7 @@ def mpd_search(chemsys_formula_id, api_key=None, endpoint=None):
                 for i, _ in enumerate(structures):
                     structures[i].__class__ = Structure
 
-                # Build pandas dataframe
+                # Build pandas dataframe.
                 rows = []
                 for d in data:
                     d = rest.to_dotdict(d)
@@ -253,8 +253,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             new = rest.get_structure_by_material_id(material_id, final=final)
-            new.__class__ = cls
-            return new
+            return cls.as_structure(new)
 
     @classmethod
     def from_ase_atoms(cls, atoms):
@@ -295,8 +294,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         l = ArrayWithUnit(acell, "bohr").to("ang")
 
         new = molecule.get_boxed_structure(l[0], l[1], l[2])
-        new.__class__ = cls
-        return new
+        return cls.as_structure(new)
 
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)):
@@ -433,8 +431,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Wraps __mul__ operator of pymatgen structure to return abipy structure
         """
         new = super(Structure, self).__mul__(scaling_matrix)
-        new.__class__ = self.__class__
-        return new
+        return self.__class__.as_structure(new)
 
     __rmul__ = __mul__
 
@@ -470,8 +467,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         spga = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         new = spga.get_conventional_standard_structure(international_monoclinic=international_monoclinic)
-        new.__class__ = self.__class__
-        return new
+        return self.__class__.as_structure(new)
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0):
         #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
@@ -490,9 +486,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                                                symprec=symprec, angle_tolerance=angle_tolerance)
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
-        standardized_structure.__class__ = self.__class__
 
-        return standardized_structure
+        return self.__class__.as_structure(standardized_structure)
 
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False):
         """
@@ -536,6 +531,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
         return structure
+
+    def get_oxi_state_decorated(self, **kwargs):
+        """
+        Use :class:`BVAnalyzer` to estimate oxidation states
+        Return oxidation state decorated structure.
+        This currently works only for ordered structures only.
+
+        Args:
+            kwargs: Arguments passed to BVAnalyzer
+
+        Returns:
+            A modified structure that is oxidation state decorated.
+        """
+        from pymatgen.analysis.bond_valence import BVAnalyzer
+        new = BVAnalyzer(**kwargs).get_oxi_state_decorated_structure(self)
+        return self.__class__.as_structure(new)
 
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
@@ -962,16 +973,35 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return visu(filename)
 
+    #def chemview(self, **kwargs):
+    #    from pymatgen.vis.structure_chemview import quick_view
+    #    return quick_view(self, **kwargs)
+
+    def vtkview(self, show=True, **kwargs):
+        """
+        Visualize structure with VTK. Requires vtk python bindings.
+
+        Args:
+            show: True to show structure immediately.
+            kwargs: keyword arguments passed to :class:`StructureVis`.
+
+        Return:
+            StructureVis object.
+        """
+        from pymatgen.vis.structure_vtk import StructureVis
+        vis = StructureVis(**kwargs)
+        vis.set_structure(self, to_unit_cell=True)
+        if show: vis.show()
+        return vis
+
     def visualize(self, visu_name):
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        # Code for VTK.
-        #from pymatgen.vis.structure_vtk import StructureVis
-        #vis = StructureVis()
-        #vis.set_structure(self)
-        #vis.show()
+        if visu_name == "vtk":
+            return self.vtkview()
+
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(visu_name)
 
@@ -986,43 +1016,15 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
 
-    #def write_structure(self, filename):
-    #    """Write structure fo file."""
-    #    if filename.endswith(".nc"):
-    #        raise NotImplementedError("Cannot write a structure to a netcdf file yet")
-    #    else:
-    #        self.to(filename=filename)
-
-    def convert(self, fmt="cif"):
+    def convert(self, fmt="cif", **kwargs):
         """
-        Convert the Abinit structure to CIF, POSCAR, CSSR and pymatgen's JSON
-        serialized structures (json, mson) Return string.
+        Return string with the structure in the given format `fmt`
+        Options include "abivars", "cif", "xsf", "poscar", "cssr", "json".
         """
-        prefix_dict = {
-            "POSCAR": "POSCAR",
-        }
-
-        # FIXME:
-        # Do we need symmetry operations here?
-        # perhaps if the CIF file is used.
-        suffix_dict = {
-            "cif": ".cif",
-            "cssr": ".cssr",
-            "json": ".json",
-            "mson": ".mson",
-        }
-
-        if fmt not in prefix_dict and fmt not in suffix_dict:
-            raise ValueError("Unknown format %s" % str(fmt))
-
-        prefix = prefix_dict.get(fmt, "tmp")
-        suffix = suffix_dict.get(fmt, "")
-
-        tmp_file = tempfile.NamedTemporaryFile(mode="w+", suffix=suffix, prefix=prefix)
-        self.to(filename=tmp_file.name)
-        tmp_file.seek(0)
-
-        return tmp_file.read()
+        if fmt == "abivars":
+            return self.abi_string
+        else:
+            return super(Structure, self).to(fmt=fmt, **kwargs)
 
     #def to_xsf(self):
     #    """

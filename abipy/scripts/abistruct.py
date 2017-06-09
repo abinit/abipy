@@ -39,10 +39,7 @@ def handle_structures_and_data(structures, options, data=None, table=None):
             print(2 * "\n")
             print(marquee(" %s input for %s" % (options.format, data[i]["material_id"]), mark="#"))
         print("\n# " + str(structure).replace("\n", "\n# ") + "\n")
-        if options.format == "abivars":
-            print(structure.abi_string)
-        else:
-            print(structure.convert(fmt=options.format))
+        print(structure.convert(fmt=options.format))
         print(" ")
 
     return 0
@@ -55,37 +52,40 @@ def main():
         return """\
 Usage example:
 
-    abistruct.py spglib FILE                => Read structure from FILE and analyze it with spglib.
-    abistruct.py abispg FILE                => Read structure from FILE, extract ABINIT space-group info.
-    abistruct.py convert FILE cif           => Read the structure from FILE and print CIF file.
-    abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
-    abistruct.py convert out_HIST abivars   => Read the last structure from the HIST file and
-                                               print the corresponding ABINIT variables.
-    abistruct.py supercell FILE -s 2 2 1    => Read structure from FILE and build [2, 2, 1] supercell,
-                                               print new structure using --format (default abivars).
-    abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
-    abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
-    abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ with a 2,2,2 mesh,
-                                               print points in IBZ with weights.
-    abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
-                                               print Bilbao character table.
-    abistruct.py abisanitize FILE           => Read structure from FILE, call abisanitize, compare structures and save
-                                               "abisanitized" structure to file.
-    abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
-                                               following doi:10.1016/j.commatsci.2010.05.010
-    abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
-    abistruct.py xrd FILE                   => X-ray diffraction plot.
-    abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
-    abistruct.py ipython FILE               => Read structure from FILE and open Ipython terminal.
-    abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
-    abistruct.py pmgdata mp-149             => Get structure from materials project database and print its JSON representation.
-                                               Use e.g. `-f abivars` to change format.
-    abistruct.py mpd_match FILE             => Read structure from FILE and find matching structures on the Materials Project site.
-                                               Use e.g. `-f cif` to change output format.
-    abistruct.py mpd_search LiF             => Connect to the materials project database.
-                                               Get structures corresponding to a chemical system or formula e.g. Fe2O3 or Li-Fe-O
-                                               Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
+  abistruct.py spglib FILE                => Read structure from FILE and analyze it with spglib.
+  abistruct.py abispg FILE                => Read structure from FILE, extract ABINIT space-group info.
+  abistruct.py convert FILE cif           => Read the structure from FILE and output CIF file
+                                             (Use convert --help to get list of format supported)
+  abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
+  abistruct.py convert out_HIST abivars   => Read the last structure from the HIST file and
+                                             print the corresponding ABINIT variables.
+  abistruct.py supercell FILE -s 2 2 1    => Read structure from FILE and build [2, 2, 1] supercell,
+                                             print new structure using --format (default abivars).
+  abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
+  abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
+  abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ
+                                             with a 2,2,2 mesh, print points in IBZ with weights.
+  abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
+                                             print Bilbao character table.
+  abistruct.py abisanitize FILE           => Read structure from FILE, call abisanitize, compare structures
+                                             and save "abisanitized" structure to file.
+  abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
+                                             following doi:10.1016/j.commatsci.2010.05.010
+  abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
+  abistruct.py xrd FILE                   => X-ray diffraction plot.
+  abistruct.py oxistate FILE              => Estimate oxidation states with pymatgen bond valence analysis.
+  abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
+  abistruct.py ipython FILE               => Read structure from FILE and open it in the Ipython terminal.
+  abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
+  abistruct.py pmgdata mp-149             => Get structure from materials project database and print
+                                             JSON representation. Use e.g. `-f abivars` to change format.
+  abistruct.py mpd_match FILE             => Read structure from FILE and find matching structures on the
+                                             Materials Project site. Use e.g. `-f cif` to change output format.
+  abistruct.py mpd_search LiF             => Connect to the materials project database. Get structures corresponding
+                                             to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
+                                             Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
 
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 """
 
@@ -94,6 +94,8 @@ Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the 
         sys.stderr.write(str_examples())
         if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
+
+    supported_formats = '("abivars", "cif", "xsf", "poscar", "cssr", "json")'
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
@@ -140,7 +142,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
                                       help="Convert structure to the specified format.")
     p_convert.add_argument('format', nargs="?", default="cif", type=str,
-                           help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+                            help="Output format. Default: cif. Accept: %s" % supported_formats)
 
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
@@ -160,7 +162,7 @@ Has to be all integers. Several options are possible:
     """)
 
     p_supercell.add_argument("-f", '--format', default="abivars", type=str,
-                             help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+                             help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
     # Subparser for abisanitize
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
@@ -182,21 +184,21 @@ Has to be all integers. Several options are possible:
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
-
     p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
         "The wavelength can be specified as a string. It must be one of the "
         "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
         "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
-
     p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
         "Symmetry precision for structure refinement. "
         "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
-
     p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
         "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
-
     p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
                        help="Whether to annotate the peaks with plane information.")
+
+    # Subparser for oxistate.
+    p_oxistate = subparsers.add_parser('oxistate', parents=[copts_parser, path_selector],
+                                       help="Estimate oxidation states with pymatgen bond valence analysis.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
@@ -235,9 +237,9 @@ Has to be all integers. Several options are possible:
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
-                                        help="Visualize the structure with the specified visualizer")
+        help="Visualize the structure with the specified visualizer. Requires external app or optional python modules.")
     p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str, help=("Visualizer name. "
-        "List of visualizer supported: %s" % ", ".join(Visualizer.all_visunames())))
+        "Possible options: `%s`, `vtk`" % ", ".join(Visualizer.all_visunames())))
 
     # Options for commands accessing the materials project database.
     mpd_rest_parser = argparse.ArgumentParser(add_help=False)
@@ -250,13 +252,13 @@ Has to be all integers. Several options are possible:
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
     p_pmgdata.add_argument("-f", '--format', default="json", type=str,
-                           help="Format of the output file (cif, cssr, POSCAR, json, mson, abivars).")
+                           help="Output format. Default: json. Accept: %s" % supported_formats)
 
     # Subparser for mpd_match command.
     p_mpmatch = subparsers.add_parser('mpd_match', parents=[path_selector, mpd_rest_parser, copts_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpmatch.add_argument("-f", '--format', default="abivars", type=str,
-                          help="Format of the output file (abivars, cif, cssr, POSCAR, json, mson).")
+                          help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
     # Subparser for mpd_search command.
     p_mpdsearch = subparsers.add_parser('mpd_search', parents=[mpd_rest_parser, copts_parser],
@@ -264,11 +266,11 @@ Has to be all integers. Several options are possible:
     p_mpdsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
     p_mpdsearch.add_argument("-f", '--format', default="abivars", type=str,
-                              help="Format of the output file (abivars, cif, cssr, POSCAR, json, mson).")
+                              help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout")
+        help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
 
     # Parse command line.
     try:
@@ -276,7 +278,8 @@ Has to be all integers. Several options are possible:
     except Exception as exc:
         show_examples_and_exit(error_code=1)
 
-    if options.verbose > 1: print(options)
+    if not options.command:
+        show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
@@ -285,6 +288,8 @@ Has to be all integers. Several options are possible:
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
+
+    if options.verbose > 1: print(options)
 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
@@ -300,11 +305,7 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "convert":
         structure = abilab.Structure.from_file(options.filepath)
-
-        if options.format == "abivars":
-            print(structure.abi_string)
-        else:
-            print(structure.convert(fmt=options.format))
+        print(structure.convert(fmt=options.format))
 
     elif options.command == "supercell":
         structure = abilab.Structure.from_file(options.filepath)
@@ -317,11 +318,7 @@ Has to be all integers. Several options are possible:
 
         supcell = structure * options.scaling_matrix
         #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
-
-        if options.format == "abivars":
-            print(supcell.abi_string)
-        else:
-            print(supcell.convert(fmt=options.format))
+        print(supcell.convert(fmt=options.format))
 
     elif options.command == "abisanitize":
         print("\nCalling abi_sanitize to get a new structure in which:")
@@ -409,6 +406,9 @@ Has to be all integers. Several options are possible:
         structure.plot_xrd(wavelength=options.wavelength, two_theta_range=two_theta_range,
                            symprec=options.symprec, annotate_peaks=not options.no_annotate_peaks)
 
+    elif options.command == "oxistate":
+        print(abilab.Structure.from_file(options.filepath).get_oxi_state_decorated())
+
     elif options.command == "ipython":
         structure = abilab.Structure.from_file(options.filepath)
         print("Invoking Ipython, `structure` object will be available in the Ipython terminal")
@@ -478,12 +478,8 @@ Has to be all integers. Several options are possible:
         # Get the Structure corresponding the a material_id.
         structure = abilab.Structure.from_material_id(options.pmgid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
-
-        if options.format == "abivars":
-            print(structure.abi_string)
-        else:
-            # Convert to json and print it.
-            print(structure.convert(fmt=options.format))
+        # Convert to json and print it.
+        print(structure.convert(fmt=options.format))
 
     elif options.command == "mpd_match":
         structures = abilab.mpd_match_structure(options.filepath)

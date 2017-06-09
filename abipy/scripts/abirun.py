@@ -531,6 +531,9 @@ Specify the files to open. Possible choices:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
+    if options.verbose > 1:
+        print(options)
+
     # Documentation options that do not need a flow.
     # Print docs and exit immediately.
     if options.command == "doc_manager":
