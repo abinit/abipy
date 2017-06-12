@@ -22,29 +22,6 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.core.kpoints import Ktables
 
 
-def handle_mpstructures(mp, options):
-    structures = mp.structures
-    if not structures:
-        cprint("No structure found in database", "yellow")
-        return 1
-
-    print("\n# Found %s structures in materials project database (use -v to get full info)" % len(structures))
-    if mp.table is not None:
-        abilab.print_frame(mp.table)
-
-    if options.verbose and mp.data is not None:
-        pprint(mp.data)
-
-    for i, structure in enumerate(structures):
-        print(2 * "\n")
-        print(marquee(" %s input for %s" % (options.format, mp.mpids[i]), mark="#"))
-        print("\n# " + str(structure).replace("\n", "\n# ") + "\n")
-        print(structure.convert(fmt=options.format))
-        print(" ")
-
-    return 0
-
-
 @prof_main
 def main():
 
@@ -497,11 +474,17 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "mp_match":
         mp = abilab.mp_match_structure(options.filepath)
-        return handle_mpstructures(mp, options)
+        if not mp.structures:
+            cprint("No structure found in database", "yellow")
+            return 1
+        mp.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "mp_search":
         mp = abilab.mp_search(options.chemsys_formula_id)
-        return handle_mpstructures(mp, options)
+        if not mp.structures:
+            cprint("No structure found in database", "yellow")
+            return 1
+        mp.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "animate":
         filepath = options.filepath

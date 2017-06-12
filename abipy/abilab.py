@@ -3,6 +3,7 @@ This module gathers the most important classes and helper functions used for scr
 """
 from __future__ import print_function, division, unicode_literals
 
+import sys
 import os
 import collections
 
@@ -35,6 +36,7 @@ from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, 
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
+from abipy.tools.pandas import print_frame
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     frame_from_ebands)
@@ -200,25 +202,6 @@ def abiopen(filepath):
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
-
-
-def print_frame(frame, title=None, sortby=None):
-    """
-    Print entire pandas DataFrame.
-
-    Args:
-        frame: pandas DataFrame.
-        title: Optional string to print as initial title.
-        sortby: string name or list of names which refer to the axis items to be sorted (dataframe is not changed)
-    """
-    if title is not None: print(title)
-    if sortby is not None:
-        frame = frame.sort_values(sortby, inplace=False)
-    import pandas as pd
-    with pd.option_context('display.max_rows', len(frame),
-                           'display.max_columns', len(list(frame.keys()))):
-        print(frame)
-    print()
 
 
 def display_structure(obj, **kwargs):

@@ -366,15 +366,18 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         if differ == "html":
             return HtmlDiff(tmp_names).open_browser()
         else:
-            return os.system("%s %s %s" % (differ, *tmp_names))
+            return os.system("%s %s %s" % (differ, tmp_names[0], tmp_names[1]))
 
     def to_string(self, verbose=0):
         lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
         app = lines.append
 
+        # Different cases depending whether final structures are available
+        # and whether structures are equivalent.
         if self.run_completed:
             if self.has_same_final_structures:
                 if self.initial_structure != self.final_structure:
+                    # Structural relaxation.
                     df = frames_from_structures([self.initial_structure, self.final_structure],
                                                 index=["initial", "final"])
                     app("Lattice parameters:")
@@ -382,8 +385,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     app("Atomic coordinates:")
                     app(str(df.coords))
                 else:
+                    # initial == final. Print final structure.
                     app(self.final_structure.to_string(verbose=verbose))
         else:
+            # Final structures are not available.
             if self.has_same_initial_structures:
                 app(self.initial_structure.to_string(verbose=verbose))
             else:
@@ -563,7 +568,6 @@ class OutNcFile(AbinitNcFile):
             if v is not None: continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
-
 
 #def validate_output_parser(abitests_dir=None, output_files=None):
 #    """

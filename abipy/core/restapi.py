@@ -4,8 +4,11 @@ the creation of data structures and pymatgen objects using Materials Project dat
 """
 from __future__ import division, unicode_literals, print_function, division
 
+import sys
+
 from collections import OrderedDict
 from monty.functools import lazy_property
+from monty.string import marquee
 from pymatgen import SETTINGS
 from pymatgen.matproj.rest import MPRester, MPRestError
 
@@ -20,7 +23,6 @@ MP_KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
 
 
 class MyMPRester(MPRester):
-
     Error = MPRestError
 
 
@@ -51,20 +53,21 @@ class MpStructures(object):
     """Store the results of a query to the MP database."""
 
     def __init__(self, structures, mpids, data=None):
-	"""
-	Args:
-	    structures: List of structure objects
-	    mpids: List of MaterialsProject ids.
-	    data: List of dictionaries with data associated to the structures (optional).
+        """
+        Args:
+            structures: List of structure objects
+            mpids: List of MaterialsProject ids.
+            data: List of dictionaries with data associated to the structures (optional).
 	"""
         self.structures, self.mpids = structures, mpids
         self.data = data
 
     @lazy_property
     def table(self):
-	"""Pandas dataframe constructed from self.data. None if data is not available."""
+        """Pandas dataframe constructed from self.data. None if data is not available."""
         if self.data is None: return None
         import pandas as pd
+
         rows = []
         for d in self.data:
             d = Dotdict(d)
@@ -72,9 +75,30 @@ class MpStructures(object):
             table = pd.DataFrame(rows, index=[r["material_id"] for r in rows],
                                  columns=list(rows[0].keys()))
 
-    #def __str__(self):
-    #    lines = []
-    #    return "\n".join(lines)
+        return table
+
+    def print_results(self, fmt="abivars", verbose=0, file=sys.stdout):
+        """
+        Print pandas dataframe, structures using format `fmt, and data to file `file`.
+        """
+        print("\n# Found %s structures in materials project database (use `verbose` to get full info)"
+                % len(self.structures), file=file)
+
+        if self.table is not None:
+            from abipy.tools.pandas import print_frame
+            print_frame(self.table, file=file)
+
+        if verbose and self.data is not None:
+            from pprint import pprint
+            pprint(self.data, stream=file)
+
+        for i, structure in enumerate(self.structures):
+            print(2 * "\n", file=file)
+            print(marquee(" %s input for %s" % (fmt, self.mpids[i]), mark="#"), file=file)
+            print("\n# " + str(structure).replace("\n", "\n# ") + "\n", file=file)
+            print(structure.convert(fmt=fmt), file=file)
+            print(" ", file=file)
+
 
 
 class Dotdict(dict):
