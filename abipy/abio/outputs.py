@@ -4,16 +4,24 @@ Objects used to extract and plot results from output files in text format.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
+import numpy as np
 
+from collections import OrderedDict
 from monty.string import is_string
-from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
-from abipy.abio.timer import AbinitTimerParser
+from monty.functools import lazy_property
+from pymatgen.core.units import bohr_to_ang
+from abipy.core.structure import Structure, frames_from_structures, AbinitSpaceGroup
+from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
+from abipy.abio.inputs import GEOVARS
+from abipy.abio.timer import AbinitTimerParser
+from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
 
 
 class AbinitTextFile(TextFile):
-    """Class for the ABINIT main output file and the log file."""
-
+    """
+    Class for the ABINIT main output file and the log file.
+    """
     @property
     def events(self):
         """
@@ -53,18 +61,340 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
 
 
 class AbinitOutputFile(AbinitTextFile, NotebookWriter):
-    """Class representing the main output file."""
+    """
+    Class representing the main Abinit output file.
+    """
 
     def __init__(self, filepath):
         super(AbinitOutputFile, self).__init__(filepath)
+        self._parse()
 
-        # TODO: Parse header to get important dimensions and variables
-        #ndtset
-        #offset_dataset
-        #dims_dataset
-        #vars_dataset
-        #pseudos
-        #self.seek(0)
+    def _parse(self):
+        """
+        header: String with the input variables
+        footer: String with the output variables
+        datasets: List of strings with the output of the i-th dataset (python index)
+        """
+        # Get code version and find magic line signaling that the output file is completed.
+        self.version, self.run_completed = None, False
+        with open(self.filepath) as fh:
+            for line in fh:
+                if self.version is None and line.startswith(".Version"):
+                    self.version = line.split()[1]
+                if " Calculation completed." in line:
+                    self.run_completed = True
+                    break
+
+        # Parse header to get important dimensions and variables
+        self.header, self.footer, self.datasets = [], [], []
+        where = "in_header"
+        verbose = 0
+
+        with open(self.filepath, "rt") as fh:
+            for line in fh:
+                if "== DATASET" in line:
+                    # Save dataset number
+                    # == DATASET  1 ==================================================================
+                    where = int(line.replace("=", "").split()[-1])
+                    self.datasets.append([])
+                elif "== END DATASET(S) " in line:
+                    where = "in_footer"
+
+                if where == "in_header":
+                    self.header.append(line)
+                elif where == "in_footer":
+                    self.footer.append(line)
+                else:
+                    self.datasets[-1].append(line)
+
+        self.header = "".join(self.header)
+        if verbose:
+            print("header")
+            print(self.header)
+
+        for i, data in enumerate(self.datasets):
+            if verbose: print("data")
+            self.datasets[i] = "".join(data)
+            if verbose: print(self.datasets[i])
+
+        self.footer = "".join(self.footer)
+        if verbose:
+            print("footer")
+            print(self.footer)
+
+        self.ndtset = len(self.datasets)
+        self.initial_vars_global, self.initial_vars_dataset = self._parse_variables("header")
+        self.final_vars_global, self.final_vars_dataset = None, None
+        if self.run_completed:
+            self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
+
+    def _parse_variables(self, what):
+        vars_global = OrderedDict()
+        vars_dataset = [OrderedDict() for _ in range(self.ndtset)]
+
+        lines = getattr(self, what).splitlines()
+        if what == "header":
+            magic_start = " -outvars: echo values of preprocessed input variables --------"
+        else:
+            magic_start = " -outvars: echo values of variables after computation  --------"
+        magic_stop = "================================================================================"
+
+        # Select relevant portion with variables.
+        for i, line in enumerate(lines):
+            if magic_start in line:
+                break
+        else:
+            raise ValueError("Cannot find magic_start line: %s" % magic_start)
+        lines = lines[i+1:]
+
+        for i, line in enumerate(lines):
+            if magic_stop in line:
+                break
+        else:
+            raise ValueError("Cannot find magic_stop line: %s" % magic_stop)
+        lines = lines[:i]
+
+        # Parse data. Assume format:
+        #   timopt          -1
+        #    tnons      0.0000000  0.0000000  0.0000000     0.2500000  0.2500000  0.2500000
+        #               0.0000000  0.0000000  0.0000000     0.2500000  0.2500000  0.2500000
+        def get_dtindex_key_value(line):
+            tokens = line.split()
+            s, value = tokens[0], " ".join(tokens[1:])
+            l = []
+            for i, c in enumerate(s[::-1]):
+                if c.isalpha():
+                    key = s[:len(s)-i]
+                    break
+                l.append(c)
+            else:
+                raise ValueError("Cannot find dataset index in token: %s" % s)
+
+            # Note F --> C index.
+            #print(line, "\n", l)
+            dtindex = None
+            if l:
+                l.reverse()
+                dtindex = int("".join(l)) - 1
+            return dtindex, key, value
+
+        # (varname, dtindex), [line1, line2 ...]
+        stack_var, stack_lines = None, []
+        def pop_stack():
+            if stack_lines:
+                key, dtidx = stack_var
+                value = " ".join(stack_lines)
+                if dtidx is None:
+                    vars_global[key] = value
+                else:
+                    vars_dataset[dtidx][key] = value
+
+        for line in lines:
+            if not line: continue
+            # Ignore first char
+            line = line[1:].lstrip().rstrip()
+            #print(line)
+            if line[0].isalpha():
+                pop_stack()
+                stack_lines = []
+                dtidx, key, value = get_dtindex_key_value(line)
+                stack_var = (key, dtidx)
+                stack_lines.append(value)
+            else:
+                stack_lines.append(line)
+
+        pop_stack()
+
+        return vars_global, vars_dataset
+
+    def _get_structures(self, what):
+        if what == "header":
+            vars_global, vars_dataset = self.initial_vars_global, self.initial_vars_dataset
+        else:
+            vars_global, vars_dataset = self.final_vars_global, self.final_vars_dataset
+
+        #print("global", vars_global["acell"])
+        from abipy.abio.abivars import is_abiunit
+        inigeo = {k: vars_global[k] for k in GEOVARS if k in vars_global}
+
+        spgvars = ("spgroup", "symrel", "tnons", "symafm")
+        spgd_global = {k: vars_global[k] for k in spgvars if k in vars_global}
+        global_kptopt = vars_global.get("kptopt", 1)
+
+        structures = []
+        for i in range(self.ndtset):
+            # This code breaks down if there are conflicting GEOVARS in globals and dataset.
+            d = inigeo.copy()
+            d.update({k: vars_dataset[i][k] for k in GEOVARS if k in vars_dataset[i]})
+
+            for key, value in d.items():
+                # Must handle possible unit.
+                fact = 1.0
+                tokens = [t.lower() for t in value.split()]
+                if is_abiunit(tokens[-1]):
+                    tokens, unit = tokens[:-1], tokens[-1]
+                    if unit in ("angstr", "angstrom", "angstroms"):
+                        fact = 1.0 / bohr_to_ang
+                    elif unit in ("bohr", "bohrs", "au"):
+                        fact = 1.0
+                    else:
+                        raise ValueError("Don't know how to handle unit: %s" % unit)
+
+                s = " ".join(tokens)
+                dtype = np.float if key not in ("ntypat", "typat", "natom") else np.int
+                try:
+                    #print(key, s)
+                    value = np.fromstring(s, sep=" ", dtype=dtype)
+                    #print(key, value)
+                    if fact != 1.0: value *= fact # Do not change integer arrays e.g typat!
+                    d[key] = value
+                except ValueError as exc:
+                    print(key, s)
+                    raise exc
+
+            #print(d)
+            abistr = Structure.from_abivars(d)
+
+            # Extract Abinit spacegroup.
+            spgd = spgd_global.copy()
+            spgd.update({k: vars_dataset[i][k] for k in spgvars if k in vars_dataset[i]})
+            try:
+                spgid = int(spgd["spgroup"])
+                symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=np.int), (-1, 3, 3))
+                nsym = len(symrel)
+                #assert nsym == spgd["nsym"]; print(symrel.shape)
+                tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=np.float), (-1, 3))
+                if "symafm" in spgd:
+                    symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=np.int)
+                else:
+                    symafm = np.ones(nsym, dtype=np.int)
+                has_timerev = True
+
+                has_timerev = has_timrev_from_kptopt(vars_dataset[i].get("kptopt", global_kptopt))
+                abi_spacegroup = AbinitSpaceGroup(spgid, symrel, tnons, symafm, has_timerev, inord="C")
+                abistr.set_abi_spacegroup(abi_spacegroup)
+            except Exception as exc:
+                print("Cannot build AbinitSpaceGroup from the variables reported in file!\n", str(exc))
+
+            structures.append(abistr)
+
+        return structures
+
+    @lazy_property
+    def initial_structures(self):
+        """List of initial structures."""
+        return self._get_structures("header")
+
+    @property
+    def has_same_initial_structures(self):
+        """True if all initial structures are equal."""
+        return all(self.initial_structures[0] == s for s in self.initial_structures)
+
+    @lazy_property
+    def final_structures(self):
+        """List of final structures."""
+        if self.run_completed:
+            return self._get_structures("footer")
+        else:
+            print("Cannot extract final structures from file.\n %s" % str(exc))
+            return []
+
+    @lazy_property
+    def initial_structure(self):
+        """
+        The structure defined in the output file.
+
+        If the input file contains multiple datasets **AND** the datasets
+        have different structures, this property returns None.
+        In this case, one has to access the structure of the individual datasets.
+        For example:
+
+            self.initial_structures[0]
+
+        gives the structure of the first dataset.
+        """
+        if not self.has_same_initial_structures:
+            print("Datasets have different structures. Returning None. Use initial_structures[0]")
+            return None
+        return self.initial_structures[0]
+
+    @property
+    def has_same_final_structures(self):
+        """True if all initial structures are equal."""
+        return all(self.final_structures[0] == s for s in self.final_structures)
+
+    @lazy_property
+    def final_structure(self):
+        """
+        The structure defined in the output file.
+
+        If the input file contains multiple datasets **AND** the datasets
+        have different structures, this property returns None.
+        In this case, one has to access the structure of the individual datasets.
+        For example:
+
+            self.final_structures[0]
+
+        gives the structure of the first dataset.
+        """
+        if not self.has_same_final_structures:
+            print("Datasets have different structures. Returning None. Use final_structures[0]")
+            return None
+        return self.final_structures[0]
+
+    def diff_datasets(self, dt_list1, dt_list2, with_params=True, differ="html"):
+        if not isinstance(dt_list1, (list, tuple)):
+            dt_list1 = [dt_list1]
+        if not isinstance(dt_list2, (list, tuple)):
+            dt_list2 = [dt_list2]
+
+        dt_lists = [dt_list1, dt_list2]
+        import tempfile
+        tmp_names = []
+        for i in range(2):
+            _, tmpname = tempfile.mkstemp(text=True)
+            tmp_names.append(tmpname)
+            with open(tmpname, "wt") as fh:
+                if with_params:
+                    fh.write(self.header)
+                for idt in dt_lists[i]:
+                    fh.write(self.datasets[idt])
+                if with_params:
+                    fh.write(self.footer)
+
+        from abipy.tools.devtools import HtmlDiff
+        if differ == "html":
+            return HtmlDiff(tmp_names).open_browser()
+        else:
+            return os.system("%s %s %s" % (differ, *tmp_names))
+
+    def to_string(self, verbose=0):
+        lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
+        app = lines.append
+
+        if self.run_completed:
+            if self.has_same_final_structures:
+                if self.initial_structure != self.final_structure:
+                    df = frames_from_structures([self.initial_structure, self.final_structure],
+                                                index=["initial", "final"])
+                    app("Lattice parameters:")
+                    app(str(df.lattice))
+                    app("Atomic coordinates:")
+                    app(str(df.coords))
+                else:
+                    app(self.final_structure.to_string(verbose=verbose))
+        else:
+            if self.has_same_initial_structures:
+                app(self.initial_structure.to_string(verbose=verbose))
+            else:
+                df = frames_from_structures(self.initial_structures,
+                                            index=[i+1 for i in range(self.ndtset)])
+                app("Lattice parameters:")
+                app(str(df.lattice))
+                app("Atomic coordinates:")
+                app(str(df.coords))
+
+        return "\n".join(lines)
 
     def next_gs_scf_cycle(self):
         """
@@ -233,3 +563,76 @@ class OutNcFile(AbinitNcFile):
             if v is not None: continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
+
+
+#def validate_output_parser(abitests_dir=None, output_files=None):
+#    """
+#    validate/test Abinit output parser.
+#
+#    Args:
+#        dirpath: Abinit tests directory.
+#        output_files: List of Abinit output files.
+#
+#    Return: Exit code.
+#    """
+#    def is_abinit_output(path):
+#        """
+#        True if path is one of the output files used in the Abinit Test suite.
+#        """
+#        if path.endswith(".abo"): return True
+#        if not path.endswith(".io"): return False
+#
+#        with open(path, "rt") as fh:
+#            for line in fh:
+#                if "executable" in line and "abinit" in line: return True
+#            return False
+#
+#    # Files are collected in paths.
+#    paths = []
+#
+#    if abitests_dir is not None:
+#        print("Analyzing directory %s for input files" % abitests_dir)
+#
+#        for dirpath, dirnames, filenames in os.walk(abitests_dir):
+#            for fname in filenames:
+#                path = os.path.join(dirpath, fname)
+#                if is_abinit_output(path): paths.append(path)
+#
+#    if output_files is not None:
+#        print("Analyzing files ", str(output_files))
+#        for arg in output_files:
+#            if is_abinit_output(arg): paths.append(arg)
+#
+#    nfiles = len(paths)
+#    if nfiles == 0:
+#        cprint("Empty list of input files.", "red")
+#        return 0
+#
+#    print("Found %d Abinit output files" % len(paths))
+#    errpaths = []
+#    for path in paths:
+#        print(path + ": ", end="")
+#        try:
+#            out = AbinitOutputFile.from_file(path)
+#            s = str(out)
+#            cprint("OK", "green")
+#        except Exception as exc:
+#            if not isinstance(exc, NotImplementedError):
+#                cprint("FAILED", "red")
+#                errpaths.append(path)
+#                import traceback
+#                print(traceback.format_exc())
+#                #print("[%s]: Exception:\n%s" % (path, str(exc)))
+#                #with open(path, "rt") as fh:
+#                #    print(10*"=" + "Input File" + 10*"=")
+#                #    print(fh.read())
+#                #    print()
+#
+#    if errpaths:
+#        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
+#        for i, epath in enumerate(errpaths):
+#            cprint("[%d] %s" % (i, epath), "red")
+#    else:
+#        cprint("All input files successfully parsed!", "green")
+#
+#    return len(errpaths)

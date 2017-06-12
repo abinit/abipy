@@ -71,7 +71,8 @@ from abipy import abilab"""),
             print("%d %s" % (i, p))
         print()
         abilab.print_frame(dfs.lattice, title="Lattice parameters:")
-        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+        if options.verbose:
+            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
     return 0
 
@@ -108,6 +109,31 @@ def compare_structures(options):
         pprint(m.as_dict())
 
 
+def abicomp_mp_structure(options):
+    """
+    Compare the crystalline structure(s) read from FILE with the one(s)
+    reported in the materials project database.
+    """
+    structures = [abilab.Structure.from_file(p) for p in options.paths]
+    mpres = [abilab.mp_search(struct.composition.formula) for struct in structures]
+
+    retcode = 0
+    for this_structure, r in zip(structures, mpres):
+        if r.structures:
+            print()
+            dfs = abilab.frames_from_structures(r.structures + [this_structure], index=r.mpids + ["this"])
+            abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
+            if options.verbose:
+                abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):", sortby="spglib_num")
+            print()
+
+        else:
+            print("Couldn't find pymatgen database entries with formula `%s`" % this_structure.composition.formula)
+            retcode += 1
+
+    return retcode
+
+
 def abicomp_xrd(options):
     """
     Compare X-ray diffraction plots (requires FILES with structure).
@@ -120,7 +146,8 @@ def abicomp_xrd(options):
 
     dfs = abilab.frames_from_structures(structures, index=[os.path.relpath(p) for p in options.paths])
     abilab.print_frame(dfs.lattice, title="Lattice parameters:")
-    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+    if options.verbose:
+        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
     from pymatgen.analysis.diffraction.xrd import XRDCalculator
     two_theta_range = tuple(float(t) for t in options.two_theta_range)
@@ -282,9 +309,9 @@ def abicomp_attr(options):
         with abilab.abiopen(p) as abifile:
             if options.show:
                 print("List of attributes available in %s" % p)
-
                 pprint(dir(abifile))
                 return 0
+
             print(getattr(abifile, attr_name), "   # File: ", p)
 
 
@@ -321,16 +348,46 @@ def abicomp_mdf(options):
     return _invoke_robot(options)
 
 
-#def abicomp_pseudos(options):
-#    paths = options.paths
-#    index = [os.path.relpath(p) for p in paths]
-#    frame = abilab.frame_from_pseudos(paths, index=None)
-#    print("File list:")
-#    for i, p in enumerate(paths):
-#        print("%d %s" % (i, p))
-#    print()
-#    abilab.print_frame(frame)
-#    return 0
+def dataframe_from_pseudos(pseudos, index=None):
+    """
+    Build pandas dataframe with the most important info associated to
+    a list of pseudos or a list of objects that can be converted into pseudos.
+
+    Args:
+        pseudos: List of objects that can be converted to pseudos.
+        index: Index of the dataframe.
+
+    Return:
+        pandas Dataframe.
+    """
+    from abipy.flowtk import PseudoTable
+    pseudos = PseudoTable.as_table(pseudos)
+
+    import pandas as pd
+    from collections import OrderedDict
+    attname = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
+    rows = []
+    for p in pseudos:
+        row = OrderedDict([(k, getattr(p, k, None)) for k in attname])
+        row["ecut_normal"], row["pawecutdg_normal"] = None, None
+        if p.has_hints:
+            hint = p.hint_for_accuracy(accuracy="normal")
+            row["ecut_normal"] = hint.ecut
+            if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
+        rows.append(row)
+
+    return pd.DataFrame(rows, index=index,
+                        columns=list(rows[0].keys()) if rows else None)
+
+
+def abicomp_pseudos(options):
+    """"Compare multiple pseudos Print table to terminal."""
+    # Make sure entries in index are unique.
+    index = [os.path.basename(p) for p in options.paths]
+    if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
+    df = dataframe_from_pseudos(options.paths, index=index)
+    print(abilab.print_frame(df, sortby="Z_val"))
+    return 0
 
 
 def _invoke_robot(options):
@@ -409,6 +466,14 @@ def abicomp_dfpt2_scf(options):
     return 0
 
 
+def abicomp_text(options):
+    """
+    Compare 2+ text files in the browser
+    """
+    from abipy.tools.devtools import HtmlDiff
+    return HtmlDiff(options.paths).open_browser(diffmode=options.diffmode)
+
+
 def abicomp_time(options):
     """
     Analyze/plot the timing data of single or multiple runs.
@@ -469,6 +534,8 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
                                                      Use `--group` to compare for similarity
+  abicomp.py mp_structure FILE(s)                 => Compare structure(s) read from FILE(s) with the one(s)
+                                                     given in the materials project database.
   abicomp.py xrd *.cif *.GSR.nc                   => Compare X-ray diffraction plots (requires FILES with structure).
   abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
@@ -481,6 +548,7 @@ Usage example:
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
   abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
+  abicomp.py text run1.abo run2.abo               => Compare 2+ output files in the browser.
   abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
   abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
@@ -497,6 +565,7 @@ Directories will be scanned recursively to find files with the extension associa
 Use --no-walk to ignore sub-directories when robots are used.
 
 Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -513,7 +582,7 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
                               help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
+                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
@@ -538,6 +607,8 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
     p_struct.add_argument("-g", "--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
                           help="Whether to use anonymous mode in StructureMatcher. Default False")
+
+    p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser], help=abicomp_mp_structure.__doc__)
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
@@ -594,7 +665,7 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
 
     # Subparser for pseudos command.
-    #p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser, ipy_parser], help=abicomp_pseudos.__doc__)
+    p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
@@ -606,6 +677,11 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
 
     # Subparser for dfpt2_scf command.
     p_dftp2_scf = subparsers.add_parser('dfpt2_scf', parents=[copts_parser], help=abicomp_dfpt2_scf.__doc__)
+
+    # Subparser for text command.
+    p_text = subparsers.add_parser('text', parents=[copts_parser], help=abicomp_text.__doc__)
+    p_text.add_argument("-d", "--diffmode", default="difflib", help=("Select diff application. "
+        "Possible values: difflib (default), pygmentize (requires package)."))
 
     # Parse the command line.
     try:

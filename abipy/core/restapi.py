@@ -4,25 +4,24 @@ the creation of data structures and pymatgen objects using Materials Project dat
 """
 from __future__ import division, unicode_literals, print_function, division
 
+from collections import OrderedDict
+from monty.functools import lazy_property
 from pymatgen import SETTINGS
 from pymatgen.matproj.rest import MPRester, MPRestError
 
-_MPD_DEFAULT_ENDPOINT = "https://www.materialsproject.org/rest/v2"
+
+MP_DEFAULT_ENDPOINT = "https://www.materialsproject.org/rest/v2"
+
+MP_KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
+                         "formation_energy_per_atom", "nsites", "volume",
+                         "spacegroup.symbol", "spacegroup.number",
+                         "band_gap", "total_magnetization", "material_id")
+                         # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
 
 
 class MyMPRester(MPRester):
 
     Error = MPRestError
-
-    KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
-                          "formation_energy_per_atom", "nsites", "volume",
-                          "spacegroup.symbol", "spacegroup.number",
-                          "band_gap", "total_magnetization", "material_id")
-                          # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
-
-    @staticmethod
-    def to_dotdict(d):
-        return Dotdict(**d)
 
 
 def get_mprester(api_key=None, endpoint=None):
@@ -44,8 +43,38 @@ def get_mprester(api_key=None, endpoint=None):
         if api_key is None:
             raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
 
-    if endpoint is None: endpoint = _MPD_DEFAULT_ENDPOINT
+    if endpoint is None: endpoint = MP_DEFAULT_ENDPOINT
     return MyMPRester(api_key=api_key, endpoint=endpoint)
+
+
+class MpStructures(object):
+    """Store the results of a query to the MP database."""
+
+    def __init__(self, structures, mpids, data=None):
+	"""
+	Args:
+	    structures: List of structure objects
+	    mpids: List of MaterialsProject ids.
+	    data: List of dictionaries with data associated to the structures (optional).
+	"""
+        self.structures, self.mpids = structures, mpids
+        self.data = data
+
+    @lazy_property
+    def table(self):
+	"""Pandas dataframe constructed from self.data. None if data is not available."""
+        if self.data is None: return None
+        import pandas as pd
+        rows = []
+        for d in self.data:
+            d = Dotdict(d)
+            rows.append(OrderedDict([(k, d.dotget(k, default=None)) for k in MP_KEYS_FOR_DATAFRAME]))
+            table = pd.DataFrame(rows, index=[r["material_id"] for r in rows],
+                                 columns=list(rows[0].keys()))
+
+    #def __str__(self):
+    #    lines = []
+    #    return "\n".join(lines)
 
 
 class Dotdict(dict):

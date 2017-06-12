@@ -14,7 +14,7 @@ class AbinitLogFileTest(AbipyTest):
         """"Testing AbinitLogFile."""
         log_path = abidata.ref_file("refs/abinit.log")
         with AbinitLogFile(log_path) as abilog:
-            str(abilog)
+            repr(abilog); str(abilog)
             assert len(abilog.events) == 2
             if self.has_nbformat():
                 abilog.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -26,7 +26,17 @@ class AbinitOutputTest(AbipyTest):
         """Testing AbinitOutputFile with GS calculation."""
         abo_path = abidata.ref_file("refs/si_ebands/run.abo")
         with AbinitOutputFile(abo_path) as gs_abo:
-            print(gs_abo)
+            repr(gs_abo); str(gs_abo)
+
+            assert gs_abo.version == "8.0.6"
+            assert gs_abo.run_completed
+            assert gs_abo.ndtset == 2
+            assert gs_abo.has_same_initial_structures
+            assert gs_abo.has_same_final_structures
+            assert len(gs_abo.initial_structures) == 2
+            assert gs_abo.initial_structure is not None
+            assert gs_abo.initial_structure == gs_abo.final_structure
+
             print(gs_abo.events)
             gs_cycle = gs_abo.next_gs_scf_cycle()
             assert gs_cycle is not None
@@ -37,7 +47,7 @@ class AbinitOutputTest(AbipyTest):
 
             timer = gs_abo.get_timer()
             assert len(timer) == 1
-            str(timer.summarize())
+            assert str(timer.summarize())
 
             if self.has_matplotlib():
                 gs_abo.compare_gs_scf_cycles([abo_path], show=False)
@@ -51,10 +61,19 @@ class AbinitOutputTest(AbipyTest):
         """Testing AbinitOutputFile with phonon calculations."""
         abo_path = abidata.ref_file("refs/gs_dfpt.abo")
         with AbinitOutputFile(abo_path) as abo:
-             str(abo)
+             repr(abo); str(abo)
+
+             assert abo.version == "8.3.2"
+             assert abo.run_completed
+             assert abo.ndtset == 3
+             assert abo.has_same_initial_structures
+             assert abo.has_same_final_structures
+             assert len(abo.initial_structures) == 3
+             assert abo.initial_structure is not None
+             assert abo.initial_structure == abo.final_structure
+
              gs_cycle = abo.next_gs_scf_cycle()
              assert gs_cycle is not None
-             #abo.seek(0)
              ph_cycle = abo.next_d2de_scf_cycle()
              assert ph_cycle is not None
              if self.has_matplotlib():

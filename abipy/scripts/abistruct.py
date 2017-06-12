@@ -22,22 +22,22 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.core.kpoints import Ktables
 
 
-def handle_structures_and_data(structures, options, data=None, table=None):
+def handle_mpstructures(mp, options):
+    structures = mp.structures
     if not structures:
         cprint("No structure found in database", "yellow")
         return 1
 
     print("\n# Found %s structures in materials project database (use -v to get full info)" % len(structures))
-    if table is not None:
-        abilab.print_frame(table)
+    if mp.table is not None:
+        abilab.print_frame(mp.table)
 
-    if data is not None and options.verbose:
-        pprint(data)
+    if options.verbose and mp.data is not None:
+        pprint(mp.data)
 
     for i, structure in enumerate(structures):
-        if data is not None:
-            print(2 * "\n")
-            print(marquee(" %s input for %s" % (options.format, data[i]["material_id"]), mark="#"))
+        print(2 * "\n")
+        print(marquee(" %s input for %s" % (options.format, mp.mpids[i]), mark="#"))
         print("\n# " + str(structure).replace("\n", "\n# ") + "\n")
         print(structure.convert(fmt=options.format))
         print(" ")
@@ -63,6 +63,8 @@ Usage example:
                                              print new structure using --format (default abivars).
   abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
   abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
+  abistruct.py ngkpt FILE -n 4            => Compute `ngkpt` and `shiftk` from the number of divisions used to sample
+                                             the smallest reciprocal lattice vector.
   abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ
                                              with a 2,2,2 mesh, print points in IBZ with weights.
   abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
@@ -74,19 +76,20 @@ Usage example:
   abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
   abistruct.py xrd FILE                   => X-ray diffraction plot.
   abistruct.py oxistate FILE              => Estimate oxidation states with pymatgen bond valence analysis.
-  abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, ...)
+  abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, vtk, --help)
   abistruct.py ipython FILE               => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
   abistruct.py pmgdata mp-149             => Get structure from materials project database and print
                                              JSON representation. Use e.g. `-f abivars` to change format.
-  abistruct.py mpd_match FILE             => Read structure from FILE and find matching structures on the
+  abistruct.py mp_match FILE              => Read structure from FILE and find matching structures on the
                                              Materials Project site. Use e.g. `-f cif` to change output format.
-  abistruct.py mpd_search LiF             => Connect to the materials project database. Get structures corresponding
+  abistruct.py mp_search Li F             => Connect to the materials project database. Get structures corresponding
                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -124,7 +127,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
@@ -218,6 +221,14 @@ Has to be all integers. Several options are possible:
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
                                  help="Read structure from file, plot Brillouin zone with matplotlib.")
 
+    # Subparser for ngkpt.
+    p_ngkpt = subparsers.add_parser('ngkpt', parents=[copts_parser, path_selector],
+                                 help="Return the Abinit k-point sampling variables "
+                                      "from the number of divisions used to sample the smallest "
+                                      "lattive vector of the reciprocal lattice.")
+    p_ngkpt.add_argument("-n", "--nksmall", required=True, type=int,
+                         help="Number of divisions used to sample the smallest reciprocal lattice vector.")
+
     # Subparser for kmesh.
     p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
                                     help=("Read structure from filepath, call spglib to sample the BZ,"
@@ -242,31 +253,31 @@ Has to be all integers. Several options are possible:
         "Possible options: `%s`, `vtk`" % ", ".join(Visualizer.all_visunames())))
 
     # Options for commands accessing the materials project database.
-    mpd_rest_parser = argparse.ArgumentParser(add_help=False)
-    mpd_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
-    mpd_rest_parser.add_argument("--endpoint", help="Pymatgen database.",
+    mp_rest_parser = argparse.ArgumentParser(add_help=False)
+    mp_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+    mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.",
                                  default="https://www.materialsproject.org/rest/v2")
 
     # Subparser for pmgdata command.
-    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser, mpd_rest_parser],
+    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser, mp_rest_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
-    p_pmgdata.add_argument("pmgid", type=str, default=None, help="Pymatgen identifier")
+    p_pmgdata.add_argument("mpid", type=str, default=None, help="Pymatgen identifier")
     p_pmgdata.add_argument("-f", '--format', default="json", type=str,
                            help="Output format. Default: json. Accept: %s" % supported_formats)
 
-    # Subparser for mpd_match command.
-    p_mpmatch = subparsers.add_parser('mpd_match', parents=[path_selector, mpd_rest_parser, copts_parser],
+    # Subparser for mp_match command.
+    p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser],
                                       help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpmatch.add_argument("-f", '--format', default="abivars", type=str,
-                          help="Output format. Default: abivars. Accept: %s" % supported_formats)
+                           help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
-    # Subparser for mpd_search command.
-    p_mpdsearch = subparsers.add_parser('mpd_search', parents=[mpd_rest_parser, copts_parser],
-                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
-    p_mpdsearch.add_argument("chemsys_formula_id", type=str, default=None,
+    # Subparser for mp_search command.
+    p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser],
+                                        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+    p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
-    p_mpdsearch.add_argument("-f", '--format', default="abivars", type=str,
-                              help="Output format. Default: abivars. Accept: %s" % supported_formats)
+    p_mpsearch.add_argument("-f", '--format', default="abivars", type=str,
+                            help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
@@ -292,8 +303,7 @@ Has to be all integers. Several options are possible:
     if options.verbose > 1: print(options)
 
     if options.command == "spglib":
-        structure = abilab.Structure.from_file(options.filepath)
-        print(structure.spget_summary(verbose=options.verbose))
+        print(abilab.Structure.from_file(options.filepath).spget_summary(verbose=options.verbose))
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
@@ -304,8 +314,7 @@ Has to be all integers. Several options are possible:
         print(spgrp)
 
     elif options.command == "convert":
-        structure = abilab.Structure.from_file(options.filepath)
-        print(structure.convert(fmt=options.format))
+        print(abilab.Structure.from_file(options.filepath).convert(fmt=options.format))
 
     elif options.command == "supercell":
         structure = abilab.Structure.from_file(options.filepath)
@@ -397,8 +406,7 @@ Has to be all integers. Several options are possible:
             conv.to(filename=options.savefile)
 
     elif options.command == "neighbors":
-        structure = abilab.Structure.from_file(options.filepath)
-        structure.print_neighbors(radius=options.radius)
+        abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
 
     elif options.command == "xrd":
         structure = abilab.Structure.from_file(options.filepath)
@@ -438,8 +446,14 @@ Has to be all integers. Several options are possible:
             print("    %.5f  %.5f  %.5f" % tuple(k.frac_coords), "#", k.name)
 
     elif options.command == "bz":
-        structure = abilab.Structure.from_file(options.filepath)
-        structure.show_bz()
+        abilab.Structure.from_file(options.filepath).plot_bz()
+
+    elif options.command == "ngkpt":
+        d = abilab.Structure.from_file(options.filepath).calc_ksampling(options.nksmall)
+        print("ngkpt %d %d %d" % (d.ngkpt[0], d.ngkpt[1], d.ngkpt[2]))
+        print("nshiftk ", len(d.shiftk), "\nshiftk")
+        for s in d.shiftk:
+            print("  %s %s %s" % (s[0], s[1], s[2]))
 
     elif options.command == "kmesh":
         structure = abilab.Structure.from_file(options.filepath)
@@ -476,18 +490,18 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "pmgdata":
         # Get the Structure corresponding the a material_id.
-        structure = abilab.Structure.from_material_id(options.pmgid, final=True,
+        structure = abilab.Structure.from_material_id(options.mpid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
         # Convert to json and print it.
         print(structure.convert(fmt=options.format))
 
-    elif options.command == "mpd_match":
-        structures = abilab.mpd_match_structure(options.filepath)
-        return handle_structures_and_data(structures, options)
+    elif options.command == "mp_match":
+        mp = abilab.mp_match_structure(options.filepath)
+        return handle_mpstructures(mp, options)
 
-    elif options.command == "mpd_search":
-        r = abilab.mpd_search(options.chemsys_formula_id)
-        return handle_structures_and_data(r.structures, options, data=r.data, table=r.table)
+    elif options.command == "mp_search":
+        mp = abilab.mp_search(options.chemsys_formula_id)
+        return handle_mpstructures(mp, options)
 
     elif options.command == "animate":
         filepath = options.filepath
@@ -501,7 +515,6 @@ Has to be all integers. Several options are possible:
                 raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "
                     "in the pymatgen routine, your structures won't be parsed correctly"
                     "Solution: Add another structure at the end of the file.")
-
         else:
             raise ValueError("Don't know how to handle file %s" % filepath)
 

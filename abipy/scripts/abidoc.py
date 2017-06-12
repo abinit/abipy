@@ -37,6 +37,9 @@ Usage example:
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
     abidoc.py list            --> Print full list of variables.
     abidoc.py withdim natom   --> Print arrays depending on natom.
+
+Use `abidof.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -54,7 +57,7 @@ Usage example:
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     var_parser = argparse.ArgumentParser(add_help=False)
     var_parser.add_argument('varname', help="ABINIT variable")

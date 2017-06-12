@@ -215,6 +215,7 @@ Usage example:
 Note that one can use pass any file that provides a pymatgen structure
 e.g. Abinit netcdf files, CIF files, POSCAR, ...
 Use `abinp.py --help` for help and `abinp.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 CAVEAT: This script provides a simplified interface to the AbiPy factory functions.
 For a more flexible interface please use the AbiPy objects to generate input files and workflows.
@@ -232,7 +233,7 @@ For a more flexible interface please use the AbiPy objects to generate input fil
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument("--mapi-key", default=None,
                               help="Pymatgen MAPI_KEY used if mp identifier is used to select structure.\n"
                                    "Use value in .pmgrc.yaml if not specified.")

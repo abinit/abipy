@@ -21,6 +21,7 @@ class TestStructure(AbipyTest):
             print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             str(structure)
+            structure.to_string(verbose=2)
             assert structure.__class__ is Structure
 
             # All nc files produced by ABINIT should have info on the spacegroup.

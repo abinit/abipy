@@ -30,14 +30,14 @@ from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 
 __all__ = [
-    "mpd_match_structure",
-    "mpd_search",
+    "mp_match_structure",
+    "mp_search",
     "Structure",
     "frames_from_structures",
 ]
 
 
-def mpd_match_structure(obj, api_key=None, endpoint=None, final=True):
+def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     """
     Finds matching structures on the Materials Project database.
 
@@ -50,7 +50,8 @@ def mpd_match_structure(obj, api_key=None, endpoint=None, final=True):
             (pre-relaxation) structure. Defaults to True.
 
     Returns:
-        List of matching structures. Empty if no match.
+        :class:`MpStructures` object with
+            structures: List of matching structures and list of Materials Project identifier.
     """
     structure = Structure.as_structure(obj)
     # Must use pymatgen structure else server does not know how to handle the JSON doc.
@@ -60,10 +61,10 @@ def mpd_match_structure(obj, api_key=None, endpoint=None, final=True):
     structures = []
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
-            material_ids = rest.find_structure(structure)
-            if material_ids:
+            mpids = rest.find_structure(structure)
+            if mpids:
                 structures = [Structure.from_material_id(mid, final=final, api_key=api_key, endpoint=endpoint)
-                        for mid in material_ids]
+                        for mid in mpids]
 
         except rest.Error as exc:
             cprint(str(exc), "red")
@@ -71,10 +72,10 @@ def mpd_match_structure(obj, api_key=None, endpoint=None, final=True):
         finally:
             # Back to abipy structure
             structure = Structure.as_structure(structure)
-            return structures
+            return restapi.MpStructures(structures=structures, mpids=mpids)
 
 
-def mpd_search(chemsys_formula_id, api_key=None, endpoint=None):
+def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
     """
     Connect to the materials project database.
     Get a list of structures corresponding to a chemical system, formula, or materials_id.
@@ -87,39 +88,32 @@ def mpd_search(chemsys_formula_id, api_key=None, endpoint=None):
         endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
 
     Returns:
-        namedtuple with the following attributes:
-            structures: List of Structure objects.
-            table: Pandas dataframe.
-            data: List of dictionaries with MP data (same order as structures).
-    """
-    from abipy.core import restapi
-    import pandas as pd
-    structures, table, data = [], [], {}
+        :class:`MpStructures` object with
+            List of Structure objects, Materials project ids associated to structures.
+            and List of dictionaries with MP data (same order as structures).
 
+        Note that the attributes evalute to False if no match is found
+    """
+    chemsys_formula_id = chemsys_formula_id.replace(" ", "")
+
+    structures, mpids, data = [], [], None
+    from abipy.core import restapi
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
             data = rest.get_data(chemsys_formula_id, prop="")
             if data:
-                #print(data[0].keys(), data[0]["cif"])
                 structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
                                 for d in data]
+                mpids = [d["material_id"] for d in data]
 
                 # Want AbiPy structure.
                 for i, _ in enumerate(structures):
                     structures[i].__class__ = Structure
 
-                # Build pandas dataframe.
-                rows = []
-                for d in data:
-                    d = rest.to_dotdict(d)
-                    rows.append(OrderedDict([(k, d.dotget(k, default=None)) for k in rest.KEYS_FOR_DATAFRAME]))
-                    table = pd.DataFrame(rows, index=[r["material_id"] for r in rows],
-                                         columns=list(rows[0].keys()))
-
         except rest.Error as exc:
             cprint(str(exc), "magenta")
 
-        return dict2namedtuple(structures=structures, table=table, data=data)
+        return restapi.MpStructures(structures=structures, mpids=mpids, data=data)
 
 
 class Structure(pymatgen.Structure, NotebookWriter):
@@ -189,6 +183,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 return hist.structures[-1]
 
         elif filepath.endswith(".nc"):
+            # Generic netcdf file.
             from abipy.iotools import as_etsfreader
             ncfile, closeit = as_etsfreader(filepath)
 
@@ -197,16 +192,29 @@ class Structure(pymatgen.Structure, NotebookWriter):
             if closeit: ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
-            from abipy.abio.abivars import AbinitInputFile
+            # Abinit input file.
             # Here I assume that the input file contains a single structure.
+            from abipy.abio.abivars import AbinitInputFile
             return AbinitInputFile.from_file(filepath).structure
 
+        elif filepath.endswith(".abo") or filepath.endswith(".out"):
+            # Abinit output file. We can have multi-datasets and multiple initial/final structures!
+            # By desing, we return the last structure if out is completed else the initial one.
+            # None is returned if the structures are different.
+            from abipy.abio.outputs import AbinitOutputFile
+            with AbinitOutputFile(filepath) as out:
+               if out.final_structures: return out.final_structure
+               if out.initial_structures: return out.initial_structure
+            raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
+
         elif filepath.endswith("_DDB"):
+            # DDB file.
             from abipy.abilab import abiopen
             with abiopen(filepath) as abifile:
                 return abifile.structure
 
         elif filepath.endswith(".pickle"):
+            # From pickle.
             with open(filepath, "rb") as fh:
                 new = pickle.load(fh)
                 if not isinstance(new, pymatgen.Structure):
@@ -220,9 +228,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 if new.__class__ != cls: new.__class__ = cls
 
         else:
-            # TODO: AbinitSpacegroup is missing here.
+            # Invoke pymatgen and change class
+            # Note that AbinitSpacegroup is missing here.
             new = super(Structure, cls).from_file(filepath, primitive=primitive, sort=sort)
-            # Change the class of new.
             if new.__class__ != cls: new.__class__ = cls
 
         return new
@@ -422,6 +430,19 @@ class Structure(pymatgen.Structure, NotebookWriter):
         `xred` can be replaced with `xcart` or `xangst`.
         """
         return structure_from_abivars(cls, *args, **kwargs)
+
+    #def __str__(self):
+    #    return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
+        #if verbose == 0: s = super(Structure, self).__str__()
+        s = self.spget_summary(verbose=verbose)
+
+        if self.abi_spacegroup is not None:
+            s += "\n\nAbinit Spacegroup: %s" % self.abi_spacegroup.to_string(verbose=verbose)
+
+        return s
 
     def __mul__(self, scaling_matrix):
         """
@@ -653,7 +674,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                                            for i in self.lattice.abc]))
         outs.append("angles: " + " ".join([to_s(i).rjust(10)
                                            for i in self.lattice.angles]))
-        app("Space group info (note that magnetic symmetries are not taken into account).")
+        app("")
+        app("Spglib space group info (magnetic symmetries are not taken into account).")
         app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
              spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
         app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
@@ -675,7 +697,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         app(tabulate(table, headers="firstrow"))
 
         # Print entire dataset.
-        if verbose:
+        if verbose > 1:
             from six.moves import StringIO
             stream = StringIO()
             pprint(spgdata, stream=stream)
@@ -973,9 +995,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return visu(filename)
 
-    #def chemview(self, **kwargs):
-    #    from pymatgen.vis.structure_chemview import quick_view
-    #    return quick_view(self, **kwargs)
+    def chemview(self, **kwargs):
+        """
+        Visualize Structure in jupyter notebook using chemview package.
+        """
+        from pymatgen.vis.structure_chemview import quick_view
+        return quick_view(self, **kwargs)
 
     def vtkview(self, show=True, **kwargs):
         """
@@ -1476,7 +1501,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
         Return the k-point sampling from the number of divisions to be used for
-        the smallest lattive vectors of the reciprocal lattice.
+        the smallest reciprocal lattice vector.
         """
         ngkpt = self.calc_ngkpt(nksmall)
         shiftk = self.calc_shiftk(symprec=symprec, angle_tolerance=angle_tolerance)

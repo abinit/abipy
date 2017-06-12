@@ -230,6 +230,7 @@ Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
 in the current working directory and then inside $HOME/.abinit/abipy/
 
 Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 #Options for developers:
 #    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
@@ -289,7 +290,7 @@ Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the docume
     copts_parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     copts_parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
+                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
     copts_parser.add_argument('--remove-lock', default=False, action="store_true",
                        help="Remove the lock file of the pickle file storing the flow.")
 

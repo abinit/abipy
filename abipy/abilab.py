@@ -27,7 +27,7 @@ from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Task
 #    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
 from abipy.core.release import __version__, min_abinit_version
-from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures, mpd_match_structure, mpd_search
+from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures, mp_match_structure, mp_search
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
@@ -79,6 +79,8 @@ ext2file = collections.OrderedDict([
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
     (".psp8", Pseudo),
+    (".pspnc", Pseudo),
+    (".fhi", Pseudo),
     (".xml", Pseudo),
 ])
 
@@ -200,15 +202,18 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
-def print_frame(frame, title=None):
+def print_frame(frame, title=None, sortby=None):
     """
     Print entire pandas DataFrame.
 
     Args:
         frame: pandas DataFrame.
         title: Optional string to print as initial title.
+        sortby: string name or list of names which refer to the axis items to be sorted (dataframe is not changed)
     """
     if title is not None: print(title)
+    if sortby is not None:
+        frame = frame.sort_values(sortby, inplace=False)
     import pandas as pd
     with pd.option_context('display.max_rows', len(frame),
                            'display.max_columns', len(list(frame.keys()))):

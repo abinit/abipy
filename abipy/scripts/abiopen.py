@@ -79,8 +79,11 @@ def main():
         s = """\
 Usage example:
 
-    abiopen.py out_GSR.nc
-    abiopen.py out_DDB -nb  # To generate jupyter notebook
+    abiopen.py out_GSR.nc        => Open file in ipython shell.
+    abiopen.py out_DDB -nb       => Generate jupyter notebook.
+    abiopen.py out_HIST.nc -p    => Print info on object to terminal.
+
+Use `-v` to increase verbosity level.
 
 File extensions supported:
 """
@@ -132,11 +135,9 @@ File extensions supported:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
         if options.print:
-            try:
-                s = abifile.to_string(verbose=options.verbose)
-                print(s)
-            except Exception as exc:
-                cprint("abifile.to_string raised:\n %s" % str(exc), "yellow")
+            if hasattr(abifile, "to_string"):
+                print(abifile.to_string(verbose=options.verbose))
+            else:
                 print(abifile)
 
             return 0

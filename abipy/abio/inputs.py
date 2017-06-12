@@ -38,7 +38,7 @@ logger = logging.getLogger(__file__)
 # List of Abinit variables used to specify the structure.
 # This variables should not be passed to set_vars since
 # they will be generated with structure.to_abivars()
-_GEOVARS = set([
+GEOVARS = set([
     "acell",
     "rprim",
     "rprimd"
@@ -398,8 +398,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return super(AbinitInput, self).__setitem__(key, value)
 
     def _check_varname(self, key):
-
-        if key in _GEOVARS:
+        if key in GEOVARS:
             raise self.Error("You cannot set the value of a variable associated to the structure.\n"
                              "Use Structure objects to prepare the input file.")
 

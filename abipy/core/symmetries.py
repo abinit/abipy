@@ -583,6 +583,9 @@ class AbinitSpaceGroup(OpSequence):
             for isym in range(len(self.symrel)):
                 self._symrel[isym] = self._symrel[isym].T
 
+        #self._symrel = np.reshape(self._symrel, (-1, 3, 3))
+        #self._tnons = np.reshape(self._tnons, (-1, 3))
+
         self._symrec = self._symrel.copy()
         for isym in range(len(self.symrel)):
             self._symrec[isym] = mati3inv(self.symrel[isym], trans=True)
@@ -642,20 +645,21 @@ class AbinitSpaceGroup(OpSequence):
                    inord="C")
 
     def __repr__(self):
-        return "spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
-            self.spgid, self.num_spatial_symmetries, self.has_timerev)
+        return "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
+            self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)
 
     def __str__(self):
         return self.to_string()
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = ["spgid %d, num_spatial_symmetries %d, has_timerev %s" % (
-            self.spgid, self.num_spatial_symmetries, self.has_timerev)]
-
+        lines = ["spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
+            self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)]
         app = lines.append
-        for op in self.symmops(time_sign=+1):
-            app(str(op))
+
+        if verbose > 1:
+            for op in self.symmops(time_sign=+1):
+                app(str(op))
 
         return "\n".join(lines)
 

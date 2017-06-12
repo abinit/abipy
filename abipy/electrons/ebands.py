@@ -1182,7 +1182,7 @@ class ElectronBands(Has_Structure):
                     app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
                 app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
                 app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
-                app("Valence max located at:\n%s" % indent(str(self.homos[spin])))
+                app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
                 app("")
 
         if with_kpoints:
