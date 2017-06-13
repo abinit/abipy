@@ -9,6 +9,7 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import is_string
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, frames_from_structures, AbinitSpaceGroup
 from abipy.core.kpoints import has_timrev_from_kptopt
@@ -111,6 +112,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         if verbose:
             print("header")
             print(self.header)
+
+        #if " jdtset " in self.header:
+        #    raise NotImplementedError("jdtset is not supported")
+        if " udtset " in self.header:
+            raise NotImplementedError("udtset is not supported")
 
         for i, data in enumerate(self.datasets):
             if verbose: print("data")
@@ -342,7 +348,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             return None
         return self.final_structures[0]
 
-    def diff_datasets(self, dt_list1, dt_list2, with_params=True, differ="html"):
+    def diff_datasets(self, dt_list1, dt_list2, with_params=True, differ="html", dryrun=False):
         if not isinstance(dt_list1, (list, tuple)):
             dt_list1 = [dt_list1]
         if not isinstance(dt_list2, (list, tuple)):
@@ -362,11 +368,19 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 if with_params:
                     fh.write(self.footer)
 
-        from abipy.tools.devtools import HtmlDiff
         if differ == "html":
-            return HtmlDiff(tmp_names).open_browser()
+            from abipy.tools.devtools import HtmlDiff
+            diff = HtmlDiff(tmp_names)
+            if dryrun:
+                return diff
+            else:
+                return diff.open_browser()
         else:
-            return os.system("%s %s %s" % (differ, tmp_names[0], tmp_names[1]))
+            cmd = "%s %s %s" % (differ, tmp_names[0], tmp_names[1])
+            if dryrun:
+                return cmd
+            else:
+                return os.system(cmd)
 
     def to_string(self, verbose=0):
         lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
@@ -569,74 +583,80 @@ class OutNcFile(AbinitNcFile):
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
 
-#def validate_output_parser(abitests_dir=None, output_files=None):
-#    """
-#    validate/test Abinit output parser.
-#
-#    Args:
-#        dirpath: Abinit tests directory.
-#        output_files: List of Abinit output files.
-#
-#    Return: Exit code.
-#    """
-#    def is_abinit_output(path):
-#        """
-#        True if path is one of the output files used in the Abinit Test suite.
-#        """
-#        if path.endswith(".abo"): return True
-#        if not path.endswith(".io"): return False
-#
-#        with open(path, "rt") as fh:
-#            for line in fh:
-#                if "executable" in line and "abinit" in line: return True
-#            return False
-#
-#    # Files are collected in paths.
-#    paths = []
-#
-#    if abitests_dir is not None:
-#        print("Analyzing directory %s for input files" % abitests_dir)
-#
-#        for dirpath, dirnames, filenames in os.walk(abitests_dir):
-#            for fname in filenames:
-#                path = os.path.join(dirpath, fname)
-#                if is_abinit_output(path): paths.append(path)
-#
-#    if output_files is not None:
-#        print("Analyzing files ", str(output_files))
-#        for arg in output_files:
-#            if is_abinit_output(arg): paths.append(arg)
-#
-#    nfiles = len(paths)
-#    if nfiles == 0:
-#        cprint("Empty list of input files.", "red")
-#        return 0
-#
-#    print("Found %d Abinit output files" % len(paths))
-#    errpaths = []
-#    for path in paths:
-#        print(path + ": ", end="")
-#        try:
-#            out = AbinitOutputFile.from_file(path)
-#            s = str(out)
-#            cprint("OK", "green")
-#        except Exception as exc:
-#            if not isinstance(exc, NotImplementedError):
-#                cprint("FAILED", "red")
-#                errpaths.append(path)
-#                import traceback
-#                print(traceback.format_exc())
-#                #print("[%s]: Exception:\n%s" % (path, str(exc)))
-#                #with open(path, "rt") as fh:
-#                #    print(10*"=" + "Input File" + 10*"=")
-#                #    print(fh.read())
-#                #    print()
-#
-#    if errpaths:
-#        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
-#        for i, epath in enumerate(errpaths):
-#            cprint("[%d] %s" % (i, epath), "red")
-#    else:
-#        cprint("All input files successfully parsed!", "green")
-#
-#    return len(errpaths)
+
+def validate_output_parser(abitests_dir=None, output_files=None):
+    """
+    Validate/test Abinit output parser.
+
+    Args:
+        dirpath: Abinit tests directory.
+        output_files: List of Abinit output files.
+
+    Return: Exit code.
+    """
+    def is_abinit_output(path):
+        """
+        True if path is one of the output files used in the Abinit Test suite.
+        """
+        if path.endswith(".abo"): return True
+        if not path.endswith(".out"): return False
+
+        with open(path, "rt") as fh:
+            for i, line in enumerate(fh):
+                if i == 1:
+                    line = line.rstrip().lower()
+                    if line.endswith("abinit"): return True
+                    return False
+            return False
+
+    # Files are collected in paths.
+    paths = []
+
+    if abitests_dir is not None:
+        print("Analyzing directory %s for input files" % abitests_dir)
+
+        for dirpath, dirnames, filenames in os.walk(abitests_dir):
+            for fname in filenames:
+                path = os.path.join(dirpath, fname)
+                if is_abinit_output(path): paths.append(path)
+
+    if output_files is not None:
+        print("Analyzing files ", str(output_files))
+        for arg in output_files:
+            if is_abinit_output(arg): paths.append(arg)
+
+    nfiles = len(paths)
+    if nfiles == 0:
+        cprint("Empty list of input files.", "red")
+        return 0
+
+    print("Found %d Abinit output files" % len(paths))
+    errpaths = []
+    for path in paths:
+        print(path + ": ", end="")
+        try:
+            out = AbinitOutputFile.from_file(path)
+            s = str(out)
+            cprint("OK", "green")
+        except Exception as exc:
+            if not isinstance(exc, NotImplementedError):
+                cprint("FAILED", "red")
+                errpaths.append(path)
+                import traceback
+                print(traceback.format_exc())
+                #print("[%s]: Exception:\n%s" % (path, str(exc)))
+                #with open(path, "rt") as fh:
+                #    print(10*"=" + "Input File" + 10*"=")
+                #    print(fh.read())
+                #    print()
+            else:
+                cprint("NOTIMPLEMENTED", "magenta")
+
+    if errpaths:
+        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
+        for i, epath in enumerate(errpaths):
+            cprint("[%d] %s" % (i, epath), "red")
+    else:
+        cprint("All input files successfully parsed!", "green")
+
+    return len(errpaths)

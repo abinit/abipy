@@ -629,6 +629,8 @@ def validate_input_parser(abitests_dir=None, input_files=None):
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
+            else:
+                cprint("NOTIMPLEMENTED", "magenta")
 
     if errpaths:
         cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")

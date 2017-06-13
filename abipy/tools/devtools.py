@@ -2,10 +2,8 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-import json
 import tempfile
 import warnings
-import numpy as np
 
 import logging
 logger = logging.getLogger(__file__)
@@ -14,6 +12,10 @@ logger = logging.getLogger(__file__)
 def profile(statement, global_vars, local_vars):
     """
     Run statement under profiler, supplying your own globals and locals
+
+    Example::
+
+        stats = profile("main()", global_vars=globals(), local_vars=locals())
     """
     import pstats
     import cProfile
@@ -21,8 +23,10 @@ def profile(statement, global_vars, local_vars):
     cProfile.runctx(statement, global_vars, local_vars, filename=filename)
 
     s = pstats.Stats(filename)
-    s.strip_dirs().sort_stats("time").print_stats()
+    s.strip_dirs().sort_stats("time")
+    s.print_stats()
     os.remove(filename)
+    return s
 
 
 class HtmlDiff(object):

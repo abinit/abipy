@@ -446,7 +446,7 @@ class ElectronBandsFromRestApi(AbipyTest):
         #mpid = "mp-149"
         #mpid = "mp-856"
         mpid = "mp-3079"
-        ebands = abilab.ElectronBands.from_material_id(mpid, api_key="8pkvwRLQSCVbW2Fe")
+        ebands = abilab.ElectronBands.from_material_id(mpid)
         # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
         ebands = ebands.new_with_irred_kpoints(prune_step=2)
         # Interpolate on k-path + kmesh.

@@ -2,6 +2,7 @@
 """Test for output files"""
 from __future__ import unicode_literals, division, print_function
 
+import os
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
@@ -27,6 +28,7 @@ class AbinitOutputTest(AbipyTest):
         abo_path = abidata.ref_file("refs/si_ebands/run.abo")
         with AbinitOutputFile(abo_path) as gs_abo:
             repr(gs_abo); str(gs_abo)
+            assert gs_abo.to_string(verbose=2)
 
             assert gs_abo.version == "8.0.6"
             assert gs_abo.run_completed
@@ -36,6 +38,7 @@ class AbinitOutputTest(AbipyTest):
             assert len(gs_abo.initial_structures) == 2
             assert gs_abo.initial_structure is not None
             assert gs_abo.initial_structure == gs_abo.final_structure
+            #gs_abo.diff_datasets(dryrun=True)
 
             print(gs_abo.events)
             gs_cycle = gs_abo.next_gs_scf_cycle()
@@ -62,6 +65,7 @@ class AbinitOutputTest(AbipyTest):
         abo_path = abidata.ref_file("refs/gs_dfpt.abo")
         with AbinitOutputFile(abo_path) as abo:
              repr(abo); str(abo)
+             assert abo.to_string(verbose=2)
 
              assert abo.version == "8.3.2"
              assert abo.run_completed
@@ -82,3 +86,16 @@ class AbinitOutputTest(AbipyTest):
 
              if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
+
+    def test_all_outputs_in_tests(self):
+        """
+        Try to parse all Abinit output files inside the Abinit `tests` directory.
+        Requires $ABINIT_HOME_DIR env variable.
+        """
+        abi_homedir = os.environ.get("ABINIT_HOME_DIR")
+        if abi_homedir is None:
+            raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+
+        from abipy.abio.outputs import validate_output_parser
+        retcode = validate_output_parser(abitests_dir=os.path.join(abi_homedir, "tests"))
+        assert retcode == 0
