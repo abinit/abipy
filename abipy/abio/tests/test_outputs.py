@@ -93,9 +93,13 @@ class AbinitOutputTest(AbipyTest):
         Requires $ABINIT_HOME_DIR env variable.
         """
         abi_homedir = os.environ.get("ABINIT_HOME_DIR")
-        if abi_homedir is None:
-            raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+        if abi_homedir is not None:
+            #raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+            abitests_dir = os.path.join(abi_homedir, "tests")
+        else:
+            abitests_dir = os.path.join(abidata.dirpath, "refs")
 
         from abipy.abio.outputs import validate_output_parser
-        retcode = validate_output_parser(abitests_dir=os.path.join(abi_homedir, "tests"))
+        assert os.path.exists(abitests_dir)
+        retcode = validate_output_parser(abitests_dir=abitests_dir)
         assert retcode == 0

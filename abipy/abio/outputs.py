@@ -74,7 +74,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         header: String with the input variables
         footer: String with the output variables
-        datasets: List of strings with the output of the i-th dataset (python index)
+        datasets: Dictionary mapping dataset index to list of strings.
         """
         # Get code version and find magic line signaling that the output file is completed.
         self.version, self.run_completed = None, False
@@ -87,7 +87,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     break
 
         # Parse header to get important dimensions and variables
-        self.header, self.footer, self.datasets = [], [], []
+        self.header, self.footer, self.datasets = [], [], OrderedDict()
         where = "in_header"
         verbose = 0
 
@@ -97,7 +97,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     # Save dataset number
                     # == DATASET  1 ==================================================================
                     where = int(line.replace("=", "").split()[-1])
-                    self.datasets.append([])
+                    assert where not in self.datasets
+                    self.datasets[where] = []
                 elif "== END DATASET(S) " in line:
                     where = "in_footer"
 
@@ -106,7 +107,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 elif where == "in_footer":
                     self.footer.append(line)
                 else:
-                    self.datasets[-1].append(line)
+                    self.datasets[where].append(line)
+
+        if not self.datasets:
+            raise NotImplementedError("Empty dataset sections.")
 
         self.header = "".join(self.header)
         if verbose:
@@ -115,13 +119,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         #if " jdtset " in self.header:
         #    raise NotImplementedError("jdtset is not supported")
-        if " udtset " in self.header:
-            raise NotImplementedError("udtset is not supported")
+        #if " udtset " in self.header:
+        #    raise NotImplementedError("udtset is not supported")
 
-        for i, data in enumerate(self.datasets):
+        for key, data in self.datasets.items():
             if verbose: print("data")
-            self.datasets[i] = "".join(data)
-            if verbose: print(self.datasets[i])
+            self.datasets[key] = "".join(data)
+            if verbose: print(self.datasets[key])
 
         self.footer = "".join(self.footer)
         if verbose:
@@ -136,7 +140,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def _parse_variables(self, what):
         vars_global = OrderedDict()
-        vars_dataset = [OrderedDict() for _ in range(self.ndtset)]
+        vars_dataset = OrderedDict([(k, OrderedDict()) for k in self.datasets.keys()])
+        #print("keys", vars_dataset.keys())
 
         lines = getattr(self, what).splitlines()
         if what == "header":
@@ -176,12 +181,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             else:
                 raise ValueError("Cannot find dataset index in token: %s" % s)
 
-            # Note F --> C index.
             #print(line, "\n", l)
             dtindex = None
             if l:
                 l.reverse()
-                dtindex = int("".join(l)) - 1
+                dtindex = int("".join(l))
             return dtindex, key, value
 
         # (varname, dtindex), [line1, line2 ...]
@@ -228,7 +232,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         global_kptopt = vars_global.get("kptopt", 1)
 
         structures = []
-        for i in range(self.ndtset):
+        for i in self.datasets.keys():
             # This code breaks down if there are conflicting GEOVARS in globals and dataset.
             d = inigeo.copy()
             d.update({k: vars_dataset[i][k] for k in GEOVARS if k in vars_dataset[i]})
@@ -258,24 +262,37 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     print(key, s)
                     raise exc
 
+            if "rprim" not in d and "angdeg" not in d: d["rprim"] = np.eye(3)
+            if "natom" in d and d["natom"] == 1 and all(k not in d for k in ("xred", "xcart", "xangst")):
+                d["xred"] = np.zeros(3)
             #print(d)
             abistr = Structure.from_abivars(d)
 
             # Extract Abinit spacegroup.
             spgd = spgd_global.copy()
             spgd.update({k: vars_dataset[i][k] for k in spgvars if k in vars_dataset[i]})
-            try:
-                spgid = int(spgd["spgroup"])
-                symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=np.int), (-1, 3, 3))
-                nsym = len(symrel)
-                #assert nsym == spgd["nsym"]; print(symrel.shape)
-                tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=np.float), (-1, 3))
-                if "symafm" in spgd:
-                    symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=np.int)
-                else:
-                    symafm = np.ones(nsym, dtype=np.int)
-                has_timerev = True
 
+            spgid = int(spgd.get("spgroup", 0))
+            if "symrel" not in spgd:
+                symrel = np.reshape(np.eye(3, 3, dtype=np.int), (1, 3, 3))
+                spgd["symrel"] = " ".join((str(i) for i in symrel.flatten()))
+            else:
+                symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=np.int), (-1, 3, 3))
+            nsym = len(symrel)
+            assert nsym == spgd.get("nsym", nsym) #; print(symrel.shape)
+
+            if "tnons" in spgd:
+                tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=np.float), (nsym, 3))
+            else:
+                tnons = np.zeros((nsym, 3))
+
+            if "symafm" in spgd:
+                symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=np.int)
+                symafm.shape = (nsym,)
+            else:
+                symafm = np.ones(nsym, dtype=np.int)
+
+            try:
                 has_timerev = has_timrev_from_kptopt(vars_dataset[i].get("kptopt", global_kptopt))
                 abi_spacegroup = AbinitSpaceGroup(spgid, symrel, tnons, symafm, has_timerev, inord="C")
                 abistr.set_abi_spacegroup(abi_spacegroup)
@@ -636,7 +653,8 @@ def validate_output_parser(abitests_dir=None, output_files=None):
         print(path + ": ", end="")
         try:
             out = AbinitOutputFile.from_file(path)
-            s = str(out)
+            s = out.to_string(verbose=2)
+            assert out.run_completed
             cprint("OK", "green")
         except Exception as exc:
             if not isinstance(exc, NotImplementedError):
