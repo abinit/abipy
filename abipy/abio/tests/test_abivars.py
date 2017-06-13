@@ -215,7 +215,7 @@ typat 1 1         # For the first dataset, both numbers will be read,
             #raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
             abitests_dir = os.path.join(abi_homedir, "tests")
         else:
-            abitests_dir = os.path.join(abidata.dirpath, "refs")
+            abitests_dir = os.path.join(abidata.dirpath, "refs/si_bse")
 
         from abipy.abio.abivars import validate_input_parser
         assert os.path.exists(abitests_dir)

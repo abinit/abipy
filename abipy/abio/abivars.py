@@ -270,13 +270,13 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         # Print info on structure(s).
         if self.structure is not None:
-            app(self.structure.spglib_summary())
+            app(self.structure.spget_summary())
         else:
             structures = [dt.structure for dt in self.datasets]
             app("Input file contains %d structures:" % len(structures))
             for i, structure in enumerate(structures):
                 app(boxed("Dataset: %d" % (i+1)))
-                app(structure.spglib_summary())
+                app(structure.spget_summary())
                 app("")
 
             dfs = frames_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
