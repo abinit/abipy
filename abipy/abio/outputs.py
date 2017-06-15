@@ -366,10 +366,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self.final_structures[0]
 
     def diff_datasets(self, dt_list1, dt_list2, with_params=True, differ="html", dryrun=False):
-        if not isinstance(dt_list1, (list, tuple)):
-            dt_list1 = [dt_list1]
-        if not isinstance(dt_list2, (list, tuple)):
-            dt_list2 = [dt_list2]
+        """
+        Compare datasets
+        """
+        if not isinstance(dt_list1, (list, tuple)): dt_list1 = [dt_list1]
+        if not isinstance(dt_list2, (list, tuple)): dt_list2 = [dt_list2]
 
         dt_lists = [dt_list1, dt_list2]
         import tempfile
@@ -378,12 +379,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             _, tmpname = tempfile.mkstemp(text=True)
             tmp_names.append(tmpname)
             with open(tmpname, "wt") as fh:
-                if with_params:
-                    fh.write(self.header)
+                if with_params: fh.write(self.header)
                 for idt in dt_lists[i]:
                     fh.write(self.datasets[idt])
-                if with_params:
-                    fh.write(self.footer)
+                if with_params: fh.write(self.footer)
 
         if differ == "html":
             from abipy.tools.devtools import HtmlDiff

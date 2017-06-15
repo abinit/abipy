@@ -166,6 +166,26 @@ class Variable(yaml.YAMLObject):
         if dimname in str(self.dimensions): return True
         return False
 
+    @property
+    def url(self):
+        """The url associated to the variable."""
+        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/"
+        #https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell
+        return root + "%s.html#%s" % (self.section, self.varname)
+
+    def html_link(self, tag=None):
+        """String with the URL of the web page."""
+        if tag is None:
+            return '<a href="%s" target="_blank">%s</a>' % (self.url, self.varname)
+        else:
+            return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
+
+    def browse(self):
+        """Open variable documentation in browser."""
+        import webbrowser
+        return webbrowser.open(self.url)
+
+
 
 class ValueWithUnit(yaml.YAMLObject):
     yaml_tag = u'!valuewithunit'

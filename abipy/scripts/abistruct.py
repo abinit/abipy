@@ -291,7 +291,8 @@ Has to be all integers. Several options are possible:
         print(spgrp)
 
     elif options.command == "convert":
-        print(abilab.Structure.from_file(options.filepath).convert(fmt=options.format))
+        fmt = options.format if not options.filepath.endswith(".cif") else "abivars"
+        print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
     elif options.command == "supercell":
         structure = abilab.Structure.from_file(options.filepath)

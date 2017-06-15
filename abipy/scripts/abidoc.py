@@ -12,7 +12,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
-from abipy.abilab import abinit_help
+from abipy import abilab
 from abipy.abio.abivars_db import get_abinit_variables
 
 
@@ -21,7 +21,7 @@ def print_vlist(vlist, options):
         print(repr(v))
 
     if options.verbose:
-        for v in vlist: abinit_help(v)
+        for v in vlist: abilab.abinit_help(v)
     else:
         print("\nUse -v for more info")
 
@@ -33,6 +33,7 @@ def main():
 Usage example:
 
     abidoc.py man ecut        --> Show documentation for ecut input variable.
+    abidoc.py browse acell    --> Open url in external browser.
     abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
     abidoc.py list            --> Print full list of variables.
@@ -67,6 +68,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for man.
     p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
+
+    # Subparser for browse.
+    p_browse = subparsers.add_parser('browse', parents=[copts_parser, var_parser], help="Open documentation in browser.")
 
     # Subparser for apropos.
     p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser],
@@ -105,7 +109,10 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     database = get_abinit_variables()
 
     if options.command == "man":
-        abinit_help(options.varname)
+        abilab.abinit_help(options.varname)
+
+    if options.command == "browse":
+        return database[options.varname].browse()
 
     elif options.command == "apropos":
         vlist = database.apropos(options.varname)
@@ -147,6 +154,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)
+
+    return 0
 
 
 if __name__ == "__main__":

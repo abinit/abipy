@@ -57,6 +57,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`restapi` Module
+---------------------
+
+.. automodule:: abipy.core.restapi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`irrepsdb` Module
 ----------------------
 

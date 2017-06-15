@@ -144,6 +144,34 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "supercell", cif_file, "-s 2" , "-f", "abivars", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
+    def test_kpath(self):
+        """Testing abistruct kpath"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("si_scf_WFK.nc")
+        r = env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+    def test_ngkpt(self):
+        """Testing abistruct ngkpt"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("si_scf_WFK.nc")
+        r = env.run(self.script, "ngkpt", ncfile, "-n 4", self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
+
+    def test_kmesh(self):
+        """Testing abistruct kmesh"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        r = env.run(self.script, "kmesh", "--mesh", "2", "2", "2", "--is_shift", "1", "1", "1",
+                    "--no-time-reversal", ncfile, expect_stderr=self.expect_stderr)
+
+    def test_lgk(self):
+        """Testing abistruct lgk"""
+        env = self.get_env()
+        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
+        r = env.run(self.script, "lgk", "-k", "0", "0", "0", "--no-time-reversal", ncfile,
+                    expect_stderr=self.expect_stderr)
+
     def test_abisanitize(self):
         """Testing abistruct abisanitize"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
@@ -164,26 +192,22 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "neighbors", abidata.cif_file("gan2.cif"), "--radius=2.5",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    def test_kpath(self):
-        """Testing abistruct kpath"""
+    def test_oxistate(self):
+        """Testing abistruct oxistate"""
         env = self.get_env()
-        ncfile = abidata.ref_file("si_scf_WFK.nc")
-        r = env.run(self.script, "kpath", ncfile, self.loglevel, self.verbose,
-                    expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "oxistate", abidata.cif_file("gan2.cif"),
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    def test_kmesh(self):
-        """Testing abistruct kmesh"""
-        env = self.get_env()
-        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-        r = env.run(self.script, "kmesh", "--mesh", "2", "2", "2", "--is_shift", "1", "1", "1",
-                    "--no-time-reversal", ncfile, expect_stderr=self.expect_stderr)
+    #def test_mp_match(self):
+    #    """Testing abistruct mp methods."""
+    #    env = self.get_env()
+    #    r = env.run(self.script, "mp_match", abidata.cif_file("gan2.cif"),
+    #                self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    def test_lgk(self):
-        """Testing abistruct lgk"""
-        env = self.get_env()
-        ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-        r = env.run(self.script, "lgk", "-k", "0", "0", "0", "--no-time-reversal", ncfile,
-                    expect_stderr=self.expect_stderr)
+    #    env = self.get_env()
+    #    r = env.run(self.script, "mp_search", "LiF", "-f POSCAR",
+    #                self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
 
 
 class TestAbicomp(ScriptTest):
@@ -197,6 +221,9 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
         r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose, "--group",
+                    expect_stderr=self.expect_stderr)
+
+        r = env.run(self.script, "mp_structure", cif_paths[0], cif_paths[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
         dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")
@@ -218,7 +245,12 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "phdos", args[0], args[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-        #args = [os.path.join(dirpath, p) for p in ( "ZnSe_hex_qpt_DDB")]
+        #r = env.run(self.script, "attr", "energy", args[0], args[1], self.loglevel, self.verbose,
+        #            expect_stderr=self.expect_stderr)
+
+        #r = env.run(self.script, "pseudos", args[0], args[1], self.loglevel, self.verbose,
+        #            expect_stderr=self.expect_stderr)
+
         test_dir = os.path.join(os.path.dirname(__file__),  "..", 'test_files')
         args = [
             os.path.join(abidata.dirpath, "refs", "znse_phonons","ZnSe_hex_qpt_DDB"),

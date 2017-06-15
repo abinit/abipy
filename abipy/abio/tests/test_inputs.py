@@ -72,6 +72,10 @@ class TestAbinitInput(AbipyTest):
         assert inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
         assert inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
         assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=False, mode="html")
+        assert inp.to_string(sortmode="a", with_structure=False, with_pseudos=False, mode="html")
+        assert inp._repr_html_()
 
         inp.set_vars(ecut=5, toldfe=1e-6)
         assert inp["ecut"] == 5
@@ -480,6 +484,8 @@ class TestMultiDataset(AbipyTest):
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
         repr(multi); str(multi)
+        assert multi.to_string(mode="text")
+        assert multi._repr_html_()
 
         inp.write(filepath=self.tmpfileindir("run.abi"))
         multi.write(filepath=self.tmpfileindir("run.abi"))
@@ -523,6 +529,8 @@ class AnaddbInputTest(AbipyTest):
         """Testing phbands_and_dos constructor."""
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
         repr(inp); str(inp)
+        assert inp.to_string(sortmode="a")
+        assert inp._repr_html_()
         assert "brav" in inp
         assert inp["brav"] == 1
         assert inp.get("brav") == 1
@@ -657,10 +665,12 @@ class OpticInputTest(AbipyTest):
         """Testing OpticInput API."""
         optic_input = OpticInput()
         repr(optic_input); str(optic_input)
+        #assert optic_input._repr_html_()
 
         for var in OpticInput._VARIABLES:
             repr(var); str(var)
             assert str(var.help) and var.group
+            assert str(var.html_link(tag="foo"))
 
         with self.assertRaises(optic_input.Error):
             optic_input["foo"] = 23
@@ -687,7 +697,11 @@ class OpticInputTest(AbipyTest):
             nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
         )
 
+
         repr(optic_input); str(optic_input)
+        #print(optic_input)
+        #print(optic_input._repr_html_())
+        #assert 0
         assert optic_input.vars
 
         # Compatible with Pickle and MSONable?

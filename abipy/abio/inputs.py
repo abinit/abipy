@@ -514,8 +514,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except AttributeError:  # TODO: This is to maintain compatibility with pickle
             return False
 
-    def to_string(self, sortmode="section", post=None, with_mnemonics=False,
-                  with_structure=True, with_pseudos=True, exclude=None):
+    def to_string(self, sortmode="section", post=None, with_mnemonics=False, mode="text",
+                  with_structure=True, with_pseudos=True, exclude=None, verbose=0):
         """
         String representation.
 
@@ -523,6 +523,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             sortmode: "section" if variables should be gruped by sections.
                 "a" for alphabetical order, None if no sorting is wanted.
             with_mnemonics: True if mnemonics should be added.
+            mode: Either `text` or `html` if HTML output with links is wanted.
             post: String that will be appended to the name of the variables
                 Note that post is usually autodetected when we have multiple datatasets
                 It is mainly used when we have an input file with a single dataset
@@ -554,7 +555,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         if sortmode in (None, "a"):
             # Default is no sorting else alphabetical order.
-            keys = [k for k in self.keys() if k not in exclude]
+            keys = [k for k, v in self.items() if k not in exclude and v is not None]
             if sortmode == "a": keys = sorted(keys)
 
             # Extract the items from the dict and add the geo variables at the end
@@ -567,12 +568,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                     app("# <" + var_database[name].definition + ">")
 
                 # Build variable, convert to string and append it
-                app(str(InputVariable(name + post, value)))
+                vname = name + post
+                if mode == "html": vname = var_database[name].html_link(tag=vname)
+                app(str(InputVariable(vname, value)))
 
         elif sortmode == "section":
             # Group variables by section.
             # Get dict mapping section_name --> list of variable names belonging to the section.
-            keys = [k for k in self.keys() if k not in exclude]
+            keys = [k for (k, v) in self.items() if k not in exclude and v is not None]
             sec2names = var_database.group_by_section(keys)
             w = 92
 
@@ -586,7 +589,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                         app("# <" + var_database[name].definition + ">")
 
                     # Build variable, convert to string and append it
-                    app(str(InputVariable(name + post, value)))
+                    vname = name + post
+                    if mode == "html": vname = var_database[name].html_link(tag=vname)
+
+                    app(str(InputVariable(vname, value)))
 
             if with_structure:
                 app(w * "#")
@@ -595,14 +601,16 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 for name, value in self.structure.to_abivars().items():
                     if mnemonics and value is not None:
                         app("# <" + var_database[name].definition + ">")
-                    app(str(InputVariable(name + post, value)))
+                    vname = name + post
+                    if mode == "html": vname = var_database[name].html_link(tag=vname)
+                    app(str(InputVariable(vname, value)))
 
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
         s = "\n".join(lines)
-
-        if not with_pseudos: return s
+        if not with_pseudos:
+            return s if mode != "html" else s.replace("\n", "<br>")
 
         # Add JSON section with pseudo potentials.
         ppinfo = ["\n\n\n#<JSON>"]
@@ -610,7 +618,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         ppinfo.extend(json.dumps(d, indent=4).splitlines())
         ppinfo.append("</JSON>")
 
-        return s + "\n#".join(ppinfo)
+        s += "\n#".join(ppinfo)
+        if mode == "html": s = s.replace("\n", "<br>")
+        return s
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.to_string(sortmode="section", with_mnemonics=False, mode="html",
+                              with_structure=True, with_pseudos=False)
 
     @property
     def comment(self):
@@ -1929,8 +1944,17 @@ class MultiDataset(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
-        """String representation i.e. the input file read by Abinit."""
+    def to_string(self, mode="text", verbose=0, with_pseudos=True):
+        """
+        String representation i.e. the input file read by Abinit.
+
+        Args:
+            mode: Either `text` or `html` if HTML output with links is wanted.
+            with_pseudos: False if JSON section with pseudo data should not be added.
+        """
+        if mode == "html":
+            var_database = get_abinit_variables()
+
         if self.ndtset > 1:
             # Multi dataset mode.
             lines = ["ndtset %d" % self.ndtset]
@@ -1940,14 +1964,6 @@ class MultiDataset(object):
                 if kref not in other_inp: return False
                 otherv = other_inp[kref]
                 return np.array_equal(vref, otherv)
-                #try:
-                #    return vref == otherv
-                #except:
-                #    # Iterables?
-                #    try:
-                #        return np.array_equal(vref, otherv)
-                #    except:
-                #        return False
 
             # Don't repeat variable that are common to the different datasets.
             # Put them in the `Global Variables` section and exclude these variables in inp.to_string
@@ -1968,7 +1984,8 @@ class MultiDataset(object):
                 lines.append("### Global Variables.")
                 lines.append(w * "#")
                 for key in global_vars:
-                    lines.append(str(InputVariable(key, self[0][key])))
+                    vname = key if mode == "text" else var_database[key].html_link(tag=key)
+                    lines.append(str(InputVariable(vname, self[0][key])))
 
             has_same_structures = self.has_same_structures
             if has_same_structures:
@@ -1976,13 +1993,14 @@ class MultiDataset(object):
                 lines.append(w * "#")
                 lines.append("#" + ("STRUCTURE").center(w - 1))
                 lines.append(w * "#")
-                for name, value in self[0].structure.to_abivars().items():
-                    lines.append(str(InputVariable(name, value)))
+                for key, value in self[0].structure.to_abivars().items():
+                    vname = key if mode == "text" else var_database[key].html_link(tag=key)
+                    lines.append(str(InputVariable(vname, value)))
 
             for i, inp in enumerate(self):
                 header = "### DATASET %d ###" % (i + 1)
                 is_last = (i==self.ndtset - 1)
-                s = inp.to_string(post=str(i + 1), with_pseudos=is_last,
+                s = inp.to_string(post=str(i + 1), with_pseudos=is_last and with_pseudos, mode=mode,
                                   with_structure=not has_same_structures, exclude=global_vars)
                 if s:
                     header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
@@ -1990,7 +2008,7 @@ class MultiDataset(object):
 
                 lines.append(s)
 
-            return "\n".join(lines)
+            return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
 
         else:
             # single datasets ==> don't append the dataset index to the variables.
@@ -1998,7 +2016,11 @@ class MultiDataset(object):
             # and we have variables that end with the dataset index e.g. acell1
             # We don't want to specify ndtset here since abinit will start to add DS# to
             # the input and output files thus complicating the algorithms we have to use to locate the files.
-            return self[0].to_string()
+            return self[0].to_string(mode=mode, with_pseudos=with_pseudos)
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.to_string(mode="html")
 
     def filter_by_tags(self, tags=None, exclude_tags=None):
         """
@@ -2468,12 +2490,13 @@ class AnaddbInput(AbstractInput, Has_Structure):
     def structure(self):
         return self._structure
 
-    def to_string(self, sortmode=None):
+    def to_string(self, sortmode=None, mode="text", verbose=0):
         """
         String representation.
 
         Args:
             sortmode: "a" for alphabetical order, None if no sorting is wanted
+            mode: Either `text` or `html` if HTML output with links is wanted.
         """
         lines = []
         app = lines.append
@@ -2490,11 +2513,18 @@ class AnaddbInput(AbstractInput, Has_Structure):
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
+        # http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar
+        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html"
         for varname in keys:
             value = self[varname]
+            if mode == "html": varname = root + "#%s" % varname
             app(str(InputVariable(varname, value)))
 
-        return "\n".join(lines)
+        return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.to_string(mode="html")
 
     def set_qpath(self, ndivsm, qptbounds=None):
         """
@@ -2545,6 +2575,21 @@ class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
     def __str__(self):
         sval = str(self.default)
         return (4*" ").join([sval, "!" + self.help])
+
+    @property
+    def url(self):
+        """The url associated to the variable."""
+        #http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp
+        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html"
+        return root + "#%s" % self.name
+
+    def html_link(self, tag=None):
+        """String with the URL of the web page."""
+        if tag is None:
+            return '<a href="%s" target="_blank">%s</a>' % (self.url, self.name)
+        else:
+            return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
+
 
 
 class OpticError(Exception):
@@ -2692,7 +2737,7 @@ class OpticInput(AbstractInput, MSONable):
 
         return my_dict
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         table = []
         app = table.append
@@ -2715,6 +2760,10 @@ class OpticInput(AbstractInput, MSONable):
             lines.append(s)
 
         return "\n".join(lines)
+
+    #def _repr_html_(self):
+    #    """Integration with jupyter notebooks."""
+    #    return self.to_string(mode="html")
 
     def abivalidate(self, workdir=None, manager=None):
         """
@@ -2759,7 +2808,7 @@ class Cut3DInput(MSONable, object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """Returns a string with the input."""
         lines = [self.infile_path]
         lines.extend(self.options)

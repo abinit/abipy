@@ -1990,7 +1990,6 @@ class ElectronBands(Has_Structure):
 
         ebands_kpath = self.__class__(self.structure, kpts_kpath, eigens_kpath, self.fermie, occfacts_kpath,
                                       self.nelect, self.nspinor, self.nspden)
-
         ebands_kmesh = None
         if kmesh is not None:
             # Get kpts and weights in IBZ.

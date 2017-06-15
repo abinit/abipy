@@ -270,6 +270,7 @@ class HistReader(ETSF_Reader):
         cart_forces_step = self.read_cart_forces(unit="eV ang^-1")
 
         structures = []
+        #print("typat", type(typat))
         for step in range(self.num_steps):
             s = Structure.from_abivars(
                 xred=xred_list[step],

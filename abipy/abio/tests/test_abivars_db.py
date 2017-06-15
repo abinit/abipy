@@ -48,6 +48,8 @@ class AbinitVariableDatabaseTest(AbipyTest):
         assert not ecut_var.isarray
         assert not ecut_var.depends_on_dimension("natom")
         assert not ecut_var.depends_on_dimension(natom_var)
+        assert ecut_var.url
+        assert ecut_var.html_link() and ecut_var.html_link(tag="foo")
 
         spinat_var = database["spinat"]
         assert spinat_var.isarray

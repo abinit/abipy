@@ -38,7 +38,7 @@ class AbinitOutputTest(AbipyTest):
             assert len(gs_abo.initial_structures) == 2
             assert gs_abo.initial_structure is not None
             assert gs_abo.initial_structure == gs_abo.final_structure
-            #gs_abo.diff_datasets(dryrun=True)
+            gs_abo.diff_datasets(1, 2, dryrun=True)
 
             print(gs_abo.events)
             gs_cycle = gs_abo.next_gs_scf_cycle()

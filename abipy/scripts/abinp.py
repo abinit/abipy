@@ -120,6 +120,7 @@ def abinp_gs(options):
     gsinp = factories.gs_input(structure, pseudos,
                                kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="unpolarized",
                                smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+    print(gsinp._repr_html_())
     return finalize(gsinp, options)
 
 

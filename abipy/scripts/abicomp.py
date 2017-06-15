@@ -545,6 +545,7 @@ Usage example:
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
   abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files and print results.
                                                      Use `--show` to get list of possible names.
+  abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
   abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
   abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
