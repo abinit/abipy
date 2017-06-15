@@ -60,7 +60,7 @@ Usage example:
                                              JSON representation. Use e.g. `-f abivars` to change format.
   abistruct.py mp_match FILE              => Read structure from FILE and find matching structures on the
                                              Materials Project site. Use e.g. `-f cif` to change output format.
-  abistruct.py mp_search Li F             => Connect to the materials project database. Get structures corresponding
+  abistruct.py mp_search LiF              => Connect to the materials project database. Get structures corresponding
                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
 

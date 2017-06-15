@@ -365,7 +365,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     #    """True if the DDB file contains data requires to compute LO-TO splitting."""
     #    return self.has_bec_terms() and self.has_emacro_terms()
 
-    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None,
+    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point.
@@ -374,6 +374,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
@@ -404,7 +405,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                           lo_to_splitting=lo_to_splitting, directions=directions,
                                           anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -430,7 +431,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                                      lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
-                                     workdir=None, manager=None):
+                                     mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -447,6 +448,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb
             verbose: verbosity level. Set it to a value > 0 to get more information
+            mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
 
@@ -464,7 +466,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -567,21 +569,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
-    def anaget_emacro_and_becs(self, chneut=1, workdir=None, manager=None, verbose=0):
+    def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            mpi_procs: Number of MPI processes to use.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
             emacro, becs
         """
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
-
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -603,8 +605,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return emacro, becs
 
-    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
-                   verbose=0, anaddb_kwargs=None):
+    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
+                   mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):
         """
         Execute anaddb to compute the interatomic forces.
 
@@ -612,6 +614,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
@@ -625,7 +628,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
                               dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
