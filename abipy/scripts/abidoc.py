@@ -78,7 +78,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for find.
     p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],
-                                   help="Find all variables whose name contains varname.")
+                                    help="Find all variables whose name contains varname.")
 
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
@@ -111,7 +111,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     if options.command == "man":
         abilab.abinit_help(options.varname)
 
-    if options.command == "browse":
+    elif options.command == "browse":
         return database[options.varname].browse()
 
     elif options.command == "apropos":
@@ -120,7 +120,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     elif options.command == "find":
         vlist = [v for v in database.values() if options.varname in v.varname]
-        print("find results:\n")
+        print("Find results:\n")
         print_vlist(vlist, options)
 
     elif options.command == "list":
@@ -132,15 +132,13 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
         elif options.mode == "s":
             # Grouped by sections.
             for section in database.sections:
-                header = 30*"#" +  " Section: " + section + " " + 30*"#"
-                print(header)
+                print(30*"#" +  " Section: " + section + " " + 30*"#")
                 print_vlist(database.vars_with_section(section), options)
 
         elif options.mode == "c":
             # Grouped by characteristics.
             for char in database.characteristics:
-                header = 30*"#" +  " Characteristic: " + char + 30*"#"
-                print(header)
+                print(30*"#" +  " Characteristic: " + char + 30*"#")
                 print_vlist(database.vars_with_char(char), options)
 
         else:
