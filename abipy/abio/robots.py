@@ -586,6 +586,13 @@ class GsrRobot(Robot, NotebookWriter):
             return fits, frame
             #return dict2namedtuple(fits=fits, frame=frame)
 
+    #def get_phasediagram_results(self):
+    #    from abipy.core.restapi import PhaseDiagramResults
+    #    entries = []
+    #    for label, gsr in self:
+    #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
+    #    return PhaseDiagramResults(entries)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current

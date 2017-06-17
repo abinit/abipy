@@ -7,10 +7,13 @@ from __future__ import division, unicode_literals, print_function, division
 import sys
 
 from collections import OrderedDict
+from pprint import pprint
 from monty.functools import lazy_property
+from monty.collections import dict2namedtuple
 from monty.string import marquee
 from pymatgen import SETTINGS
 from pymatgen.matproj.rest import MPRester, MPRestError
+from abipy.tools.pandas import print_frame
 
 
 MP_DEFAULT_ENDPOINT = "https://www.materialsproject.org/rest/v2"
@@ -20,10 +23,6 @@ MP_KEYS_FOR_DATAFRAME = ("pretty_formula", "e_above_hull", "energy_per_atom",
                          "spacegroup.symbol", "spacegroup.number",
                          "band_gap", "total_magnetization", "material_id")
                          # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
-
-
-class MyMPRester(MPRester):
-    Error = MPRestError
 
 
 def get_mprester(api_key=None, endpoint=None):
@@ -49,6 +48,79 @@ def get_mprester(api_key=None, endpoint=None):
     return MyMPRester(api_key=api_key, endpoint=endpoint)
 
 
+class MyMPRester(MPRester):
+    Error = MPRestError
+
+    def get_phasediagram_results(self, elements):
+        """
+        """
+        #from abipy.core.structure import Structure
+        #if duck.is_string(obj)
+        #    structure = Structure.from_file(obj)
+        #if os.path.exists(options.file_or_elements):
+        #    structure = abilab.Structure.from_file(options.file_or_elements)
+        #    elements = structure.symbol_set
+        #else:
+        #    elements = options.file_or_elements
+        entries = self.get_entries_in_chemsys(elements, inc_structure="final")
+        return PhaseDiagramResults(entries)
+
+
+class PhaseDiagramResults(object):
+    """
+    Inspired to:
+
+        https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook
+    """
+    def __init__(self, entries):
+        self.entries = entries
+        from abipy.core.structure import Structure
+        for e in entries:
+            e.structure = Structure.as_structure(e.structure)
+
+        self.structures = [e.structure for e in entries]
+        self.mpids = [e.entry_id for e in entries]
+
+        # Create phase diagram.
+        from pymatgen.phasediagram.maker import PhaseDiagram
+        self.phasediagram = PhaseDiagram(self.entries)
+
+    def plot(self, show_unstable=True):
+        # Show all phases, including unstable ones
+        from pymatgen.phasediagram.plotter import PDPlotter
+        plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
+        plotter.show()
+
+    @lazy_property
+    def table(self):
+        from pymatgen.phasediagram.analyzer import PDAnalyzer
+        pda = PDAnalyzer(self.phasediagram)
+        rows = []
+        for e in self.entries:
+            d = e.structure.get_dict4frame(with_spglib=True)
+            decomp, ehull = pda.get_decomp_and_e_above_hull(e)
+
+            rows.append(OrderedDict([
+                ("Materials ID", e.entry_id),
+                ("spglib_symb", d["spglib_symb"]), ("spglib_num", d["spglib_num"]),
+                ("Composition", e.composition.reduced_formula),
+                ("Ehull", ehull), # ("Equilibrium_reaction_energy", pda.get_equilibrium_reaction_energy(e)),
+                ("Decomposition", " + ".join(["%.2f %s" % (v, k.composition.formula) for k, v in decomp.items()])),
+            ]))
+
+        import pandas as pd
+        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+
+    def print_dataframes(self, with_spglib=False, file=sys.stdout, verbose=0):
+        print_frame(self.table, file=file)
+        if verbose:
+            from abipy.core.structure import frames_from_structures
+            dfs = frames_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
+            print_frame(dfs.lattice, title="Lattice parameters:", file=file)
+            if verbose > 1:
+                print_frame(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
+
+
 class MpStructures(object):
     """Store the results of a query to the MP database."""
 
@@ -67,7 +139,6 @@ class MpStructures(object):
         """Pandas dataframe constructed from self.data. None if data is not available."""
         if self.data is None: return None
         import pandas as pd
-
         rows = []
         for d in self.data:
             d = Dotdict(d)
@@ -84,13 +155,8 @@ class MpStructures(object):
         print("\n# Found %s structures in materials project database (use `verbose` to get full info)"
                 % len(self.structures), file=file)
 
-        if self.table is not None:
-            from abipy.tools.pandas import print_frame
-            print_frame(self.table, file=file)
-
-        if verbose and self.data is not None:
-            from pprint import pprint
-            pprint(self.data, stream=file)
+        if self.table is not None: print_frame(self.table, file=file)
+        if verbose and self.data is not None: pprint(self.data, stream=file)
 
         for i, structure in enumerate(self.structures):
             print(2 * "\n", file=file)

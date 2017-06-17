@@ -63,6 +63,9 @@ Usage example:
   abistruct.py mp_search LiF              => Connect to the materials project database. Get structures corresponding
                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
+  abistruct.py mp_pd FILE-or-elements     => Generate phase diagram with entries from the Materials Project.
+                                             Accept FILE with structure or list of elements e.g `Li-Fe-O`
+
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
@@ -256,6 +259,15 @@ Has to be all integers. Several options are possible:
     p_mpsearch.add_argument("-f", '--format', default="abivars", type=str,
                             help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
+    # Subparser for mp_pd command.
+    p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
+                                     help=("Generate phase diagram with entries from the Materials Project. "
+				           "Requires internet connection and MAPI_KEY"))
+    p_mp_pda.add_argument("file_or_elements", type=str, default=None,
+                          help="FILE with structure or elements e.g., Li-Fe-O).")
+    p_mp_pda.add_argument("-u", "--show-unstable", default=False, action="store_true",
+                          help="Show all phases, including unstable ones")
+
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
         help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
@@ -358,7 +370,8 @@ Has to be all integers. Several options are possible:
         dfs = abilab.frames_from_structures([structure, conv], index=index, with_spglib=True)
 
         abilab.print_frame(dfs.lattice, title="Lattice parameters:")
-        #abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+        if options.verbose:
+            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -486,6 +499,19 @@ Has to be all integers. Several options are possible:
             cprint("No structure found in database", "yellow")
             return 1
         mp.print_results(fmt=options.format, verbose=options.verbose)
+
+    elif options.command == "mp_pd":
+        if os.path.exists(options.file_or_elements):
+            structure = abilab.Structure.from_file(options.file_or_elements)
+            elements = structure.symbol_set
+        else:
+            elements = options.file_or_elements.split("-")
+
+        if options.verbose > 1: print("Building phase-diagram for elements:", elements)
+        with abilab.restapi.get_mprester(api_key=options.mapi_key, endpoint=options.endpoint) as rest:
+            pdr = rest.get_phasediagram_results(elements)
+            pdr.print_dataframes(verbose=options.verbose)
+            pdr.plot(show_unstable=options.show_unstable)
 
     elif options.command == "animate":
         filepath = options.filepath
