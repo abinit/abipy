@@ -124,7 +124,7 @@ def abicomp_mp_structure(options):
             dfs = abilab.frames_from_structures(r.structures + [this_structure], index=r.mpids + ["this"])
             abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
             if options.verbose:
-                abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):", sortby="spglib_num")
+                abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
             print()
 
         else:

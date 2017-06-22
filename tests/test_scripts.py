@@ -172,6 +172,10 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "lgk", "-k", "0", "0", "0", "--no-time-reversal", ncfile,
                     expect_stderr=self.expect_stderr)
 
+        # Testing abistruct kstar
+        r = env.run(self.script, "kstar", "-k", "0.5", "0.0", "0.0", "--no-time-reversal", abidata.cif_file("si.cif"),
+                    expect_stderr=self.expect_stderr)
+
     def test_abisanitize(self):
         """Testing abistruct abisanitize"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")

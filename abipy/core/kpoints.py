@@ -590,12 +590,12 @@ class Kpoint(SlotPickleMixin):
         return np.any(diff < _ATOL_KDIFF)
 
     def __repr__(self):
-        return "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
+        return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
 
     def __str__(self):
-        s =  "[%.3f, %.3f, %.3f]" % tuple(self.frac_coords)
-        if self.name is not None: s += ", name=%s" % self.name
-        if self._weight is not None: s += ", weight=%.3f" % self.weight
+        s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        if self.name is not None: s += ", name: %s" % self.name
+        if self._weight is not None: s += ", weight: %.3f" % self.weight
         return s
 
     # Kpoint algebra.

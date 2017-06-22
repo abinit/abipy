@@ -19,7 +19,7 @@ from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
-from abipy.core.kpoints import Ktables
+from abipy.core.kpoints import Ktables, Kpoint
 
 
 @prof_main
@@ -31,10 +31,10 @@ Usage example:
 
   abistruct.py spglib FILE                => Read structure from FILE and analyze it with spglib.
   abistruct.py abispg FILE                => Read structure from FILE, extract ABINIT space-group info.
-  abistruct.py convert FILE cif           => Read the structure from FILE and output CIF file
+  abistruct.py convert FILE cif           => Read structure from FILE and output CIF file
                                              (Use convert --help to get list of format supported)
   abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
-  abistruct.py convert out_HIST abivars   => Read the last structure from the HIST file and
+  abistruct.py convert out_HIST abivars   => Read FINAL structure from the HIST file and
                                              print the corresponding ABINIT variables.
   abistruct.py supercell FILE -s 2 2 1    => Read structure from FILE and build [2, 2, 1] supercell,
                                              print new structure using --format (default abivars).
@@ -43,14 +43,16 @@ Usage example:
   abistruct.py ngkpt FILE -n 4            => Compute `ngkpt` and `shiftk` from the number of divisions used to sample
                                              the smallest reciprocal lattice vector.
   abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ
-                                             with a 2,2,2 mesh, print points in IBZ with weights.
+                                             with a 2, 2, 2 mesh, print points in IBZ with weights.
   abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
                                              print Bilbao character table.
+  abistruct.py kstar FILE -k 0.25 0 0     => Read structure from FILE, print star of k-point.
   abistruct.py abisanitize FILE           => Read structure from FILE, call abisanitize, compare structures
                                              and save "abisanitized" structure to file.
   abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
                                              following doi:10.1016/j.commatsci.2010.05.010
   abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
+  abistruct.py interpolate FILE1 FILE2    => Interpolate between two structures. Useful for the construction of NEB inputs.
   abistruct.py xrd FILE                   => X-ray diffraction plot.
   abistruct.py oxistate FILE              => Estimate oxidation states with pymatgen bond valence analysis.
   abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, vtk, --help)
@@ -109,6 +111,14 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
                               help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    def add_primitive_options(parser):
+        """Add --no-primitve and --primitive-standard options to a parser."""
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument('--no-primitive', default=False, action='store_true',
+                           help="Do not enforce primitive cell.")
+        group.add_argument('--primitive-standard', default=False, action='store_true',
+                           help="Enforce primitive standard cell.")
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
                                        description="Valid subcommands, use command --help for help")
@@ -130,7 +140,7 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
                                         help="Generate supercell.")
-    p_supercell.add_argument("-s", '--scaling_matrix', nargs="+", required=True, type=int,
+    p_supercell.add_argument("-s", "--scaling_matrix", nargs="+", required=True, type=int,
                              help="""\
 scaling_matrix: A scaling matrix for transforming the lattice vectors.
 Has to be all integers. Several options are possible:
@@ -152,6 +162,18 @@ Has to be all integers. Several options are possible:
                                       help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
     p_abisanitize.add_argument("--savefile", default="", type=str,
                                help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+    add_primitive_options(p_abisanitize)
+
+    # Subparser for irefine
+    p_irefine = subparsers.add_parser('irefine', parents=[copts_parser, path_selector, spgopt_parser],
+        help="Refine structure with abi_sanitize iteratively, stop if target spacegroup is obtained.")
+    p_irefine.add_argument("--target-spgnum", required=True, type=int, help="Target spacegroup-number.")
+    p_irefine.add_argument("--symprec-step", default=0.05, type=float, help='Increment for symprec.')
+    p_irefine.add_argument("--angle-tolerance-step", default=0.0, type=float, help='Increment for angle_tolerance.')
+    p_irefine.add_argument("--ntrial", default=50, type=int, help='Number of trials. Default 50.')
+    #p_irefine.add_argument("--savefile", default="", type=str,
+    #                         help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+    add_primitive_options(p_irefine)
 
     # Subparser for conventional.
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser],
@@ -164,6 +186,19 @@ Has to be all integers. Several options are possible:
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
                                         help="Get neighbors for each atom in the unit cell, out to a distance radius.")
     p_neighbors.add_argument("-r", "--radius", default=2, type=float, help="Radius of the sphere in Angstrom.")
+
+    # Subparser for interpolate.
+    p_interpolate = subparsers.add_parser('interpolate', parents=[copts_parser],
+        help=("Interpolate between two structures. Useful for the construction of NEB inputs."))
+    p_interpolate.add_argument("filepaths", nargs=2, help="Files with initial and final structures.")
+    p_interpolate.add_argument("-n", "--nimages", default=10, type=int,
+                                help="No. of interpolation images. Defaults to 10.")
+    p_interpolate.add_argument("--autosort_tol", default=0.5, type=float, help="""\
+A distance tolerance in Angstrom in which to automatically sort end_structure to match to the
+closest points in this particular structure. This is usually what you want in a NEB calculation.
+0 implies no sorting. Otherwise, a 0.5 value (default) usually works pretty well.""")
+    p_interpolate.add_argument("-f", '--format', default="abivars", type=str,
+                               help="Output format. Default: abivars. Accept: %s" % supported_formats)
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
@@ -205,26 +240,36 @@ Has to be all integers. Several options are possible:
     p_ngkpt = subparsers.add_parser('ngkpt', parents=[copts_parser, path_selector],
                                  help="Return the Abinit k-point sampling variables "
                                       "from the number of divisions used to sample the smallest "
-                                      "lattive vector of the reciprocal lattice.")
+                                      "lattice vector of the reciprocal lattice.")
     p_ngkpt.add_argument("-n", "--nksmall", required=True, type=int,
                          help="Number of divisions used to sample the smallest reciprocal lattice vector.")
 
     # Subparser for kmesh.
     p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
                                     help=("Read structure from filepath, call spglib to sample the BZ,"
-                                           "print k-points in the IBZ with weights."))
-    p_kmesh.add_argument("-m", "--mesh", nargs="+", required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+                                          "print k-points in the IBZ with weights."))
+    p_kmesh.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
     p_kmesh.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
                          help=("Three integers (spglib API). The kmesh is shifted along " +
                                "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
-                               "Default: Unshited mesh."))
+                               "Default: Unshifted mesh."))
     p_kmesh.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+
+    # Subparser for kmesh_jhu.
+    #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector],
+    #                                     help="Foobar ")
 
     # Subparser for lgk.
     p_lgk = subparsers.add_parser('lgk', parents=[copts_parser, path_selector, spgopt_parser],
                                   help="Read structure from file, find little group of k-point, print Bilbao character table.")
-    p_lgk.add_argument("-k", "--kpoint", nargs="+", required=True, type=float,
+    p_lgk.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
                        help="K-point in reduced coordinates e.g. 0.25 0 0")
+
+    # Subparser for kstar.
+    p_kstar = subparsers.add_parser('kstar', parents=[copts_parser, path_selector, spgopt_parser],
+                                  help="Read structure from file, print star of k-point.")
+    p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
+                         help="K-point in reduced coordinates e.g. 0.25 0 0")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
@@ -327,7 +372,8 @@ Has to be all integers. Several options are possible:
 
         structure = abilab.Structure.from_file(options.filepath)
         sanitized = structure.abi_sanitize(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                           primitive=True, primitive_standard=False)
+                                           primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
+                                           #primitive=True, primitive_standard=False)
         index = [options.filepath, "abisanitized"]
         dfs = abilab.frames_from_structures([structure, sanitized], index=index, with_spglib=True)
 
@@ -336,6 +382,7 @@ Has to be all integers. Several options are possible:
 
         if not options.verbose:
             print("\nUse -v for more info")
+            #print(sanitized.convert(fmt="cif"))
         else:
             #print("\nDifference between structures:")
             if len(structure) == len(sanitized):
@@ -356,6 +403,33 @@ Has to be all integers. Several options are possible:
             if os.path.exists(options.savefile):
                 raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
             sanitized.to(filename=options.savefile)
+
+    elif options.command == "irefine":
+        structure = abilab.Structure.from_file(options.filepath)
+        sanitized = structure.copy()
+        symprec, angle_tolerance = options.symprec, options.angle_tolerance
+        print("Calling abi_sanitize with increasing tolerances to reach target space-group:", options.target_spgnum)
+        print("Using symprec_step: ", options.symprec_step, ", angle_tolerance_step:", options.angle_tolerance_step,
+              "ntrial", options.ntrial)
+        itrial = 0
+        while itrial < options.ntrial:
+            print(">>> Tring with symprec: %s, angle_tolerance: %s" % (symprec, angle_tolerance))
+            sanitized = sanitized.abi_sanitize(symprec=symprec, angle_tolerance=angle_tolerance,
+                primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
+            spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
+            print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
+            if spg_num == options.target_spgnum:
+                print(2 * "\n", "# Final structure with space-group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
+                print(sanitized.convert(fmt="cif"))
+                break
+
+            # Increment counter and tols.
+            itrial += 1
+            symprec += options.symprec_step
+            angle_tolerance += options.angle_tolerance_step
+        else:
+            print("Cannot find spacegroup number:", options.target_spgnum, "after", options.ntrial, "iterations")
+            return 1
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
@@ -384,10 +458,8 @@ Has to be all integers. Several options are possible:
                 print(str(tabulate(table, headers=["Initial structure", "Conventional"])))
 
             else:
-                print("\nInitial structure:")
-                print(structure)
-                print("\nConventional structure:")
-                print(conv)
+                print("\nInitial structure:\n", structure)
+                print("\nConventional structure:\n", conv)
 
         # save file.
         if options.savefile:
@@ -398,6 +470,18 @@ Has to be all integers. Several options are possible:
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
+
+    elif options.command == "interpolate":
+        initial_structure = abilab.Structure.from_file(options.filepaths[0])
+        end_structure = abilab.Structure.from_file(options.filepaths[1])
+        structures = initial_structure.interpolate(end_structure, nimages=options.nimages,
+                                                   interpolate_lattices=False, pbc=True,
+                                                   autosort_tol=options.autosort_tol)
+        structures = list(map(abilab.Structure.as_structure, structures))
+        for i, s in enumerate(structures):
+            print(marquee("Structure #%d" % i, mark="="))
+            print(s.convert(fmt=options.format))
+            print(" ")
 
     elif options.command == "xrd":
         structure = abilab.Structure.from_file(options.filepath)
@@ -459,6 +543,10 @@ Has to be all integers. Several options are possible:
         else:
             k.print_bz2ibz()
 
+    #elif options.command == "kmesh_jhu":
+    #    structure = abilab.Structure.from_file(options.filepath)
+    #    d = structure.ksampling_from_jhudb(precalc={})
+
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
         spgrp = structure.abi_spacegroup
@@ -469,7 +557,6 @@ Has to be all integers. Several options are possible:
                    (not options.no_time_reversal), "yellow")
             spgrp = AbinitSpaceGroup.from_structure(structure, has_timerev=not options.no_time_reversal,
                         symprec=options.symprec, angle_tolerance=options.angle_tolerance)
-
         print()
         print(marquee("Structure", mark="="))
         print(structure.spget_summary(verbose=options.verbose))
@@ -479,8 +566,20 @@ Has to be all integers. Several options are possible:
         ltk = spgrp.find_little_group(kpoint=options.kpoint)
         print(ltk.to_string(verbose=options.verbose))
 
+    elif options.command == "kstar":
+        structure = abilab.Structure.from_file(options.filepath)
+        # Call spglib to get spacegroup if Abinit spacegroup is not available.
+        if structure.abi_spacegroup is None:
+            structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
+
+        kpoint = Kpoint(options.kpoint, structure.reciprocal_lattice)
+        kstar = kpoint.compute_star(structure.abi_spacegroup, wrap_tows=True)
+        print("Found %s points in the star of %s\n" % (len(kstar), repr(kpoint)))
+        for k in kstar:
+            print(4 * " ", repr(k))
+
     elif options.command == "pmgdata":
-        # Get the Structure corresponding the a material_id.
+        # Get the Structure corresponding to material_id.
         structure = abilab.Structure.from_material_id(options.mpid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
         # Convert to json and print it.

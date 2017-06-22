@@ -21,4 +21,4 @@ def print_frame(frame, title=None, sortby=None, file=sys.stdout):
     with pd.option_context('display.max_rows', len(frame),
                            'display.max_columns', len(list(frame.keys()))):
         print(frame, file=file)
-    print(" ", file=file)
+        print(" ", file=file)

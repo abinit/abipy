@@ -21,11 +21,11 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs #, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.iotools import as_etsfreader, Visualizer,  xsf
+from abipy.iotools import as_etsfreader, Visualizer, xsf
 from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 
 
@@ -520,7 +520,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             symprec: Symmetry precision used to refine the structure.
-                if `symprec` is None, so structure refinement is peformed.
+            angle_tolerance: Tolerance on anglese
+                if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
@@ -1422,7 +1423,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return np.reshape(kptbounds, (-1, 3))
 
     #def ksampling_from_jhudb(self, precalc, format="vasp",
-    #                         url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet"):
+    #                         url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet", **kwargs):
     #    """
     #    Generate k-point grid for Brillouin zone integration.
 
@@ -1453,8 +1454,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #        Pandu Wisesa, Kyle A. McGill, and Tim Mueller
     #        Phys. Rev. B 93, 155109
     #    """
-    #    from six.moves import StringIO
+    #    #from pymatgen.io.vasp.inputs import Kpoints
+    #    #__doc__ = Kpoints.get_from_wmm.__doc__
+    #    #vasp_kpoints = Kpoints.get_from_wmm(self, **kwargs)
+    #    #print(vasp_kpoints.style)
+    #    #return
 
+    #    from six.moves import StringIO
     #    # Prepare PRECALC file.
     #    precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
     #    wrong_vars = [k for k in precalc if k not in precalc_names]
@@ -1468,14 +1474,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    precalc_fobj.seek(0)
 
     #    # Get string with structure in POSCAR format.
-    #    string = self.convert(format="POSCAR")
+    #    string = self.convert(fmt="POSCAR")
     #    poscar_fobj = StringIO()
     #    poscar_fobj.write(string)
     #    poscar_fobj.seek(0)
 
     #    #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet
     #    #       --form "fileupload=@PRECALC" --form "fileupload=@POSCAR")
-
     #    # See http://docs.python-requests.org/en/latest/user/advanced/#advanced
     #    import requests
     #    files = [
@@ -1484,8 +1489,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    ]
 
     #    r = requests.post(url, files=files)
-    #    #print(r.url, r.request)
-    #    print(r.text)
+    #    print(r.url, r.request, r.text)
 
     #    r.raise_for_status()
     #    if r.status_code != requests.codes.ok:
@@ -1494,9 +1498,24 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    # Parse Vasp Kpoints
     #    from pymatgen.io.vasp.inputs import Kpoints
     #    vasp_kpoints = Kpoints.from_string(r.text)
-    #    #print(vasp_kpoints.style)
-    #    #return kptrlatt, shiftk
-    #    #return ksamp
+    #    print(vasp_kpoints.style)
+
+    #    #d = {"kptopt": 0
+    #    #     "kpt":
+    #    #     "nkpt": num_kpts,
+    #    #     "kptnrm": kptnrm,
+    #    #     "wtk": kpts_weights,
+    #    #     "chksymbreak": 0,
+    #    #}
+
+    #    #from pymatgen.io.abinit.abiobjects import KSampling
+    #    #return KSampling(mode=KSamplingModes.automatic,
+    #    #         num_kpts= 0,
+    #    #         kpts=((1, 1, 1),),
+    #    #         kpt_shifts=(0.5, 0.5, 0.5),
+    #    #         kpts_weights=None, use_symmetries=True, use_time_reversal=True, chksymbreak=None,
+    #    #         comment=None)
+    #    return
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
