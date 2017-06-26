@@ -125,9 +125,7 @@ def gaussian(x, width, center=0.0, height=None):
     If height is None, a normalized gaussian is returned.
     """
     x = np.asarray(x)
-
-    if height is None:
-        height = 1.0 / (width * np.sqrt(2 * np.pi))
+    if height is None: height = 1.0 / (width * np.sqrt(2 * np.pi))
 
     return height * np.exp(-((x - center) / width) ** 2 / 2.)
 

@@ -324,13 +324,22 @@ class PhononBands(object):
     @lazy_property
     def _auto_qlabels(self):
         # Find the q-point names in the pymatgen database.
-        # We'll use _auto_klabels to label the point in the matplotlib plot
+        # We'll use _auto_qlabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
         _auto_qlabels = OrderedDict()
         for idx, qpoint in enumerate(self.qpoints):
             name = self.structure.findname_in_hsym_stars(qpoint)
             if name is not None:
                 _auto_qlabels[idx] = name
+                if qpoint.name is None: qpoint.set_name(name)
+
+        # If the first or the last q-point are not recognized in findname_in_hsym_stars
+        # matplotlib won't show the full band structure along the k-path
+        # because the labels are not defined. Here we make sure that
+        # the labels for the extrema of the path are always defined.
+        if 0 not in _auto_qlabels: _auto_qlabels[0] = " "
+        last = len(self.qpoints) - 1
+        if last not in _auto_qlabels: _auto_qlabels[last] = " "
 
         return _auto_qlabels
 

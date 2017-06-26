@@ -508,8 +508,16 @@ class ElectronBands(Has_Structure):
             name = self.structure.findname_in_hsym_stars(kpoint)
             if name is not None:
                 _auto_klabels[idx] = name
-                if kpoint.name is None:
-                    kpoint.set_name(name)
+                if kpoint.name is None: kpoint.set_name(name)
+
+        # If the first or the last k-point are not recognized in findname_in_hsym_stars
+        # matplotlib won't show the full band structure along the k-path
+        # because the labels are not defined. Here we make sure that
+        # the labels for the extrema of the path are always defined.
+        if 0 not in _auto_klabels: _auto_klabels[0] = " "
+        last = len(self.kpoints) - 1
+        if last not in _auto_klabels: _auto_klabels[last] = " "
+
         return _auto_klabels
 
     def __repr__(self):
@@ -1178,8 +1186,14 @@ class ElectronBands(Has_Structure):
                 if self.nsppol == 2:
                     app(">>> For spin %s" % spin)
                 if enough_bands:
-                    app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
-                    app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
+                    # This can fail so we have to catch the exception.
+                    try:
+                        app("Direct gap:\n%s" % indent(str(self.direct_gaps[spin])))
+                        app("Fundamental gap:\n%s" % indent(str(self.fundamental_gaps[spin])))
+                    except Exception as exc:
+                        app("WARNING: Cannot compute direct and fundamental gap.")
+                        if verbose: app("Exception:\n%s" % str(exc))
+
                 app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
                 app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
@@ -1290,16 +1304,15 @@ class ElectronBands(Has_Structure):
             err_msg += str(type(self.kpoints)) # + "\n" + str(self.kpoints)
             raise ValueError(err_msg)
 
-        # Compute the linear mesh.
+        # Compute linear mesh.
         epad = 3.0 * width
         e_min = self.enemin() - epad
         e_max = self.enemax() + epad
-
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
-        dos = np.zeros((self.nsppol, nw))
 
         # TODO: Write cython version.
+        dos = np.zeros((self.nsppol, nw))
         if method == "gaussian":
             for spin in self.spins:
                 for k, kpoint in enumerate(self.kpoints):
@@ -1396,7 +1409,7 @@ class ElectronBands(Has_Structure):
         return Function1D(mesh, jdos)
 
     @add_fig_kwargs
-    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2,
+    def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, colormap="jet",
                      cumulative=True, ax=None, alpha=0.7, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
@@ -1411,6 +1424,8 @@ class ElectronBands(Has_Structure):
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
+            colormap: Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
@@ -1423,7 +1438,7 @@ class ElectronBands(Has_Structure):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         ax.set_xlabel('Energy [eV]')
-        cmap = plt.get_cmap("jet")
+        cmap = plt.get_cmap(colormap)
         lw = 1.0
 
         for s in self.spins:
