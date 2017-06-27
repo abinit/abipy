@@ -46,7 +46,7 @@ Usage example:
   abistruct.py convert FILE                => Print the ABINIT variables defining the structure.
   abistruct.py convert FILE -f cif         => Read structure from FILE and output CIF file
                                               (Use convert --help to get list of formats supported)
-  abistruct.py convert out_HIST            => Read FINAL structure from the HIST file and
+  abistruct.py convert out_HIST.nc         => Read FINAL structure from the HIST file and
                                               print the corresponding ABINIT variables.
   abistruct.py supercell FILE -s 2 2 1     => Read structure from FILE and build [2, 2, 1] supercell,
                                               print new structure using --format (default abivars).

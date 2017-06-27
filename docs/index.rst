@@ -31,6 +31,7 @@ Post-processing
    :maxdepth: 1
 
    scripts
+   scripts_howto
    examples/plot/index.rst
 
 Calculations

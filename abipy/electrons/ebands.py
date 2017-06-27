@@ -2119,7 +2119,7 @@ class ElectronBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
-    def to_string(self, func=str):
+    def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -2134,7 +2134,9 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def get_ebands_frame(self, with_spglib=True):
         """
-        Build a pandas dataframe with the most important results available in the band structures."""
+        Build a pandas dataframe with the most important results available in the band structures.
+        Useful to analyze band-gaps.
+        """
         return frame_from_ebands(list(self.ebands_dict.values()),
                                  index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
 

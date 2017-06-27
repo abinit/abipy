@@ -79,11 +79,12 @@ def main():
         s = """\
 Usage example:
 
-    abiopen.py out_GSR.nc        => Open file in ipython shell.
-    abiopen.py out_DDB -nb       => Generate jupyter notebook.
-    abiopen.py out_HIST.nc -p    => Print info on object to terminal.
+    abiopen.py FILE        => Open file in ipython shell.
+    abiopen.py FILE -nb       => Generate jupyter notebook.
+    abiopen.py FILE -p    => Print info on object to terminal.
 
-Use `-v` to increase verbosity level.
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 File extensions supported:
 """

@@ -531,23 +531,52 @@ def main():
         return """\
 Usage example:
 
+############
+# Structures
+############
+
   abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
                                                      Use `--group` to compare for similarity
   abicomp.py mp_structure FILE(s)                 => Compare structure(s) read from FILE(s) with the one(s)
                                                      given in the materials project database.
   abicomp.py xrd *.cif *.GSR.nc                   => Compare X-ray diffraction plots (requires FILES with structure).
+
+###########
+# Electrons
+###########
+
   abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
+
+#########
+# Phonons
+#########
+
   abicomp.py phbands *_PHBST.nc -nb               => Compare phonon bands in the jupyter notebook.
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+
+########
+# GW/BSE
+########
+
+  abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
+
+###############
+# Miscelleanous
+###############
+
   abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files and print results.
                                                      Use `--show` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
-  abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
-  abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
-  abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
+
+############
+# Text files
+############
+
   abicomp.py text run1.abo run2.abo               => Compare 2+ output files in the browser.
   abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.

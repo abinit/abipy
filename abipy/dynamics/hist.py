@@ -54,6 +54,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
+        app(marquee("Initial structure", mark="="))
+        app(str(self.initial_structure))
         app(marquee("Final structure", mark="="))
         app("Number of relaxation steps performed: %d" % self.num_steps)
         app(str(self.final_structure))
