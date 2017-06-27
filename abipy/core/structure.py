@@ -32,6 +32,7 @@ from abipy.flowtk.abiobjects import structure_from_abivars, structure_to_abivars
 __all__ = [
     "mp_match_structure",
     "mp_search",
+    "cod_search",
     "Structure",
     "frames_from_structures",
 ]
@@ -105,15 +106,40 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
                 structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
                                 for d in data]
                 mpids = [d["material_id"] for d in data]
-
                 # Want AbiPy structure.
-                for i, _ in enumerate(structures):
-                    structures[i].__class__ = Structure
+                structures = list(map(Structure.as_structure, structures))
 
         except rest.Error as exc:
             cprint(str(exc), "magenta")
 
         return restapi.MpStructures(structures=structures, mpids=mpids, data=data)
+
+
+def cod_search(formula):
+    """
+    Connect to the COD database (http://www.crystallography.net/)
+    Get a list of structures corresponding to a chemical formula
+
+    Args:
+        formula_ (str): Chemical formula (e.g., Fe2O3)
+
+    Returns:
+        :class:`MpStructures` object with
+            List of Structure objects, Materials project ids associated to structures.
+            and List of dictionaries with MP data (same order as structures).
+
+        Note that the attributes evalute to False if no match is found
+    """
+    #chemsys_formula_id = chemsys_formula_id.replace(" ", "")
+    from pymatgen.ext.cod import COD
+    data = COD().get_structure_by_formula(formula)
+
+    mpids = [e.pop("cod_id") for e in data]
+    # Want AbiPy structure.
+    structures = list(map(Structure.as_structure, [e.pop("structure") for e in data]))
+
+    from abipy.core import restapi
+    return restapi.MpStructures(structures=structures, mpids=mpids, data=data)
 
 
 class Structure(pymatgen.Structure, NotebookWriter):
@@ -262,6 +288,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             new = rest.get_structure_by_material_id(material_id, final=final)
             return cls.as_structure(new)
+
+    @classmethod
+    def from_cod_id(cls, cod_id, **kwargs):
+        """
+        Queries the COD for a structure by id. Returns Structure object.
+
+        Args:
+            cod_id (int): COD id.
+            kwargs: Arguments passed to `get_structure_by_id`
+
+        Returns:
+            A Structure.
+        """
+        from pymatgen.ext.cod import COD
+        new = COD().get_structure_by_id(cod_id, **kwargs)
+        return cls.as_structure(new)
 
     @classmethod
     def from_ase_atoms(cls, atoms):
@@ -1052,14 +1094,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return super(Structure, self).to(fmt=fmt, **kwargs)
 
-    #def to_xsf(self):
-    #    """
-    #    Returns a string with the structure in XSF format
-    #    See http://www.xcrysden.org/doc/XSF.html
-    #    """
-    #    from pymatgen.io.xcrysden import XSF
-    #    return XSF(self).to_string()
-
     #def max_overlap_and_sites(self, pseudos):
     #    # For each site in self:
     #    # 1) Get the radius of the pseudopotential sphere
@@ -1422,91 +1456,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
-    #def ksampling_from_jhudb(self, precalc, format="vasp",
-    #                         url="http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet", **kwargs):
-    #    """
-    #    Generate k-point grid for Brillouin zone integration.
+    #def ksampling_from_jhudb(self, **kwargs):
+    #    from pymatgen.ext.jhu import get_kpoints
+    #    __doc__ = get_kpoints.__doc__
+    #    kpoints = get_kpoints(self, **kwargs)
+    #    print(kpoints)
+    #    print(kpoints.style)
+    #    print("num_kpts", kpoints.num_kpts)
 
-    #    Args:
-    #        INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.
-    #            AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.
-    #        MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.
-    #        HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written
-    #            to the header of the file. The default is SIMPLE.
-    #        MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.
-    #        KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.
-    #            The use of this parameter for systems with less than three periodic dimensions is not recommended.
-    #        GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,
-    #            and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided
-    #            structure, the k-point density in the corresponding direction will be reduced accordingly.
-    #            The default value is 7 Å.
-
-    #    Note:
-    #        If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or
-    #        KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.
-
-    #    Returns:
-
-    #    See also:
-    #        http://muellergroup.jhu.edu/K-Points.html
-
-    #        Efficient generation of generalized Monkhorst-Pack grids through the use of informatics
-    #        Pandu Wisesa, Kyle A. McGill, and Tim Mueller
-    #        Phys. Rev. B 93, 155109
-    #    """
-    #    #from pymatgen.io.vasp.inputs import Kpoints
-    #    #__doc__ = Kpoints.get_from_wmm.__doc__
-    #    #vasp_kpoints = Kpoints.get_from_wmm(self, **kwargs)
-    #    #print(vasp_kpoints.style)
-    #    #return
-
-    #    from six.moves import StringIO
-    #    # Prepare PRECALC file.
-    #    precalc_names = set(("INCLUDEGAMMA", "MINDISTANCE", "HEADER", "MINTOTALKPOINTS", "KPPRA", "GAPDISTANCE"))
-    #    wrong_vars = [k for k in precalc if k not in precalc_names]
-    #    if wrong_vars:
-    #        raise ValueError("The following keys are not valid PRECALC variables:\n  %s" % wrong_vars)
-
-    #    precalc_fobj = StringIO()
-    #    precalc_fobj.write("MINDISTANCE=28.1\n")
-    #    for k, v in precalc.items():
-    #        precalc_fobj.write("%s=%s" % (k, v))
-    #    precalc_fobj.seek(0)
-
-    #    # Get string with structure in POSCAR format.
-    #    string = self.convert(fmt="POSCAR")
-    #    poscar_fobj = StringIO()
-    #    poscar_fobj.write(string)
-    #    poscar_fobj.seek(0)
-
-    #    #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet
-    #    #       --form "fileupload=@PRECALC" --form "fileupload=@POSCAR")
-    #    # See http://docs.python-requests.org/en/latest/user/advanced/#advanced
-    #    import requests
-    #    files = [
-    #        ('fileupload', ('PRECALC', precalc_fobj)),
-    #        ('fileupload', ('POSCAR', poscar_fobj)),
-    #    ]
-
-    #    r = requests.post(url, files=files)
-    #    print(r.url, r.request, r.text)
-
-    #    r.raise_for_status()
-    #    if r.status_code != requests.codes.ok:
-    #        raise RuntimeError("Request status code: %s" % r.status_code)
-
-    #    # Parse Vasp Kpoints
-    #    from pymatgen.io.vasp.inputs import Kpoints
-    #    vasp_kpoints = Kpoints.from_string(r.text)
-    #    print(vasp_kpoints.style)
-
-    #    #d = {"kptopt": 0
-    #    #     "kpt":
-    #    #     "nkpt": num_kpts,
-    #    #     "kptnrm": kptnrm,
-    #    #     "wtk": kpts_weights,
-    #    #     "chksymbreak": 0,
-    #    #}
+    #    d = {"kptopt": 0,
+    #         "kpt": kpoints.kpts,
+    #         "nkpt": kpoints.num_kpts,
+    #         #"kptnrm": kptnrm,
+    #         "wtk": kpoints.kpts_weights,
+    #         "shiftk": kpoints.kpts_shift,
+    #         "chksymbreak": 0,
+    #    }
+    #    print(d)
 
     #    #from pymatgen.io.abinit.abiobjects import KSampling
     #    #return KSampling(mode=KSamplingModes.automatic,
@@ -1515,7 +1481,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    #         kpt_shifts=(0.5, 0.5, 0.5),
     #    #         kpts_weights=None, use_symmetries=True, use_time_reversal=True, chksymbreak=None,
     #    #         comment=None)
-    #    return
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """

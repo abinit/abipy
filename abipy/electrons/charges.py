@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-class HirshfeldCharges(Has_Structure, object):
+class HirshfeldCharges(Has_Structure):
 
     def __init__(self, charges, structure):
         self.charges = charges

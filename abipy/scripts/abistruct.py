@@ -29,45 +29,73 @@ def main():
         return """\
 Usage example:
 
-  abistruct.py spglib FILE                => Read structure from FILE and analyze it with spglib.
-  abistruct.py abispg FILE                => Read structure from FILE, extract ABINIT space-group info.
-  abistruct.py convert FILE cif           => Read structure from FILE and output CIF file
-                                             (Use convert --help to get list of format supported)
-  abistruct.py convert FILE abivars       => Print the ABINIT variables defining the structure.
-  abistruct.py convert out_HIST abivars   => Read FINAL structure from the HIST file and
-                                             print the corresponding ABINIT variables.
-  abistruct.py supercell FILE -s 2 2 1    => Read structure from FILE and build [2, 2, 1] supercell,
-                                             print new structure using --format (default abivars).
-  abistruct.py kpath FILE                 => Read structure from FILE and print ABINIT variables for k-path.
-  abistruct.py bz FILE                    => Read structure from FILE, plot BZ with matplotlib.
-  abistruct.py ngkpt FILE -n 4            => Compute `ngkpt` and `shiftk` from the number of divisions used to sample
-                                             the smallest reciprocal lattice vector.
-  abistruct.py kmesh FILE -m 2 2 2        => Read structure from FILE, call spglib to sample the BZ
-                                             with a 2, 2, 2 mesh, print points in IBZ with weights.
-  abistruct.py lgk FILE -k 0.25 0 0       => Read structure from FILE, find little group of k-point,
-                                             print Bilbao character table.
-  abistruct.py kstar FILE -k 0.25 0 0     => Read structure from FILE, print star of k-point.
-  abistruct.py abisanitize FILE           => Read structure from FILE, call abisanitize, compare structures
-                                             and save "abisanitized" structure to file.
-  abistruct.py conventional FILE          => Read structure from FILE, generate conventional structure
-                                             following doi:10.1016/j.commatsci.2010.05.010
-  abistruct.py neighbors FILE             => Get neighbors for each atom in the unit cell, out to a distance radius.
-  abistruct.py interpolate FILE1 FILE2    => Interpolate between two structures. Useful for the construction of NEB inputs.
-  abistruct.py xrd FILE                   => X-ray diffraction plot.
-  abistruct.py oxistate FILE              => Estimate oxidation states with pymatgen bond valence analysis.
-  abistruct.py visualize FILE vesta       => Visualize the structure with e.g. vesta (xcrysden, vtk, --help)
-  abistruct.py ipython FILE               => Read structure from FILE and open it in the Ipython terminal.
-  abistruct.py notebook FILE              => Read structure from FILE and generate jupyter notebook.
-  abistruct.py pmgdata mp-149             => Get structure from materials project database and print
-                                             JSON representation. Use e.g. `-f abivars` to change format.
-  abistruct.py mp_match FILE              => Read structure from FILE and find matching structures on the
-                                             Materials Project site. Use e.g. `-f cif` to change output format.
-  abistruct.py mp_search LiF              => Connect to the materials project database. Get structures corresponding
-                                             to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
-                                             Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
-  abistruct.py mp_pd FILE-or-elements     => Generate phase diagram with entries from the Materials Project.
-                                             Accept FILE with structure or list of elements e.g `Li-Fe-O`
+###################
+# Space group tools
+###################
 
+  abistruct.py spglib FILE                 => Read structure from FILE and analyze it with spglib.
+  abistruct.py abispg FILE                 => Read structure from FILE, extract ABINIT space group info.
+  abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
+                                              and save "abisanitized" structure to file.
+  abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
+                                              following doi:10.1016/j.commatsci.2010.05.010
+##################
+# Conversion tools
+##################
+
+  abistruct.py convert FILE                => Print the ABINIT variables defining the structure.
+  abistruct.py convert FILE -f cif         => Read structure from FILE and output CIF file
+                                              (Use convert --help to get list of formats supported)
+  abistruct.py convert out_HIST            => Read FINAL structure from the HIST file and
+                                              print the corresponding ABINIT variables.
+  abistruct.py supercell FILE -s 2 2 1     => Read structure from FILE and build [2, 2, 1] supercell,
+                                              print new structure using --format (default abivars).
+################
+# K-points tools
+################
+
+  abistruct.py kpath FILE                  => Read structure from FILE and print ABINIT variables for k-path.
+  abistruct.py bz FILE                     => Read structure from FILE, plot BZ with matplotlib.
+  abistruct.py ngkpt FILE -n 4             => Compute `ngkpt` and `shiftk` from the number of divisions used to sample
+                                              the smallest reciprocal lattice vector.
+  abistruct.py kmesh FILE -m 2 2 2         => Read structure from FILE, call spglib to sample the BZ
+                                              with a 2, 2, 2 mesh, print points in IBZ with weights.
+  abistruct.py lgk FILE -k 0.25 0 0        => Read structure from FILE, find little group of k-point,
+                                              print Bilbao character table.
+  abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
+
+###############
+# Miscelleanous
+###############
+
+  abistruct.py neighbors FILE              => Get neighbors for each atom in the unit cell, out to a distance radius.
+  abistruct.py interpolate FILE1 FILE2     => Interpolate between two structures. Useful for the construction of NEB inputs.
+  abistruct.py xrd FILE                    => X-ray diffraction plot.
+  abistruct.py oxistate FILE               => Estimate oxidation states with pymatgen bond valence analysis.
+
+###############
+# Visualization
+###############
+
+  abistruct.py visualize FILE vesta        => Visualize the structure with e.g. vesta (xcrysden, vtk, --help)
+  abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
+  abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
+
+###########
+# Databases
+###########
+
+  abistruct.py cod_id 1526507              => Get structure from COD database. (http://www.crystallography.net/cod)
+  abistruct.py cod_search MgB2             => Search for structures in the COD database.
+  abistruct.py mp_id mp-149                => Get structure from materials project database and print
+                                              JSON representation. Use e.g. `-f abivars` to change format.
+  abistruct.py mp_match FILE               => Read structure from FILE and find matching structures on the
+                                              Materials Project site. Use e.g. `-f cif` to change output format.
+  abistruct.py mp_search LiF               => Connect to the materials project database. Get structures corresponding
+                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
+                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
+  abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
+                                              Accept FILE with structure or list of elements e.g `Li-Fe-O`
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
@@ -80,12 +108,10 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
         if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    supported_formats = '("abivars", "cif", "xsf", "poscar", "cssr", "json")'
-
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', nargs="?",
-                               help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input files, POSCAR ...)")
+        help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -107,39 +133,47 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity')
+        help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    # Helper functions to construct sub-parsers.
     def add_primitive_options(parser):
-        """Add --no-primitve and --primitive-standard options to a parser."""
+        """Add --no-primitive and --primitive-standard options to a parser."""
         group = parser.add_mutually_exclusive_group()
-        group.add_argument('--no-primitive', default=False, action='store_true',
-                           help="Do not enforce primitive cell.")
-        group.add_argument('--primitive-standard', default=False, action='store_true',
-                           help="Enforce primitive standard cell.")
+        group.add_argument('--no-primitive', default=False, action='store_true', help="Do not enforce primitive cell.")
+        group.add_argument('--primitive-standard', default=False, action='store_true', help="Enforce primitive standard cell.")
+
+    supported_formats = '("abivars", "cif", "xsf", "poscar", "cssr", "json")'
+    def add_format_arg(parser, default, option=True):
+        """Add --format option to a parser with default value `default`."""
+        if option:
+            parser.add_argument("-f", "--format", default=default, type=str,
+                                 help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
+        else:
+            parser.add_argument('format', nargs="?", default=default, type=str,
+                                 help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
-                                       description="Valid subcommands, use command --help for help")
+        description="Valid subcommands, use command --help for help")
 
     # Subparser for spglib command.
     p_spglib = subparsers.add_parser('spglib', parents=[copts_parser, path_selector, spgopt_parser],
-                                      help="Analyze structure with spglib.")
+        help="Analyze structure with spglib.")
 
     # Subparser for abispg command.
     p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
-                                      help="Extract Abinit spacegroup info from file.")
+        help="Extract Abinit space group info from file.")
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
-                                      help="Convert structure to the specified format.")
-    p_convert.add_argument('format', nargs="?", default="cif", type=str,
-                            help="Output format. Default: cif. Accept: %s" % supported_formats)
+        help="Convert structure to the specified format.")
+    add_format_arg(p_convert, default="cif")
 
     # Subparser for supercell command.
     p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
-                                        help="Generate supercell.")
+        help="Generate supercell.")
     p_supercell.add_argument("-s", "--scaling_matrix", nargs="+", required=True, type=int,
                              help="""\
 scaling_matrix: A scaling matrix for transforming the lattice vectors.
@@ -153,34 +187,30 @@ Has to be all integers. Several options are possible:
        specifies that the supercell should have dimensions 2a x b x c.
     c. A number, which simply scales all lattice vectors by the same factor.
     """)
-
-    p_supercell.add_argument("-f", '--format', default="abivars", type=str,
-                             help="Output format. Default: abivars. Accept: %s" % supported_formats)
+    add_format_arg(p_supercell, default="abivars")
 
     # Subparser for abisanitize
     p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
-                                      help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
+        help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
     p_abisanitize.add_argument("--savefile", default="", type=str,
-                               help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+        help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
     add_primitive_options(p_abisanitize)
 
     # Subparser for irefine
     p_irefine = subparsers.add_parser('irefine', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Refine structure with abi_sanitize iteratively, stop if target spacegroup is obtained.")
-    p_irefine.add_argument("--target-spgnum", required=True, type=int, help="Target spacegroup-number.")
+        help="Refine structure with abi_sanitize iteratively, stop if target space group is obtained.")
+    p_irefine.add_argument("--target-spgnum", required=True, type=int, help="Target space group number.")
     p_irefine.add_argument("--symprec-step", default=0.05, type=float, help='Increment for symprec.')
     p_irefine.add_argument("--angle-tolerance-step", default=0.0, type=float, help='Increment for angle_tolerance.')
     p_irefine.add_argument("--ntrial", default=50, type=int, help='Number of trials. Default 50.')
-    #p_irefine.add_argument("--savefile", default="", type=str,
-    #                         help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
     add_primitive_options(p_irefine)
 
     # Subparser for conventional.
     p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser],
-                                           help="Gives a structure with a conventional cell according to certain standards. "
-                                                "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
+        help="Gives a structure with a conventional cell according to certain standards. "
+             "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
     p_conventional.add_argument("--savefile", default="", type=str,
-                                help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
+        help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -191,14 +221,12 @@ Has to be all integers. Several options are possible:
     p_interpolate = subparsers.add_parser('interpolate', parents=[copts_parser],
         help=("Interpolate between two structures. Useful for the construction of NEB inputs."))
     p_interpolate.add_argument("filepaths", nargs=2, help="Files with initial and final structures.")
-    p_interpolate.add_argument("-n", "--nimages", default=10, type=int,
-                                help="No. of interpolation images. Defaults to 10.")
+    p_interpolate.add_argument("-n", "--nimages", default=10, type=int, help="No. of interpolation images. Defaults to 10.")
     p_interpolate.add_argument("--autosort_tol", default=0.5, type=float, help="""\
 A distance tolerance in Angstrom in which to automatically sort end_structure to match to the
 closest points in this particular structure. This is usually what you want in a NEB calculation.
 0 implies no sorting. Otherwise, a 0.5 value (default) usually works pretty well.""")
-    p_interpolate.add_argument("-f", '--format', default="abivars", type=str,
-                               help="Output format. Default: abivars. Accept: %s" % supported_formats)
+    add_format_arg(p_interpolate, default="abivars")
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
@@ -212,106 +240,115 @@ closest points in this particular structure. This is usually what you want in a 
     p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
         "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
     p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
-                       help="Whether to annotate the peaks with plane information.")
+        help="Whether to annotate the peaks with plane information.")
 
     # Subparser for oxistate.
     p_oxistate = subparsers.add_parser('oxistate', parents=[copts_parser, path_selector],
-                                       help="Estimate oxidation states with pymatgen bond valence analysis.")
-
+        help="Estimate oxidation states with pymatgen bond valence analysis.")
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
-                                      help="Open IPython shell for advanced operations on structure object.")
-
+        help="Open IPython shell for advanced operations on structure object.")
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
-                                       help="Read structure from file and generate jupyter notebook.")
+        help="Read structure from file and generate jupyter notebook.")
     p_notebook.add_argument('--foreground', action='store_true', default=False,
-                            help="Run jupyter notebook in the foreground.")
-
+        help="Run jupyter notebook in the foreground.")
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
-                                    help="Read structure from file, generate k-path for band-structure calculations.")
-
+        help="Read structure from file, generate k-path for band-structure calculations.")
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
-                                 help="Read structure from file, plot Brillouin zone with matplotlib.")
-
+        help="Read structure from file, plot Brillouin zone with matplotlib.")
     # Subparser for ngkpt.
     p_ngkpt = subparsers.add_parser('ngkpt', parents=[copts_parser, path_selector],
-                                 help="Return the Abinit k-point sampling variables "
-                                      "from the number of divisions used to sample the smallest "
-                                      "lattice vector of the reciprocal lattice.")
+        help="Return the Abinit k-point sampling variables "
+             "from the number of divisions used to sample the smallest "
+             "lattice vector of the reciprocal lattice.")
     p_ngkpt.add_argument("-n", "--nksmall", required=True, type=int,
                          help="Number of divisions used to sample the smallest reciprocal lattice vector.")
-
     # Subparser for kmesh.
     p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
-                                    help=("Read structure from filepath, call spglib to sample the BZ,"
-                                          "print k-points in the IBZ with weights."))
+        help=("Read structure from filepath, call spglib to sample the BZ,"
+              "print k-points in the IBZ with weights."))
     p_kmesh.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
     p_kmesh.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
-                         help=("Three integers (spglib API). The kmesh is shifted along " +
-                               "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
-                               "Default: Unshifted mesh."))
+        help=("Three integers (spglib API). The kmesh is shifted along " +
+              "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
+              "Default: Unshifted mesh."))
     p_kmesh.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
     # Subparser for kmesh_jhu.
-    #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector],
-    #                                     help="Foobar ")
+    #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
 
     # Subparser for lgk.
     p_lgk = subparsers.add_parser('lgk', parents=[copts_parser, path_selector, spgopt_parser],
-                                  help="Read structure from file, find little group of k-point, print Bilbao character table.")
+        help="Read structure from file, find little group of k-point, print Bilbao character table.")
     p_lgk.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
-                       help="K-point in reduced coordinates e.g. 0.25 0 0")
+        help="K-point in reduced coordinates e.g. 0.25 0 0")
 
     # Subparser for kstar.
     p_kstar = subparsers.add_parser('kstar', parents=[copts_parser, path_selector, spgopt_parser],
-                                  help="Read structure from file, print star of k-point.")
+        help="Read structure from file, print star of k-point.")
     p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
-                         help="K-point in reduced coordinates e.g. 0.25 0 0")
+        help="K-point in reduced coordinates e.g. 0.25 0 0")
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
         help="Visualize the structure with the specified visualizer. Requires external app or optional python modules.")
-    p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str, help=("Visualizer name. "
-        "Possible options: `%s`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str,
+        help=("Visualizer name. Possible options: `%s`, `vtk`" % ", ".join(Visualizer.all_visunames())))
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
     mp_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
-    mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.",
-                                 default="https://www.materialsproject.org/rest/v2")
+    mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
 
-    # Subparser for pmgdata command.
+    # Subparser for pmgdata command (deprecated)
     p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser, mp_rest_parser],
-                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
-    p_pmgdata.add_argument("mpid", type=str, default=None, help="Pymatgen identifier")
-    p_pmgdata.add_argument("-f", '--format', default="json", type=str,
-                           help="Output format. Default: json. Accept: %s" % supported_formats)
+        help="Get structure from the pymatgen database. Print JSON dict. Requires internet connection and MAPI_KEY.")
+    p_pmgdata.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
+    add_format_arg(p_pmgdata, default="json")
+
+    # Subparser for mp_id command.
+    p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.")
+    p_mpid.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
+    add_format_arg(p_mpid, default="cif")
 
     # Subparser for mp_match command.
     p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser],
-                                      help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
-    p_mpmatch.add_argument("-f", '--format', default="abivars", type=str,
-                           help="Output format. Default: abivars. Accept: %s" % supported_formats)
+        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY.")
+    add_format_arg(p_mpmatch, default="abivars")
 
     # Subparser for mp_search command.
     p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser],
-                                        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
-    p_mpsearch.add_argument("-f", '--format', default="abivars", type=str,
-                            help="Output format. Default: abivars. Accept: %s" % supported_formats)
+    p_mpsearch.add_argument("-s", "--select_spgnum", type=int, default=None, help="Select structures with this space group number.")
+    add_format_arg(p_mpsearch, default="abivars")
 
     # Subparser for mp_pd command.
     p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
-                                     help=("Generate phase diagram with entries from the Materials Project. "
-				           "Requires internet connection and MAPI_KEY"))
+        help=("Generate phase diagram with entries from the Materials Project. "
+              "Requires internet connection and MAPI_KEY"))
     p_mp_pda.add_argument("file_or_elements", type=str, default=None,
-                          help="FILE with structure or elements e.g., Li-Fe-O).")
+        help="FILE with structure or elements e.g., Li-Fe-O).")
     p_mp_pda.add_argument("-u", "--show-unstable", default=False, action="store_true",
-                          help="Show all phases, including unstable ones")
+        help="Show all phases, including unstable ones")
+
+    # Subparser for cod_search command.
+    p_codsearch = subparsers.add_parser('cod_search', parents=[mp_rest_parser, copts_parser],
+        help="Get structure from COD database. Requires internet connection and mysql")
+    p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
+    p_codsearch.add_argument("-s", "--select_spgnum", type=int, default=None, help="Select structures with this space group number.")
+    add_format_arg(p_codsearch, default="abivars")
+
+    # Subparser for cod_id command.
+    p_codid = subparsers.add_parser('cod_id', parents=[copts_parser],
+        help="Get structure from COD database. Requires internet connection and mysql")
+    p_codid.add_argument("cod_identifier", type=int, default=None, help="COD identifier.")
+    add_format_arg(p_codid, default="abivars")
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
@@ -348,7 +385,8 @@ closest points in this particular structure. This is usually what you want in a 
         print(spgrp)
 
     elif options.command == "convert":
-        fmt = options.format if not options.filepath.endswith(".cif") else "abivars"
+        fmt = options.format
+        if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
     elif options.command == "supercell":
@@ -408,7 +446,7 @@ closest points in this particular structure. This is usually what you want in a 
         structure = abilab.Structure.from_file(options.filepath)
         sanitized = structure.copy()
         symprec, angle_tolerance = options.symprec, options.angle_tolerance
-        print("Calling abi_sanitize with increasing tolerances to reach target space-group:", options.target_spgnum)
+        print("Calling abi_sanitize with increasing tolerances to reach target space group:", options.target_spgnum)
         print("Using symprec_step: ", options.symprec_step, ", angle_tolerance_step:", options.angle_tolerance_step,
               "ntrial", options.ntrial)
         itrial = 0
@@ -419,7 +457,7 @@ closest points in this particular structure. This is usually what you want in a 
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
             print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
             if spg_num == options.target_spgnum:
-                print(2 * "\n", "# Final structure with space-group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
+                print(2 * "\n", "# Final structure with space group number:", spg_symb, ", symbol:", spg_num, 2 *"\n")
                 print(sanitized.convert(fmt="cif"))
                 break
 
@@ -428,7 +466,7 @@ closest points in this particular structure. This is usually what you want in a 
             symprec += options.symprec_step
             angle_tolerance += options.angle_tolerance_step
         else:
-            print("Cannot find spacegroup number:", options.target_spgnum, "after", options.ntrial, "iterations")
+            print("Cannot find space group number:", options.target_spgnum, "after", options.ntrial, "iterations")
             return 1
 
     elif options.command == "conventional":
@@ -545,7 +583,8 @@ closest points in this particular structure. This is usually what you want in a 
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
-    #    d = structure.ksampling_from_jhudb(precalc={})
+    #    ksampling = structure.ksampling_from_jhudb(kppra=1000)
+    #    #print(ksampling)
 
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
@@ -553,7 +592,7 @@ closest points in this particular structure. This is usually what you want in a 
 
         if spgrp is None:
             cprint("Your file does not contain Abinit symmetry operations.", "yellow")
-            cprint("Will call spglib to obtain the spacegroup (assuming time-reversal: %s)" %
+            cprint("Will call spglib to obtain the space group (assuming time-reversal: %s)" %
                    (not options.no_time_reversal), "yellow")
             spgrp = AbinitSpaceGroup.from_structure(structure, has_timerev=not options.no_time_reversal,
                         symprec=options.symprec, angle_tolerance=options.angle_tolerance)
@@ -578,11 +617,13 @@ closest points in this particular structure. This is usually what you want in a 
         for k in kstar:
             print(4 * " ", repr(k))
 
-    elif options.command == "pmgdata":
+    elif options.command in ("pmgdata", "mp_id"):
+        if options.command == "pmgdata":
+            cprint("pmgdata is deprecated. Please use mp_id.", "yellow")
         # Get the Structure corresponding to material_id.
         structure = abilab.Structure.from_material_id(options.mpid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
-        # Convert to json and print it.
+        # Convert to format and print it.
         print(structure.convert(fmt=options.format))
 
     elif options.command == "mp_match":
@@ -595,8 +636,9 @@ closest points in this particular structure. This is usually what you want in a 
     elif options.command == "mp_search":
         mp = abilab.mp_search(options.chemsys_formula_id)
         if not mp.structures:
-            cprint("No structure found in database", "yellow")
+            cprint("No structure found in Materials Project database", "yellow")
             return 1
+        if options.select_spgnum: mp = mp.filter_by_spgnum(options.select_spgnum)
         mp.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "mp_pd":
@@ -611,6 +653,20 @@ closest points in this particular structure. This is usually what you want in a 
             pdr = rest.get_phasediagram_results(elements)
             pdr.print_dataframes(verbose=options.verbose)
             pdr.plot(show_unstable=options.show_unstable)
+
+    elif options.command == "cod_search":
+        cod = abilab.cod_search(options.formula)
+        if not cod.structures:
+            cprint("No structure found in COD database", "yellow")
+            return 1
+        if options.select_spgnum: cod = cod.filter_by_spgnum(options.select_spgnum)
+        cod.print_results(fmt=options.format, verbose=options.verbose)
+
+    elif options.command == "cod_id":
+        # Get the Structure from COD
+        structure = abilab.Structure.from_cod_id(options.cod_identifier)
+        # Convert to format and print it.
+        print(structure.convert(fmt=options.format))
 
     elif options.command == "animate":
         filepath = options.filepath

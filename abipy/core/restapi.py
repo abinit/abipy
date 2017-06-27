@@ -12,7 +12,10 @@ from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.string import marquee
 from pymatgen import SETTINGS
-from pymatgen.matproj.rest import MPRester, MPRestError
+try:
+    from pymatgen.ext.matproj import MPRester, MPRestError
+except ImportError:
+    from pymatgen.matproj.rest import MPRester, MPRestError
 from abipy.tools.pandas import print_frame
 
 
@@ -134,12 +137,18 @@ class MpStructures(object):
         self.structures, self.mpids = structures, mpids
         self.data = data
 
+    def filter_by_spgnum(self, spgnum):
+         """Filter structures by space group number. Return new MpStructures object."""
+         inds = [i for i, s in enumerate(self.structures) if s.get_space_group_info()[1] == int(spgnum)]
+         new_data = None if self.data is None else [self.data[i] for i in inds]
+         return self.__class__([self.structures[i] for i in inds], [self.mpids[i] for i in inds], new_data)
+
     @lazy_property
     def table(self):
         """Pandas dataframe constructed from self.data. None if data is not available."""
-        if self.data is None: return None
+        if not self.data: return None
         import pandas as pd
-        rows = []
+        rows, table = [], None
         for d in self.data:
             d = Dotdict(d)
             rows.append(OrderedDict([(k, d.dotget(k, default=None)) for k in MP_KEYS_FOR_DATAFRAME]))

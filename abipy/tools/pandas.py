@@ -16,8 +16,9 @@ def print_frame(frame, title=None, sortby=None, file=sys.stdout):
         file: a file-like object (stream); defaults to the current sys.stdout.
     """
     if title is not None: print(title, file=file)
-    if sortby is not None:
+    if sortby is not None and sortby in frame:
         frame = frame.sort_values(sortby, inplace=False)
+
     with pd.option_context('display.max_rows', len(frame),
                            'display.max_columns', len(list(frame.keys()))):
         print(frame, file=file)

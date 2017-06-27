@@ -96,7 +96,8 @@ class TestAbinp(ScriptTest):
         r = env.run(self.script, "ebands", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "phonons", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "g0w0", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-        r = env.run(self.script, "anaph", gan2_cif, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        ddb_path = abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB")
+        r = env.run(self.script, "anaph", ddb_path, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbiopen(ScriptTest):
@@ -134,7 +135,7 @@ class TestAbistruct(ScriptTest):
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
         for fmt in ["cif", "cssr", "POSCAR", "json", "mson", "abivars"]:
-            r = env.run(self.script, "convert", ncfile, fmt, self.loglevel, self.verbose,
+            r = env.run(self.script, "convert", ncfile, "-f", fmt, self.loglevel, self.verbose,
                         expect_stderr=self.expect_stderr)
 
     def test_supercell(self):
@@ -202,16 +203,25 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "oxistate", abidata.cif_file("gan2.cif"),
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    #def test_mp_match(self):
-    #    """Testing abistruct mp methods."""
-    #    env = self.get_env()
-    #    r = env.run(self.script, "mp_match", abidata.cif_file("gan2.cif"),
-    #                self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+    def test_cod_api(self):
+        """Testing abistruct COD methods."""
+        env = self.get_env()
+        r = env.run(self.script, "cod_id", "1526507",
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "cod_search", "Si", "--select-spgnum 227",
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    #    env = self.get_env()
-    #    r = env.run(self.script, "mp_search", "LiF", "-f POSCAR",
-    #                self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+    def test_mp_api(self):
+        """Testing abistruct mp methods."""
+        env = self.get_env()
+        r = env.run(self.script, "mp_id", "mp-149",
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
+        r = env.run(self.script, "mp_match", abidata.cif_file("gan2.cif"),
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+
+        r = env.run(self.script, "mp_search", "LiF", "-f POSCAR", "--select-spgnum 225",
+                    self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbicomp(ScriptTest):
@@ -252,8 +262,9 @@ class TestAbicomp(ScriptTest):
         #r = env.run(self.script, "attr", "energy", args[0], args[1], self.loglevel, self.verbose,
         #            expect_stderr=self.expect_stderr)
 
-        #r = env.run(self.script, "pseudos", args[0], args[1], self.loglevel, self.verbose,
-        #            expect_stderr=self.expect_stderr)
+        paths = [p.filepath for p in abidata.pseudos("14si.pspnc", "B.psp8", "Al.GGA_PBE-JTH.xml")]
+        r = env.run(self.script, "pseudos", paths[0], paths[1], paths[2], self.loglevel, self.verbose,
+                    expect_stderr=self.expect_stderr)
 
         test_dir = os.path.join(os.path.dirname(__file__),  "..", 'test_files')
         args = [
@@ -339,11 +350,9 @@ class TestAbicheck(ScriptTest):
         #r = env.run(self.script, "--with-flow", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
-def make_scf_nscf_inputs(paral_kgb=1):
+def make_scf_nscf_inputs(paral_kgb=1, usepaw=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    pseudos = abidata.pseudos("14si.pspnc")
-    #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
-
+    pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml") if usepaw else abidata.pseudos("14si.pspnc")
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
     multi.set_mnemonics(True)
 

@@ -29,7 +29,8 @@ from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Task
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core import restapi
-from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures, mp_match_structure, mp_search
+from abipy.core.structure import (Lattice, Structure, StructureModifier, frames_from_structures,
+  mp_match_structure, mp_search, cod_search)
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen

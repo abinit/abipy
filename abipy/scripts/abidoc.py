@@ -39,7 +39,7 @@ Usage example:
     abidoc.py list            --> Print full list of variables.
     abidoc.py withdim natom   --> Print arrays depending on natom.
 
-Use `abidof.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 

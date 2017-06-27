@@ -17,17 +17,35 @@ from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
 
 
-def dp2l(X0, X1, X2):
-    # distance from point {X0} to line {X1}-{X2}
-    # see http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-    denom = X2 - X1
+def dist_point_from_line(x0, x1, x2):
+    """
+    Return distance from point x0 to line x1 - x2. Cartesian coordinates are used.
+    See http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+    """
+    denom = x2 - x1
     denomabs = np.sqrt(np.dot(denom, denom))
-    numer = np.cross(X0-X1 , X0-X2)
+    numer = np.cross(x0 - x1, x0 - x2)
     numerabs = np.sqrt(np.dot(numer, numer))
     return numerabs / denomabs
 
 
-def find_points_onlines(cart_bounds, cart_coords, dist_tol, frac_coords):
+def find_points_along_path(cart_bounds, cart_coords, dist_tol, frac_coords):
+    """
+    Find points in `cart_coords` lying on the path defined by `cart_bounds`.
+
+    Args:
+        cart_bounds: [N, 3] array with the boundaries of the path in Cartesian coordinates.
+        cart_coords: [M, 3] array with the points in Cartesian coordinate
+        dist_tol: A point is considered to be on the path if its distance from the line
+            is less than dist_tol.
+
+    Return:
+        (klines, dist_list, ticks)
+
+        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
+        dist_list: numpy array with the distance of the points along the line.
+        ticks:
+    """
     klines, dist_list, ticks = [], [], [0]
 
     dl = 0  # cumulative length of the path
@@ -37,9 +55,9 @@ def find_points_onlines(cart_bounds, cart_coords, dist_tol, frac_coords):
         #B = x1 - x0
         dk = np.sqrt(np.dot(B,B))
         #print("x0", x0, "x1", x1)
-        ticks.append(ticks[ibound] +dk)
+        ticks.append(ticks[ibound] + dk)
         for ik, k in enumerate(cart_coords):
-            dist = dp2l(k, x0, x1)
+            dist = dist_point_from_line(k, x0, x1)
             print(frac_coords[ik], dist)
             if dist > dist_tol: continue
             # k-point is on the cart_bounds
@@ -53,10 +71,6 @@ def find_points_onlines(cart_bounds, cart_coords, dist_tol, frac_coords):
                 # append k-point coordinate along the cart_bounds
                 klines.append(ik)
                 dist_list.append(x + dl)
-                #if x <= dist_tol and bound_labels is not None:
-                #    key = round(x + dl, 12)
-                #    ticks[key] = x + dl
-                #    labels[key] =
 
         dl = dl + dk
 
@@ -65,94 +79,53 @@ def find_points_onlines(cart_bounds, cart_coords, dist_tol, frac_coords):
 
 class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    File containing the results of a ground-state calculation.
+    Netcdf file with output data produced by Fold2Bloch.
 
     Usage example:
 
     .. code-block:: python
 
         with Fold2BlochNcfile("foo_FOLD2BLOCH.nc") as fb:
-            fb.ebands.plot()
+            fb.plot_unfolded()
     """
-    #@classmethod
-    #def from_wfkpath(cls, wfkpath, folds, mpi_procs=1, workdir=None, manager=None, verbose=0):
-    #    # Run task in workdir
-    #    # Usage: $fold2Bloch file_WFK x:y:z (folds)
-    #    #manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
+    @classmethod
+    def from_wfkpath(cls, wfkpath, folds, mpi_procs=1, workdir=None, manager=None, verbose=0):
+        # Usage: $fold2Bloch file_WFK x:y:z (folds)
+        # Build a simple manager to run the job in a shell subprocess
+        manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
 
-    #    # Build a simple manager to run the job in a shell subprocess
-    #    #import tempfile
-    #    #workdir = tempfile.mkdtemp() if workdir is None else workdir
+        import tempfile
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
 
-    #    #mrgddb = wrappers.Mrgddb(manager=manager, verbose=verbose)
-    #    #mrgddb.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc)
+        # Run task in workdir
+        fold2bloch = wrappers.Fold2Bloch(manager=manager, verbose=verbose)
+        #fold2bloch.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc)
+        filepaths = [f for f in os.listdir(workdir) if f.endswith("_FOLD2BLOCH.nc")]
+        if len(filepaths) != 1:
+            raise RuntimeError("Cannot find *_FOLD2BLOCH.nc file in directory: %s" % os.listdir(workdir))
 
-    #    return cls.from_directory(cls, workdir=workdir)
+        return cls(os.path.join(workdir, filepaths[0]))
 
     def __init__(self, filepath):
         super(Fold2BlochNcfile, self).__init__(filepath)
-        self.reader = Fold2BlochReader(filepath)
+        self.reader = ElectronsReader(filepath)
 
-        # Initialize the electron bands from file
+        # Initialize the electron bands from file.
+        # Spectral weights are dimensioned with `nss`
+	# Fortran arrays.
+	# nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
+	# nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
+	# nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         self._ebands = self.reader.read_ebands()
+        self.nss = max(self.nsppol, self.nspinor)
         self.folds = self.reader.read_value("folds")
-        # Direct lattice of the primitive cell
+        # Direct lattice of the primitive cell.
         self.pc_lattice = Lattice((self.structure.lattice.matrix.T * (1.0 / self.folds)).T.copy())
 
+        # Read fold2bloch output data.
         self.uf_kfrac_coords = self.reader.read_value("reduced_coordinates_of_unfolded_kpoints")
         self.uf_kpoints = KpointList(self.pc_lattice.reciprocal_lattice, self.uf_kfrac_coords)
         self.uf_nkpt = len(self.uf_kpoints)
-        return
-
-        # Names of output files (depend on nsppol, nspinor)
-        datafiles = []
-        if self.nsppol == 1:
-            if self.nspinor == 1:
-                datafiles.append(seedname + ".f2b")
-            else:
-                # Weights for spin up/down spinor component.
-                datafiles.append(seedname + "_SPOR_1.f2b")
-                datafiles.append(seedname + "_SPOR_2.f2b")
-        elif self.nsppol == 2:
-            # Weights for spin up/down
-            datafiles.append(seedname + "_UP.f2b")
-            datafiles.append(seedname + "_DOWN.f2b")
-
-        datafiles = [os.path.join(self.workdir, p) for p in datafiles]
-
-        # Now Read output files.
-	# Columns 1-3 correspond to kx, ky and kz of the unfolded bands;
-	# the 4th column is the energy eigenvalue in [Ha] and the 5th column corresponds
-	# to a spectral weight of the k-point after unfolding.
-        data = []
-        for isp in range(len(datafiles)):
-            od = OrderedDict()
-            with open(datafiles[isp], "rt") as fh:
-                for line in fh:
-                    tokens = line.split()
-                    kstr, eig, w = " ".join(tokens[:3]), float(tokens[3]), float(tokens[4])
-                    if kstr not in od: od[kstr] = []
-                    od[kstr].append((eig, w))
-            data.append(od)
-
-	# Build numpy arrays.
-        for spin, od in enumerate(data):
-            kpoints = np.reshape([tuple(map(float, t.split())) for k in od], (-1, 3))
-            if spin == 1:
-                self.kpoints = kpoints
-                self.nkpt = len(self.kpoints)
-                self.uf_eigens = np.empty((self.nsppol, self.nkpt, self.nband))
-                self.sf_weights = np.empty((self.nsppol * self.nspinor, self.nkpt, self.nband))
-            else:
-                if not np.all(self.kpoints == kpoints):
-                    print("self.kpoints with shape:", self.kpoints.shape, "\nfrac_coords:\n", self.kpoints)
-                    print("kpoints with shape:", kpoints.shape, "\nfrac_coords:\n", kpoints)
-                    raise RuntimeError("Something wrong in the k-point parser")
-
-            for ik, (kstr, tuple_list) in enumerate(od.items()):
-                self.sf_weights[spin, ik] = [t[1] for t in tuple_list]
-                if spin == 2 and self.nspinor == 2: continue
-                self.uf_eigens[spin, ik] = [t[0] for t in tuple_list]
 
     def __str__(self):
         return self.to_string()
@@ -183,28 +156,30 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
 
     @property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """:class:`ElectronBands` object with folded band energies."""
         return self._ebands
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """:class:`Structure` object defining the supercell."""
         return self.ebands.structure
 
     def close(self):
         self.reader.close()
 
-    @property
+    @lazy_property
     def uf_eigens(self):
+        """[nsppol, nk_unfolded, nband] array with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
         return self.reader.read_value("unfolded_eigenvalues") * units.Ha_to_eV
 
-    @property
+    @lazy_property
     def uf_weights(self):
+        """[nss, nk_unfolded, nband] array with spectral weights. nss = max(nspinor, nsppol)."""
         # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         return self.reader.read_value("spectral_weights")
 
-    def get_spectral_functions(self, step=0.1, width=0.2):
+    def get_spectral_functions(self, step=0.01, width=0.02):
         """
         Args:
             step: Energy step (eV) of the linear mesh.
@@ -220,9 +195,8 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         nw = int(1 + (e_max - e_min) / step)
         mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
 
-        nss = max(self.nsppol, self.nspinor)
-        sfw = np.zeros((nss, self.uf_nkpt, nw))
-        for spin in range(nss):
+        sfw = np.zeros((self.nss, self.uf_nkpt, nw))
+        for spin in range(self.nss):
             for ik in range(self.uf_nkpt):
                 for band in range(self.nband):
                     e = self.uf_eigens[spin, ik, band]
@@ -234,17 +208,23 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         return mesh, sfw, int_sfw
 
     @add_fig_kwargs
-    def plot_unfolded(self, klabels=None, ylims=None, ax=None, dist_tol=1e-12,
-                      colormap="afmhot", facecolor="black", **kwargs):
+    def plot_unfolded(self, klabels=None, ylims=None, dist_tol=1e-12, verbose=0,
+                      colormap="afmhot", facecolor="black", ax=None, **kwargs):
         """
+        Plot unfolded band structure with spectral weights.
+
         Args:
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            dist_tol: A point is considered to be on the path if its distance from the line
+                is less than dist_tol.
+            verbose: Verbosity level.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            facecolor:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             `matplotlib` figure
@@ -255,11 +235,13 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         bound_labels = ["Y", "Gamma", "X"]
         uf_cart = np.reshape([k.cart_coords for k in self.uf_kpoints], (-1, 3))
 
-        klines, xs, ticks = find_points_onlines(cart_bounds, uf_cart, dist_tol, uf_frac_coords)
+        klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol, uf_frac_coords)
         if len(klines) == 0: return None
-
-        print("k points of path")
-        print(uf_frac_coords[klines])
+        if verbose:
+            fcoords = uf_frac_coords[klines]
+            print("Found %d points along input k-path" % len(fcoords))
+            print("k-points of path in reduced coordinates:")
+            print(fcoords)
 
         fact = 8.0
         e0 = self.ebands.fermie
@@ -267,15 +249,13 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         ax.set_facecolor(facecolor)
 
         xs = np.tile(xs, self.nband)
-        nss = max(self.nsppol, self.nspinor)
-        marker_spin = {0: "^", 1: "v"} if nss == 2 else {0: "o"}
-        for spin in range(nss):
+        marker_spin = {0: "^", 1: "v"} if self.nss == 2 else {0: "o"}
+        for spin in range(self.nss):
             ys = self.uf_eigens[spin, klines, :] - e0
             ws = self.uf_weights[spin, klines, :]
             s = ax.scatter(xs, ys.T, s=fact * ws.T, c=ws.T,
-                           marker=marker_spin[spin], label=None if nss == 1 else "spin %s" % spin,
+                           marker=marker_spin[spin], label=None if self.nss == 1 else "spin %s" % spin,
                            linewidth=1, edgecolors='none', cmap=plt.get_cmap(colormap))
-                           #,vmin=0, vmax=1);
             plt.colorbar(s, ax=ax, orientation='vertical')
 
         ax.set_xticks(ticks, minor=False)
@@ -283,13 +263,13 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         ax.grid(True)
         ax.set_ylabel('Energy [eV]')
         set_axlims(ax, ylims, "y")
-        if nss == 2: ax.legend(loc="best")
+        if self.nss == 2: ax.legend(loc="best")
 
         return fig
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an ipython notebook to nbpath. If `nbpath` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -298,20 +278,8 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             nbv.new_code_cell("f2b = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(f2b)"),
             nbv.new_code_cell("fig = f2b.ebands.plot()"),
-            #nbv.new_code_cell("fig = f2b.unfolded_kpoints.plot()"),
+            nbv.new_code_cell("# fig = f2b.unfolded_kpoints.plot()"),
             nbv.new_code_cell("fig = f2b.plot_unfolded()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
-
-
-class Fold2BlochReader(ElectronsReader):
-    """
-    This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
-    It provides helper function to access the most important quantities.
-    """
-
-    # Fortran arrays.
-    # nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
-    # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
-    # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")

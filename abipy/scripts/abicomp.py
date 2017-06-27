@@ -376,8 +376,7 @@ def dataframe_from_pseudos(pseudos, index=None):
             if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
         rows.append(row)
 
-    return pd.DataFrame(rows, index=index,
-                        columns=list(rows[0].keys()) if rows else None)
+    return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
 
 
 def abicomp_pseudos(options):
@@ -609,6 +608,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
                           help="Whether to use anonymous mode in StructureMatcher. Default False")
 
+    # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser], help=abicomp_mp_structure.__doc__)
 
     # Subparser for xrd.
