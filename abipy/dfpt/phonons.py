@@ -111,7 +111,7 @@ class PhononMode(object):
     def __str__(self):
         return self.to_string(with_displ=False)
 
-    def to_string(self, with_displ=True):
+    def to_string(self, with_displ=True, verbose=0):
         """
         String representation
 
@@ -257,24 +257,24 @@ class PhononBands(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, func=str, verbose=0):
         """
-        Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
+        Human-readable string with useful information such as structure, q-points, ...
 
         Args:
             with_structure: False if structural info shoud not be displayed.
             with_qpoints: False if q-point info shoud not be displayed.
             verbose: Verbosity level.
         """
-        tos = str if verbose else repr
         lines = []; app = lines.append
-        if title is not None:
-            app(marquee(title, mark="="))
+        if title is not None: app(marquee(title, mark="="))
 
         if with_structure:
-            app(tos(self.structure))
+            app(marquee("Structure", mark="="))
+            app(func(self.structure))
             app("")
 
+        app(marquee("Phonon Bands", mark="="))
         app("Number of q-points: %d" % self.num_qpoints)
         app("Atomic mass units: %s" % str(self.amu))
         has_dipdip = self.non_anal_ph is not None
@@ -284,7 +284,7 @@ class PhononBands(object):
 
         if with_qpoints:
             app(marquee("Q-points", mark="="))
-            app(tos(self.qpoints))
+            app(func(self.qpoints))
             app("")
 
         return "\n".join(lines)
@@ -1471,6 +1471,26 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         # Initialize Phonon bands
         self._phbands = PhononBands.from_file(filepath)
 
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """
+        String representation
+
+        Args:
+            verbose: verbosity level.
+        """
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+
+        app(self.phbands.to_string(title=None, with_structure=True, with_qpoints=False, verbose=verbose))
+
+        return "\n".join(lines)
+
     @property
     def structure(self):
         """:class:`Structure` object"""
@@ -1945,6 +1965,28 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self):
         """Close the file."""
         self.reader.close()
+
+    def __str__(self):
+        """Invoked by str"""
+        return self.to_string(func=str)
+
+    def to_string(self, func=str, verbose=0):
+        """
+        Human-readable string with useful information such as structure...
+
+            verbose: Verbosity level.
+        """
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+
+        app(marquee("Structure", mark="="))
+        app(func(self.structure))
+        app("")
+
+        return "\n".join(lines)
 
     @lazy_property
     def structure(self):

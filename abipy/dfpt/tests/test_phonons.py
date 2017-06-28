@@ -45,6 +45,8 @@ class PhononBandsTest(AbipyTest):
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
+            repr(nc); str(nc)
+            assert nc.to_string(verbose=1)
             same_phbands_nc = PhononBands.as_phbands(nc)
             self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
             # a + b gives plotter
@@ -265,6 +267,7 @@ class PhononDosTest(AbipyTest):
         """Testing PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
         repr(ncfile); str(ncfile)
+        ncfile.to_string(verbose=1)
         assert hasattr(ncfile, "structure")
         nw = len(ncfile.wmesh)
         assert nw == 461

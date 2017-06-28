@@ -551,7 +551,7 @@ class GsrRobot(Robot, NotebookWriter):
 
         for label, gsr in self:
             if not gsr.ebands.kpoints.is_ibz:
-                cprint("Skipping %s because kpoint sampling not IBZ" % gsr.filepath, "violet")
+                cprint("Skipping %s because kpoint sampling not IBZ" % gsr.filepath, "magenta")
                 continue
             plotter.add_edos(label, gsr.ebands.get_edos(**kwargs))
 
@@ -605,9 +605,8 @@ class GsrRobot(Robot, NotebookWriter):
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
 
-            nbv.new_code_cell("df = plotter.get_ebands_frame()\ndisplay(df)"),
-
             nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
             nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
             nbv.new_code_cell("#anim = ebands_plotter.animate()"),
 

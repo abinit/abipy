@@ -130,7 +130,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 
@@ -138,7 +138,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         app(self.filestat(as_string=True))
         app("")
         app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(func(self.structure))
         app("")
         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 
@@ -150,7 +150,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
 
         if verbose:
             app("Unfolded k-points:")
-            app(self.uf_kpoints.to_string(verbose=verbose))
+            app(self.uf_kpoints.to_string(func=func, verbose=verbose))
 
         return "\n".join(lines)
 

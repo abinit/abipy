@@ -199,14 +199,14 @@ class DielectricFunction(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, with_info=False):
+    def to_string(self, verbose=0, with_info=False):
         """String representation."""
         lines = []
         app = lines.append
         app(self.__class__.__name__)
         #app("calc_type: %s, has_lfe: %s, num_qpoints: %d" % (self.calc_type, self.has_lfe, self.num_qpoints))
         app("num_qpoints: %d" % (self.num_qpoints))
-        if with_info:
+        if with_info or verbose:
             app(str(self.info))
 
         return "\n".join(lines)
@@ -339,7 +339,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """String representation."""
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 

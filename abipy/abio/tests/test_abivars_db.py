@@ -42,7 +42,6 @@ class AbinitVariableDatabaseTest(AbipyTest):
         assert database.group_by_section("ecut") == {'varbas': ['ecut']}
 
         natom_var = database["natom"]
-
         ecut_var = database["ecut"]
         assert ecut_var.name == "ecut"
         assert not ecut_var.isarray

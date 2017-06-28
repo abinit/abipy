@@ -1,7 +1,7 @@
 .. _scripts_howto:
 
 ===================
-AbiPy scripts Howto
+AbiPy Scripts Howto
 ===================
 
 At present you could start by using abiopen.py, abistruct.py, abicomp.py and abidoc.py.  
@@ -32,21 +32,101 @@ different format e.g. Abinit input variables::
 
 Use the ``-f`` option to specify a different format e.g.::
 
-    $ abistruct.py convert FILE -f cif > out.cif
+    $ abistruct.py convert FILE -f cif 
 
 will produce a CIF file and::
 
     $ abistruct.py convert FILE --help
 
 to list the formats supported.
+It is also possible to export to to ``xsf`` (Xcrysden) format with::
+
+    $ abistruct.py convert FILE -f xsf > out.xsf
+
+and then open the file in a graphical software although abistruct.py already provides 
+the handy command::
+
+    $ abistruct.py visualize FILE
+
+To search on the Materials Project database for structures corresponding to a 
+chemical system or formula e.g. ``Fe2O3`` or ``Li-Fe-O``, use::
+
+    $ abistruct.py mp_search LiF
+
+.. code-block:: console
+
+    # Found 2 structures in materials project database (use `verbose` to get full info)
+               pretty_formula  e_above_hull  energy_per_atom  \
+    mp-1138               LiF      0.000000        -4.845142
+    mp-1009009            LiF      0.273111        -4.572031
+
+                formation_energy_per_atom  nsites     volume spacegroup.symbol  \
+    mp-1138                     -3.180439       2  17.022154             Fm-3m
+    mp-1009009                  -2.907328       2  16.768040             Pm-3m
+
+                spacegroup.number  band_gap  total_magnetization material_id
+    mp-1138                   225    8.7161                  0.0     mp-1138
+    mp-1009009                221    7.5046                 -0.0  mp-1009009
+
+
+It it possible to produce a Xmgrace file for electrons/phonons
+
+Yes, ``ElectronBands`` and ``PhononBands`` provide a ``to_xmgrace`` method
+Open the file with the electrons bands (GSR.nc. WFK.nc ...) with abiopen.py and then execute
+
+.. code-block:: ipython
+
+    abifile.ebands.to_xmgrace("ebands.agr")
+
+for electrons and 
+
+.. code-block:: ipython
+
+    abifile.phbands.to_xmgrace("phbands.agr")    
+
+Is it possible to plot the Fermi Surface:
+
+export the full band structure to ``filepath`` in BXSF format
+
+.. code-block:: ipython
+
+    abifile.ebands.to_bxsf("phbands.agr")    
+
+Require k-points in IBZ and gamma-centered k-mesh.
+Export the full band structure to ``filepath`` in BXSF format
+suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
+
+Effective masses
+
+How can I analyze the results of a structural relaxation?
+Use ``abiopen.py`` to open the ``HIST.nc`` file produce by Abinit and
+then, inside ipython, type
+
+.. code-block:: ipython
+
+    %matplotlib
+    print(abifile)
+    abifile.plot(y="fundgap_spin0")
+
+My script is slow, how can I understand what's happening
+All abipy script can be executed in profile mode by just prepending the ``prof`` keyword  
+to the command line arguments. 
+Just use::
+
+    abiopen.py prof FILE
+
+or::
+
+    abistruct.py prof COMMAND FILE
+
+if the script requires a ``COMMAND`` argument.
 
 -----------------
 Comparing results
 -----------------
 
-
-Remember that it's possible to use shell syntax ``*_GSR.nc``
-or ``find . -name *_GSR.nc``
+Remember that it's possible to use shell syntax ``*_GSR.nc`` to select all files with a given extension
+or ``find . -name *_GSR.nc`` to scan the current directory 
 
 Q: I have multiple ``GSR`` files and I need to compare the electronic gaps
 Use::
@@ -58,9 +138,9 @@ Then, inside ipython, type
 
 .. code-block:: ipython
 
-    table = plotter.get_ebands_dataframe()
+    df = plotter.get_ebands_dataframe()
     %matplotlib
-    table.plot("")
+    df.plot("")
 
 to build a pandas ``DataFrame`` and plot ...
 
@@ -72,9 +152,9 @@ You can get the structure and the related abinit variables even from that file
 
 If we compare this structure with those we used in the case of LSO and YSO, we can see that 
 it's not the same structure: we take advantage of pymatgen StructureMatcher and the "anonymous" 
-matching i.e. even structures which have different elements can be matched:
+matching i.e. even structures which have different elements can be matched::
 
-> abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc --group --anonymous
+    $ abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc --group --anonymous
 
 Grouping 2 structures by element
 Group 0: 
@@ -83,9 +163,9 @@ Group 0:
 Group 1: 
         - YSO/ysoo_GSR.nc (Y8 Si4 O20), vol: 439.11 A^3, C2/c (15)
 
-while
+while::
 
-> abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc LSO/lsoo_GSR.nc --group --anonymous
+    $ abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc LSO/lsoo_GSR.nc --group --anonymous
 
 Grouping 3 structures by element
 Group 0: 
@@ -96,9 +176,9 @@ Group 1:
         - LSO/lsoo_GSR.nc (Lu8 Si4 O20), vol: 415.71 A^3, C2/c (15)
 
 Indeed, if you look for YSO on the Materials Project database, you find two phases: mp-3520  and mp-554420, 
-both with 32 atoms per cell but different space group. 
+both with 32 atoms per cell but different space group::
 
-> abistruct.py mp_search Y2SiO5
+    $ abistruct.py mp_search Y2SiO5
 
 # Found 2 structures in materials project database (use `verbose` to get full info)
           pretty_formula  e_above_hull  energy_per_atom  \
@@ -116,13 +196,14 @@ mp-554420                 14    4.7342                  0.0   mp-554420
 The former is the stable one , the latter has an energy above the hull of 0.025 eV/atom. 
 (In the case of GSO, “abistruct.py mp_search Gd2SiO5” will give only one structure (mp-542831) with P2_1/c symmetry)
 
-You could, for example, download them as cif:
+You could, for example, download them as cif::
 
-> abistruct.py pmgdata mp-554420 -f cif > mp-554420.cif
+    $ abistruct.py pmgdata mp-554420 -f cif > mp-554420.cif
 
-and then see if the structure are similar to the one than we obtained a while ago:
+and then see if the structure are similar to the one than we obtained a while ago::
 
-> abicomp.py structure GSO/bulk/band.in LSO/lsoo_GSR.nc YSO/* --group --anonymous
+    $ abicomp.py structure GSO/bulk/band.in LSO/lsoo_GSR.nc YSO/* --group --anonymous
+
 Grouping 5 structures by element
 Group 0: 
         - GSO/bulk/band.in (Gd8 Si4 O20), vol: 419.61 A^3, P2_1/c (14)
@@ -133,9 +214,9 @@ Group 1:
         - YSO/mp-3520.cif (Y8 Si4 O20), vol: 444.28 A^3, C2/c (15)
         - YSO/ysoo_GSR.nc (Y8 Si4 O20), vol: 439.11 A^3, C2/c (15) 
 
-You might also want to compare the structures you obtained with those of the Materials Project:
+You might also want to compare the structures you obtained with those of the Materials Project::
 
-> abicomp.py structure YSO/*cif YSO/ysoo_GSR.nc
+    $ abicomp.py structure YSO/*cif YSO/ysoo_GSR.nc
 
 Lattice parameters:
                       formula  natom     angle0      angle1      angle2  \
@@ -154,22 +235,24 @@ YSO/mp-554420.cif      P2_1/c          14
 YSO/ysoo_GSR.nc          C2/c          15 
 
 Anyway, we're interested in the environment /nearest neighbours of the oxygen atoms. 
-We can easily identify the different coordination with:
+We can easily identify the different coordination with::
 
-> abistruct.py neighbors YSO/mp-3520.cif -r 2.7
+    $ abistruct.py neighbors YSO/mp-3520.cif -r 2.7
  
 Finding neighbors for each atom in the unit cell, out to a distance 2.7 [Angstrom]
 
 You'll see that we can identify the Y lying at sites coordinated with 6 oxygens and those at sites with 7 oxygens. 
  
-Finally, if you want to compare total energies of the two GSO phases:
+Finally, if you want to compare total energies of the two GSO phases::
 
-> abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc
+    $ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc
 
 -17432.3600217 eV    # File:  GSO/C2c/bulk/gsoo_GSR.nc
 -17431.8874098 eV    # File:  GSO/P2_1c/bulk/gsoo_GSR.nc
 
-So the C2c phase is the most stable for GSO too.
-(In case one does not know which are the  “attributes” you can extract from the files:
+and optionally use ``--plot`` to plot the data.
 
-> abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )
+So the C2c phase is the most stable for GSO too.
+(In case one does not know which are the “attributes” you can extract from the files::
+
+    $ abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )

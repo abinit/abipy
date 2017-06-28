@@ -21,7 +21,7 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.tools.plotting import add_fig_kwargs
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import PseudoTable
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -971,8 +971,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
     # To maintain backward compatibility.
     show_bz = plot_bz
 
+    @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
-                 two_theta_range=(0, 90), annotate_peaks=True, show=True):
+                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs):
         """
         Use pymatgen :class:`XRDCalculator` to show the XRD plot.
 
@@ -995,13 +996,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 sphere of radius 2 / wavelength.
             annotate_peaks: Whether to annotate the peaks with plane information.
         """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         from pymatgen.analysis.diffraction.xrd import XRDCalculator
         xrd = XRDCalculator(wavelength=wavelength, symprec=symprec, debye_waller_factors=debye_waller_factors)
-        plt = xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks)
-        if show:
-            plt.show()
-        else:
-            return plt
+        xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
+        return fig
 
     def export(self, filename, visu=None):
         """
@@ -1661,8 +1660,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
             nbv.new_code_cell("fig = structure.plot_bz()"),
-            nbv.new_code_cell("# structure.plot_xrd()"),
-            nbv.new_code_cell("sanitized = structure.abi_sanitize(); print(sanitized)"),
+            nbv.new_code_cell("fig = structure.plot_xrd()"),
+            nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
             nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
         ])
 

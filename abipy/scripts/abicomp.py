@@ -9,6 +9,7 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import os
 import argparse
+import numpy as np
 
 from pprint import pprint
 from monty.functools import prof_main
@@ -305,6 +306,7 @@ def abicomp_attr(options):
     """
     files = []
     attr_name = options.paths[0]
+    values = []
     for p in options.paths[1:]:
         with abilab.abiopen(p) as abifile:
             if options.show:
@@ -312,7 +314,29 @@ def abicomp_attr(options):
                 pprint(dir(abifile))
                 return 0
 
-            print(getattr(abifile, attr_name), "   # File: ", p)
+            v = getattr(abifile, attr_name)
+            print(v, "   # File: ", p)
+            if options.plot:
+                try:
+                    values.append(float(v))
+                except TypeError as exc:
+                    print("Cannot plot data. Exception:\n", str(exc))
+
+    if options.plot and len(values) == len(options.paths[1:]):
+        # Plot values.
+        from abipy.tools.plotting import get_ax_fig_plt
+        ax, fig, plt = get_ax_fig_plt()
+        xs = np.arange(len(options.paths[1:]))
+        ax.plot(xs, values)
+        ax.set_ylabel(attr_name)
+        ax.set_xticks(xs)
+        xlabels = options.paths[1:]
+        s = set((os.path.basename(s) for s in xlabels))
+        if len(s) == len(xlabels): xlabels = s
+        ax.set_xticklabels(xlabels) #, rotation='vertical')
+        plt.show()
+
+    return 0
 
 
 ##################
@@ -685,6 +709,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for phdos command.
     p_attr = subparsers.add_parser('attr', parents=[copts_parser], help=abicomp_attr.__doc__)
     #p_attr.add_argument('attr_name', help="Attribute name.")
+    p_attr.add_argument('--plot', default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
     p_attr.add_argument('--show', default=False, action="store_true", help="Print attributes available in file")
 
     # Subparser for robot commands

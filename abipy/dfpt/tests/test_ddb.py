@@ -140,6 +140,7 @@ class DdbTest(AbipyTest):
         assert np.all(becs.values == 0)
         assert np.all(becs.becs == 0)
         repr(becs); str(becs)
+        assert becs.to_string(verbose=1)
 
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()

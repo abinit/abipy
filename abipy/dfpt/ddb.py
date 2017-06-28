@@ -811,15 +811,13 @@ class Becs(Has_Structure):
     def __repr__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         lines = []
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
 
         for site, bec in zip(self.structure, self.values):
-            # TODO: why PeriodicSite.__str__ does not give the frac_coords?
-            #print(type(site))
-            app("BEC at site: %s" % (site))
+            app("BEC at site: %s" % repr(site))
             app(str(bec))
             app("")
 

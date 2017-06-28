@@ -309,7 +309,7 @@ class EnergyTerms(AttrDict):
             table.add_row([k, self[k]])
         return table
 
-    def to_string(self, with_doc=True):
+    def to_string(self, verbose=0, with_doc=True):
         """String representation, with documentation if with_doc."""
         lines = [str(self.table)]
         if with_doc:

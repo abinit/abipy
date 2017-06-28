@@ -221,13 +221,34 @@ class Dataset(dict, Has_Structure):
         return {k: self[k] for k in self if k not in geovars}
 
     def __str__(self):
-        """string representation."""
+        return self.to_string()
+
+    def to_string(self, post=None, mode="text", verbose=0):
+        """
+        String representation.
+
+        Args:
+            post: String that will be appended to the name of the variables
+            mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
+        """
+        post = post if post is not None else ""
+        if mode == "html":
+            from abipy.abio.abivars_db import get_abinit_variables
+            var_database = get_abinit_variables()
+
         lines = []
         app = lines.append
         for k in sorted(list(self.keys())):
-            app("%s %s" % (k, str(self[k])))
+            vname = k + post
+            if mode == "html": vname = var_database[k].html_link(tag=vname)
+            app("%s %s" % (vname, str(self[k])))
 
-        return "\n".join(lines)
+        return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.to_string(mode="html")
 
 
 class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
@@ -250,16 +271,15 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         super(AbinitInputFile, self).__init__(filepath)
 
         with open(filepath, "rt") as fh:
-            string = fh.read()
+            self.string = fh.read()
 
-        self.string = string
-        self.datasets = AbinitInputParser().parse(string)
+        self.datasets = AbinitInputParser().parse(self.string)
         self.ndtset = len(self.datasets)
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -289,6 +309,12 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             app(str(dfs.coords))
 
         return "\n".join(lines)
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        from abipy.abio.abivars_db import repr_html_from_abinit_string
+        return repr_html_from_abinit_string(self.string)
+        #return self.to_string(mode="html"))
 
     def close(self):
         """NOP, required by ABC."""
@@ -328,14 +354,14 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         has_multi_structures = self.structure is None
         if has_multi_structures:
             nb.cells.extend([
-                nbv.new_code_cell("""
+                nbv.new_code_cell("""\
 for dataset in inp.datasets:
     print(dataset.structure)"""),
             ])
 
         if self.ndtset > 1:
             nb.cells.extend([
-                nbv.new_code_cell("""
+                nbv.new_code_cell("""\
 for dataset in abinp.datasets:
     print(dataset)"""),
             ])

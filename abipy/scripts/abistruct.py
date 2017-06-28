@@ -352,7 +352,7 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
+        help="Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
 
     # Parse command line.
     try:

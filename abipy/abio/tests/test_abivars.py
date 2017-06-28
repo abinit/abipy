@@ -35,6 +35,8 @@ class TestAbinitInputFile(AbipyTest):
              "ntypat 1 typat 1 znucl 14 xred 0 0 0 ")
         inp = AbinitInputFile.from_string(s)
         repr(inp); str(inp)
+        assert inp.to_string(verbose=1)
+        assert inp._repr_html_()
         si1_structure = inp.structure
         assert inp.ndtset == 1 and len(si1_structure) == 1 and si1_structure.formula == "Si1"
 

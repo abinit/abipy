@@ -17,6 +17,7 @@ class AnaddbNcFileTest(AbipyTest):
 
         with AnaddbNcFile(anaddbnc_fname) as anc:
             repr(anc); str(anc)
+            anc.to_string(verbose=1)
             assert anc.structure.formula == "Al1 As1"
             assert anc.becs is not None
             assert anc.emacro is not None

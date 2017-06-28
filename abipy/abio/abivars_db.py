@@ -123,7 +123,7 @@ class Variable(yaml.YAMLObject):
         return str(s.encode("utf-8", errors="ignore"))
 
     def _repr_html_(self):
-        """For Ipython notebook"""
+        """Integration with jupyter notebooks."""
         html = "<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text)
         return html.replace("[[", "<b>").replace("]]", "</b>")
 
@@ -169,8 +169,9 @@ class Variable(yaml.YAMLObject):
     @property
     def url(self):
         """The url associated to the variable."""
+        # https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell
         root = "http://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/"
-        #https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell
+        #root = "http://www.abinit.org/inpvars/html_automatically_generated/"
         return root + "%s.html#%s" % (self.section, self.varname)
 
     def html_link(self, tag=None):
@@ -435,3 +436,23 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     except UnicodeEncodeError:
         stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")
+
+
+def repr_html_from_abinit_string(text):
+    """
+    Given a string `text` with an Abinit input file, replace all variables
+    with HTML links pointing to the official documentation. Return new string.
+    """
+    var_database = get_abinit_variables()
+
+    # https://stackoverflow.com/questions/6116978/python-replace-multiple-strings
+    # define desired replacements here e.g. rep = {"condition1": "", "condition2": "text"}
+    # ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair
+    import re
+    rep = {vname: var.html_link(tag=vname) for vname, var in var_database.items()}
+    rep = OrderedDict([(re.escape(k), rep[k]) for k in sorted(rep.keys(), key=lambda n: len(n), reverse=True)])
+
+    # Use these three lines to do the replacement
+    pattern = re.compile("|".join(rep.keys()))
+    text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    return text.replace("\n", "<br>")
