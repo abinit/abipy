@@ -229,8 +229,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
             # None is returned if the structures are different.
             from abipy.abio.outputs import AbinitOutputFile
             with AbinitOutputFile(filepath) as out:
-               if out.final_structures: return out.final_structure
-               if out.initial_structures: return out.initial_structure
+                #print("initial_structures:\n", out.initial_structures, "\nfinal_structures:\n", out.final_structures)
+                if out.final_structures: return out.final_structure
+                if out.initial_structures: return out.initial_structure
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith("_DDB"):
@@ -565,6 +566,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             angle_tolerance: Tolerance on anglese
                 if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell.
+            primitive_standard:
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
 
@@ -1099,7 +1101,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    # 2) Get the neighbors of the site (considering the periodic images).
 
     #    max_overlap, ovlp_sites = 0.0, None
-
     #    for site in self:
     #        #site.specie
     #        #r = Length(pseudo.r_cut, "Bohr").to("ang")
@@ -1108,10 +1109,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #        if sitedist_list:
     #            # Spheres are overlapping: compute overlap and update the return values
     #            # if the new overlap is larger than the previous one.
-    #            for (other_site, dist) in sitedist_list:
+    #            for other_site, dist in sitedist_list:
     #                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html
     #                #overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)
-
     #                if overlap > max_overlap:
     #                    max_overlap = overlap
     #                    ovlp_sites = (site, other_site)

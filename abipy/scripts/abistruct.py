@@ -22,6 +22,30 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.core.kpoints import Ktables, Kpoint
 
 
+def get_pseudotable(options):
+    """Return PseudoTable object."""
+    if options.pseudos is not None:
+        from abipy.flowtk import PseudoTable
+        return PseudoTable.as_table(options.pseudos)
+
+    try:
+        from pseudo_dojo import OfficialTables
+    except ImportError as exc:
+        print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
+        print("or use `--pseudos FILE_LIST` to specify the pseudopotentials to use.")
+        raise exc
+
+    dojo_tables = OfficialTables()
+    if options.usepaw:
+        raise NotImplementedError("PAW table is missing")
+        #pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
+    else:
+        pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
+
+    print("Using pseudos from PseudoDojo table", repr(pseudos))
+    return pseudos
+
+
 @prof_main
 def main():
 
@@ -120,12 +144,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
         help="""\
 symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
-    which is fairly strict and works well for properly refined
-    structures with atoms in the proper symmetry coordinates. For
-    structures with slight deviations from their proper atomic
-    positions (e.g., structures relaxed with electronic structure
-    codes), a looser tolerance of 0.1 (the value used in Materials
-    Project) is often needed.""")
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""")
     spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
     spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
@@ -165,6 +186,10 @@ symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
     # Subparser for abispg command.
     p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
         help="Extract Abinit space group info from file.")
+    p_abispg.add_argument("-c", "--check", default=False, action="store_true",
+        help=("Compare Abinit spacegroup with spglib results, if FILE does not contain "
+              "Abinit space group data, a temporay input file is created to invoke "
+              "Abinit in dry-run mode to get the space-group"))
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
@@ -180,11 +205,10 @@ scaling_matrix: A scaling matrix for transforming the lattice vectors.
 Has to be all integers. Several options are possible:
 
     a. A full 3x3 scaling matrix defining the linear combination
-       the old lattice vectors. E.g., -s 2,1,0 0,3,0, 0,0,1
-       generates a new structure with lattice vectors
+       the old lattice vectors. E.g., -s 2,1,0 0,3,0, 0,0,1 generates a new structure with lattice vectors
        a' = 2a + b, b' = 3b, c' = c where a, b, and c are the lattice vectors of the original structure.
-    b. An sequence of three scaling factors. E.g., -s 2, 1, 1
-       specifies that the supercell should have dimensions 2a x b x c.
+    b. An sequence of three scaling factors. E.g., -s 2, 1, 1 specifies that the supercell should
+       have dimensions 2a x b x c.
     c. A number, which simply scales all lattice vectors by the same factor.
     """)
     add_format_arg(p_supercell, default="abivars")
@@ -379,10 +403,23 @@ closest points in this particular structure. This is usually what you want in a 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
         spgrp = structure.abi_spacegroup
-        if spgrp is None:
-            cprint("Your file does not contain Abinit symmetry operations.", "red")
-            return 1
-        print(spgrp)
+
+        if not options.check:
+            if spgrp is None:
+                cprint("Your file does not contain Abinit symmetry operations.", "red")
+                return 1
+            print(spgrp.to_string(verbose=options.verbose))
+        else:
+            # Here we compare Abinit wrt spglib. If spgrp is None, we create a temporary
+            # task to run the code in dry-run mode.
+            if spgrp is not None:
+                print(structure.spget_summary(verbose=options.verbose))
+            else:
+                print("Calling Abinit in --dry-run mode to get space group.")
+                raise NotImplementedError("foo")
+                #pseudos = get_pseudotable(options)
+                #from abipy.abio import factories
+                #gsinp = factories.gs_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None)
 
     elif options.command == "convert":
         fmt = options.format
@@ -451,7 +488,7 @@ closest points in this particular structure. This is usually what you want in a 
               "ntrial", options.ntrial)
         itrial = 0
         while itrial < options.ntrial:
-            print(">>> Tring with symprec: %s, angle_tolerance: %s" % (symprec, angle_tolerance))
+            print(">>> Trying with symprec: %s, angle_tolerance: %s" % (symprec, angle_tolerance))
             sanitized = sanitized.abi_sanitize(symprec=symprec, angle_tolerance=angle_tolerance,
                 primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
@@ -588,8 +625,8 @@ closest points in this particular structure. This is usually what you want in a 
 
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
-        spgrp = structure.abi_spacegroup
 
+        spgrp = structure.abi_spacegroup
         if spgrp is None:
             cprint("Your file does not contain Abinit symmetry operations.", "yellow")
             cprint("Will call spglib to obtain the space group (assuming time-reversal: %s)" %

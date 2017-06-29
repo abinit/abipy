@@ -11,7 +11,8 @@ from monty.string import is_string
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure, frames_from_structures, AbinitSpaceGroup
+from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.core.structure import Structure, frames_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 from abipy.abio.inputs import GEOVARS
@@ -68,6 +69,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def __init__(self, filepath):
         super(AbinitOutputFile, self).__init__(filepath)
+        self.debug_level = 0
         self._parse()
 
     def _parse(self):
@@ -89,7 +91,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         # Parse header to get important dimensions and variables
         self.header, self.footer, self.datasets = [], [], OrderedDict()
         where = "in_header"
-        verbose = 0
 
         with open(self.filepath, "rt") as fh:
             for line in fh:
@@ -107,36 +108,41 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 elif where == "in_footer":
                     self.footer.append(line)
                 else:
+                    # dataset number --> lines
                     self.datasets[where].append(line)
 
-        if not self.datasets:
-            raise NotImplementedError("Empty dataset sections.")
-
         self.header = "".join(self.header)
-        if verbose:
-            print("header")
-            print(self.header)
+        if self.debug_level: print("header:\n", self.header)
+        # dryrun_mode
+        # abinit : before driver, prtvol=0, debugging mode => will skip driver
+        self.dryrun_mode = "debugging mode => will skip driver" in self.header
+        print("dryrun_mode:", self.dryrun_mode)
 
-        #if " jdtset " in self.header:
-        #    raise NotImplementedError("jdtset is not supported")
-        #if " udtset " in self.header:
-        #    raise NotImplementedError("udtset is not supported")
-
-        for key, data in self.datasets.items():
-            if verbose: print("data")
-            self.datasets[key] = "".join(data)
-            if verbose: print(self.datasets[key])
-
-        self.footer = "".join(self.footer)
-        if verbose:
-            print("footer")
-            print(self.footer)
+        #if " jdtset " in self.header: raise NotImplementedError("jdtset is not supported")
+        #if " udtset " in self.header: raise NotImplementedError("udtset is not supported")
 
         self.ndtset = len(self.datasets)
+        if not self.datasets:
+            #raise NotImplementedError("Empty dataset sections.")
+            self.ndtset = 1
+            self.datasets[1] = "Empty dataset"
+
+        for key, data in self.datasets.items():
+            if self.debug_level: print("data")
+            self.datasets[key] = "".join(data)
+            if self.debug_level: print(self.datasets[key])
+
+        self.footer = "".join(self.footer)
+        if self.debug_level: print("footer:\n", self.footer)
+
         self.initial_vars_global, self.initial_vars_dataset = self._parse_variables("header")
         self.final_vars_global, self.final_vars_dataset = None, None
         if self.run_completed:
-            self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
+            if self.dryrun_mode:
+                # footer is not preset. Copy values from header.
+                self.final_vars_global, self.final_vars_dataset = self.initial_vars_global, self.initial_vars_dataset
+            else:
+                self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
 
     def _parse_variables(self, what):
         vars_global = OrderedDict()
@@ -146,8 +152,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         lines = getattr(self, what).splitlines()
         if what == "header":
             magic_start = " -outvars: echo values of preprocessed input variables --------"
-        else:
+        elif what == "footer":
             magic_start = " -outvars: echo values of variables after computation  --------"
+        else:
+            raise ValueError("Invalid value for what: `%s`" % str(what))
+
         magic_stop = "================================================================================"
 
         # Select relevant portion with variables.
@@ -220,8 +229,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     def _get_structures(self, what):
         if what == "header":
             vars_global, vars_dataset = self.initial_vars_global, self.initial_vars_dataset
-        else:
+        elif what == "footer":
             vars_global, vars_dataset = self.final_vars_global, self.final_vars_dataset
+        else:
+            raise ValueError("Invalid value for what: `%s`" % str(what))
 
         #print("global", vars_global["acell"])
         from abipy.abio.abivars import is_abiunit
@@ -397,6 +408,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 return cmd
             else:
                 return os.system(cmd)
+
+    def __str__(self):
+        return self.to_string()
 
     def to_string(self, verbose=0):
         lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
@@ -614,15 +628,13 @@ def validate_output_parser(abitests_dir=None, output_files=None):
         """
         True if path is one of the output files used in the Abinit Test suite.
         """
-        if path.endswith(".abo"): return True
+        if not path.endswith(".abo"): return False
         if not path.endswith(".out"): return False
 
         with open(path, "rt") as fh:
             for i, line in enumerate(fh):
                 if i == 1:
-                    line = line.rstrip().lower()
-                    if line.endswith("abinit"): return True
-                    return False
+                    return line.rstrip().lower().endswith("abinit")
             return False
 
     # Files are collected in paths.
@@ -637,7 +649,7 @@ def validate_output_parser(abitests_dir=None, output_files=None):
                 if is_abinit_output(path): paths.append(path)
 
     if output_files is not None:
-        print("Analyzing files ", str(output_files))
+        print("Analyzing files:", str(output_files))
         for arg in output_files:
             if is_abinit_output(arg): paths.append(arg)
 

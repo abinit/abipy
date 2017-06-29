@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.electrons.electrons import Fold2Bloch
+from abipy.electrons.fold2bloch import Fold2BlochNcfile
 
 
 class Fold2BlochTest(AbipyTest):
@@ -13,7 +13,7 @@ class Fold2BlochTest(AbipyTest):
         """Test Fold2Bloch API"""
         return
         filepath = "hello"
-        with Fold2Bloch(filepath) as fb:
+        with Fold2BlochNcfile(filepath) as fb:
             repr(fb); str(fb)
             assert fb.to_string(verbose=1)
             assert fb.nsppol == 1 and fb.nspden == 1

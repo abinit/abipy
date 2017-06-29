@@ -1319,7 +1319,7 @@ class KSamplingInfo(AttrDict):
         try:
             return cls(**obj)
         except Exception as exc:
-            raise TypeError("Don't know how to convert %s into KSamplingInfo object:\n%s" % (type(obj), str(exc)))
+            raise TypeError("Don't know how to convert `%s` into KSamplingInfo object:\n%s" % (type(obj), str(exc)))
 
     @classmethod
     def from_mpdivs(cls, mpdivs, shifts, kptopt):

@@ -18,7 +18,7 @@ from monty.itertools import iuptri
 from monty.functools import lazy_property
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.serializers.pickle_coders import SlotPickleMixin
-from abipy.core.kpoints import wrap_to_ws, issamek
+from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
 from abipy.iotools import as_etsfreader
 
 
@@ -605,11 +605,13 @@ class AbinitSpaceGroup(OpSequence):
         """Initialize the object from a Netcdf file."""
         r, closeit = as_etsfreader(ncfile)
 
+        kptopt = int(r.read_value("kptopt", default=1))
+
         new = cls(spgid=r.read_value("space_group"),
                   symrel=r.read_value("reduced_symmetry_matrices"),
                   tnons=r.read_value("reduced_symmetry_translations"),
                   symafm=r.read_value("symafm"),
-                  has_timerev=True,  # FIXME not treated by ETSF-IO.
+                  has_timerev=has_timrev_from_kptopt(kptopt),
                   inord=inord)
 
         if closeit:

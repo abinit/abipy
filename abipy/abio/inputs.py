@@ -249,8 +249,10 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
             `namedtuple` with the following attributes:
 
                 retcode: Return code. 0 if OK.
+                output_file: output file of the run.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
         """
 
 
@@ -1377,12 +1379,15 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             `namedtuple` with the following attributes:
 
                 retcode: Return code. 0 if OK.
+                output_file: output file of the run.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
         """
         task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=retcode, log_file=task.log_file, stderr_file=task.stderr_file)
+        return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
+                               stderr_file=task.stderr_file, task=task)
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -2561,13 +2566,16 @@ class AnaddbInput(AbstractInput, Has_Structure):
             `namedtuple` with the following attributes:
 
                 retcode: Return code. 0 if OK.
+                output_file: output file of the run.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
         """
         task = AnaddbTask.temp_shell_task(self, ddb_node="fake_DDB", workdir=workdir, manager=manager)
         # TODO: Anaddb does not support --dry-run
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, log_file=task.log_file, stderr_file=task.stderr_file)
+        return dict2namedtuple(retcode=0, output_file=task.output_filepath, log_file=task.log_file,
+                               stderr_file=task.stderr_file, task=task)
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
@@ -2778,13 +2786,16 @@ class OpticInput(AbstractInput, MSONable):
             `namedtuple` with the following attributes:
 
                 retcode: Return code. 0 if OK.
+                output_file: output file of the run.
                 log_file:  log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
         """
         # TODO: Optic does not support --dry-run
         #task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, log_file=None, stderr_file=None)
+        return dict2namedtuple(retcode=0, output_file=None, log_file=None,
+                               stderr_file=None, task=None)
 
 
 class Cut3DInput(MSONable, object):

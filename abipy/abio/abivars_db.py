@@ -176,10 +176,8 @@ class Variable(yaml.YAMLObject):
 
     def html_link(self, tag=None):
         """String with the URL of the web page."""
-        if tag is None:
-            return '<a href="%s" target="_blank">%s</a>' % (self.url, self.varname)
-        else:
-            return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
+        tag = self.varname if tag is None else tag
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
 
     def browse(self):
         """Open variable documentation in browser."""

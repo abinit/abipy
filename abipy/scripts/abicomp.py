@@ -103,7 +103,7 @@ def compare_structures(options):
         for s in grp:
             spg_symbol, international_number = s.get_space_group_info()
             print("\t- {} ({}), vol: {:.2f} A^3, {} ({})".format(
-                  paths[structures.index(s)], s.formula, s.volume, spg_symbol, international_number, ))
+                  paths[structures.index(s)], s.formula, s.volume, spg_symbol, international_number))
         print()
 
     if options.verbose:
