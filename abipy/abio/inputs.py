@@ -1389,6 +1389,30 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
                                stderr_file=task.stderr_file, task=task)
 
+    def abiget_spacegroup(self, workdir=None, manager=None):
+        """
+        This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
+        It should be called with an input file that contains all the mandatory variables required by ABINIT.
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            Structure object with AbinitSpaceGroup obtained from the main output file.
+        """
+        # Build a Task to run Abinit in --dry-run mode.
+        task = AbinitTask.temp_shell_task(self, workdir=workdir, manager=manager)
+        task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+
+        # Parse the output file and return structure extracted from run.abo
+        from abipy.abio.outputs import AbinitOutputFile
+        try:
+            with AbinitOutputFile(task.output_file.path) as out:
+                return out.initial_structure
+        except Exception as exc:
+            self._handle_task_exception(task, exc)
+
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
         This function computes the list of points in the IBZ and the corresponding weights.
@@ -2574,7 +2598,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         task = AnaddbTask.temp_shell_task(self, ddb_node="fake_DDB", workdir=workdir, manager=manager)
         # TODO: Anaddb does not support --dry-run
         #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, output_file=task.output_filepath, log_file=task.log_file,
+        return dict2namedtuple(retcode=0, output_file=task.output_file, log_file=task.log_file,
                                stderr_file=task.stderr_file, task=task)
 
 

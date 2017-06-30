@@ -339,6 +339,8 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
                 return None
         return self.datasets[0].structure
 
+    #def to_abinit_input(self):
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -377,6 +379,7 @@ class AbinitInputParser(object):
         This function receives a string `s` with the Abinit input and return
         a list of :class:`Dataset` objects.
         """
+        # TODO: Parse PSEUDO section if present!
         # Remove comments from lines.
         lines = []
         for line in s.splitlines():

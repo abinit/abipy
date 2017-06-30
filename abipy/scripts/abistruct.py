@@ -17,33 +17,10 @@ from tabulate import tabulate
 from pymatgen.io.vasp.outputs import Xdatcar
 from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.core.kpoints import Ktables, Kpoint
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
-from abipy.core.kpoints import Ktables, Kpoint
-
-
-def get_pseudotable(options):
-    """Return PseudoTable object."""
-    if options.pseudos is not None:
-        from abipy.flowtk import PseudoTable
-        return PseudoTable.as_table(options.pseudos)
-
-    try:
-        from pseudo_dojo import OfficialTables
-    except ImportError as exc:
-        print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
-        print("or use `--pseudos FILE_LIST` to specify the pseudopotentials to use.")
-        raise exc
-
-    dojo_tables = OfficialTables()
-    if options.usepaw:
-        raise NotImplementedError("PAW table is missing")
-        #pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
-    else:
-        pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
-
-    print("Using pseudos from PseudoDojo table", repr(pseudos))
-    return pseudos
+from abipy.abio import factories
 
 
 @prof_main
@@ -186,7 +163,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     # Subparser for abispg command.
     p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
         help="Extract Abinit space group info from file.")
-    p_abispg.add_argument("-c", "--check", default=False, action="store_true",
+    p_abispg.add_argument("-c", "--compare", default=False, action="store_true",
         help=("Compare Abinit spacegroup with spglib results, if FILE does not contain "
               "Abinit space group data, a temporay input file is created to invoke "
               "Abinit in dry-run mode to get the space-group"))
@@ -404,7 +381,7 @@ closest points in this particular structure. This is usually what you want in a 
         structure = abilab.Structure.from_file(options.filepath)
         spgrp = structure.abi_spacegroup
 
-        if not options.check:
+        if not options.compare:
             if spgrp is None:
                 cprint("Your file does not contain Abinit symmetry operations.", "red")
                 return 1
@@ -416,10 +393,10 @@ closest points in this particular structure. This is usually what you want in a 
                 print(structure.spget_summary(verbose=options.verbose))
             else:
                 print("Calling Abinit in --dry-run mode to get space group.")
-                raise NotImplementedError("foo")
-                #pseudos = get_pseudotable(options)
-                #from abipy.abio import factories
-                #gsinp = factories.gs_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None)
+                from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
+                gsinp = factories.gs_input(structure, HGH_TABLE)
+                abistructure = gsinp.abiget_spacegroup()
+                print(abistructure.spget_summary(verbose=options.verbose))
 
     elif options.command == "convert":
         fmt = options.format
@@ -618,6 +595,13 @@ closest points in this particular structure. This is usually what you want in a 
         else:
             k.print_bz2ibz()
 
+    #elif options.command == "abikmesh":
+    #    structure = abilab.Structure.from_file(options.filepath)
+    #    from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
+    #    gsinp = factories.gs_input(structure, HGH_TABLE)
+    #    k = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
+    #    print(k)
+
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
     #    ksampling = structure.ksampling_from_jhudb(kppra=1000)
@@ -625,7 +609,6 @@ closest points in this particular structure. This is usually what you want in a 
 
     elif options.command == "lgk":
         structure = abilab.Structure.from_file(options.filepath)
-
         spgrp = structure.abi_spacegroup
         if spgrp is None:
             cprint("Your file does not contain Abinit symmetry operations.", "yellow")

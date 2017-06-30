@@ -113,10 +113,10 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         self.header = "".join(self.header)
         if self.debug_level: print("header:\n", self.header)
-        # dryrun_mode
+        # Output files produced in dryrun_mode contain the following line:
         # abinit : before driver, prtvol=0, debugging mode => will skip driver
         self.dryrun_mode = "debugging mode => will skip driver" in self.header
-        print("dryrun_mode:", self.dryrun_mode)
+        #print("dryrun_mode:", self.dryrun_mode)
 
         #if " jdtset " in self.header: raise NotImplementedError("jdtset is not supported")
         #if " udtset " in self.header: raise NotImplementedError("udtset is not supported")
