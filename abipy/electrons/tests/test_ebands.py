@@ -148,10 +148,11 @@ class ElectronBandsTest(AbipyTest):
         if self.has_matplotlib():
             elims = [-10, 2]
             assert ni_ebands_kmesh.plot(show=False)
-            assert ni_ebands_kmesh.show_bz(show=False)
+            assert ni_ebands_kmesh.plot_bz(show=False)
             assert ni_ebands_kpath.plot(ylims=elims, show=False)
             assert ni_ebands_kpath.plot_with_edos(ni_edos, ylims=elims, show=False)
-            assert ni_ebands_kpath.show_bz()
+            assert ni_ebands_kpath.plot_bz()
+            assert ni_ebands_kpath.plot_scatter3d(spin=0, band=8, show=False)
             assert ni_edos.plot(xlims=elims, show=False)
             assert ni_edos.plot_dos_idos(xlims=elims, show=False)
             assert ni_edos.plot_up_minus_down(xlims=elims, show=False)

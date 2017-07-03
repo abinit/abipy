@@ -11,12 +11,13 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import collections
 
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 
 
 __all__ = [
     "set_axlims",
     "get_ax_fig_plt",
+    "get_ax3d_fig_plt",
     "plot_array",
     "ArrayPlotter",
     "data_from_cplx_mode",

@@ -1389,20 +1389,25 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
                                stderr_file=task.stderr_file, task=task)
 
-    def abiget_spacegroup(self, workdir=None, manager=None):
+    def abiget_spacegroup(self, tolsym=None, workdir=None, manager=None):
         """
         This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
+            tolsym: Abinit tolsym input variable. None correspondes to the default value.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             Structure object with AbinitSpaceGroup obtained from the main output file.
         """
+        # Avoid modifications in self.
+        inp = self.deepcopy()
+        if tolsym is not None: inp["tolsym"] = float(tolsym)
+
         # Build a Task to run Abinit in --dry-run mode.
-        task = AbinitTask.temp_shell_task(self, workdir=workdir, manager=manager)
+        task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
 
         # Parse the output file and return structure extracted from run.abo

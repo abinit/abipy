@@ -25,6 +25,8 @@ __all__ = [
     "Has_ElectronBands",
     "Has_PhononBands",
     "NotebookWriter",
+    #"Has_Header",
+    #"AbinitHeader",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
@@ -208,11 +210,14 @@ class Has_Structure(object):
     def structure(self):
         """Returns the :class:`Structure` object."""
 
-    def show_bz(self, **kwargs):
+    def plot_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.structure.show_bz(**kwargs)
+        return self.structure.plot_bz(**kwargs)
+
+    # To maintain backward compatbility
+    show_bz = plot_bz
 
     def export_structure(self, filepath):
         """
@@ -501,3 +506,8 @@ from abipy import abilab""")
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
             return filepath
+
+#class Has_AbinitHeader(object)
+#    @lazy_property
+#    def hdr(self)
+#        return self.reader.read_hdr()

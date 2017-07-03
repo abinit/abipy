@@ -28,7 +28,7 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, bxsf_write
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 
 
 import logging
@@ -1395,11 +1395,11 @@ class ElectronBands(Has_Structure):
             for k, kpoint in enumerate(self.kpoints):
                 weight = kpoint.weight
                 for c in conduction:
-                    ec = self.eigens[spin,k,c]
+                    ec = self.eigens[spin, k, c]
                     fc = 1.0 - self.occfacts[spin,k,c] / full
                     for v in valence:
-                        ev = self.eigens[spin,k,v]
-                        fv = self.occfacts[spin,k,v] / full
+                        ev = self.eigens[spin, k, v]
+                        fv = self.occfacts[spin, k, v] / full
                         fact = weight * fv * fc
                         jdos += fact * gaussian(mesh, width, center=ec-ev)
 
@@ -1565,6 +1565,42 @@ class ElectronBands(Has_Structure):
 
             for band in band_range:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_scatter3d(self, band, spin=0, e0="fermie", colormap="jet", ax=None, **kwargs):
+        r"""
+        Use matplotlib `scatter3D` to produce a scatter plot of the eigenvalues in 3D.
+        The color of the points gives the energy of the state wrt to the Fermi level.
+
+        Args:
+            band: Band index
+            spin: Spin index.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            colormap: Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        """
+        kcart_coords = self.kpoints.get_cart_coords()
+        c = self.eigens[spin, :, band] - self.get_e0(e0)
+
+        ax, fig, plt = get_ax3d_fig_plt(ax)
+        cmap = plt.get_cmap(colormap)
+        #ax.scatter3D(xs, ys, zs, s=6, alpha=0.8, marker=',', facecolors=cmap(N), lw=0)
+        p = ax.scatter3D(kcart_coords[:, 0], kcart_coords[:, 1], zs=kcart_coords[:, 2], zdir='z',
+                         s=20, c=c, depthshade=True, cmap=cmap)
+
+        #self.structure.plot_bz(ax=ax, pmg_path=False, with_labels=False, show=False, linewidth=0)
+        from pymatgen.electronic_structure.plotter import plot_wigner_seitz
+        plot_wigner_seitz(self.structure.reciprocal_lattice, ax=ax, linewidth=1)
+        ax.set_xlabel("$K_x$")
+        ax.set_ylabel("$K_y$")
+        ax.set_zlabel("$K_z$")
+        fig.colorbar(p)
 
         return fig
 
@@ -1818,10 +1854,9 @@ class ElectronBands(Has_Structure):
         if np.any(self.nband_sk != self.nband_sk[0,0]):
             eapp("The number of bands in nband must be constant")
         if not self.kpoints.is_ibz:
-            eapp("Expecting an IBZ sampling for the Fermi surface but got %s" % type(ebands.kpoints))
+            eapp("Expecting an IBZ sampling but got %s" % type(ebands.kpoints))
         if not self.kpoints.is_mpmesh:
-            eapp("Monkhorst-Pack meshes are required for BXSF output.\nkpoints.ksampling: %s" %
-                 str(self.kpoints.ksampling))
+            eapp("Monkhorst-Pack meshes are required.\nkpoints.ksampling: %s" % str(self.kpoints.ksampling))
 
         mpdivs, shifts = self.kpoints.mpdivs_shifts
         if shifts is not None and not np.all(shifts == 0.0):

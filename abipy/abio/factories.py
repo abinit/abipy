@@ -200,7 +200,7 @@ def _get_shifts(shift_mode, structure):
         else:
             return ((0, 0, 0))
     else:
-        raise ValueError("shift_mode not valid.")
+        raise ValueError("shift_mode `%s `not valid." % str(shift_mode))
 
 
 def gs_input(structure, pseudos,
@@ -225,7 +225,7 @@ def gs_input(structure, pseudos,
         scf_algorithm: Algorithm used for solving of the SCF cycle.
     """
     multi = ebands_input(structure, pseudos,
-                 kppa=kppa,
+                 kppa=kppa, ndivsm=0,
                  ecut=ecut, pawecutdg=pawecutdg, scf_nband=scf_nband, accuracy=accuracy, spin_mode=spin_mode,
                  smearing=smearing, charge=charge, scf_algorithm=scf_algorithm)
 
@@ -245,6 +245,7 @@ def ebands_input(structure, pseudos,
         kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            if 0, only the GS input is returned in multi[0].
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
             according to accuracy)
@@ -283,6 +284,7 @@ def ebands_input(structure, pseudos,
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
     multi[0].set_vars(_stopping_criterion("scf", accuracy))
+    if ndivsm == 0: return multi
 
     # Band structure calculation.
     nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, structure)
@@ -567,7 +569,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         prtsuscep=0
     )
 
-
     # all these too many options are for development only the current idea for the final version is
     #if gamma:
     #    scf_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=10000, chksymbreak=0, shifts=(0, 0, 0))
@@ -821,7 +822,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
             nqpt=1,          # One wavevector is to be considered
             qpt=qpt,         # This wavevector is q=0 (Gamma)
             tolwfr=1.0e-20,
-            kptopt=3,        # One could used symmetries for Gamma.
+            kptopt=3,        # TODO: One could use symmetries for Gamma.
         )
             #rfatpol   1 1   # Only the first atom is displaced
             #rfdir   1 0 0   # Along the first reduced coordinate axis

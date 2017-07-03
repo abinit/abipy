@@ -86,6 +86,10 @@ class TestStructure(AbipyTest):
             0.33333333333333,  0.66666666666667, 0.62537796980000,
             0.66666666666667,  0.33333333333333, 0.12537796980000])
 
+        from abipy.core.structure import diff_structures
+        diff_structures([si_abi, znse], headers=["si_abi", "znse"], fmt="abivars", mode="table")
+        diff_structures([si_abi, znse], headers=["si_abi", "znse"], fmt="abivars", mode="diff")
+
         # From pickle file.
         import pickle
         tmp_path = self.get_tmpname(suffix=".pickle")

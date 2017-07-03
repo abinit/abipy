@@ -9,18 +9,49 @@ import os
 import argparse
 import numpy as np
 
+from pprint import pprint
+from tabulate import tabulate
+from warnings import warn
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint
-from pprint import pprint
-from tabulate import tabulate
 from pymatgen.io.vasp.outputs import Xdatcar
 from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.kpoints import Ktables, Kpoint
+from abipy.core.structure import diff_structures
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
+
+
+def remove_equivalent_atoms(structure):
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+    spgan = SpacegroupAnalyzer(structure) #, symprec=symprec, angle_tolerance=angle_tolerance)
+    spgdata = spgan.get_symmetry_dataset()
+    equivalent_atoms = spgdata["equivalent_atoms"]
+    mask = np.zeros(len(structure), dtype=np.int)
+    for pos, eqpos in enumerate(equivalent_atoms):
+        mask[eqpos] += 1
+
+    indices = [i for i, m in enumerate(mask) if m == 0]
+    new = structure.copy()
+    new.remove_sites(indices)
+
+    with open("foo.abi", "wt") as fh:
+        fh.write(new.abi_string)
+
+
+def save_structure(structure, options):
+    """Save structure to file."""
+    if not options.savefile: return
+    print("Saving structure to %s" % options.savefile)
+    if os.path.exists(options.savefile):
+        backup = options.savefile + ".bkp"
+        print("%s already exists. Saving backup copy to: %s" % (options.savefile, backup))
+        os.rename(options.savefile, backup)
+
+    structure.to(filename=options.savefile)
 
 
 @prof_main
@@ -35,7 +66,7 @@ Usage example:
 ###################
 
   abistruct.py spglib FILE                 => Read structure from FILE and analyze it with spglib.
-  abistruct.py abispg FILE                 => Read structure from FILE, extract ABINIT space group info.
+  abistruct.py abispg FILE                 => Read structure from FILE, and compute ABINIT space group.
   abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
@@ -86,7 +117,7 @@ Usage example:
 # Databases
 ###########
 
-  abistruct.py cod_id 1526507              => Get structure from COD database. (http://www.crystallography.net/cod)
+  abistruct.py cod_id 1526507              => Get structure from COD database (http://www.crystallography.net/cod).
   abistruct.py cod_search MgB2             => Search for structures in the COD database.
   abistruct.py mp_id mp-149                => Get structure from materials project database and print
                                               JSON representation. Use e.g. `-f abivars` to change format.
@@ -135,6 +166,12 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    # Parent parser for commands that need to save structure to file.
+    savefile_parser = argparse.ArgumentParser(add_help=False)
+    savefile_parser.add_argument("-s", "--savefile", default="", type=str,
+        help="Save final structure to file. Format is detected from file extensions "
+             "e.g. out.abi for Abinit input, out.cif for CIF format.")
+
     # Helper functions to construct sub-parsers.
     def add_primitive_options(parser):
         """Add --no-primitive and --primitive-standard options to a parser."""
@@ -142,7 +179,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group.add_argument('--no-primitive', default=False, action='store_true', help="Do not enforce primitive cell.")
         group.add_argument('--primitive-standard', default=False, action='store_true', help="Enforce primitive standard cell.")
 
-    supported_formats = '("abivars", "cif", "xsf", "poscar", "cssr", "json")'
+    supported_formats = "(abivars, cif, xsf, poscar, cssr, json)"
     def add_format_arg(parser, default, option=True):
         """Add --format option to a parser with default value `default`."""
         if option:
@@ -161,12 +198,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="Analyze structure with spglib.")
 
     # Subparser for abispg command.
-    p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector],
-        help="Extract Abinit space group info from file.")
-    p_abispg.add_argument("-c", "--compare", default=False, action="store_true",
-        help=("Compare Abinit spacegroup with spglib results, if FILE does not contain "
-              "Abinit space group data, a temporay input file is created to invoke "
-              "Abinit in dry-run mode to get the space-group"))
+    p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector, savefile_parser],
+        help="Extract/Compute Abinit space group from file with structure.")
+    p_abispg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
+Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
+to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
+the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
+    p_abispg.add_argument("-d", "--diff-mode", type=str, default="table", choices=["table", "diff"],
+                          help="Select diff output format.")
 
     # Subparser for convert command.
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
@@ -191,10 +231,8 @@ Has to be all integers. Several options are possible:
     add_format_arg(p_supercell, default="abivars")
 
     # Subparser for abisanitize
-    p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser],
+    p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
-    p_abisanitize.add_argument("--savefile", default="", type=str,
-        help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
     add_primitive_options(p_abisanitize)
 
     # Subparser for irefine
@@ -207,11 +245,9 @@ Has to be all integers. Several options are possible:
     add_primitive_options(p_irefine)
 
     # Subparser for conventional.
-    p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser],
+    p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Gives a structure with a conventional cell according to certain standards. "
              "The standards are defined in doi:10.1016/j.commatsci.2010.05.010")
-    p_conventional.add_argument("--savefile", default="", type=str,
-        help='Save final structure to file. Format is detected from file extensions e.g. Si.cif')
 
     # Subparser for neighbors.
     p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
@@ -375,28 +411,33 @@ closest points in this particular structure. This is usually what you want in a 
     if options.verbose > 1: print(options)
 
     if options.command == "spglib":
-        print(abilab.Structure.from_file(options.filepath).spget_summary(verbose=options.verbose))
+        structure = abilab.Structure.from_file(options.filepath)
+        print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
+                                     verbose=options.verbose))
+
+        #remove_equivalent_atoms(structure)
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
         spgrp = structure.abi_spacegroup
 
-        if not options.compare:
-            if spgrp is None:
-                cprint("Your file does not contain Abinit symmetry operations.", "red")
-                return 1
-            print(spgrp.to_string(verbose=options.verbose))
+        if spgrp is not None:
+            print(structure.spget_summary(verbose=options.verbose))
         else:
             # Here we compare Abinit wrt spglib. If spgrp is None, we create a temporary
             # task to run the code in dry-run mode.
-            if spgrp is not None:
-                print(structure.spget_summary(verbose=options.verbose))
-            else:
-                print("Calling Abinit in --dry-run mode to get space group.")
-                from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
-                gsinp = factories.gs_input(structure, HGH_TABLE)
-                abistructure = gsinp.abiget_spacegroup()
-                print(abistructure.spget_summary(verbose=options.verbose))
+            print("FILE does not contain Abinit symmetry operations.")
+            print("Calling Abinit in --dry-run mode to get space group.")
+            from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
+            gsinp = factories.gs_input(structure, HGH_TABLE)
+            abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
+            print(abistructure.spget_summary(verbose=options.verbose))
+
+            diff_structures([structure, abistructure], mode=options.diff_mode,
+                            headers=["Input structure", "After Abinit symmetrization"], fmt="abivars")
+
+            # Save file.
+            save_structure(abistructure, options)
 
     elif options.command == "convert":
         fmt = options.format
@@ -425,7 +466,6 @@ closest points in this particular structure. This is usually what you want in a 
         structure = abilab.Structure.from_file(options.filepath)
         sanitized = structure.abi_sanitize(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
                                            primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
-                                           #primitive=True, primitive_standard=False)
         index = [options.filepath, "abisanitized"]
         dfs = abilab.frames_from_structures([structure, sanitized], index=index, with_spglib=True)
 
@@ -449,12 +489,8 @@ closest points in this particular structure. This is usually what you want in a 
                 print("\nabisanitized structure:")
                 print(sanitized)
 
-        # save file.
-        if options.savefile:
-            print("Saving abisanitized structure as %s" % options.savefile)
-            if os.path.exists(options.savefile):
-                raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
-            sanitized.to(filename=options.savefile)
+        # Save file.
+        save_structure(sanitized, options)
 
     elif options.command == "irefine":
         structure = abilab.Structure.from_file(options.filepath)
@@ -482,6 +518,9 @@ closest points in this particular structure. This is usually what you want in a 
         else:
             print("Cannot find space group number:", options.target_spgnum, "after", options.ntrial, "iterations")
             return 1
+
+        # Save file.
+        #save_structure(sanitized, options)
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
@@ -513,12 +552,8 @@ closest points in this particular structure. This is usually what you want in a 
                 print("\nInitial structure:\n", structure)
                 print("\nConventional structure:\n", conv)
 
-        # save file.
-        if options.savefile:
-            print("Saving conventional structure as %s" % options.savefile)
-            if os.path.exists(options.savefile):
-                raise RuntimeError("%s already exists. Cannot overwrite" % options.savefile)
-            conv.to(filename=options.savefile)
+        # Save file.
+        save_structure(conv, options)
 
     elif options.command == "neighbors":
         abilab.Structure.from_file(options.filepath).print_neighbors(radius=options.radius)
@@ -570,7 +605,7 @@ closest points in this particular structure. This is usually what you want in a 
         print(" kptopt", -(len(structure.hsym_kpoints) - 1))
         print(" kptbounds")
         for k in structure.hsym_kpoints:
-            print("    %.5f  %.5f  %.5f" % tuple(k.frac_coords), "#", k.name)
+            print("    %+.5f  %+.5f  %+.5f" % tuple(k.frac_coords), "#", k.name)
 
     elif options.command == "bz":
         abilab.Structure.from_file(options.filepath).plot_bz()
@@ -639,7 +674,7 @@ closest points in this particular structure. This is usually what you want in a 
 
     elif options.command in ("pmgdata", "mp_id"):
         if options.command == "pmgdata":
-            cprint("pmgdata is deprecated. Please use mp_id.", "yellow")
+            warn("pmgdata is deprecated. Please use mp_id.")
         # Get the Structure corresponding to material_id.
         structure = abilab.Structure.from_material_id(options.mpid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)
@@ -675,7 +710,7 @@ closest points in this particular structure. This is usually what you want in a 
             pdr.plot(show_unstable=options.show_unstable)
 
     elif options.command == "cod_search":
-        cod = abilab.cod_search(options.formula)
+        cod = abilab.cod_search(options.formula) # TODO primitive options
         if not cod.structures:
             cprint("No structure found in COD database", "yellow")
             return 1
@@ -683,7 +718,7 @@ closest points in this particular structure. This is usually what you want in a 
         cod.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "cod_id":
-        # Get the Structure from COD
+        # Get the Structure from COD # TODO primitive options
         structure = abilab.Structure.from_cod_id(options.cod_identifier)
         # Convert to format and print it.
         print(structure.convert(fmt=options.format))

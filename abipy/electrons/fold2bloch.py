@@ -8,73 +8,14 @@ import numpy as np
 from collections import OrderedDict
 from monty.string import marquee # is_string, list_strings,
 from monty.functools import lazy_property
+from monty.collections import dict2namedtuple
 import pymatgen.core.units as units
 from pymatgen.core.lattice import Lattice
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import KpointList
+from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
-
-
-def dist_point_from_line(x0, x1, x2):
-    """
-    Return distance from point x0 to line x1 - x2. Cartesian coordinates are used.
-    See http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-    """
-    denom = x2 - x1
-    denomabs = np.sqrt(np.dot(denom, denom))
-    numer = np.cross(x0 - x1, x0 - x2)
-    numerabs = np.sqrt(np.dot(numer, numer))
-    return numerabs / denomabs
-
-
-def find_points_along_path(cart_bounds, cart_coords, dist_tol, frac_coords):
-    """
-    Find points in `cart_coords` lying on the path defined by `cart_bounds`.
-
-    Args:
-        cart_bounds: [N, 3] array with the boundaries of the path in Cartesian coordinates.
-        cart_coords: [M, 3] array with the points in Cartesian coordinate
-        dist_tol: A point is considered to be on the path if its distance from the line
-            is less than dist_tol.
-
-    Return:
-        (klines, dist_list, ticks)
-
-        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
-        dist_list: numpy array with the distance of the points along the line.
-        ticks:
-    """
-    klines, dist_list, ticks = [], [], [0]
-
-    dl = 0  # cumulative length of the path
-    for ibound, x0 in enumerate(cart_bounds[:-1]):
-        x1 = cart_bounds[ibound + 1]
-        B = x0 - x1
-        #B = x1 - x0
-        dk = np.sqrt(np.dot(B,B))
-        #print("x0", x0, "x1", x1)
-        ticks.append(ticks[ibound] + dk)
-        for ik, k in enumerate(cart_coords):
-            dist = dist_point_from_line(k, x0, x1)
-            print(frac_coords[ik], dist)
-            if dist > dist_tol: continue
-            # k-point is on the cart_bounds
-            A = x0 - k
-            #A = k - x0
-            x = np.dot(A,B)/dk
-            #print("k-x0", A, "B", B)
-            print(frac_coords[ik], x, x > 0 and x < dist_tol + dk)
-            if dist_tol + dk >= x >= 0:
-                # k-point is within the cart_bounds range
-                # append k-point coordinate along the cart_bounds
-                klines.append(ik)
-                dist_list.append(x + dl)
-
-        dl = dl + dk
-
-    return np.array(klines), np.array(dist_list), np.array(ticks)
 
 
 class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -89,22 +30,25 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             fb.plot_unfolded()
     """
     @classmethod
-    def from_wfkpath(cls, wfkpath, folds, mpi_procs=1, workdir=None, manager=None, verbose=0):
-        # Usage: $fold2Bloch file_WFK x:y:z (folds)
+    def from_wfkpath(cls, wfkpath, folds, workdir=None, manager=None, mpi_procs=1, verbose=0):
+        """
+        Run fold2bloch in workdir.
+
+        Args:
+            wfkpath:
+            folds:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            mpi_procs: Number of MPI processors to use.
+            verbose: Verbosity level.
+        """
         # Build a simple manager to run the job in a shell subprocess
-        manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
+        from abipy import flowtk
+        manager = flowtk.TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
+        fold2bloch = flowtk.Fold2Bloch(manager=manager, verbose=verbose)
+        ncpath = fold2bloch.unfold(wfkpath, folds, workdir=workdir)
 
-        import tempfile
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
-
-        # Run task in workdir
-        fold2bloch = wrappers.Fold2Bloch(manager=manager, verbose=verbose)
-        #fold2bloch.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc)
-        filepaths = [f for f in os.listdir(workdir) if f.endswith("_FOLD2BLOCH.nc")]
-        if len(filepaths) != 1:
-            raise RuntimeError("Cannot find *_FOLD2BLOCH.nc file in directory: %s" % os.listdir(workdir))
-
-        return cls(os.path.join(workdir, filepaths[0]))
+        return cls(ncpath)
 
     def __init__(self, filepath):
         super(Fold2BlochNcfile, self).__init__(filepath)
@@ -118,9 +62,14 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
 	# nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         self._ebands = self.reader.read_ebands()
         self.nss = max(self.nsppol, self.nspinor)
-        self.folds = self.reader.read_value("folds")
-        # Direct lattice of the primitive cell.
-        self.pc_lattice = Lattice((self.structure.lattice.matrix.T * (1.0 / self.folds)).T.copy())
+        self.fold_matrix = self.reader.read_value("fold_matrix")
+
+        # Compute direct lattice of the primitive cell from fold_matrix.
+        if is_diagonal(self.fold_matrix):
+            folds = np.diagonal(self.fold_matrix)
+            self.pc_lattice = Lattice((self.structure.lattice.matrix.T * (1.0 / folds)).T.copy())
+        else:
+            raise NotImplementedError("non diagonal fold_matrix: %s" % str(self.fold_matrix))
 
         # Read fold2bloch output data.
         self.uf_kfrac_coords = self.reader.read_value("reduced_coordinates_of_unfolded_kpoints")
@@ -146,7 +95,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         to_s = lambda x: "%0.6f" % x
         app("abc   : " + " ".join([to_s(i).rjust(10) for i in self.pc_lattice.abc]))
         app("angles: " + " ".join([to_s(i).rjust(10) for i in self.pc_lattice.angles]))
-        app("Folds: %s" % (str(self.folds)))
+        if is_diagonal(self.fold_matrix):
+            app("Diagonal folding: %s" % (str(np.diagonal(self.fold_matrix))))
+        else:
+            app("Folding matrix: %s" % str(self.fold_matrix))
 
         if verbose:
             app("Unfolded k-points:")
@@ -205,10 +157,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         from scipy.integrate import cumtrapz
         int_sfw = cumtrapz(sfw, x=mesh, initial=0.0)
 
-        return mesh, sfw, int_sfw
+        return dict2namedtuple(mesh=mesh, sfw=sfw, int_sfw=int_sfw)
 
     @add_fig_kwargs
-    def plot_unfolded(self, klabels=None, ylims=None, dist_tol=1e-12, verbose=0,
+    def plot_unfolded(self, kbounds, klabels, ylims=None, dist_tol=1e-12, verbose=0,
                       colormap="afmhot", facecolor="black", ax=None, **kwargs):
         """
         Plot unfolded band structure with spectral weights.
@@ -229,15 +181,14 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         Returns:
             `matplotlib` figure
 	"""
-        uf_frac_coords = np.reshape([k.frac_coords for k in self.uf_kpoints], (-1, 3))
-        cart_bounds = np.reshape([0.0, 1/2, 0, 0, 0, 0, 0, 0, 1/2], (-1, 3))
-        cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c) for c in cart_bounds]
-        bound_labels = ["Y", "Gamma", "X"]
+        cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
+                       for c in np.reshape(kbounds, (-1, 3))]
         uf_cart = np.reshape([k.cart_coords for k in self.uf_kpoints], (-1, 3))
 
-        klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol, uf_frac_coords)
+        klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol)
         if len(klines) == 0: return None
         if verbose:
+            uf_frac_coords = np.reshape([k.frac_coords for k in self.uf_kpoints], (-1, 3))
             fcoords = uf_frac_coords[klines]
             print("Found %d points along input k-path" % len(fcoords))
             print("k-points of path in reduced coordinates:")
@@ -259,7 +210,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             plt.colorbar(s, ax=ax, orientation='vertical')
 
         ax.set_xticks(ticks, minor=False)
-        ax.set_xticklabels(bound_labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
+        ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
         ax.set_ylabel('Energy [eV]')
         set_axlims(ax, ylims, "y")
@@ -279,7 +230,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             nbv.new_code_cell("print(f2b)"),
             nbv.new_code_cell("fig = f2b.ebands.plot()"),
             nbv.new_code_cell("# fig = f2b.unfolded_kpoints.plot()"),
-            nbv.new_code_cell("fig = f2b.plot_unfolded()"),
+            nbv.new_code_cell("""\
+# kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
+# klabels = ["Y", "$\Gamma$", "X"]
+# fig = f2b.plot_unfolded(kbounds, klabels)"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

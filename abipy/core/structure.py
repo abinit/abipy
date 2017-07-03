@@ -2,6 +2,7 @@
 """This module defines basic objects representing the crystalline structure."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import sys
 import os
 import collections
 import tempfile
@@ -487,6 +488,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return s
 
+    def to(self, fmt=None, filename=None, **kwargs):
+        __doc__ = pymatgen.Structure.to.__doc__ + \
+        "\n Accepts also fmt='abivars' and `.abi` as Abinit input file extension"
+
+        filename = filename or ""
+        fmt = "" if fmt is None else fmt.lower()
+        fname = os.path.basename(filename)
+
+        if fmt in ("abi", "abivars") or fname.endswith(".abi"):
+            if filename:
+                with open(filename, "wt") as f:
+                    f.write(self.abi_string)
+            else:
+                return self.abi_string
+        else:
+            return super(Structure, self).to(fmt=fmt, filename=filename, **kwargs)
+
     def __mul__(self, scaling_matrix):
         """
         Makes a supercell. Allowing to have sites outside the unit cell
@@ -565,11 +583,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
             symprec: Symmetry precision used to refine the structure.
             angle_tolerance: Tolerance on anglese
                 if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
-            primitive (bool): Whether to convert to a primitive cell.
-            primitive_standard:
+            primitive (bool): Whether to convert to a primitive cell following
+                Setyawan, W., & Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010
+            primitive_standard: Returns most primitive structure found.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
-
         structure = self.__class__.from_sites(self)
 
         # Refine structure
@@ -580,9 +598,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # Convert to primitive structure.
         if primitive:
             if primitive_standard:
+                # Setyawan, W., & Curtarolo, S.
                 sym_finder_prim = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
                 structure = sym_finder_prim.get_primitive_standard_structure(international_monoclinic=False)
             else:
+                # Find most primitive structure.
                 get_prim = PrimitiveCellTransformation()
                 structure = get_prim.apply_transformation(structure)
 
@@ -596,7 +616,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             x_prod = np.dot(np.cross(m[0], m[1]), m[2])
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
-        return structure
+        return self.__class__.as_structure(structure)
 
     def get_oxi_state_decorated(self, **kwargs):
         """
@@ -652,11 +672,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % str(space))
 
-    def spget_equivalent_atoms(self, printout=False):
+    def spget_equivalent_atoms(self, symprec=1e-3, angle_tolerance=5, printout=False):
         """
         Call spglib to find the inequivalent atoms and build symmetry tables.
 
         Args:
+            symprec: Symmetry precision for distance
+            angle_tolerance: Tolerance on anglese
             printout: True to print symmetry tables.
 
         Returns:
@@ -672,7 +694,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             for irr_pos in irred_pos:
                 eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
         """
-        spgan = SpacegroupAnalyzer(self)
+        spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
         equivalent_atoms = spgdata["equivalent_atoms"]
         irred_pos = []
@@ -697,15 +719,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, spgdata=spgdata)
 
-    def spget_summary(self, verbose=0):
+    def spget_summary(self, symprec=1e-3, angle_tolerance=5, verbose=0):
         """
         Return string with full information about crystalline structure i.e.
         space group, point group, wyckoff positions, equivalent sites.
 
         Args:
+            symprec: Symmetry precision for distance
+            angle_tolerance: Tolerance on anglese
             verbose: Verbosity level.
         """
-        spgan = SpacegroupAnalyzer(self)
+        spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
@@ -952,18 +976,19 @@ class Structure(pymatgen.Structure, NotebookWriter):
         ])
 
     @add_fig_kwargs
-    def plot_bz(self, ax=None, pmg_path=True, **kwargs):
+    def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             pmg_path: True if the default path used in pymatgen should be show.
+            with_labels: True to plot k-point labels.
 
         Returns: `matplotlib` figure.
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
-        labels = self.hsym_kpath.kpath["kpoints"]
+        labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
         #pprint(labels)
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
@@ -1831,3 +1856,38 @@ class StructureModifier(object):
         new_structure.frozen_2phonon(qpoint, displ1, displ2, do_real1, do_real2, frac_coords, scale_matrix, max_supercell)
 
         return new_structure
+
+
+def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.stdout):
+    """
+    Convert list of structure to string using format `fmt`, print diff to file `file`.
+
+    Args:
+        structures: List of structures or list of objects that can be converted into structure e.g. filepaths
+        fmt: Any output format supported by `structure.to` method. Non-case sensitive.
+        mode: `table` to show results in tabular form or `diff` to show differences with unified diff.
+        headers: can be an explicit list of column headers Otherwise a headerless table is produced
+        file: Output Stream
+    """
+    outs = [s.convert(fmt=fmt).splitlines() for s in map(Structure.as_structure, structures)]
+
+    if mode == "table":
+        try:
+            from itertools import izip_longest as zip_longest  # Py2
+        except ImportError:
+            from itertools import zip_longest  # Py3k
+
+        table = [r for r in zip_longest(*outs, fillvalue=" ")]
+        from tabulate import tabulate
+        print(tabulate(table, headers=headers), file=file)
+
+    elif mode == "diff":
+        import difflib
+        fromfile, tofile = "", ""
+        for i in range(1, len(outs)):
+            if headers: fromfile, tofile = headers[0], headers[i]
+            diff = "\n".join(difflib.unified_diff(outs[0], outs[i], fromfile=fromfile, tofile=tofile))
+            print(diff, file=file)
+
+    else:
+        raise ValueError("Unsupported mode: `%s`" % str(mode))

@@ -165,6 +165,8 @@ class TestKpointList(AbipyTest):
         self.serialize_with_pickle(klist, protocols=[-1])
         self.assertMSONable(klist, test_if_subclass=False)
 
+        self.assert_equal(klist.frac_coords.flatten(), frac_coords)
+        self.assert_equal(klist.get_cart_coords(), np.reshape([k.cart_coords for k in klist], (-1, 3)))
         assert klist.sum_weights() == 1
         assert len(klist) == 3
 

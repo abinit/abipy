@@ -115,8 +115,26 @@ def abicomp_mp_structure(options):
     Compare the crystalline structure(s) read from FILE with the one(s)
     reported in the materials project database.
     """
+    return _compare_with_database(options)
+
+
+def abicomp_cod_structure(options):
+    """
+    Compare the crystalline structure(s) read from FILE with the one(s)
+    given in the COD database (http://www.crystallography.net/cod).
+    """
+    return _compare_with_database(options)
+
+
+def _compare_with_database(options):
     structures = [abilab.Structure.from_file(p) for p in options.paths]
-    mpres = [abilab.mp_search(struct.composition.formula) for struct in structures]
+    dbname = {"mp_structure": "materials project", "cod_structure": "COD"}[options.command]
+    if options.command == "mp_structure":
+        mpres = [abilab.mp_search(struct.composition.formula) for struct in structures]
+    elif options.command == "cod_structure":
+        mpres = [abilab.cod_search(struct.composition.formula) for struct in structures]
+    else:
+        raise NotImplementedError(str(options.command))
 
     retcode = 0
     for this_structure, r in zip(structures, mpres):
@@ -129,7 +147,7 @@ def abicomp_mp_structure(options):
             print()
 
         else:
-            print("Couldn't find pymatgen database entries with formula `%s`" % this_structure.composition.formula)
+            print("Couldn't find %s database entries with formula `%s`" % (dbname, this_structure.composition.formula))
             retcode += 1
 
     return retcode
@@ -563,6 +581,8 @@ Usage example:
                                                      Use `--group` to compare for similarity
   abicomp.py mp_structure FILE(s)                 => Compare structure(s) read from FILE(s) with the one(s)
                                                      given in the materials project database.
+  abicomp.py cod_structure FILE(s)                => Compare structure(s) read from FILE(s) with the one(s)
+                                                     given in the COD database (http://www.crystallography.net/cod).
   abicomp.py xrd *.cif *.GSR.nc                   => Compare X-ray diffraction plots (requires FILES with structure).
 
 ###########
@@ -663,6 +683,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser], help=abicomp_mp_structure.__doc__)
+
+    # Subparser for cod_structure command.
+    p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser], help=abicomp_cod_structure.__doc__)
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")

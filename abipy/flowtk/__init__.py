@@ -6,7 +6,11 @@ from pymatgen.io.abinit.qadapters import show_qparams, all_qtypes
 from pymatgen.io.abinit.netcdf import NetcdfReader
 from pymatgen.io.abinit.launcher import PyFlowScheduler, PyLauncher
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable, PseudoParser
-from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk, Cut3D
+from pymatgen.io.abinit.wrappers import Mrgscr, Mrgddb, Mrggkk, Cut3D  # Fold2Bloch
+try:
+    from pymatgen.io.abinit.wrappers import Fold2Bloch
+except ImportError:
+    pass
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.tasks import *
 from pymatgen.io.abinit.works import *

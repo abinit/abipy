@@ -32,7 +32,7 @@ def test_if_all_scripts_are_tested():
 
 class ScriptTest(AbipyTest):
     loglevel = "--loglevel=ERROR"
-    verbose = "--verbose"
+    verbose = "-vv"
 
     expect_stderr = True   # else tests fail due to warnings and deprecation messages
 
@@ -346,7 +346,6 @@ class TestAbicheck(ScriptTest):
         """Testing abicheck.py"""
         env = self.get_env()
         r = env.run(self.script, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-
         #r = env.run(self.script, "--with-flow", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
