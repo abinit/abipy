@@ -25,21 +25,20 @@ from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
 
 
-def remove_equivalent_atoms(structure):
-    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-    spgan = SpacegroupAnalyzer(structure) #, symprec=symprec, angle_tolerance=angle_tolerance)
-    spgdata = spgan.get_symmetry_dataset()
-    equivalent_atoms = spgdata["equivalent_atoms"]
-    mask = np.zeros(len(structure), dtype=np.int)
-    for pos, eqpos in enumerate(equivalent_atoms):
-        mask[eqpos] += 1
-
-    indices = [i for i, m in enumerate(mask) if m == 0]
-    new = structure.copy()
-    new.remove_sites(indices)
-
-    with open("foo.abi", "wt") as fh:
-        fh.write(new.abi_string)
+#def remove_equivalent_atoms(structure):
+#    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+#    spgan = SpacegroupAnalyzer(structure) #, symprec=symprec, angle_tolerance=angle_tolerance)
+#    spgdata = spgan.get_symmetry_dataset()
+#    equivalent_atoms = spgdata["equivalent_atoms"]
+#    mask = np.zeros(len(structure), dtype=np.int)
+#    for pos, eqpos in enumerate(equivalent_atoms):
+#        mask[eqpos] += 1
+#
+#    indices = [i for i, m in enumerate(mask) if m == 0]
+#    new = structure.copy()
+#    new.remove_sites(indices)
+#    with open("foo.abi", "wt") as fh:
+#        fh.write(new.abi_string)
 
 
 def save_structure(structure, options):

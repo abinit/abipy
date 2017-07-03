@@ -1606,7 +1606,7 @@ class ElectronBands(Has_Structure):
 
     def decorate_ax(self, ax, **kwargs):
         """
-        Decoracte matplotlib Axis
+        Decorate matplotlib Axis
 
         Accept:
             title:

@@ -6,7 +6,7 @@ AbiPy Scripts Howto
 
 At present you could start by using abiopen.py, abistruct.py, abicomp.py and abidoc.py.  
 The "logic" within the use of all abipy scripts is always the same, as you can see 
-if you issue "--help" after the scripts name
+if you issue ``--help`` after the scripts name.
 
 For example:
 ``abistruct.py --help`` to get the 'HOWTO' and usage examples of the script "abistruct.py".
@@ -43,8 +43,8 @@ It is also possible to export to to ``xsf`` (Xcrysden) format with::
 
     $ abistruct.py convert FILE -f xsf > out.xsf
 
-and then open the file in a graphical software although abistruct.py already provides 
-the handy command::
+and then open the file in a graphical software although ``abistruct.py``
+already provides the handy command::
 
     $ abistruct.py visualize FILE
 
@@ -69,10 +69,11 @@ chemical system or formula e.g. ``Fe2O3`` or ``Li-Fe-O``, use::
     mp-1009009                221    7.5046                 -0.0  mp-1009009
 
 
-It it possible to produce a Xmgrace file for electrons/phonons
+It it possible to produce a Xmgrace file for electrons/phonons?
 
 Yes, ``ElectronBands`` and ``PhononBands`` provide a ``to_xmgrace`` method
-Open the file with the electrons bands (GSR.nc. WFK.nc ...) with abiopen.py and then execute
+Open the file with the electrons bands (GSR.nc. WFK.nc ...) with ``abiopen.py`` 
+and then execute
 
 .. code-block:: ipython
 
@@ -84,23 +85,22 @@ for electrons and
 
     abifile.phbands.to_xmgrace("phbands.agr")    
 
-Is it possible to plot the Fermi Surface:
+Is it possible to plot the Fermi Surface?
 
-export the full band structure to ``filepath`` in BXSF format
+Export the full band structure to ``filepath`` in BXSF format
 
 .. code-block:: ipython
 
     abifile.ebands.to_bxsf("phbands.agr")    
 
-Require k-points in IBZ and gamma-centered k-mesh.
+Require k-points in the irreducible wedge and a gamma-centered k-mesh.
 Export the full band structure to ``filepath`` in BXSF format
 suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
 
 Effective masses
 
 How can I analyze the results of a structural relaxation?
-Use ``abiopen.py`` to open the ``HIST.nc`` file produce by Abinit and
-then, inside ipython, type
+Use ``abiopen.py`` to open the ``HIST.nc`` file produce by Abinit and then, inside ipython, type
 
 .. code-block:: ipython
 
@@ -125,8 +125,8 @@ if the script requires a ``COMMAND`` argument.
 Comparing results
 -----------------
 
-Remember that it's possible to use shell syntax ``*_GSR.nc`` to select all files with a given extension
-or ``find . -name *_GSR.nc`` to scan the current directory 
+Remember that it is possible to use shell syntax ``*_GSR.nc`` to select all files 
+with a given extension or ``find . -name *_GSR.nc`` to scan the current directory 
 
 Q: I have multiple ``GSR`` files and I need to compare the electronic gaps
 Use::
@@ -253,6 +253,6 @@ Finally, if you want to compare total energies of the two GSO phases::
 and optionally use ``--plot`` to plot the data.
 
 So the C2c phase is the most stable for GSO too.
-(In case one does not know which are the “attributes” you can extract from the files::
+(In case one does not know which are the "attributes" you can extract from the files with::
 
     $ abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )
