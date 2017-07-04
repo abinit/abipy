@@ -188,7 +188,7 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
         order: "unit_cell" if the kpoint coordinates must be in [0,1)
                "bz" if the kpoint coordinates must be in [-1/2, +1/2)
     """
-    shifts = np.reshape(shifts, (-1,3))
+    shifts = np.reshape(shifts, (-1, 3))
     assert np.all(np.abs(shifts) <= 0.5)
 
     # Build k-point grid.

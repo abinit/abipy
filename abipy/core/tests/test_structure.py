@@ -139,6 +139,9 @@ class TestStructure(AbipyTest):
         si = Structure.from_material_id("mp-149")
         assert si.formula == "Si2"
 
+        mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
+        assert mgb2_cod.formula == "Mg1 B2"
+
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():
             mgb2.abi_primitive()
@@ -237,26 +240,3 @@ class TestStructure(AbipyTest):
         #print(structure.lattice._matrix)
         #for site in structure:
         #    print(structure.lattice.get_cartesian_coords(site.frac_coords))
-
-
-class TestMpRestApi(AbipyTest):
-
-    def test_mprestapi(self):
-        """Testing MP Rest API wrappers."""
-        from abipy import abilab
-        # Test mp_search
-        mp = abilab.mp_search("MgB2")
-        repr(mp); str(mp)
-        assert mp.structures
-        assert "mp-763" in mp.mpids
-        assert len(mp.structures) == len(mp.data)
-        assert hasattr(mp.table, "describe")
-        mp.print_results(fmt="abivars", verbose=2)
-
-        # Test mp_match_structure
-        mp = abilab.mp_match_structure(abidata.cif_file("al.cif"))
-        repr(mp); str(mp)
-        assert mp.structures
-        assert "mp-134" in mp.mpids
-        assert mp.data is None and mp.table is None
-        mp.print_results(fmt="abivars", verbose=2)

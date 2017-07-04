@@ -25,8 +25,8 @@ to print information about a file in the terminal.
 Structure 
 ---------
 
-Q: I have a ``FILE`` with geometrical information and I need to convert to a 
-different format e.g. Abinit input variables::
+Q: I have a ``FILE`` with geometrical information and I need to convert it 
+to a different format e.g. Abinit input variables::
 
     $ abistruct.py convert FILE
 
@@ -34,12 +34,12 @@ Use the ``-f`` option to specify a different format e.g.::
 
     $ abistruct.py convert FILE -f cif 
 
-will produce a CIF file and::
+will produce a CIF file. Use::
 
     $ abistruct.py convert FILE --help
 
 to list the formats supported.
-It is also possible to export to to ``xsf`` (Xcrysden) format with::
+It is also possible to export to ``xsf`` (Xcrysden) format with::
 
     $ abistruct.py convert FILE -f xsf > out.xsf
 
@@ -71,7 +71,7 @@ chemical system or formula e.g. ``Fe2O3`` or ``Li-Fe-O``, use::
 
 It it possible to produce a Xmgrace file for electrons/phonons?
 
-Yes, ``ElectronBands`` and ``PhononBands`` provide a ``to_xmgrace`` method
+Yes, both ``ElectronBands`` and ``PhononBands`` provide a ``to_xmgrace`` method to write Xmgrace files.
 Open the file with the electrons bands (GSR.nc. WFK.nc ...) with ``abiopen.py`` 
 and then execute
 
@@ -93,7 +93,7 @@ Export the full band structure to ``filepath`` in BXSF format
 
     abifile.ebands.to_bxsf("phbands.agr")    
 
-Require k-points in the irreducible wedge and a gamma-centered k-mesh.
+Note that the method requires k-points in the irreducible wedge and a gamma-centered k-mesh.
 Export the full band structure to ``filepath`` in BXSF format
 suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
 

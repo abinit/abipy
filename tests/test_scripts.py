@@ -206,9 +206,9 @@ class TestAbistruct(ScriptTest):
     def test_cod_api(self):
         """Testing abistruct COD methods."""
         env = self.get_env()
-        r = env.run(self.script, "cod_id", "1526507",
+        r = env.run(self.script, "cod_id", "1526507", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-        r = env.run(self.script, "cod_search", "Si", "--select-spgnum 227",
+        r = env.run(self.script, "cod_search", "Si", "--select-spgnum 227", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
     def test_mp_api(self):

@@ -1851,10 +1851,10 @@ class ElectronBands(Has_Structure):
         """
         # Sanity check.
         errors = []; eapp = errors.append
-        if np.any(self.nband_sk != self.nband_sk[0,0]):
+        if np.any(self.nband_sk != self.nband_sk[0, 0]):
             eapp("The number of bands in nband must be constant")
         if not self.kpoints.is_ibz:
-            eapp("Expecting an IBZ sampling but got %s" % type(ebands.kpoints))
+            eapp("Expecting an IBZ sampling but got %s" % type(self.kpoints))
         if not self.kpoints.is_mpmesh:
             eapp("Monkhorst-Pack meshes are required.\nkpoints.ksampling: %s" % str(self.kpoints.ksampling))
 
@@ -1878,6 +1878,94 @@ class ElectronBands(Has_Structure):
         # Write BXSF file.
         with open(filepath, "wt") as fh:
             bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs + 1, emesh_sbk, self.fermie, unit="eV")
+
+    def plot_isosurfaces(self, e0="fermie", verbose=1):
+        """
+
+        Args:
+            e0:
+        """
+        # Sanity check.
+        errors = []; eapp = errors.append
+        if not self.kpoints.is_ibz:
+            eapp("Expecting an IBZ sampling but got %s" % type(self.kpoints))
+        if not self.kpoints.is_mpmesh:
+            eapp("Monkhorst-Pack meshes are required.\nkpoints.ksampling: %s" % str(self.kpoints.ksampling))
+
+        mpdivs, shifts = self.kpoints.mpdivs_shifts
+        if shifts is not None and not np.all(shifts == 0.0):
+            eapp("For the time being, Gamma-centered k-meshes are required.")
+        if errors:
+            raise ValueError("\n".join(errors))
+
+        try:
+            from skimage import measure
+        except ImportError:
+            raise ImportError("scikit-image not installed."
+                "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+
+        # Find bands crossing e0.
+        e0 = self.get_e0(e0)
+        isobands = [[] for _ in self.spins]
+        for spin in self.spins:
+            for band in range(self.mband):
+                emin, emax = self.eigens[spin, :, band].min(), self.eigens[spin, :, band].max()
+                if isobands[spin] and e0 > emax: break
+                if emax >= e0 >= emin: isobands[spin].append(band)
+        if verbose: print("Bands for isosurface:", isobands)
+        # if all(not l for l isobands): return None
+
+        # Xcrysden requires points in the unit cell (C-order)
+        # and the mesh must include the periodic images hence pbc=True.
+        bz2ibz = map_bz2ibz(self.structure, self.kpoints.frac_coords, mpdivs, self.has_timrev, pbc=True)
+        #bz2ibz = map_bz2ibz(self.structure, self.kpoints.frac_coords, mpdivs, self.has_timrev, pbc=False)
+
+        # Construct bands in BZ: e_{TSk} = e_{k}
+        len_bz = len(bz2ibz)
+        isoenes = [{} for _ in self.spins]
+        for spin in self.spins:
+            for band in isobands[spin]:
+                isoenes[spin][band] = arr = np.empty(len_bz)
+                for ik_bz in range(len_bz):
+                    ik_ibz = bz2ibz[ik_bz]
+                    arr[ik_bz] = self.eigens[spin, ik_ibz, band]
+
+        #from pymatgen.electronic_structure.plotter import plot_fermi_surface
+        #data = np.reshape(emesh_sbk[0, 3, :], mpdivs)
+        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0])
+        #from abipy.core.kpoints import kmesh_from_mpdivs
+        #kreds = kmesh_from_mpdivs(mpdivs, [0, 0, 0], pbc=True, order="bz")
+        #kcarts = np.reshape([self.structure.reciprocal_lattice.get_cart_coords(k) for k in kreds], (-1, 3))
+
+        ax, fig, plt = get_ax3d_fig_plt(ax=None)
+
+        # http://scikit-image.org/docs/stable/api/skimage.measure.html#marching-cubes
+        from abipy.core.kpoints import wrap_to_ws
+        for spin in self.spins:
+            for band in isobands[spin]:
+                volume = np.reshape(isoenes[spin][band], mpdivs + 1)
+                verts, faces, normals, values = measure.marching_cubes(volume, level=e0) #, spacing=(0.1, 0.1, 0.1))
+                #verts = np.reshape([self.structure.reciprocal_lattice.get_cartesian_coords(wrap_to_ws(v / mpdivs)) for v in verts], (-1, 3))
+                #verts = np.reshape([wrap_to_ws(v / mpdivs) for v in verts], (-1, 3))
+                ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
+
+                #Regarding visualization of algorithm output, to contour a volume named myvolume about the level 0.0,
+                #using the mayavi package:
+                #verts, faces, normals, values = marching_cubes_lewiner(myvolume, 0.0)
+                #from mayavi import mlab
+                #mlab.triangular_mesh([vert[0] for vert in verts],
+                #                      [vert[1] for vert in verts],
+                #                      [vert[2] for vert in verts],
+                #                      faces)
+                #mlab.show()
+
+                #Similarly using the visvis package:
+                #verts, faces, normals, values = marching_cubes_lewiner(myvolume, 0.0)
+                #import visvis as vv
+                #vv.mesh(np.fliplr(verts), faces, normals, values)
+                #vv.use().Run()
+
+        plt.show()
 
     def derivatives(self, spin, band, order=1, acc=4):
         """
@@ -2854,7 +2942,6 @@ class ElectronDos(object):
             return 0.0
 
         elif is_string(e0):
-
             if e0 == "fermie":
                 return self.fermie
             elif e0 == "None":

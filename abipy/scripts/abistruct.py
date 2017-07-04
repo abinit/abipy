@@ -374,16 +374,18 @@ closest points in this particular structure. This is usually what you want in a 
         help="Show all phases, including unstable ones")
 
     # Subparser for cod_search command.
-    p_codsearch = subparsers.add_parser('cod_search', parents=[mp_rest_parser, copts_parser],
+    p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser],
         help="Get structure from COD database. Requires internet connection and mysql")
     p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
     p_codsearch.add_argument("-s", "--select_spgnum", type=int, default=None, help="Select structures with this space group number.")
+    p_codsearch.add_argument('--primitive', default=False, action='store_true', help="Convert COD cells into primitive cells.")
     add_format_arg(p_codsearch, default="abivars")
 
     # Subparser for cod_id command.
     p_codid = subparsers.add_parser('cod_id', parents=[copts_parser],
         help="Get structure from COD database. Requires internet connection and mysql")
     p_codid.add_argument("cod_identifier", type=int, default=None, help="COD identifier.")
+    p_codid.add_argument('--primitive', default=False, action='store_true', help="Convert COD cell into primitive cell.")
     add_format_arg(p_codid, default="abivars")
 
     # Subparser for animate command.
@@ -709,7 +711,7 @@ closest points in this particular structure. This is usually what you want in a 
             pdr.plot(show_unstable=options.show_unstable)
 
     elif options.command == "cod_search":
-        cod = abilab.cod_search(options.formula) # TODO primitive options
+        cod = abilab.cod_search(options.formula, primitive=options.primitive)
         if not cod.structures:
             cprint("No structure found in COD database", "yellow")
             return 1
@@ -717,8 +719,8 @@ closest points in this particular structure. This is usually what you want in a 
         cod.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "cod_id":
-        # Get the Structure from COD # TODO primitive options
-        structure = abilab.Structure.from_cod_id(options.cod_identifier)
+        # Get the Structure from COD
+        structure = abilab.Structure.from_cod_id(options.cod_identifier, primitive=options.primitive)
         # Convert to format and print it.
         print(structure.convert(fmt=options.format))
 

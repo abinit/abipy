@@ -74,7 +74,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
         finally:
             # Back to abipy structure
             structure = Structure.as_structure(structure)
-            return restapi.MpStructures(structures=structures, mpids=mpids)
+            return restapi.MpStructures(structures=structures, ids=mpids)
 
 
 def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
@@ -113,34 +113,36 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
         except rest.Error as exc:
             cprint(str(exc), "magenta")
 
-        return restapi.MpStructures(structures=structures, mpids=mpids, data=data)
+        return restapi.MpStructures(structures=structures, ids=mpids, data=data)
 
 
-def cod_search(formula):
+def cod_search(formula, primitive=False):
     """
     Connect to the COD database (http://www.crystallography.net/)
     Get a list of structures corresponding to a chemical formula
 
     Args:
         formula_ (str): Chemical formula (e.g., Fe2O3)
+        primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
 
     Returns:
-        :class:`MpStructures` object with
-            List of Structure objects, Materials project ids associated to structures.
-            and List of dictionaries with MP data (same order as structures).
+        :class:`CodStructures` object with
+            List of Structure objects, COD ids associated to structures.
+            and List of dictionaries with COD data (same order as structures).
 
         Note that the attributes evalute to False if no match is found
     """
-    #chemsys_formula_id = chemsys_formula_id.replace(" ", "")
     from pymatgen.ext.cod import COD
     data = COD().get_structure_by_formula(formula)
 
-    mpids = [e.pop("cod_id") for e in data]
+    cod_ids = [e.pop("cod_id") for e in data]
     # Want AbiPy structure.
     structures = list(map(Structure.as_structure, [e.pop("structure") for e in data]))
+    if primitive:
+        structures = [s.get_primitive_structure() for s in structures]
 
     from abipy.core import restapi
-    return restapi.MpStructures(structures=structures, mpids=mpids, data=data)
+    return restapi.CodStructures(structures=structures, ids=cod_ids, data=data)
 
 
 class Structure(pymatgen.Structure, NotebookWriter):
@@ -292,12 +294,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return cls.as_structure(new)
 
     @classmethod
-    def from_cod_id(cls, cod_id, **kwargs):
+    def from_cod_id(cls, cod_id, primitive=False, **kwargs):
         """
         Queries the COD for a structure by id. Returns Structure object.
 
         Args:
             cod_id (int): COD id.
+            primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
             kwargs: Arguments passed to `get_structure_by_id`
 
         Returns:
@@ -305,6 +308,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         from pymatgen.ext.cod import COD
         new = COD().get_structure_by_id(cod_id, **kwargs)
+        if primitive: new = new.get_primitive_structure()
         return cls.as_structure(new)
 
     @classmethod
