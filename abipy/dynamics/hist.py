@@ -201,19 +201,23 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
-    def mvplot_trajectories(self):
-        #mlab.options.offscreen = True
-        xcart_list = self.reader.read_value("xcart")
-        t = np.arange(self.num_steps)
-        from mayavi import mlab
-        for iatom in range(self.reader.natom):
-            x, y, z = xcart_list[:, iatom, :].T
-            print(x)
-            print(y)
-            print(z)
-            trajectory = mlab.plot3d(x, y, z, t, colormap='hot', tube_radius=None)
-        mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
-        mlab.show()
+    #def mvplot_trajectories(self):
+    #    import abipy.display.mayavi as mvtk
+    #    #figure, mlab = mvtk.get_fig_mlab(figure=figure)
+    #    #mlab.options.offscreen = True
+    #    #mvtk.plot_structure(self.initial_structure, figure=figure)
+    #    #mvtk.plot_structure(self.final_structure, figure=figure, unit_cell=False)
+    #    xcart_list = self.reader.read_value("xcart")
+    #    t = np.arange(self.num_steps)
+    #    from mayavi import mlab
+    #    for iatom in range(self.reader.natom):
+    #        x, y, z = xcart_list[:, iatom, :].T
+    #        print(x)
+    #        print(y)
+    #        print(z)
+    #        trajectory = mlab.plot3d(x, y, z, t, colormap='hot', tube_radius=None)
+    #    mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+    #    mlab.show()
 
     def write_notebook(self, nbpath=None):
         """

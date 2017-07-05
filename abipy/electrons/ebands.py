@@ -1879,110 +1879,110 @@ class ElectronBands(Has_Structure):
         with open(filepath, "wt") as fh:
             bxsf_write(fh, self.structure, self.nsppol, self.nband, mpdivs + 1, emesh_sbk, self.fermie, unit="eV")
 
-    def plot_isosurfaces(self, e0="fermie", view="unit_cell", verbose=1):
-        """
-        Args:
-            e0:
-            view:
-        """
-        # Sanity check.
-        errors = []; eapp = errors.append
-        if not self.kpoints.is_ibz:
-            eapp("Expecting an IBZ sampling but got %s" % type(self.kpoints))
-        if not self.kpoints.is_mpmesh:
-            eapp("Monkhorst-Pack meshes are required.\nkpoints.ksampling: %s" % str(self.kpoints.ksampling))
+    #def plot_isosurfaces(self, e0="fermie", view="unit_cell", verbose=1):
+    #    """
+    #    Args:
+    #        e0:
+    #        view:
+    #    """
+    #    # Sanity check.
+    #    errors = []; eapp = errors.append
+    #    if not self.kpoints.is_ibz:
+    #        eapp("Expecting an IBZ sampling but got %s" % type(self.kpoints))
+    #    if not self.kpoints.is_mpmesh:
+    #        eapp("Monkhorst-Pack meshes are required.\nkpoints.ksampling: %s" % str(self.kpoints.ksampling))
 
-        mpdivs, shifts = self.kpoints.mpdivs_shifts
-        if shifts is not None and not np.all(shifts == 0.0):
-            eapp("For the time being, Gamma-centered k-meshes are required.")
-        if errors:
-            raise ValueError("\n".join(errors))
+    #    mpdivs, shifts = self.kpoints.mpdivs_shifts
+    #    if shifts is not None and not np.all(shifts == 0.0):
+    #        eapp("For the time being, Gamma-centered k-meshes are required.")
+    #    if errors:
+    #        raise ValueError("\n".join(errors))
 
-        try:
-            from skimage import measure
-        except ImportError:
-            raise ImportError("scikit-image not installed."
-                "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+    #    try:
+    #        from skimage import measure
+    #    except ImportError:
+    #        raise ImportError("scikit-image not installed."
+    #            "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
 
-        # Find bands crossing e0.
-        e0 = self.get_e0(e0)
-        isobands = [[] for _ in self.spins]
-        for spin in self.spins:
-            for band in range(self.mband):
-                emin, emax = self.eigens[spin, :, band].min(), self.eigens[spin, :, band].max()
-                if isobands[spin] and e0 > emax: break
-                if emax >= e0 >= emin: isobands[spin].append(band)
-        if verbose: print("Bands for isosurface:", isobands)
-        # if all(not l for l isobands): return None
+    #    # Find bands crossing e0.
+    #    e0 = self.get_e0(e0)
+    #    isobands = [[] for _ in self.spins]
+    #    for spin in self.spins:
+    #        for band in range(self.mband):
+    #            emin, emax = self.eigens[spin, :, band].min(), self.eigens[spin, :, band].max()
+    #            if isobands[spin] and e0 > emax: break
+    #            if emax >= e0 >= emin: isobands[spin].append(band)
+    #    if verbose: print("Bands for isosurface:", isobands)
+    #    # if all(not l for l isobands): return None
 
-        # Xcrysden requires points in the unit cell (C-order)
-        # and the mesh must include the periodic images hence pbc=True.
-        pbc = False
-        pbc = True
-        bz2ibz = map_grid2ibz(self.structure, self.kpoints.frac_coords, mpdivs, self.has_timrev, pbc=pbc)
+    #    # Xcrysden requires points in the unit cell (C-order)
+    #    # and the mesh must include the periodic images hence pbc=True.
+    #    pbc = False
+    #    pbc = True
+    #    bz2ibz = map_grid2ibz(self.structure, self.kpoints.frac_coords, mpdivs, self.has_timrev, pbc=pbc)
 
-        # Construct bands in BZ: e_{TSk} = e_{k}
-        len_bz = len(bz2ibz)
-        isoenes = [{} for _ in self.spins]
-        for spin in self.spins:
-            for band in isobands[spin]:
-                isoenes[spin][band] = arr = np.empty(len_bz)
-                for ik_bz in range(len_bz):
-                    ik_ibz = bz2ibz[ik_bz]
-                    arr[ik_bz] = self.eigens[spin, ik_ibz, band]
+    #    # Construct bands in BZ: e_{TSk} = e_{k}
+    #    len_bz = len(bz2ibz)
+    #    isoenes = [{} for _ in self.spins]
+    #    for spin in self.spins:
+    #        for band in isobands[spin]:
+    #            isoenes[spin][band] = arr = np.empty(len_bz)
+    #            for ik_bz in range(len_bz):
+    #                ik_ibz = bz2ibz[ik_bz]
+    #                arr[ik_bz] = self.eigens[spin, ik_ibz, band]
 
-        from pymatgen.electronic_structure.plotter import plot_fermi_surface
-        spin, band = 0, 4
-        #for i, band in enumerate(isobands[spin]):
-        #data = np.reshape(isoenes[0][band], mpdivs + 1 if pbc else mpdivs)
-        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0])
-                           #interative=not (i == len(isobands[spin]) - 1))
+    #    from pymatgen.electronic_structure.plotter import plot_fermi_surface
+    #    spin, band = 0, 4
+    #    #for i, band in enumerate(isobands[spin]):
+    #    #data = np.reshape(isoenes[0][band], mpdivs + 1 if pbc else mpdivs)
+    #    #plot_fermi_surface(data, self.structure, False, energy_levels=[e0])
+    #                       #interative=not (i == len(isobands[spin]) - 1))
 
-        #from abipy.core.kpoints import kmesh_from_mpdivs
-        #kreds = kmesh_from_mpdivs(mpdivs, [0, 0, 0], pbc=True, order="bz")
-        #kcarts = np.reshape([self.structure.reciprocal_lattice.get_cart_coords(k) for k in kreds], (-1, 3))
-        use_mayavi = True
-        #use_mayavi = False
-        if use_mayavi:
-            from mayavi import mlab
-        else:
-            from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz # plot_unit_cell
-            ax, fig, plt = get_ax3d_fig_plt(ax=None)
-            if view == "unit_cell":
-                plot_unit_cell(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
-            else:
-                plot_wigner_seitz(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
-            #plot_lattice_vectors(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
+    #    #from abipy.core.kpoints import kmesh_from_mpdivs
+    #    #kreds = kmesh_from_mpdivs(mpdivs, [0, 0, 0], pbc=True, order="bz")
+    #    #kcarts = np.reshape([self.structure.reciprocal_lattice.get_cart_coords(k) for k in kreds], (-1, 3))
+    #    use_mayavi = True
+    #    #use_mayavi = False
+    #    if use_mayavi:
+    #        from mayavi import mlab
+    #    else:
+    #        from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz # plot_unit_cell
+    #        ax, fig, plt = get_ax3d_fig_plt(ax=None)
+    #        if view == "unit_cell":
+    #            plot_unit_cell(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
+    #        else:
+    #            plot_wigner_seitz(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
+    #        #plot_lattice_vectors(self.structure.reciprocal_lattice, ax=ax, color="k", linewidth=1)
 
-        for spin in self.spins:
-            for band in isobands[spin]:
-                # From http://scikit-image.org/docs/stable/api/skimage.measure.html#marching-cubes
-                # verts: (V, 3) array
-                #   Spatial coordinates for V unique mesh vertices. Coordinate order matches input volume (M, N, P).
-                # faces: (F, 3) array
-                #   Define triangular faces via referencing vertex indices from verts.
-                #   This algorithm specifically outputs triangles, so each face has exactly three indices.
-                # normals: (V, 3) array
-                #   The normal direction at each vertex, as calculated from the data.
-                # values: (V, ) array
-                #   Gives a measure for the maximum value of the data in the local region near each vertex.
-                #   This can be used by visualization tools to apply a colormap to the mesh
+    #    for spin in self.spins:
+    #        for band in isobands[spin]:
+    #            # From http://scikit-image.org/docs/stable/api/skimage.measure.html#marching-cubes
+    #            # verts: (V, 3) array
+    #            #   Spatial coordinates for V unique mesh vertices. Coordinate order matches input volume (M, N, P).
+    #            # faces: (F, 3) array
+    #            #   Define triangular faces via referencing vertex indices from verts.
+    #            #   This algorithm specifically outputs triangles, so each face has exactly three indices.
+    #            # normals: (V, 3) array
+    #            #   The normal direction at each vertex, as calculated from the data.
+    #            # values: (V, ) array
+    #            #   Gives a measure for the maximum value of the data in the local region near each vertex.
+    #            #   This can be used by visualization tools to apply a colormap to the mesh
 
-                voldata = np.reshape(isoenes[spin][band], mpdivs + 1 if pbc else mpdivs)
-                verts, faces, normals, values = measure.marching_cubes(voldata, level=e0, spacing=tuple(1/mpdivs))
-                #verts -= (0.5 / mpdivs)  # Shift
-                verts = self.structure.reciprocal_lattice.get_cartesian_coords(verts)
+    #            voldata = np.reshape(isoenes[spin][band], mpdivs + 1 if pbc else mpdivs)
+    #            verts, faces, normals, values = measure.marching_cubes(voldata, level=e0, spacing=tuple(1/mpdivs))
+    #            #verts -= (0.5 / mpdivs)  # Shift
+    #            verts = self.structure.reciprocal_lattice.get_cartesian_coords(verts)
 
-                if not use_mayavi:
-                    ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
-                else:
-                    # mayavi package:
-                    mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
+    #            if not use_mayavi:
+    #                ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
+    #            else:
+    #                # mayavi package:
+    #                mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
 
-        if use_mayavi:
-            mlab.show()
-        else:
-            plt.show()
+    #    if use_mayavi:
+    #        mlab.show()
+    #    else:
+    #        plt.show()
 
     def derivatives(self, spin, band, order=1, acc=4):
         """
