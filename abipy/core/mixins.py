@@ -403,20 +403,20 @@ class NotebookWriter(object):
             raise RuntimeError("Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
         if foreground:
-            cmd = "jupyter notebook %s" % nbpath
-            return os.system(cmd)
+            return os.system("jupyter notebook %s" % nbpath)
         else:
-            cmd = "jupyter notebook %s &> /dev/null &" % nbpath
-            print("Executing:", cmd)
-            import subprocess
+            fd, tmpname = tempfile.mkstemp(text=True)
+            print(tmpname)
             cmd = "jupyter notebook %s" % nbpath
-
-            try:
-                from subprocess import DEVNULL # py3k
-            except ImportError:
-                DEVNULL = open(os.devnull, "wb")
-
-            process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+            print("Executing:", cmd)
+            print("stdout and stderr redirected to %s" % tmpname)
+            import subprocess
+            #try:
+            #    from subprocess import DEVNULL # py3k
+            #except ImportError:
+            #    DEVNULL = open(os.devnull, "wb")
+            #process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
 
     def get_nbformat_nbv_nb(self, title=None):

@@ -204,9 +204,9 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
     return np.array(kbz)
 
 
-def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
+def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     """
-    Compute the correspondence between the list of k-points in the *unit cell*
+    Compute the correspondence between a *grid* of k-points in the *unit cell*
     associated to the `ngkpt` mesh and the corresponding points in the IBZ.
     Requires structure with Abinit symmetries.
     This routine is mainly used to symmetrize eigenvalues in the unit cell
@@ -214,7 +214,7 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
 
     Args:
         structure: Structure with (Abinit) symmetry operations.
-        ibz: [*,3] array with reduced coordinates in the in the IBZ.
+        ibz: [*, 3] array with reduced coordinates in the in the IBZ.
         ngkpt: Mesh divisions.
         has_timrev: True if time-reversal can be used.
         pbc: True if the mesh should contain the periodic images (closed mesh).
@@ -227,7 +227,7 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     # Extract (FM) symmetry operations in reciprocal space.
     abispg = structure.abi_spacegroup
     if abispg is None:
-        raise ValueError("Structure does not contain the Abinit spacegroup!")
+        raise ValueError("Structure does not contain Abinit spacegroup info!")
 
     # Extract rotations in reciprocal space (FM part).
     symrec_fm = [o.rot_g for o in abispg.fm_symmops]
@@ -245,19 +245,32 @@ def map_bz2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
                 gp_bz = (-rot_gp) % ngkpt
                 bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
 
+    #ws = -np.ones(ngkpt, dtype=np.int)
+    #for i in range(ngkpt[0]):
+    #    ki = (i - ngkpt[0] // 2)
+    #    if ki < 0: ki += ngkpt[0]
+    #    for j in range(ngkpt[1]):
+    #        kj = (j - ngkpt[1] // 2)
+    #        if kj < 0: kj += ngkpt[1]
+    #        for k in range(ngkpt[2]):
+    #            kz = (k - ngkpt[2] // 2)
+    #            if kz < 0: kz += ngkpt[2]
+    #            #bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
+    #            ws[i, j, k] = bzgrid2ibz[ki, kj, kz]
+    #bzgrid2ibz = ws
+
     if pbc:
         # Add periodic replicas.
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
 
-    bz2ibz = bzgrid2ibz.flatten()
-
-    if np.any(bz2ibz == -1):
-        #for ik_bz, ik_ibz in enumerate(self.bz2ibz): print(ik_bz, ">>>", ik_ibz)
-        msg = "Found %s/%s invalid entries in bz2ibz array" % ((bz2ibz == -1).sum(), len(bz2ibz))
+    if np.any(bzgrid2ibz == -1):
+        #for ik_bz, ik_ibz in enumerate(self.bzgrid2ibz): print(ik_bz, ">>>", ik_ibz)
+        msg = "Found %s/%s invalid entries in bzgrid2ibz array" % ((bzgrid2ibz == -1).sum(), bzgrid2ibz.size)
         msg += "This can happen if there an inconsistency between the input IBZ and ngkpt"
         msg += "ngkpt: %s, has_timrev: %s" % (str(ngkpt), has_timrev)
         raise ValueError(msg)
 
+    bz2ibz = bzgrid2ibz.flatten()
     return bz2ibz
 
     """

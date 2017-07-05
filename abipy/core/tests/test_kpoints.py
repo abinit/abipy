@@ -10,7 +10,7 @@ import abipy.data as abidata
 from pymatgen.core.lattice import Lattice
 from abipy import abilab
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader, has_timrev_from_kptopt,
-    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_bz2ibz, set_atol_kdiff, set_spglib_tols)
+    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_grid2ibz, set_atol_kdiff, set_spglib_tols)
 from abipy.core.testing import AbipyTest
 
 
@@ -485,9 +485,9 @@ class TestKmappingTools(AbipyTest):
             #self.has_timrev = has_timrev_from_kptopt(kptopt)
             self.ngkpt = [18, 18, 18]
 
-    def test_map_bz2ibz(self):
-        """Testing map_bz2ibz."""
-        bz2ibz = map_bz2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
+    def test_map_grid2ibz(self):
+        """Testing map_grid2ibz."""
+        bz2ibz = map_grid2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
 
         bz = []
         nx, ny, nz = self.ngkpt

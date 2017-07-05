@@ -112,30 +112,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    #def export(self, filename, visu=None):
-    #    """
-    #    Export the crystalline structure to file filename.
-
-    #    Args:
-    #        filename: String specifying the file path and the file format.
-    #            The format is defined by the file extension. filename="prefix.xsf", for example,
-    #            will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-    #        visu: `Visualizer` subclass. By default, this method returns the first available
-    #            visualizer that supports the given file format. If visu is not None, an
-    #            instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
-
-    #    Returns: Instance of :class:`Visualizer`
-    #    """
-    #    print("Warning: work in progress")
-    #    raise NotImplementedError("typat is missing in HIST --> wrong structures")
-
-    #    if "." not in filename:
-    #        raise ValueError("Cannot detect extension in filename %s: " % filename)
-
-    #    from abipy.iotools.xsf import xsf_write_structure
-    #    with open(filename, "w") as fh:
-    #        xsf_write_structure(fh, self.structures)
-
     @add_fig_kwargs
     def plot(self, axlist=None, **kwargs):
         """
@@ -224,6 +200,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ax.legend(loc='best', shadow=True)
 
         return fig
+
+    def mvplot_trajectories(self):
+        #mlab.options.offscreen = True
+        xcart_list = self.reader.read_value("xcart")
+        t = np.arange(self.num_steps)
+        from mayavi import mlab
+        for iatom in range(self.reader.natom):
+            x, y, z = xcart_list[:, iatom, :].T
+            print(x)
+            print(y)
+            print(z)
+            trajectory = mlab.plot3d(x, y, z, t, colormap='hot', tube_radius=None)
+        mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+        mlab.show()
 
     def write_notebook(self, nbpath=None):
         """
