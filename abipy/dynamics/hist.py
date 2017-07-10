@@ -56,6 +56,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         app("")
         app(marquee("Initial structure", mark="="))
         app(str(self.initial_structure))
+        app("")
         app(marquee("Final structure", mark="="))
         app("Number of relaxation steps performed: %d" % self.num_steps)
         app(str(self.final_structure))
@@ -201,30 +202,31 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
-    def mvplot_trajectories(self, colormap="hot", figure=None, show=True, with_forces=True, **kwargs):
+    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True, with_forces=True, **kwargs):
         """
-        Call mayavi to plot atomic trajectories and variation of the unit cell.
+        Call mayavi to plot atomic trajectories and the variation of the unit cell.
         """
         from abipy.display import mvtk
         figure, mlab = mvtk.get_fig_mlab(figure=figure)
         style = "labels"
-        line_width = 2
+        line_width = 100
         mvtk.plot_structure(self.initial_structure, style=style, unit_cell_color=(1, 0, 0), figure=figure)
         mvtk.plot_structure(self.final_structure, style=style, unit_cell_color=(0, 0, 0), figure=figure)
 
+        steps = np.arange(start=0, stop=self.num_steps, step=sampling)
         xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
-        t = np.arange(self.num_steps)
         for iatom in range(self.reader.natom):
-            x, y, z = xcart_list[:, iatom, :].T
-            trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None,
+            x, y, z = xcart_list[::sampling, iatom, :].T
+            #for i in zip(x, y, z): print(i)
+            trajectory = mlab.plot3d(x, y, z, steps, colormap=colormap, tube_radius=None,
                                     line_width=line_width, figure=figure)
-        mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+            mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
 
         if with_forces:
             fcart_list = self.reader.read_cart_forces(unit="eV ang^-1")
             for iatom in range(self.reader.natom):
-                x, y, z = xcart_list[:, iatom, :].T
-                u, v, w = fcart_list[:, iatom, :].T
+                x, y, z = xcart_list[::sampling, iatom, :].T
+                u, v, w = fcart_list[::sampling, iatom, :].T
                 q = mlab.quiver3d(x, y, z, u, v, w, figure=figure, colormap=colormap,
                                   line_width=line_width, scale_factor=10)
                 #mlab.colorbar(q, title='Forces [eV/Ang]', orientation='vertical')
@@ -232,12 +234,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if show: mlab.show()
         return figure
 
-    def mvanimate(self, to_unit_cell=False):
+    def mvanimate(self, delay=500):
         from abipy.display import mvtk
         figure, mlab = mvtk.get_fig_mlab(figure=None)
         style = "points"
-        #mvtk.plot_structure(self.initial_structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
-        #mvtk.plot_structure(self.final_structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
+        #mvtk.plot_structure(self.initial_structure, style=style, figure=figure)
+        #mvtk.plot_structure(self.final_structure, style=style, figure=figure)
 
         xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
         #t = np.arange(self.num_steps)
@@ -255,14 +257,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #nodes.mlab_source.dataset.point_data.scalars = np.random.random((5000,))
 
         @mlab.show
-        @mlab.animate(delay=1000, ui=True)
+        @mlab.animate(delay=delay, ui=True)
         def anim():
             """Animate."""
             for it, structure in enumerate(self.structures):
             #for it in range(self.num_steps):
                 print('Updating scene for iteration:', it)
                 #mlab.clf(figure=figure)
-                mvtk.plot_structure(structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
+                mvtk.plot_structure(structure, style=style, figure=figure)
                 #x, y, z = xcart_list[it, :, :].T
                 #nodes.mlab_source.set(x=x, y=y, z=z)
                 #figure.scene.render()
@@ -270,7 +272,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 yield
 
         anim()
-        #mlab.close(figure)
 
     def write_notebook(self, nbpath=None):
         """

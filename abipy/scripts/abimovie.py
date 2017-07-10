@@ -46,7 +46,10 @@ def abimovie_hist(options):
     for path in options.paths:
         with abilab.abiopen(path) as hist:
             print(hist)
-            hist.mvanimate()
+            if options.trajectories:
+                hist.mvplot_trajectories()
+            else:
+                hist.mvanimate()
     return 0
 
 
@@ -153,6 +156,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for hist command.
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abimovie_hist.__doc__)
+    p_hist.add_argument("-t", "--trajectories", default=False, action="store_true", help="Plot trajectories.")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abimovie_ebands.__doc__)

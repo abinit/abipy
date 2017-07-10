@@ -81,7 +81,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         self._structure = Structure.from_abivars(**self.header)
         # Add AbinitSpacegroup (needed in guessed_ngkpt)
-        # FIXME: has_timerev is always True
+        # FIXME: kptopt is not reported in the header --> has_timerev is always set to True
         spgid, has_timerev, h = 0, True, self.header
         self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
@@ -96,13 +96,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """String representation."""
         lines = []
         app, extend = lines.append, lines.extend
-        #extend(super(DdbFile, self).__str__().splitlines())
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
         app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(str(self.structure.to_string(verbose=verbose)))
 
         app(marquee("Q-points", mark="="))
         app(str(self.qpoints))
