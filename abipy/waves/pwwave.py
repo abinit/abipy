@@ -443,9 +443,9 @@ class PWWaveFunction(WaveFunction):
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
-        # Sorte sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
 
+        # Sort sites by distance.
+        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
                     (radius, len(nn_list), max_nn), "yellow")
@@ -515,7 +515,7 @@ class PWWaveFunction(WaveFunction):
         with open(filename, mode="wt") as fh:
             if ext == "xsf":
                 # xcrysden
-                xsf_write_structure(fh, structures=[self.structure])
+                xsf_write_structure(fh, structures=self.structure)
                 xsf_write_data(fh, self.structure, ur2, add_replicas=True)
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
@@ -525,7 +525,7 @@ class PWWaveFunction(WaveFunction):
         else:
             return visu(filename)
 
-    def visualize_ur2(self, visu_name):
+    def visualize_ur2(self, visu_name="vesta"):
         """
         Visualize u(r)**2 visualizer.
 
@@ -544,6 +544,32 @@ class PWWaveFunction(WaveFunction):
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)
+
+    #def mvplot_cutplanes(self, show=True):
+    #    data = self.ur2
+    #    from abipy.display import mvtk
+    #    figure, mlab = mvtk.get_fig_mlab(figure=None)
+    #    source = mlab.pipeline.scalar_field(data)
+    #    mlab.pipeline.image_plane_widget(source, plane_orientation='x_axes', slice_index=data.shape[0]//2)
+    #    mlab.pipeline.image_plane_widget(source, plane_orientation='y_axes', slice_index=data.shape[1]//2)
+    #    mlab.pipeline.image_plane_widget(source, plane_orientation='z_axes', slice_index=data.shape[2]//2)
+    #    #mlab.pipeline.iso_surface(source, contours=contours) #, opacity=0.1)
+    #    #mlab.pipeline.iso_surface(source, contours=[data.min()+ 0.1 * data.ptp()], opacity=0.1)
+    #    mlab.outline()
+    #    if show: mlab.show()
+    #    return figure
+
+    #def mvplot_volume(self, figure=None, vmin=0.65, vmax=0.9, show=True):
+    #    from abipy.display import mvtk
+    #    figure, mlab = mvtk.get_fig_mlab(figure=figure)
+    #    data = self.ur2
+    #    source = mlab.pipeline.scalar_field(data)
+    #    data_min, data_max = data.min(), data.max()
+    #    mlab.pipeline.volume(source,
+    #                         vmin=data_min + vmin * (data_max - data_min),
+    #                         vmax=data_min + vmax * (data_max - data_min))
+    #    if show: mlab.show()
+    #    return figure
 
 
 class PAW_WaveFunction(WaveFunction):

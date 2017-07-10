@@ -35,7 +35,7 @@ class TestStructure(AbipyTest):
 
             # Export data in Xcrysden format.
             #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
-            #visu = structure.visualize("vesta")
+            #visu = structure.visualize(visu_name="vesta")
             #assert callable(visu)
 
             if self.has_ase():
@@ -120,6 +120,9 @@ class TestStructure(AbipyTest):
             si.show_bz(show=False)
             si.show_bz(pmg_path=False, show=False)
             si.plot_xrd(show=False)
+
+        if self.has_mayavi():
+            si.mayaview(show=False)
 
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())

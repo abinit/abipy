@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Band structure of silicon in a distorted geometry (frozen phonon at q=0)
+Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -52,7 +52,7 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir: 
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
                                                                                                                          
     # build the structures
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))

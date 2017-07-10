@@ -183,7 +183,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
 	"""
         cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
                        for c in np.reshape(kbounds, (-1, 3))]
-        uf_cart = np.reshape([k.cart_coords for k in self.uf_kpoints], (-1, 3))
+        uf_cart = self.uf_kpoints.get_cart_coords()
 
         klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol)
         if len(klines) == 0: return None

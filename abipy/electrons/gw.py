@@ -1306,7 +1306,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         from abipy.core.skw import SkwInterpolator
         cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
         qpdata = qpdata[:, :, bstart:bstop]
-        has_timrev = has_timrev_from_kptopt(self.reader.read_value("kptopt"))
+        # Old sigres files do not have kptopt.
+        has_timrev = has_timrev_from_kptopt(self.reader.read_value("kptopt", default=1))
 
         skw = SkwInterpolator(lpratio, gw_kcoords, qpdata, self.ebands.fermie, self.ebands.nelect,
                               cell, fm_symrel, has_timrev,

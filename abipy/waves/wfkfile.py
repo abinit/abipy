@@ -37,7 +37,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         visu = wfk.visualize_structure_with("vesta")()
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu="vesta")()
+        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu_name="vesta")()
 
         # Get a wavefunction.
         wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
@@ -162,7 +162,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         else:
             return wave.export_ur2(filepath, visu=visu)
 
-    def visualize_ur2(self, spin, kpoint, band, visu_name):
+    def visualize_ur2(self, spin, kpoint, band, visu_name="vesta"):
         """
         Visualize :math:`|u(r)|^2`  with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
@@ -242,6 +242,28 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     #    #return wclass
 
+    def ipw_visualize_widget(self):
+        """
+        Return an ipython widget with controllers to visualize the wavefunctions.
+
+        .. warning::
+
+        It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+        as the tab in vesta is not updated!
+        """
+        def wfk_visualize(spin, kpoint, band, visu_name):
+            kpoint = int(kpoint.split()[0])
+            self.visualize_ur2(spin, kpoint, band, visu_name=visu_name)()
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                wfk_visualize,
+                spin=list(range(self.nsppol)),
+                kpoint=["%d %s" % (i, repr(kpt)) for i, kpt in enumerate(self.kpoints)],
+                band=list(range(self.nband)),
+                visu_name=[v.name for v in Visualizer.get_available()],
+            )
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -258,6 +280,7 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("""\
 if wfk.ebands.kpoints.is_ibz:
     fig = wfk.ebands.get_edos().plot()"""),
+            nbv.new_code_cell("wfk.ipw_visualize_widget()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

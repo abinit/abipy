@@ -22,7 +22,8 @@ def main():
     def str_examples():
         return """\
 Usage example:
-    abicheck.py
+    abicheck.py                ==> Test abipy installation and requirements.
+    abicheck.py --with-flow    ==> Consistency check + execution of AbiPy flow.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):

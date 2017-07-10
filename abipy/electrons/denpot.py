@@ -35,7 +35,7 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     """
     Base class providing commong methods for netcdf files with density/potential
     """
-    _field_name = None
+    field_name = None
 
     @classmethod
     def from_file(cls, filepath):
@@ -62,13 +62,13 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         return self.reader.read_abinit_xcfunc()
 
     @lazy_property
-    def _field(self):
+    def field(self):
         """
         The field object provided by the subclass.
-        Methods of this base class should use self._field to implement
+        Methods of this base class should use self.field to implement
         logic common to the sub-classes.
         """
-        return getattr(self, self.__class__._field_name)
+        return getattr(self, self.__class__.field_name)
 
     def close(self):
         self.reader.close()
@@ -91,8 +91,8 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         app("XC functional: %s" % str(self.xc))
 
         # Add info on the field
-        app(marquee(self._field.__class__.__name__, mark="="))
-        app(str(self._field))
+        app(marquee(self.field.__class__.__name__, mark="="))
+        app(str(self.field))
 
         return "\n".join(lines)
 
@@ -129,7 +129,7 @@ class DensityNcFile(_NcFileWithField):
             ncfile.density
             ncfile.ebands.plot()
     """
-    _field_name = "density"
+    field_name = "density"
 
     @lazy_property
     def density(self):
@@ -177,7 +177,7 @@ class DensityNcFile(_NcFileWithField):
 
 
 class VhartreeNcFile(_NcFileWithField):
-    _field_name = "vh"
+    field_name = "vh"
 
     @lazy_property
     def vh(self):
@@ -186,7 +186,7 @@ class VhartreeNcFile(_NcFileWithField):
 
 
 class VxcNcFile(_NcFileWithField):
-    _field_name = "vxc"
+    field_name = "vxc"
 
     @lazy_property
     def vxc(self):
@@ -195,7 +195,7 @@ class VxcNcFile(_NcFileWithField):
 
 
 class VhxcNcFile(_NcFileWithField):
-    _field_name = "vhxc"
+    field_name = "vhxc"
 
     @lazy_property
     def vhxc(self):
@@ -204,7 +204,7 @@ class VhxcNcFile(_NcFileWithField):
 
 
 class PotNcFile(_NcFileWithField):
-    _field_name = "vks"
+    field_name = "vks"
 
     @lazy_property
     def vks(self):

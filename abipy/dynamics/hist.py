@@ -3,11 +3,11 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import pymatgen.core.units as units
 
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings,
-from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
@@ -201,23 +201,76 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
-    #def mvplot_trajectories(self):
-    #    import abipy.display.mayavi as mvtk
-    #    #figure, mlab = mvtk.get_fig_mlab(figure=figure)
-    #    #mlab.options.offscreen = True
-    #    #mvtk.plot_structure(self.initial_structure, figure=figure)
-    #    #mvtk.plot_structure(self.final_structure, figure=figure, unit_cell=False)
-    #    xcart_list = self.reader.read_value("xcart")
-    #    t = np.arange(self.num_steps)
-    #    from mayavi import mlab
-    #    for iatom in range(self.reader.natom):
-    #        x, y, z = xcart_list[:, iatom, :].T
-    #        print(x)
-    #        print(y)
-    #        print(z)
-    #        trajectory = mlab.plot3d(x, y, z, t, colormap='hot', tube_radius=None)
-    #    mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
-    #    mlab.show()
+    def mvplot_trajectories(self, colormap="hot", figure=None, show=True, with_forces=True, **kwargs):
+        """
+        Call mayavi to plot atomic trajectories and variation of the unit cell.
+        """
+        from abipy.display import mvtk
+        figure, mlab = mvtk.get_fig_mlab(figure=figure)
+        style = "labels"
+        line_width = 2
+        mvtk.plot_structure(self.initial_structure, style=style, unit_cell_color=(1, 0, 0), figure=figure)
+        mvtk.plot_structure(self.final_structure, style=style, unit_cell_color=(0, 0, 0), figure=figure)
+
+        xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
+        t = np.arange(self.num_steps)
+        for iatom in range(self.reader.natom):
+            x, y, z = xcart_list[:, iatom, :].T
+            trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None,
+                                    line_width=line_width, figure=figure)
+        mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+
+        if with_forces:
+            fcart_list = self.reader.read_cart_forces(unit="eV ang^-1")
+            for iatom in range(self.reader.natom):
+                x, y, z = xcart_list[:, iatom, :].T
+                u, v, w = fcart_list[:, iatom, :].T
+                q = mlab.quiver3d(x, y, z, u, v, w, figure=figure, colormap=colormap,
+                                  line_width=line_width, scale_factor=10)
+                #mlab.colorbar(q, title='Forces [eV/Ang]', orientation='vertical')
+
+        if show: mlab.show()
+        return figure
+
+    def mvanimate(self, to_unit_cell=False):
+        from abipy.display import mvtk
+        figure, mlab = mvtk.get_fig_mlab(figure=None)
+        style = "points"
+        #mvtk.plot_structure(self.initial_structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
+        #mvtk.plot_structure(self.final_structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
+
+        xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
+        #t = np.arange(self.num_steps)
+        #line_width = 2
+        #for iatom in range(self.reader.natom):
+        #    x, y, z = xcart_list[:, iatom, :].T
+        #    trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None, line_width=line_width, figure=figure)
+        #mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+
+        #x, y, z = xcart_list[0, :, :].T
+        #nodes = mlab.points3d(x, y, z)
+        #nodes.glyph.scale_mode = 'scale_by_vector'
+        #this sets the vectors to be a 3x5000 vector showing some random scalars
+        #nodes.mlab_source.dataset.point_data.vectors = np.tile( np.random.random((5000,)), (3,1))
+        #nodes.mlab_source.dataset.point_data.scalars = np.random.random((5000,))
+
+        @mlab.show
+        @mlab.animate(delay=1000, ui=True)
+        def anim():
+            """Animate."""
+            for it, structure in enumerate(self.structures):
+            #for it in range(self.num_steps):
+                print('Updating scene for iteration:', it)
+                #mlab.clf(figure=figure)
+                mvtk.plot_structure(structure, to_unit_cell=to_unit_cell, style=style, figure=figure)
+                #x, y, z = xcart_list[it, :, :].T
+                #nodes.mlab_source.set(x=x, y=y, z=z)
+                #figure.scene.render()
+                mlab.draw(figure=figure)
+                yield
+
+        anim()
+        #mlab.close(figure)
 
     def write_notebook(self, nbpath=None):
         """
@@ -283,9 +336,9 @@ class HistReader(ETSF_Reader):
 
     def read_eterms(self, unit="eV"):
         return AttrDict(
-            etotals=EnergyArray(self.read_value("etotal"), "Ha").to(unit),
-            kinetic_terms=EnergyArray(self.read_value("ekin"), "Ha").to(unit),
-            entropies=EnergyArray(self.read_value("entropy"), "Ha").to(unit),
+            etotals=units.EnergyArray(self.read_value("etotal"), "Ha").to(unit),
+            kinetic_terms=units.EnergyArray(self.read_value("ekin"), "Ha").to(unit),
+            entropies=units.EnergyArray(self.read_value("entropy"), "Ha").to(unit),
         )
 
     def read_cart_forces(self, unit="eV ang^-1"):
@@ -293,7 +346,7 @@ class HistReader(ETSF_Reader):
         Read and return a numpy array with the cartesian forces in unit `unit`.
         Shape (num_steps, natom, 3)
         """
-        return ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
+        return units.ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
 
     def read_reduced_forces(self):
         """

@@ -245,20 +245,6 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
                 gp_bz = (-rot_gp) % ngkpt
                 bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
 
-    #ws = -np.ones(ngkpt, dtype=np.int)
-    #for i in range(ngkpt[0]):
-    #    ki = (i - ngkpt[0] // 2)
-    #    if ki < 0: ki += ngkpt[0]
-    #    for j in range(ngkpt[1]):
-    #        kj = (j - ngkpt[1] // 2)
-    #        if kj < 0: kj += ngkpt[1]
-    #        for k in range(ngkpt[2]):
-    #            kz = (k - ngkpt[2] // 2)
-    #            if kz < 0: kz += ngkpt[2]
-    #            #bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
-    #            ws[i, j, k] = bzgrid2ibz[ki, kj, kz]
-    #bzgrid2ibz = ws
-
     if pbc:
         # Add periodic replicas.
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)

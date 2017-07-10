@@ -378,9 +378,6 @@ class NotebookWriter(object):
     """
     Mixin class for objects that are able to generate jupyter notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
-
-    See also:
-        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
     def make_and_open_notebook(self, nbpath=None, foreground=False):
         """
@@ -411,11 +408,6 @@ class NotebookWriter(object):
             print("Executing:", cmd)
             print("stdout and stderr redirected to %s" % tmpname)
             import subprocess
-            #try:
-            #    from subprocess import DEVNULL # py3k
-            #except ImportError:
-            #    DEVNULL = open(os.devnull, "wb")
-            #process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
 
@@ -433,13 +425,21 @@ class NotebookWriter(object):
             nbv.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
-import os
+import sys, os
 import numpy as np
 
 %matplotlib notebook
 from IPython.display import display
-#import seaborn as sns   # uncomment this line to activate seaborn settings.
+
+# Uncomment this line to activate seaborn settings.
+#import seaborn as sns
+
+# This to render pandas DataFrames with https://github.com/quantopian/qgrid
+#import qgrid
+#qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
+
+# This to view Mayavi visualizations. See http://docs.enthought.com/mayavi/mayavi/tips.html
+#from mayavi import mlab; mlab.init_notebook(backend='x3d', width=None, height=None, local=True)
 
 from abipy import abilab""")
         ])

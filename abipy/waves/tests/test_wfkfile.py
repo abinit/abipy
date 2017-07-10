@@ -62,7 +62,7 @@ class TestWFKFile(AbipyTest):
         assert callable(visu)
 
         # FFT and FFT^{-1} on the BOX.
-        visu = wave.visualize_ur2("xcrysden")
+        visu = wave.visualize_ur2(visu_name="xcrysden")
         assert callable(visu)
         ug_mesh = wave.mesh.fft_r2g(wave.ur)
         same_ur = wave.mesh.fft_g2r(ug_mesh)
@@ -91,6 +91,9 @@ class TestWFKFile(AbipyTest):
             assert wave.plot_line_neighbors(0, 3, num=100, with_krphase=False, show=False)
             assert wave.plot_line_neighbors(0, 3, num=100, with_krphase=True, show=False)
             assert wfk.ebands.plot(show=False)
+
+        if self.has_ipywidgets():
+            assert wfk.ipw_visualize_widget()
 
         if self.has_nbformat():
             wfk.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -422,10 +422,17 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_almost_equal(np.array(values), 1.0)
 
-    def test_to_bxsf(self):
-        """Testing Fermi surface exporter."""
+    def test_fermi_surface(self):
+        """Testing Fermi surface tools."""
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
-            fbnc_kmesh.ebands.to_bxsf(self.get_tmpname(text=True))
+            ebands = fbnc_kmesh.ebands
+            str(ebands)
+            ebands.to_bxsf(self.get_tmpname(text=True))
+
+            # Test Mayavi
+            if self.has_mayavi():
+                ebands.mvplot_isosurfaces(verbose=1, show=False)
+                #ebands.mvplot_isosurfaces(e0="fermie", densify_mpdivs=(2, 2, 2), verbose=1, show=False)
 
     def test_frame_from_ebands(self):
         """Testing frame_from_ebands."""
@@ -434,7 +441,7 @@ class ElectronBandsTest(AbipyTest):
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
         df = frame_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
-        #print(df)
+        str(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
         assert all(df["spglib_num"] == df["abispg_num"])

@@ -332,7 +332,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
         help="Visualize the structure with the specified visualizer. Requires external app or optional python modules.")
     p_visualize.add_argument('visualizer', nargs="?", default="vesta", type=str,
-        help=("Visualizer name. Possible options: `%s`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+        help=("Visualizer name. Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
@@ -594,7 +594,7 @@ closest points in this particular structure. This is usually what you want in a 
         structure = abilab.Structure.from_file(options.filepath)
         print(structure)
         print("Visualizing structure with:", options.visualizer)
-        structure.visualize(options.visualizer)
+        structure.visualize(visu_name=options.visualizer)
 
     elif options.command == "kpath":
         structure = abilab.Structure.from_file(options.filepath)

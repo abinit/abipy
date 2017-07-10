@@ -1092,13 +1092,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
         if show: vis.show()
         return vis
 
-    def visualize(self, visu_name):
+    def mayaview(self, figure=None, show=True, **kwargs):
+        """Visualize the crystalline structure with mayaview"""
+        from abipy.display import mvtk
+        return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
+
+    def visualize(self, visu_name="vesta"):
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        if visu_name == "vtk":
-            return self.vtkview()
+        if visu_name == "vtk": return self.vtkview()
+        if visu_name == "mayavi": return self.mayaview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(visu_name)

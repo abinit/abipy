@@ -20,14 +20,13 @@ class TestPWWave(AbipyTest):
         mesh_444 = Mesh3D((4, 4, 4), vectors)
         repr(mesh_444); str(mesh_444)
         assert not mesh_443 == mesh_444
-
         #mesh_444.get_gvec()
         #mesh_444.get_rpoints()
 
     def test_fft(self):
         """FFT transforms"""
         vectors = np.array([1.,0,0, 0,1,0, 0,0,1])
-        vectors.shape = (3,3)
+        vectors.shape = (3, 3)
 
         mesh = Mesh3D((12, 3, 5), vectors)
         extra_dims = [(), 1, (2,), (3,4)]

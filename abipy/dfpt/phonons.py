@@ -18,7 +18,6 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
-from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
@@ -481,6 +480,18 @@ class PhononBands(object):
             w('&')
 
         f.close()
+
+    #def to_bxsf(self, filepath):
+    #    """
+    #    Export the full band structure to `filepath` in BXSF format
+    #    suitable for the visualization of isosurfaces with Xcrysden (xcrysden --bxsf FILE).
+    #    Require q-points in IBZ and gamma-centered q-mesh.
+    #    """
+    #    self.get_phbands3d().to_bxsf(filepath)
+
+    #def get_phbands3d(self):
+    #    has_timrev, fermie = True, 0.0
+    #    return PhononBands3D(self.structure, self.qpoints, has_timrev, self.phfreqs, fermie)
 
     def qindex(self, qpoint):
         """
@@ -1423,6 +1434,7 @@ class PhononBands(object):
         qpts = np.array(qpts)
         displ = np.transpose(displ, (1, 0, 2, 3))
 
+        from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
         return PhononBandStructureSymmLine(qpoints=qpts, frequencies=ph_freqs,
                                            lattice=self.structure.reciprocal_lattice,
                                            has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
@@ -2650,7 +2662,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return fig
 
-    def animate(self, interval=250, savefile=None, units="eV", width_ratios=(2, 1), show=True):
+    def animate(self, interval=500, savefile=None, units="eV", width_ratios=(2, 1), show=True):
         """
         Use matplotlib to animate a list of band structure plots (with or without DOS).
 
@@ -2677,6 +2689,7 @@ class PhononBandsPlotter(NotebookWriter):
         phbands_list, phdos_list = self.phbands_list, self.phdoses_list
         if phdos_list and len(phdos_list) != len(phbands_list):
             raise ValueError("The number of objects for DOS must be equal to the number of bands")
+        #titles = list(self.phbands_dict.keys())
 
         import matplotlib.pyplot as plt
         fig = plt.figure()

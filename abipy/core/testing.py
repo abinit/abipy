@@ -300,6 +300,19 @@ class AbipyTest(PymatgenTest):
         if version is None: return True
         return cmp_version(ase.__version__, version, op=op)
 
+    def has_mayavi(self):
+        """
+        True if Mayavi is available. Set also offscreen to True
+        """
+        try:
+            from mayavi import mlab
+        except ImportError:
+            return False
+
+        #mlab.clf()
+        mlab.options.offscreen = True
+        return True
+
     def assertFwSerializable(self, obj):
         self.assertTrue('_fw_name' in obj.to_dict())
         self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())

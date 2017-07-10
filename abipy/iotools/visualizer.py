@@ -35,7 +35,6 @@ def _find_loc(app_name):
 
     # Treat Mac OsX applications.
     if is_macosx():
-
         system_apps = [f.lower() for f in os.listdir("/Applications")]
         try:
             i = system_apps.index(app_name)
@@ -133,7 +132,6 @@ class Visualizer(object):
         """
         visus = [v for v in cls.__subclasses__() if v.is_available]
         if ext is None: return visus
-
         return [v for v in visus if v.support_ext(ext)]
 
     @classmethod
@@ -180,7 +178,7 @@ class Visualizer(object):
     @classmethod
     def all_visunames(cls):
         """List with the names of the visualizers supported."""
-        return [visu.name for visu in cls.__subclasses__()]
+        return sorted([visu.name for visu in cls.__subclasses__()])
 
 
 ####################
