@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import matplotlib.pyplot as plt
 import pandas as pd
 import ipywidgets as ipw
-import df_widgets.utils as ut
+import abipy.display.utils as ut
 
 from functools import wraps
 
@@ -23,7 +23,7 @@ def dfw_plot(data, **kwargs):
                 rot=None, fontsize=None, colormap=colorbar, table=False, yerr=None, xerr=None, secondary_y=False,
                 sort_columns=sort_columns, **kwargs)
                 # There's a typo in the documentation (colorbar/colormap!)
-        return plt.gcf()
+        #return plt.gcf()
 
     allcols = ["None"] + list(data.keys())
     return ipw.interact_manual(

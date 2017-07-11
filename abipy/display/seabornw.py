@@ -48,14 +48,14 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import ipywidgets as ipw
 import seaborn as sns
-import df_widgets.utils as ut
+import abipy.display.utils as ut
 
 from functools import wraps
 from collections import OrderedDict
 from IPython.display import display, clear_output
 
 __all__ = [
-    "api_selector",
+    #"api_selector",
     # Distribution plots
     "jointplot",
     "pairplot",
@@ -87,32 +87,52 @@ __all__ = [
 ]
 
 
-def api_selector(data, funcname="countplot"):
-    """
-    A widgets with ToogleButtons that allow the user to select and display
-    the widget associated to the different seaborn functions.
-    """
-    this_module = sys.modules[__name__]
-    name2wfunc = OrderedDict()
-    for a in __all__:
-        if a == "api_selector": continue
-        func = this_module.__dict__.get(a)
-        if not callable(func): continue
-        name2wfunc[func.__name__] = func
+#def api_selector(data, funcname="countplot"):
+#    """
+#    A widgets with ToogleButtons that allow the user to select and display
+#    the widget associated to the different seaborn functions.
+#    """
+#    this_module = sys.modules[__name__]
+#    name2wfunc = OrderedDict()
+#    for a in __all__:
+#        if a == "api_selector": continue
+#        func = this_module.__dict__.get(a)
+#        if not callable(func): continue
+#        name2wfunc[func.__name__] = func
+#
+#    w1 = ipw.ToggleButtons(description='seaborn API', options=list(name2wfunc.keys()))
+#    w1.value = funcname
+#    w2 = name2wfunc[funcname](data)
+#    box = ipw.VBox(children=[w1, w2])
+#
+#    def on_value_change(change):
+#        #print(change)
+#        box.close()
+#        clear_output()
+#        api_selector(data, funcname=change["new"])
+#    w1.observe(on_value_change, names='value')
+#
+#    return display(box)
 
-    w1 = ipw.ToggleButtons(description='seaborn API', options=list(name2wfunc.keys()))
-    w1.value = funcname
-    w2 = name2wfunc[funcname](data)
-    box = ipw.VBox(children=[w1, w2])
-
-    def on_value_change(change):
-        #print(change)
-        box.close()
-        clear_output()
-        api_selector(data, funcname=change["new"])
-    w1.observe(on_value_change, names='value')
-
-    return display(box)
+#def _help_button(funcname):
+#    btn = ipw.Button(description="Help", button_style='info', tooltip='Click me', icon='check')
+#    btn.value = "help"
+#    def func(btn):
+#        open_seaborn_doc(funcname)
+#    btn.on_click(func)
+#    return btn
+#
+#
+#def open_seaborn_doc(funcname):
+#    # http://seaborn.pydata.org/generated/seaborn.pairplot.html#seaborn.pairplot"
+#    url = "http://seaborn.pydata.org/generated/seaborn.%s.html#seaborn.%s" % (funcname, funcname)
+#    import webbrowser
+#    try:
+#        return webbrowser.open(url)
+#    except webbrowser.Error as exc:
+#        # Warn the user and ignore the exception.
+#        import warnings
+#        warnings.warn(str(exc) + "\nwhile trying to open url: %s" % url)
 
 
 @wraps(sns.jointplot)
@@ -132,6 +152,7 @@ def joinplot(data, joint_kws=None, marginal_kws=None, annot_kws=None, **kwargs):
                 y=allcols,
                 kind=["scatter", "reg", "resid", "kde", "hex"],
                 color=ut.colors_dropdow(),
+                #button=_help_button("joinplot"),
             )
 
 
@@ -225,6 +246,7 @@ def lmplot(data, scatter_kws=None, line_kws=None):
                 legend=True,
                 size=ut.size_slider(default=5),
             )
+
 
 @wraps(sns.interactplot)
 def interactplot(data, contour_kws=None, scatter_kws=None, **kwargs):

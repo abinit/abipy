@@ -1,10 +1,11 @@
 # coding: utf-8
-"""Widgets for Pandas Dataframes."""
+"""Tools to build ipython widgets."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import ipywidgets as ipw
 
 from collections import OrderedDict
+from abipy.tools.plotting import get_ax_fig_plt
 
 
 def add_docstrings(*tuples):
@@ -57,27 +58,6 @@ def str2bool_or_none(*args):
     d = {"None": None, "True": True, "False": False}
     l = [d[a] for a in args]
     return l[0] if len(l) == 1 else l
-
-
-def get_ax_fig_plt(ax=None):
-    """
-    Helper function used in plot functions supporting an optional Axes argument.
-    If ax is None, we build the `matplotlib` figure and create the Axes else
-    we return the current active figure.
-
-    Returns:
-        ax: :class:`Axes` object
-        figure: matplotlib figure
-        plt: matplotlib pyplot module.
-    """
-    import matplotlib.pyplot as plt
-    if ax is None:
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
-    else:
-        fig = plt.gcf()
-
-    return ax, fig, plt
 
 
 # Taken from matplotlib.markers.MarkerStyle (replaced dict with OrderedDict).
@@ -172,6 +152,7 @@ def size_slider(default=5, orientation="horizontal"):
         readout_format='.1f'
     )
 
+
 def saturation_slider(default=0.75, orientation="horizontal"):
     return ipw.FloatSlider(
         value=default,
@@ -185,7 +166,6 @@ def saturation_slider(default=0.75, orientation="horizontal"):
 
 # Have colormaps separated into categories:
 # http://matplotlib.org/examples/color/colormaps_reference.html
-
 _mpl_categ_cmaps = OrderedDict([
         #('Perceptually Uniform Sequential',
     ('Uniform',        ['viridis', 'inferno', 'plasma', 'magma']),
