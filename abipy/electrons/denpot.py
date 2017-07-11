@@ -388,20 +388,20 @@ class DensityFortranFile(AbinitFortranFile):
         from abipy.electrons.charges import HirshfeldCharges
         return HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
 
-    def cut3d_get_density(self, workdir=None)
-        """
-        Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
+    #def cut3d_get_density(self, workdir=None):
+    #    """
+    #    Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
 
-        Args:
-            workdir: directory where cut3d is executed.
-        """
-        # local import to avoid circular references
-        from abipy.flowtk import Cut3D
-        from abipy.abio.inputs import Cut3DInput
-        #cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
-        cut3d = Cut3D()
-        #outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
-        with Cut3dDenPotNcFile() as nc:
-            assert nc.field.is_density_like and nc.field.netcdf_name == "density"
-            return nc.field
+    #    Args:
+    #        workdir: directory where cut3d is executed.
+    #    """
+    #    # local import to avoid circular references
+    #    from abipy.flowtk import Cut3D
+    #    from abipy.abio.inputs import Cut3DInput
+    #    #cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
+    #    workdir = tempfile.mkdtemp() if workdir is None else workdir
+    #    cut3d = Cut3D()
+    #    #outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
+    #    with Cut3dDenPotNcFile() as nc:
+    #        assert nc.field.is_density_like and nc.field.netcdf_name == "density"
+    #        return nc.field
