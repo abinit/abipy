@@ -639,8 +639,6 @@ Specify the files to open. Possible choices:
             # Create options.nids here
             options.nids = set([flow[w_pos].node_id] + [task.node_id for task in flow[w_pos]])
 
-    if options.verbose > 1: print("options.nids:", options.nids)
-
     retcode = 0
 
     if options.command == "gui":

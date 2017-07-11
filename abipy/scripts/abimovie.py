@@ -140,16 +140,16 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('paths', nargs="+", help="List of files to analyze.")
-    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--loglevel', default="ERROR", type=str,
+                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                         help='verbose, can be supplied multiple times to increase verbosity.')
+    parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")

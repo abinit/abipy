@@ -361,7 +361,7 @@ closest points in this particular structure. This is usually what you want in a 
         help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
-    p_mpsearch.add_argument("-s", "--select_spgnum", type=int, default=None, help="Select structures with this space group number.")
+    p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
 
     # Subparser for mp_pd command.
@@ -377,7 +377,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser],
         help="Get structure from COD database. Requires internet connection and mysql")
     p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
-    p_codsearch.add_argument("-s", "--select_spgnum", type=int, default=None, help="Select structures with this space group number.")
+    p_codsearch.add_argument("-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number.")
     p_codsearch.add_argument('--primitive', default=False, action='store_true', help="Convert COD cells into primitive cells.")
     add_format_arg(p_codsearch, default="abivars")
 
@@ -429,7 +429,7 @@ closest points in this particular structure. This is usually what you want in a 
             # task to run the code in dry-run mode.
             print("FILE does not contain Abinit symmetry operations.")
             print("Calling Abinit in --dry-run mode to get space group.")
-            from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
+            from abipy.data.hgh_pseudos import HGH_TABLE
             gsinp = factories.gs_input(structure, HGH_TABLE)
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
@@ -633,7 +633,7 @@ closest points in this particular structure. This is usually what you want in a 
 
     #elif options.command == "abikmesh":
     #    structure = abilab.Structure.from_file(options.filepath)
-    #    from abipy.data.pseudos.hgh_pseudos import HGH_TABLE
+    #    from abipy.data import HGH_TABLE
     #    gsinp = factories.gs_input(structure, HGH_TABLE)
     #    k = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
     #    print(k)

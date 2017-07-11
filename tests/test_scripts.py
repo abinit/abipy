@@ -127,7 +127,7 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct abispg"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        r = env.run(self.script, "abispg", "--compare", ncfile, self.loglevel, self.verbose,
+        r = env.run(self.script, "abispg", ncfile, "-t 1e-6", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
     def test_convert(self):
@@ -208,7 +208,7 @@ class TestAbistruct(ScriptTest):
         env = self.get_env()
         r = env.run(self.script, "cod_id", "1526507", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-        r = env.run(self.script, "cod_search", "Si", "--select-spgnum 227", "--primitive",
+        r = env.run(self.script, "cod_search", "Si", "--select-spgnum=227", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
     def test_mp_api(self):
@@ -220,7 +220,7 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "mp_match", abidata.cif_file("gan2.cif"),
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        r = env.run(self.script, "mp_search", "LiF", "-f POSCAR", "--select-spgnum 225",
+        r = env.run(self.script, "mp_search", "LiF", "-f POSCAR", "--select-spgnum=225",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
@@ -388,3 +388,12 @@ def make_scf_nscf_inputs(paral_kgb=1, usepaw=0):
     # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
+
+
+class TestAbimovie(ScriptTest):
+    script = os.path.join(script_dir, "abimovie.py")
+
+    def test_abimovie(self):
+        """Testing abimovie.py script"""
+        env = self.get_env()
+        #r = env.run(self.script, "man", "ecut", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

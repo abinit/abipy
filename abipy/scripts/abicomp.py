@@ -140,7 +140,7 @@ def _compare_with_database(options):
     for this_structure, r in zip(structures, mpres):
         if r.structures:
             print()
-            dfs = abilab.frames_from_structures(r.structures + [this_structure], index=r.mpids + ["this"])
+            dfs = abilab.frames_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
             abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
             if options.verbose:
                 abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")

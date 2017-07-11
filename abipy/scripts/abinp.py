@@ -340,7 +340,7 @@ For a more flexible interface please use the AbiPy objects to generate input fil
     # Subparser for phperts command.
     p_phperts = subparsers.add_parser('phperts', parents=abifile_parsers, help=abinp_phperts.__doc__)
 
-    inpgen_parsers = [copts_parser, path_selector]
+    inpgen_parsers = [copts_parser, path_selector, abiinput_parser]
 
     # Subparser for gs command.
     p_gs = subparsers.add_parser('gs', parents=inpgen_parsers, help=abinp_gs.__doc__)
