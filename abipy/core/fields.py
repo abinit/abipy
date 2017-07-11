@@ -11,6 +11,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import is_string
 from monty.termcolor import cprint
+from monty.inspect import all_subclasses
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.vasp.outputs import Chgcar
 from abipy.core.structure import Structure
@@ -913,6 +914,18 @@ class FieldReader(ETSF_Reader):
             nfft2=self.read_dimvalue("number_of_grid_points_vector2"),
             nfft3=self.read_dimvalue("number_of_grid_points_vector3"),
         )
+
+    def read_field(self):
+        """
+        Read and return the first field variable found in the netcdf file.
+        Raise ValueError if cannot find a field or multiple fields are found.
+        """
+        found = [field_cls for field_cls in all_subclasses(_Field)
+                 if field_cls.netcdf_name in self.rootgrp.variables]
+        if not found or len(found) > 1:
+            raise ValueError("Found `%s` fields in file: %s" % (str(found), self.path))
+        field_cls = found[0]
+        return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
     def read_density(self, field_cls=Density):
         """Read density data. Return :class:`Density` object."""

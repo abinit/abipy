@@ -2,7 +2,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import abipy.display.pandasw as pdw
-import seaborn as sns
+import seaborn.apionly as sns
 
 from abipy.core.testing import AbipyTest
 
@@ -15,4 +15,4 @@ class PandasWidgetTest(AbipyTest):
             raise self.SkipTest("This test requires ipywidgets")
 
         data = sns.load_dataset("iris")
-        assert pdw.dfw_plot(data)
+        assert pdw.plot(data)

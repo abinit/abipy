@@ -676,7 +676,7 @@ class SigresRobot(Robot, NotebookWriter):
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    def plot_conv_qpgap(self, x_vars, **kwargs):
+    def plot_conv_qpgap(self, x_vars, show=True, **kwargs):
         """
         Plot the convergence of the Quasi-particle gap.
         kwargs are passed to :class:`seaborn.PairGrid`.
@@ -689,7 +689,8 @@ class SigresRobot(Robot, NotebookWriter):
         grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
         grid.map(plt.plot, marker="o")
         grid.add_legend()
-        plt.show()
+        if show:
+            plt.show()
 
     def write_notebook(self, nbpath=None):
         """

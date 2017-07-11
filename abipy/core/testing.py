@@ -76,17 +76,25 @@ def has_matplotlib(version=None, op=">="):
     If version is None, the result of matplotlib.__version__ `op` version is returned.
     """
     try:
-        # have_display = "DISPLAY" in os.environ
         import matplotlib
-        matplotlib.use("Agg")  # Use non-graphical display backend during test.
-
+        import matplotlib.pyplot as plt
+        # have_display = "DISPLAY" in os.environ
     except ImportError:
         print("Skipping matplotlib test")
         return False
 
     # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
-    import matplotlib.pyplot as plt
     plt.close("all")
+    matplotlib.use("Agg")
+    #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+
+    backend = matplotlib.get_backend()
+    if backend.lower() != "agg":
+        #raise RuntimeError("matplotlib backend now is %s" % backend)
+        #matplotlib.use("Agg", warn=True, force=False)
+        # Switch the default backend.
+        # This feature is experimental, and is only expected to work switching to an image backend.
+        plt.switch_backend("Agg")
 
     if version is None: return True
     return cmp_version(matplotlib.__version__, version, op=op)
@@ -271,6 +279,18 @@ class AbipyTest(PymatgenTest):
 
     SkipTest = unittest.SkipTest
 
+    #def setUp(self):
+    #    import matplotlib
+    #    matplotlib.use("Agg")
+    #    backend = matplotlib.get_backend()
+    #    #if backend.lower() != "agg": raise RuntimeError("matplotlib backend now is %s" % backend)
+
+    #def tearDown(self):
+    #    import matplotlib
+    #    #backend = matplotlib.get_backend()
+    #    #if backend.lower() != "agg": raise RuntimeError("matplotlib backend now is %s" % backend)
+    #    matplotlib.use("Agg")
+
     @staticmethod
     def which(program):
         """Returns full path to a executable. None if not found or not executable."""
@@ -304,6 +324,7 @@ class AbipyTest(PymatgenTest):
         """
         True if Mayavi is available. Set also offscreen to True
         """
+        return False
         try:
             from mayavi import mlab
         except ImportError:
@@ -311,10 +332,11 @@ class AbipyTest(PymatgenTest):
 
         #mlab.clf()
         mlab.options.offscreen = True
+        mlab.options.backend = "test"
         return True
 
     def assertFwSerializable(self, obj):
-        self.assertTrue('_fw_name' in obj.to_dict())
+        assert '_fw_name' in obj.to_dict()
         self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
 
     @staticmethod

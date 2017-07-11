@@ -7,7 +7,7 @@ import pymatgen.core.units as pmgu
 import abipy.data as abidata
 
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.fields import _Field, Density, VxcPotential, VhartreePotential, VhxcPotential
+from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential
 from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
@@ -98,8 +98,10 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(si_den.mesh.fft_g2r(si_den.datag), si_den.datar)
 
         # Read data directly from file.
-        with ETSF_Reader(abidata.ref_file("si_DEN.nc")) as r:
+        with FieldReader(abidata.ref_file("si_DEN.nc")) as r:
             nelect_file = r.read_value("number_of_electrons")
+            same_si_den = r.read_field()
+            assert np.all(same_si_den.datar == si_den.datar)
 
         ne = 8
         assert ne == nelect_file

@@ -1,3 +1,4 @@
 ipython
 jupyter
 nbformat
+mayavi

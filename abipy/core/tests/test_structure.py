@@ -117,9 +117,9 @@ class TestStructure(AbipyTest):
         assert "equivalent_atoms" in e.spgdata
 
         if self.has_matplotlib():
-            si.show_bz(show=False)
-            si.show_bz(pmg_path=False, show=False)
-            si.plot_xrd(show=False)
+            assert si.plot_bz(show=False)
+            assert si.plot_bz(pmg_path=False, show=False)
+            assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
             si.mayaview(show=False)

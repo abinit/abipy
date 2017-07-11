@@ -57,7 +57,7 @@ class AbinitOutputTest(AbipyTest):
 
             if self.has_matplotlib():
                 abo.compare_gs_scf_cycles([abo_path], show=False)
-                timer.plot_all()
+                timer.plot_all(show=False)
 
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))

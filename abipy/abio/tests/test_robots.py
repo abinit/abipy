@@ -47,8 +47,8 @@ class RobotTest(AbipyTest):
         edos_plotter = robot.get_edos_plotter()
 
         if self.has_matplotlib():
-            ebands_plotter.gridplot(show=False)
-            edos_plotter.gridplot(show=False)
+            assert ebands_plotter.gridplot(show=False)
+            assert edos_plotter.gridplot(show=False)
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()
@@ -84,8 +84,10 @@ class RobotTest(AbipyTest):
             repr(robot); str(robot)
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe(with_geo=True)
+
+            # This cannot be tested because it changes the matplotlib backend
             if self.has_seaborn():
-                robot.plot_conv_qpgap(x_vars="sigma_nband")
+                robot.plot_conv_qpgap(x_vars="sigma_nband", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -109,7 +111,7 @@ class RobotTest(AbipyTest):
 
         plotter = robot.get_multimdf_plotter()
         if self.has_matplotlib():
-            plotter.plot()
+            assert plotter.plot(show=False)
             #robot.plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
 
         if self.has_nbformat():

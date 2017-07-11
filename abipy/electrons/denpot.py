@@ -27,6 +27,27 @@ __all__ = [
 ]
 
 
+class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
+    """
+    Netcdf file with structure and density/potential produced by CUT3d
+    Unlike _NcFileWithField subclasses, this object does not contain an electronic band-structure
+    and it's mainly used to convert from Fortran DEN/POT to netcdf.
+    """
+    def __init__(self, filepath):
+        super(_Cut3dDenPotNcFileWithField, self).__init__(filepath)
+        self.reader = _FieldReader(filepath)
+        self.field = self.reader.read_field()
+
+    @property
+    def structure(self):
+        """:class:`Structure` object."""
+        return self.field.structure()
+
+    def close(self):
+        self.reader.close()
+
+
+
 class _DenPotNcReader(ElectronsReader, FieldReader):
     """Object used to read data from density/potential files in netcdf format."""
 
@@ -366,3 +387,21 @@ class DensityFortranFile(AbinitFortranFile):
 
         from abipy.electrons.charges import HirshfeldCharges
         return HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
+
+    def cut3d_get_density(self, workdir=None)
+        """
+        Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
+
+        Args:
+            workdir: directory where cut3d is executed.
+        """
+        # local import to avoid circular references
+        from abipy.flowtk import Cut3D
+        from abipy.abio.inputs import Cut3DInput
+        #cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        cut3d = Cut3D()
+        #outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
+        with Cut3dDenPotNcFile() as nc:
+            assert nc.field.is_density_like and nc.field.netcdf_name == "density"
+            return nc.field

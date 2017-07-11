@@ -49,7 +49,8 @@ from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-from abipy.electrons.denpot import DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile
+from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile
+    Cut3dDenPotNcFile)
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
@@ -112,6 +113,7 @@ abiext2ncfile = collections.OrderedDict([
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
+    ("CUT3D_DENPOT.nc", Cut3dDenPotNcFile),
 ])
 
 

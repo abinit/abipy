@@ -47,7 +47,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import ipywidgets as ipw
-import seaborn as sns
+import seaborn.apionly as sns
 import abipy.display.utils as ut
 
 from functools import wraps

@@ -11,7 +11,7 @@ from functools import wraps
 
 
 @wraps(pd.DataFrame.plot)
-def dfw_plot(data, **kwargs):
+def plot(data, **kwargs):
 
     def plot_dataframe(x, y, kind, sharex, sharey, subplots, grid, legend,
                       logx, logy, loglog, colorbar, sort_columns):

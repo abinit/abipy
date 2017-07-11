@@ -158,7 +158,8 @@ class DatabaseStructures(object):
 
     def __bool__(self):
         """bool(self)"""
-        return bool(self.structure)
+        return bool(self.structures)
+    __nonzero__ = __bool__  # py2
 
     def filter_by_spgnum(self, spgnum):
          """Filter structures by space group number. Return new MpStructures object."""

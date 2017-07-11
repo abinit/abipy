@@ -15,6 +15,11 @@ def get_fig_mlab(figure=None, **kwargs):
         print("mayavi is not installed. Use `conda install mayavi` or `pip installa mayavi")
         raise exc
 
+    # To use the full envisage application
+    #mlab.options.backend = "envisage"
+    #mlab.options.backend = "test"
+    #mlab.options.offscreen = True
+
     if figure is None:
         # Add defaults
         for k, v in DEFAULT_FIGURE_KWARGS.items():
