@@ -10,10 +10,6 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
-# Tests in this module require abinit >= 7.9.0
-#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
-
-
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
     Returns two input files: GS run and NSCF on a high symmetry k-mesh
@@ -255,6 +251,7 @@ def itest_bandstructure_flow(fwp, tvars):
     assert den_path
     if not den_path.endswith(".nc"):
         denfile = abilab.DensityFortranFile(den_path)
+        str(denfile)
         workdir = flow.outdir.path
         denfile.get_cube("den.cube", workdir=workdir)
         denfile.get_xsf("den.xsf", workdir=workdir)
@@ -262,6 +259,10 @@ def itest_bandstructure_flow(fwp, tvars):
         denfile.get_molekel("den.molekel", workdir=workdir)
         denfile.get_3d_indexed("den.data_indexed", workdir=workdir)
         denfile.get_3d_formatted("den.data_formatted", workdir=workdir)
+        # This feature requires Abinit 8.5.2
+        if flow.manager.abinit_build.version_ge("8.5.2"):
+            den = denfile.get_density(workdir=workdir)
+            assert den.structure is not None and hasattr(den, "datar")
 
 
 def itest_bandstructure_schedflow(fwp, tvars):

@@ -3,6 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import collections
+import warnings
 import numpy as np
 
 
@@ -21,7 +22,8 @@ def is_intlike(obj):
     """
     # isinstance(i, numbers.Integral)
     try:
-        return int(obj) == obj
+        with warnings.catch_warnings():
+            return int(obj) == obj
     except (ValueError, TypeError):
         return False
 

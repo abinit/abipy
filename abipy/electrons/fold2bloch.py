@@ -162,7 +162,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     @add_fig_kwargs
     def plot_unfolded(self, kbounds, klabels, ylims=None, dist_tol=1e-12, verbose=0,
                       colormap="afmhot", facecolor="black", ax=None, **kwargs):
-        """
+        r"""
         Plot unfolded band structure with spectral weights.
 
         Args:
@@ -230,9 +230,9 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             nbv.new_code_cell("print(f2b)"),
             nbv.new_code_cell("fig = f2b.ebands.plot()"),
             nbv.new_code_cell("# fig = f2b.unfolded_kpoints.plot()"),
-            nbv.new_code_cell("""\
+            nbv.new_code_cell(r"""\
 # kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
-# klabels = ["Y", "$\Gamma$", "X"]
+# klabels = ["Y", "$Gamma$", "X"]
 # fig = f2b.plot_unfolded(kbounds, klabels)"""),
         ])
 

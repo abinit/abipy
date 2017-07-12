@@ -53,6 +53,7 @@ def build_flow(options):
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))
     flow = flowtk.NonLinearCoeffFlow.from_scf_input(workdir, scf_input)
+    flow.minimum_abinit_version = "8.5.2"
 
     return flow
 

@@ -11,6 +11,10 @@
 
     Flow for computing the band structure of silicon.
 
+``run_gruneisen_abinit``:
+
+    Phonon band structure of AlAs.
+
 ``run_gruneisen_phonopy_si``:
 
     Compute phonon frequencies with phonopy (supercells and finite-difference method).
@@ -39,13 +43,17 @@
 
     Band structure and the electron DOS of MgB2 with different k-point samplings.
 
+``run_nonlinear``:
+
+    Flow to compute non-linear optical properties with optic.
+
 ``run_optic``:
 
     Optical spectra with Optic.
 
-``run_phfrozen_bands``:
+``run_phfrozen_ebands``:
 
-    Band structure of silicon in a distorted geometry (frozen phonon at q=0)
+    Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 
 ``run_phonons``:
 

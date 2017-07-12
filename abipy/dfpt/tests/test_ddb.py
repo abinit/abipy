@@ -138,7 +138,7 @@ class DdbTest(AbipyTest):
         # Get emacro and becs
         emacro, becs = ddb.anaget_emacro_and_becs(chneut=1, verbose=1)
         assert np.all(becs.values == 0)
-        assert np.all(becs.becs == 0)
+        assert np.all(becs.values == 0)
         repr(becs); str(becs)
         assert becs.to_string(verbose=1)
 

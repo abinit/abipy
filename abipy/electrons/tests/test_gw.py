@@ -153,7 +153,8 @@ class TestSigresFile(AbipyTest):
         assert r.qp_ebands_kmesh.kpoints.ksampling is not None
         assert r.qp_ebands_kmesh.kpoints.is_mpmesh
         qp_mpdivs, qp_shifts = r.qp_ebands_kmesh.kpoints.mpdivs_shifts
-        assert not ((qp_mpdivs, qp_shifts) == (None, None))
+        assert qp_mpdivs is not None
+        assert qp_shifts is not None
         ks_mpdivs, ks_shifts = r.ks_ebands_kmesh.kpoints.mpdivs_shifts
         self.assert_equal(qp_mpdivs, ks_mpdivs)
         self.assert_equal(qp_shifts, ks_shifts)

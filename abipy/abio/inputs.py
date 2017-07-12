@@ -2830,6 +2830,10 @@ class OpticInput(AbstractInput, MSONable):
 class Cut3DInput(MSONable, object):
     """
     This object stores the options to run a single cut3d analysis.
+
+    .. warning::
+
+        Converters with nspden > 1 won't work since cut3d asks for the ispden index.
     """
     def __init__(self, infile_path=None, output_filepath=None, options=None):
         """

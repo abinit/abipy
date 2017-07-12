@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import tempfile
+import warnings
 
 from subprocess import call
 from abipy.core.testing import AbipyTest
@@ -37,10 +38,20 @@ class TestScripts(AbipyTest):
             options = parser.parse_args(["--workdir", workdir])
             # Instantiate the manager.
             options.manager = flowtk.TaskManager.as_manager(options.manager)
+
             try:
                 flow = module.build_flow(options)
                 assert flow is not None
-                flow.build_and_pickle_dump()
+                # Some flows enforce requirements on the Abinit version.
+                can_run = True
+                if hasattr(flow, "minimum_abinit_version"):
+                    if not flow.manager.abinit_build.version_ge(flow.minimum_abinit_version):
+                        can_run = False
+                        warnings.warn("%s requires %s but Abinit version: %s" %
+                              (s, flow.minimum_abinit_version, flow.manager.abinit_build.version))
+                if can_run:
+                    flow.build_and_pickle_dump()
+
             except Exception:
                 errors.append("file %s\n %s" % (s, self.straceback()))
 

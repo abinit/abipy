@@ -113,7 +113,7 @@ abiext2ncfile = collections.OrderedDict([
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
-    ("CUT3D_DENPOT.nc", Cut3dDenPotNcFile),
+    ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
 ])
 
 

@@ -2,6 +2,8 @@
 """Density/potential files in netcdf/fortran format."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
+import tempfile
 import numpy as np
 
 from monty.string import marquee
@@ -9,13 +11,10 @@ from monty.termcolor import cprint
 from monty.functools import lazy_property
 from abipy.core.mixins import (AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
+from abipy.flowtk import Cut3D
 from abipy.core.fields import FieldReader
+from abipy.abio.inputs import Cut3DInput
 from abipy.electrons.ebands import ElectronsReader
-#from abipy.tools import duck
-#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 __all__ = [
@@ -34,14 +33,14 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
     and it's mainly used to convert from Fortran DEN/POT to netcdf.
     """
     def __init__(self, filepath):
-        super(_Cut3dDenPotNcFileWithField, self).__init__(filepath)
-        self.reader = _FieldReader(filepath)
+        super(Cut3dDenPotNcFile, self).__init__(filepath)
+        self.reader = FieldReader(filepath)
         self.field = self.reader.read_field()
 
     @property
     def structure(self):
         """:class:`Structure` object."""
-        return self.field.structure()
+        return self.field.structure
 
     def close(self):
         self.reader.close()
@@ -244,9 +243,6 @@ class DensityFortranFile(AbinitFortranFile):
         Internal function to run a conversion using cut3d.
         """
         workdir = tempfile.mkdtemp() if workdir is None else workdir
-
-        # local import to avoid circular references
-        from abipy.flowtk import Cut3D
         outfile, converted_file = Cut3D().cut3d(cut3d_input, workdir)
 
         return converted_file
@@ -264,7 +260,6 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (CubeFile) the converted file as a CubeFile object.
         """
-        from abipy.abio.inputs import Cut3DInput
         return CubeFile(self._convert(cut3d_input=Cut3DInput.den_to_cube(self.filepath, out_filepath),
                                       workdir=workdir))
 
@@ -282,9 +277,8 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (string) path to the converted file.
         """
-        from abipy.abio.inputs import Cut3DInput
-        return self._convert(cut3d_input=Cut3DInput.den_to_xsf(self.filepath, output_filepath=out_filepath, shift=shift),
-                             workdir=workdir)
+        return self._convert(cut3d_input=Cut3DInput.den_to_xsf(self.filepath,
+                             output_filepath=out_filepath, shift=shift), workdir=workdir)
 
     def get_tecplot(self, out_filepath, workdir=None):
         """
@@ -299,8 +293,8 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (string) path to the converted file.
         """
-        from abipy.abio.inputs import Cut3DInput
-        return self._convert(cut3d_input=Cut3DInput.den_to_tecplot(self.filepath, out_filepath), workdir=workdir)
+        return self._convert(cut3d_input=Cut3DInput.den_to_tecplot(self.filepath, out_filepath),
+                             workdir=workdir)
 
     def get_molekel(self, out_filepath, workdir=None):
         """
@@ -315,8 +309,8 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (string) path to the converted file.
         """
-        from abipy.abio.inputs import Cut3DInput
-        return self._convert(cut3d_input=Cut3DInput.den_to_molekel(self.filepath, out_filepath), workdir=workdir)
+        return self._convert(cut3d_input=Cut3DInput.den_to_molekel(self.filepath, out_filepath),
+                             workdir=workdir)
 
     def get_3d_indexed(self, out_filepath, workdir=None):
         """
@@ -331,8 +325,8 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (string) path to the converted file.
         """
-        from abipy.abio.inputs import Cut3DInput
-        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath), workdir=workdir)
+        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath),
+                             workdir=workdir)
 
     def get_3d_formatted(self, out_filepath, workdir=None):
         """
@@ -347,8 +341,8 @@ class DensityFortranFile(AbinitFortranFile):
         Returns:
             (string) path to the converted file.
         """
-        from abipy.abio.inputs import Cut3DInput
-        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath), workdir=workdir)
+        return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath),
+                             workdir=workdir)
 
     def get_hirshfeld(self, structure, all_el_dens_paths=None, fhi_all_el_path=None, workdir=None):
         """
@@ -371,10 +365,6 @@ class DensityFortranFile(AbinitFortranFile):
         if all_el_dens_paths is not None and fhi_all_el_path is not None:
             raise ValueError("all_el_dens_paths and fhi_all_el_path are mutually exclusive.")
 
-        # local import to avoid circular references
-        from abipy.flowtk import Cut3D
-        from abipy.abio.inputs import Cut3DInput
-
         if all_el_dens_paths is not None:
             cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
         else:
@@ -388,20 +378,19 @@ class DensityFortranFile(AbinitFortranFile):
         from abipy.electrons.charges import HirshfeldCharges
         return HirshfeldCharges.from_cut3d_outfile(structure=structure, filepath=cut3d.stdout_fname)
 
-    #def cut3d_get_density(self, workdir=None):
-    #    """
-    #    Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
+    def get_density(self, workdir=None):
+        """
+        Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
 
-    #    Args:
-    #        workdir: directory where cut3d is executed.
-    #    """
-    #    # local import to avoid circular references
-    #    from abipy.flowtk import Cut3D
-    #    from abipy.abio.inputs import Cut3DInput
-    #    #cut3d_input = Cut3DInput.hirshfeld(self.filepath, all_el_dens_paths)
-    #    workdir = tempfile.mkdtemp() if workdir is None else workdir
-    #    cut3d = Cut3D()
-    #    #outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
-    #    with Cut3dDenPotNcFile() as nc:
-    #        assert nc.field.is_density_like and nc.field.netcdf_name == "density"
-    #        return nc.field
+        Args:
+            workdir: directory in which cut3d is executed.
+        """
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        output_filepath = os.path.join(workdir, "field_CUT3DDENPOT.nc")
+        # FIXME Converters with nspden > 1 won't work since cut3d asks for the ispden index.
+        cut3d_input = Cut3DInput(infile_path=self.filepath, output_filepath=output_filepath,
+                                 options=["17", "0", "0"])
+        outfile, _ = Cut3D().cut3d(cut3d_input, workdir)
+        with Cut3dDenPotNcFile(output_filepath) as nc:
+            assert nc.field.is_density_like and nc.field.netcdf_name == "density"
+            return nc.field

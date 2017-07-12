@@ -156,7 +156,7 @@ class TestStructure(AbipyTest):
         mgb2.abi_sanitize(primitive_standard=True)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
-        assert len(mgb2.spglib_summary(verbose=10))
+        assert len(mgb2.spget_summary(verbose=10))
         #print(structure.__repr_html__())
 
         self.serialize_with_pickle(mgb2)
