@@ -9,10 +9,10 @@ matrix:
     - os: linux
       python: 3.6
       env: PYTHON_VERSION=3.6
-    - os: osx
-      python: 2.7
-      language: generic
-      env: PYTHON_VERSION=2.7
+#    - os: osx
+#      python: 2.7
+#      language: generic
+#      env: PYTHON_VERSION=2.7
 
 sudo: required
 
@@ -49,9 +49,9 @@ install:
   #- conda install pymatgen #=4.7.2
 
   # Use my pymatgen fork
-  - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
   # pymatgen master
-  #- git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+  - git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
 
   - python setup.py install
   - mkdir -p ${HOME}/.abinit/abipy 
