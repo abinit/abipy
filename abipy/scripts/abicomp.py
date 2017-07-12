@@ -427,7 +427,7 @@ def abicomp_pseudos(options):
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
     df = dataframe_from_pseudos(options.paths, index=index)
-    print(abilab.print_frame(df, sortby="Z_val"))
+    abilab.print_frame(df, sortby="Z_val")
     return 0
 
 

@@ -39,18 +39,17 @@ class TestScripts(AbipyTest):
             # Instantiate the manager.
             options.manager = flowtk.TaskManager.as_manager(options.manager)
 
+            # Check if flow has requirements on the Abinit version.
+            if hasattr(module, "minimum_abinit_version"):
+                if not options.manager.abinit_build.version_ge(module.minimum_abinit_version):
+                    warnings.warn("%s requires %s but Abinit version: %s" %
+                          (s, module.minimum_abinit_version, options.manager.abinit_build.version))
+                    continue
+
             try:
                 flow = module.build_flow(options)
                 assert flow is not None
-                # Some flows enforce requirements on the Abinit version.
-                can_run = True
-                if hasattr(flow, "minimum_abinit_version"):
-                    if not flow.manager.abinit_build.version_ge(flow.minimum_abinit_version):
-                        can_run = False
-                        warnings.warn("%s requires %s but Abinit version: %s" %
-                              (s, flow.minimum_abinit_version, flow.manager.abinit_build.version))
-                if can_run:
-                    flow.build_and_pickle_dump()
+                flow.build_and_pickle_dump()
 
             except Exception:
                 errors.append("file %s\n %s" % (s, self.straceback()))

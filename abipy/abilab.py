@@ -87,7 +87,7 @@ ext2file = collections.OrderedDict([
     (".psp8", Pseudo),
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
-    (".xml", Pseudo),
+    ("JTH.xml", Pseudo),
 ])
 
 # Abinit files require a special treatment.

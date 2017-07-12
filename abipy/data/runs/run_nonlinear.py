@@ -10,6 +10,9 @@ import abipy.data as abidata
 from abipy import abilab
 
 
+minimum_abinit_version = "8.5.2"
+
+
 def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
     """
     This function constructs an `AbinitInput` for performing a
@@ -53,7 +56,6 @@ def build_flow(options):
 
     scf_input = make_scf_input(ecut=10, ngkpt=(6, 6, 6))
     flow = flowtk.NonLinearCoeffFlow.from_scf_input(workdir, scf_input)
-    flow.minimum_abinit_version = "8.5.2"
 
     return flow
 

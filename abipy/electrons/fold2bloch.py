@@ -46,7 +46,16 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         from abipy import flowtk
         manager = flowtk.TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
         fold2bloch = flowtk.Fold2Bloch(manager=manager, verbose=verbose)
-        ncpath = fold2bloch.unfold(wfkpath, folds, workdir=workdir)
+
+        # Create temporary directory and link to the WFK file
+        import tempfile
+        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        wfkpath = os.path.abspath(wfkpath)
+        link = os.path.join(workdir, os.path.basename(wfkpath))
+        os.symlink(wfkpath, link)
+
+        # Run fold2bloch
+        ncpath = fold2bloch.unfold(link, folds, workdir=workdir)
 
         return cls(ncpath)
 
