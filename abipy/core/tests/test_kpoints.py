@@ -187,6 +187,14 @@ class TestKpointList(AbipyTest):
         assert iclose == 0
         self.assert_almost_equal(dist, 0.001984943324127921)
 
+        # Compute mapping k_index --> (k + q)_index, g0
+        k2kqg = klist.get_k2kqg_map((0, 0, 0))
+        assert all(ikq == ik for ik, (ikq, g0) in k2kqg.items())
+        k2kqg = klist.get_k2kqg_map((1/2, 1/2, 1/2))
+        assert len(k2kqg) == 2
+        assert k2kqg[0][0] == 1 and np.all(k2kqg[0][1] == 0)
+        assert k2kqg[1][0] == 0 and np.all(k2kqg[1][1] == 1)
+
         frac_coords = [0, 0, 0, 1/2, 1/3, 1/3]
         other_klist = KpointList(lattice, frac_coords)
 

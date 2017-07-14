@@ -246,6 +246,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(gsr)"),
             nbv.new_code_cell("fig = gsr.ebands.plot()"),
             nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
+            nbv.new_code_cell("# fig = gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1)"),
             nbv.new_code_cell("""\
 if gsr.ebands.kpoints.is_ibz:
     fig = gsr.ebands.get_edos().plot()"""),

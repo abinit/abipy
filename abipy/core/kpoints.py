@@ -972,6 +972,41 @@ class KpointList(collections.Sequence):
             return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
                                        ax=ax, fold=fold, **kwargs)
 
+    def get_k2kqg_map(self, qpt, atol_kdiff=None):
+        """
+        Compute mapping k_index --> (k + q)_index, g0
+
+        Args:
+            qpt: q-point in fractional coordinate or :class:`Kpoint` instance.
+            atol_kdiff: Tolerance used to compare k-points.
+                    Use _ATOL_KDIFF is atol is None.
+        """
+        if atol_kdiff is None: atol_kdiff = _ATOL_KDIFF
+        if isinstance(qpt, Kpoint):
+            qfrac_coords = qpt.frac_coords
+        else:
+            qfrac_coords = np.reshape(qpt, (3,))
+
+        k2kqg = collections.OrderedDict()
+        if np.all(np.abs(qfrac_coords) <= 1e-6):
+            # Gamma point, DOH!
+            g0 = np.zeros(3, dtype=np.int)
+            for ik, _ in enumerate(self):
+                k2kqg[ik] = (ik, g0)
+        else:
+            # N**2 scaling but this algorithm can handle k-paths
+            # Note that in principle one could have multiple k+q in k-points
+            # but only the first match is considered.
+            for ik, kpoint in enumerate(self):
+                kpq = kpoint.frac_coords + qfrac_coords
+                for ikq, ksearch in enumerate(self):
+                    if issamek(kpq, ksearch.frac_coords, atol=atol_kdiff):
+                        g0 = np.rint(kpq - ksearch.frac_coords)
+                        k2kqg[ik] = (ikq, g0)
+                        break
+
+        return k2kqg
+
 
 class KpointStar(KpointList):
     """

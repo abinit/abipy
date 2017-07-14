@@ -529,7 +529,7 @@ class ElectronBands(Has_Structure):
         return self.to_string()
 
     def __add__(self, other):
-        """self + other returns an ElectronBandsPlotter."""
+        """self + other returns a :class:`ElectronBandsPlotter`."""
         if not isinstance(other, (ElectronBands, ElectronBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
 
@@ -1332,6 +1332,68 @@ class ElectronBands(Has_Structure):
         edos = ElectronDos(mesh, dos, self.nelect, fermie=fermie)
         #print("ebands.fermie", self.fermie, "edos.fermie", edos.fermie)
         return edos
+
+    @add_fig_kwargs
+    def plot_transitions(self, omega_ev, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4, ylims=None, ax=None, **kwargs):
+        """
+        Plot energy bands with arrows signaling possible k --> k + q indipendent-particle transitions
+        of energy `omega_ev` connecting occupied to empty states.
+
+        Args:
+            omega_ev: Transition energy in eV.
+            qpt: Q-point in reduced coordinates.
+            atol_ev: Absolute tolerance for energy difference in eV
+            atol_kdiff: Tolerance used to compare k-points.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        e0 = self.get_e0("fermie")
+        self.plot(ax=ax, e0=e0, ylims=ylims, show=False)
+
+        # Pre-compute mapping k_index --> (k + q)_index, g0
+        k2kqg = self.kpoints.get_k2kqg_map(qpt, atol_kdiff=atol_kdiff)
+
+        # Add arrows to the plot (different colors for spin up/down)
+        from matplotlib.patches import FancyArrowPatch
+        for spin in self.spins:
+            cachek = {}
+            arrow_opts = {"color": "k"} if spin == 0 else {"color": "red"}
+            for ik, (ikq, g0) in k2kqg.items():
+                dx = ikq - ik
+                ek = self.eigens[spin, ik]
+                ekq = self.eigens[spin, ikq]
+                # Find rightmost value less than or equal to fermie.
+                nv_k = cachek.get(ik)
+                if nv_k is None:
+                    nv_k = find_le(ek, self.fermie + self.pad_fermie)
+                    cachek[ik] = nv_k
+
+                if ik == ikq:
+                    nv_kq = nv_k
+                else:
+                    nv_kq = cachek.get(ikq)
+                    if nv_kq is None:
+                        nv_kq = find_le(ekq, self.fermie + self.pad_fermie)
+                        cachek[ikq] = nv_kq
+
+                #print("nv_k:", nv_k, "nc_kq", nv_kq)
+                for v_k in range(nv_k):
+                    for c_kq in range(nv_kq + 1, self.nband):
+                        dy = self.eigens[spin, ikq, c_kq] - self.eigens[spin, ik, v_k]
+                        if abs(dy - omega_ev) > atol_ev: continue
+                        y = self.eigens[spin, ik, v_k] - e0
+                        # http://matthiaseisen.com/matplotlib/shapes/arrow/
+                        p = FancyArrowPatch((ik, y), (ik + dx, y + dy),
+                                connectionstyle='arc3', mutation_scale=20,
+                                alpha=0.4, **arrow_opts)
+                        ax.add_patch(p)
+        return fig
 
     def get_ejdos(self, spin, valence, conduction, method="gaussian", step=0.1, width=0.2, mesh=None):
         r"""

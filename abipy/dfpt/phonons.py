@@ -289,7 +289,7 @@ class PhononBands(object):
         return "\n".join(lines)
 
     def __add__(self, other):
-        """self + other returns an PhononBandsPlotter."""
+        """self + other returns a :class:`PhononBandsPlotter`."""
         if not isinstance(other, (PhononBands, PhononBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
 
