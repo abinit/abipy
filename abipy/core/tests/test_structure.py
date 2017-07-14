@@ -124,6 +124,9 @@ class TestStructure(AbipyTest):
         if self.has_mayavi():
             si.mayaview(show=False)
 
+        #if self.has_vtk():
+        #    si.vtkview(show=False)
+
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())
         assert si == Structure.from_abivars(si.to_abivars())

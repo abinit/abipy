@@ -64,5 +64,6 @@ class HistFileTest(AbipyTest):
 
         if self.has_mayavi():
             assert hist.mvplot_trajectories(show=False)
+            #assert hist.mvanimate(delay=100)
 
         hist.close()
