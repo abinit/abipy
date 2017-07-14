@@ -15,6 +15,7 @@ API documentation
    abio_api.rst
    core_api.rst
    data_api.rst
+   display_api.rst
    dfpt_api.rst
    dynamics_api.rst
    electrons_api.rst
