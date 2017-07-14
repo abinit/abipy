@@ -45,7 +45,8 @@ install:
   - conda install -c conda-forge phonopy
 
   # Mayavi (optional requirement)
-  - conda install mayavi 
+  - if [[ "${PYTHON_VERSION}" == "3.6" ]]; then conda install mayavi; else pip install mayavi; fi
+  - pip install mayavi 
 
   # Get pymatgen from matsci
   - conda config --add channels matsci

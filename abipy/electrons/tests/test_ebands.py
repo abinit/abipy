@@ -431,10 +431,21 @@ class ElectronBandsTest(AbipyTest):
             str(ebands)
             ebands.to_bxsf(self.get_tmpname(text=True))
 
+            eb3d = ebands.get_ebands3d()
+            repr(eb3d); str(eb3d)
+
+            #if self.has_matplotlib():
+            #    try
+            #        from skimage import measure
+            #    except:
+            #    assert eb3b.plot_isosurfaces(e0="fermie", verbose=1, show=False)
+            #    assert eb3d.plot_contour(band=4, spin=1, plane="xy", elevation=0, show=False)
+
             # Test Mayavi
             if self.has_mayavi():
-                ebands.mvplot_isosurfaces(verbose=1, show=False)
-                #ebands.mvplot_isosurfaces(e0="fermie", densify_mpdivs=(2, 2, 2), verbose=1, show=False)
+                assert eb3d.mvplot_isosurfaces(verbose=1, show=False)
+                #assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
+
 
     def test_frame_from_ebands(self):
         """Testing frame_from_ebands."""
