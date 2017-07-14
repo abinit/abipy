@@ -512,9 +512,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">nn_list</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Zero neighbors found for radius </span><span class="si">%s</span><span class="s2"> Ang. Returning None.&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># Sorte sites by distance.</span>
-        <span class="n">nn_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">nn_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
+        <span class="c1"># Sort sites by distance.</span>
+        <span class="n">nn_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">nn_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">max_nn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_nn</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;For radius </span><span class="si">%s</span><span class="s2">, found </span><span class="si">%s</span><span class="s2"> neighbors but only max_nn </span><span class="si">%s</span><span class="s2"> sites are show.&quot;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nn_list</span><span class="p">),</span> <span class="n">max_nn</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
@@ -584,7 +584,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;xsf&quot;</span><span class="p">:</span>
                 <span class="c1"># xcrysden</span>
-                <span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structures</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">])</span>
+                <span class="n">xsf_write_structure</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">structures</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
                 <span class="n">xsf_write_data</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ur2</span><span class="p">,</span> <span class="n">add_replicas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;extension </span><span class="si">%s</span><span class="s2"> is not supported.&quot;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">)</span>
@@ -594,7 +594,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PWWaveFunction.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
+<div class="viewcode-block" id="PWWaveFunction.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize u(r)**2 visualizer.</span>
 
@@ -613,6 +613,32 @@
                 <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div></div>
+
+    <span class="c1">#def mvplot_cutplanes(self, show=True):</span>
+    <span class="c1">#    data = self.ur2</span>
+    <span class="c1">#    from abipy.display import mvtk</span>
+    <span class="c1">#    figure, mlab = mvtk.get_fig_mlab(figure=None)</span>
+    <span class="c1">#    source = mlab.pipeline.scalar_field(data)</span>
+    <span class="c1">#    mlab.pipeline.image_plane_widget(source, plane_orientation=&#39;x_axes&#39;, slice_index=data.shape[0]//2)</span>
+    <span class="c1">#    mlab.pipeline.image_plane_widget(source, plane_orientation=&#39;y_axes&#39;, slice_index=data.shape[1]//2)</span>
+    <span class="c1">#    mlab.pipeline.image_plane_widget(source, plane_orientation=&#39;z_axes&#39;, slice_index=data.shape[2]//2)</span>
+    <span class="c1">#    #mlab.pipeline.iso_surface(source, contours=contours) #, opacity=0.1)</span>
+    <span class="c1">#    #mlab.pipeline.iso_surface(source, contours=[data.min()+ 0.1 * data.ptp()], opacity=0.1)</span>
+    <span class="c1">#    mlab.outline()</span>
+    <span class="c1">#    if show: mlab.show()</span>
+    <span class="c1">#    return figure</span>
+
+    <span class="c1">#def mvplot_volume(self, figure=None, vmin=0.65, vmax=0.9, show=True):</span>
+    <span class="c1">#    from abipy.display import mvtk</span>
+    <span class="c1">#    figure, mlab = mvtk.get_fig_mlab(figure=figure)</span>
+    <span class="c1">#    data = self.ur2</span>
+    <span class="c1">#    source = mlab.pipeline.scalar_field(data)</span>
+    <span class="c1">#    data_min, data_max = data.min(), data.max()</span>
+    <span class="c1">#    mlab.pipeline.volume(source,</span>
+    <span class="c1">#                         vmin=data_min + vmin * (data_max - data_min),</span>
+    <span class="c1">#                         vmax=data_min + vmax * (data_max - data_min))</span>
+    <span class="c1">#    if show: mlab.show()</span>
+    <span class="c1">#    return figure</span>
 
 
 <span class="k">class</span> <span class="nc">PAW_WaveFunction</span><span class="p">(</span><span class="n">WaveFunction</span><span class="p">):</span>

@@ -73,16 +73,26 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">EventsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span>
-<span class="kn">from</span> <span class="nn">abipy.abio.timer</span> <span class="k">import</span> <span class="n">AbinitTimerParser</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">bohr_to_ang</span>
+<span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">frames_from_structures</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">TextFile</span><span class="p">,</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">GEOVARS</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.timer</span> <span class="k">import</span> <span class="n">AbinitTimerParser</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">EventsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">GroundStateScfCycle</span><span class="p">,</span> <span class="n">D2DEScfCycle</span>
 
 
 <div class="viewcode-block" id="AbinitTextFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitTextFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitTextFile</span><span class="p">(</span><span class="n">TextFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class for the ABINIT main output file and the log file.&quot;&quot;&quot;</span>
-
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for the ABINIT main output file and the log file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -122,18 +132,387 @@
 
 
 <div class="viewcode-block" id="AbinitOutputFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitOutputFile</span><span class="p">(</span><span class="n">AbinitTextFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Class representing the main output file.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing the main Abinit output file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AbinitOutputFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">()</span>
 
-        <span class="c1"># TODO: Parse header to get important dimensions and variables</span>
-        <span class="c1">#ndtset</span>
-        <span class="c1">#offset_dataset</span>
-        <span class="c1">#dims_dataset</span>
-        <span class="c1">#vars_dataset</span>
-        <span class="c1">#pseudos</span>
-        <span class="c1">#self.seek(0)</span>
+    <span class="k">def</span> <span class="nf">_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        header: String with the input variables</span>
+<span class="sd">        footer: String with the output variables</span>
+<span class="sd">        datasets: Dictionary mapping dataset index to list of strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get code version and find magic line signaling that the output file is completed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.Version&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot; Calculation completed.&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+        <span class="c1"># Parse header to get important dimensions and variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="s2">&quot;in_header&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;== DATASET&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="c1"># Save dataset number</span>
+                    <span class="c1"># == DATASET  1 ==================================================================</span>
+                    <span class="n">where</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">assert</span> <span class="n">where</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">where</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">elif</span> <span class="s2">&quot;== END DATASET(S) &quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">where</span> <span class="o">=</span> <span class="s2">&quot;in_footer&quot;</span>
+
+                <span class="k">if</span> <span class="n">where</span> <span class="o">==</span> <span class="s2">&quot;in_header&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">where</span> <span class="o">==</span> <span class="s2">&quot;in_footer&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># dataset number --&gt; lines</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">where</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;header:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+        <span class="c1"># Output files produced in dryrun_mode contain the following line:</span>
+        <span class="c1"># abinit : before driver, prtvol=0, debugging mode =&gt; will skip driver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dryrun_mode</span> <span class="o">=</span> <span class="s2">&quot;debugging mode =&gt; will skip driver&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span>
+        <span class="c1">#print(&quot;dryrun_mode:&quot;, self.dryrun_mode)</span>
+
+        <span class="c1">#if &quot; jdtset &quot; in self.header: raise NotImplementedError(&quot;jdtset is not supported&quot;)</span>
+        <span class="c1">#if &quot; udtset &quot; in self.header: raise NotImplementedError(&quot;udtset is not supported&quot;)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="c1">#raise NotImplementedError(&quot;Empty dataset sections.&quot;)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Empty dataset&quot;</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">footer</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;footer:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_variables</span><span class="p">(</span><span class="s2">&quot;header&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_dataset</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dryrun_mode</span><span class="p">:</span>
+                <span class="c1"># footer is not preset. Copy values from header.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_dataset</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_variables</span><span class="p">(</span><span class="s2">&quot;footer&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_parse_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">):</span>
+        <span class="n">vars_global</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">vars_dataset</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">())</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+        <span class="c1">#print(&quot;keys&quot;, vars_dataset.keys())</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;header&quot;</span><span class="p">:</span>
+            <span class="n">magic_start</span> <span class="o">=</span> <span class="s2">&quot; -outvars: echo values of preprocessed input variables --------&quot;</span>
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;footer&quot;</span><span class="p">:</span>
+            <span class="n">magic_start</span> <span class="o">=</span> <span class="s2">&quot; -outvars: echo values of variables after computation  --------&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for what: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">what</span><span class="p">))</span>
+
+        <span class="n">magic_stop</span> <span class="o">=</span> <span class="s2">&quot;================================================================================&quot;</span>
+
+        <span class="c1"># Select relevant portion with variables.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">magic_start</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find magic_start line: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">magic_start</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">magic_stop</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find magic_stop line: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">magic_stop</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Parse data. Assume format:</span>
+        <span class="c1">#   timopt          -1</span>
+        <span class="c1">#    tnons      0.0000000  0.0000000  0.0000000     0.2500000  0.2500000  0.2500000</span>
+        <span class="c1">#               0.0000000  0.0000000  0.0000000     0.2500000  0.2500000  0.2500000</span>
+        <span class="k">def</span> <span class="nf">get_dtindex_key_value</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">s</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">break</span>
+                <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find dataset index in token: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
+
+            <span class="c1">#print(line, &quot;\n&quot;, l)</span>
+            <span class="n">dtindex</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">l</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+                <span class="n">dtindex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">dtindex</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span>
+
+        <span class="c1"># (varname, dtindex), [line1, line2 ...]</span>
+        <span class="n">stack_var</span><span class="p">,</span> <span class="n">stack_lines</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+        <span class="k">def</span> <span class="nf">pop_stack</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">stack_lines</span><span class="p">:</span>
+                <span class="n">key</span><span class="p">,</span> <span class="n">dtidx</span> <span class="o">=</span> <span class="n">stack_var</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stack_lines</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">dtidx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">vars_global</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vars_dataset</span><span class="p">[</span><span class="n">dtidx</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="c1"># Ignore first char</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="c1">#print(line)</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                <span class="n">pop_stack</span><span class="p">()</span>
+                <span class="n">stack_lines</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">dtidx</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">get_dtindex_key_value</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">stack_var</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">dtidx</span><span class="p">)</span>
+                <span class="n">stack_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stack_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="n">pop_stack</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">vars_global</span><span class="p">,</span> <span class="n">vars_dataset</span>
+
+    <span class="k">def</span> <span class="nf">_get_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;header&quot;</span><span class="p">:</span>
+            <span class="n">vars_global</span><span class="p">,</span> <span class="n">vars_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_vars_dataset</span>
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;footer&quot;</span><span class="p">:</span>
+            <span class="n">vars_global</span><span class="p">,</span> <span class="n">vars_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_global</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_vars_dataset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for what: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">what</span><span class="p">))</span>
+
+        <span class="c1">#print(&quot;global&quot;, vars_global[&quot;acell&quot;])</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">is_abiunit</span>
+        <span class="n">inigeo</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">vars_global</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">GEOVARS</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vars_global</span><span class="p">}</span>
+
+        <span class="n">spgvars</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;spgroup&quot;</span><span class="p">,</span> <span class="s2">&quot;symrel&quot;</span><span class="p">,</span> <span class="s2">&quot;tnons&quot;</span><span class="p">,</span> <span class="s2">&quot;symafm&quot;</span><span class="p">)</span>
+        <span class="n">spgd_global</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">vars_global</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">spgvars</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vars_global</span><span class="p">}</span>
+        <span class="n">global_kptopt</span> <span class="o">=</span> <span class="n">vars_global</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># This code breaks down if there are conflicting GEOVARS in globals and dataset.</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">inigeo</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">vars_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">GEOVARS</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vars_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]})</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Must handle possible unit.</span>
+                <span class="n">fact</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+                <span class="k">if</span> <span class="n">is_abiunit</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">tokens</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;angstr&quot;</span><span class="p">,</span> <span class="s2">&quot;angstrom&quot;</span><span class="p">,</span> <span class="s2">&quot;angstroms&quot;</span><span class="p">):</span>
+                        <span class="n">fact</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">bohr_to_ang</span>
+                    <span class="k">elif</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;bohr&quot;</span><span class="p">,</span> <span class="s2">&quot;bohrs&quot;</span><span class="p">,</span> <span class="s2">&quot;au&quot;</span><span class="p">):</span>
+                        <span class="n">fact</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle unit: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">unit</span><span class="p">)</span>
+
+                <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;ntypat&quot;</span><span class="p">,</span> <span class="s2">&quot;typat&quot;</span><span class="p">,</span> <span class="s2">&quot;natom&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1">#print(key, s)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                    <span class="c1">#print(key, value)</span>
+                    <span class="k">if</span> <span class="n">fact</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span> <span class="n">value</span> <span class="o">*=</span> <span class="n">fact</span> <span class="c1"># Do not change integer arrays e.g typat!</span>
+                    <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">exc</span>
+
+            <span class="k">if</span> <span class="s2">&quot;rprim&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="s2">&quot;angdeg&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;rprim&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;natom&quot;</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;natom&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xred&quot;</span><span class="p">,</span> <span class="s2">&quot;xcart&quot;</span><span class="p">,</span> <span class="s2">&quot;xangst&quot;</span><span class="p">)):</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;xred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="c1">#print(d)</span>
+            <span class="n">abistr</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="c1"># Extract Abinit spacegroup.</span>
+            <span class="n">spgd</span> <span class="o">=</span> <span class="n">spgd_global</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">spgd</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">vars_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">spgvars</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vars_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]})</span>
+
+            <span class="n">spgid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">spgd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spgroup&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="s2">&quot;symrel&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">:</span>
+                <span class="n">symrel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="n">spgd</span><span class="p">[</span><span class="s2">&quot;symrel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">symrel</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">symrel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">[</span><span class="s2">&quot;symrel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">nsym</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">symrel</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">nsym</span> <span class="o">==</span> <span class="n">spgd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nsym&quot;</span><span class="p">,</span> <span class="n">nsym</span><span class="p">)</span> <span class="c1">#; print(symrel.shape)</span>
+
+            <span class="k">if</span> <span class="s2">&quot;tnons&quot;</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">:</span>
+                <span class="n">tnons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">[</span><span class="s2">&quot;tnons&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span> <span class="p">(</span><span class="n">nsym</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tnons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nsym</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="s2">&quot;symafm&quot;</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">:</span>
+                <span class="n">symafm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">spgd</span><span class="p">[</span><span class="s2">&quot;symafm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+                <span class="n">symafm</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nsym</span><span class="p">,)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">symafm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nsym</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">has_timerev</span> <span class="o">=</span> <span class="n">has_timrev_from_kptopt</span><span class="p">(</span><span class="n">vars_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">,</span> <span class="n">global_kptopt</span><span class="p">))</span>
+                <span class="n">abi_spacegroup</span> <span class="o">=</span> <span class="n">AbinitSpaceGroup</span><span class="p">(</span><span class="n">spgid</span><span class="p">,</span> <span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span><span class="p">,</span> <span class="n">symafm</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+                <span class="n">abistr</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">abi_spacegroup</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot build AbinitSpaceGroup from the variables reported in file!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+            <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">abistr</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">structures</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AbinitOutputFile.initial_structures"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.initial_structures">[docs]</a>    <span class="k">def</span> <span class="nf">initial_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of initial structures.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_structures</span><span class="p">(</span><span class="s2">&quot;header&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_same_initial_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if all initial structures are equal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">)</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AbinitOutputFile.final_structures"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.final_structures">[docs]</a>    <span class="k">def</span> <span class="nf">final_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of final structures.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_structures</span><span class="p">(</span><span class="s2">&quot;footer&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot extract final structures from file.</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AbinitOutputFile.initial_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.initial_structure">[docs]</a>    <span class="k">def</span> <span class="nf">initial_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The structure defined in the output file.</span>
+
+<span class="sd">        If the input file contains multiple datasets **AND** the datasets</span>
+<span class="sd">        have different structures, this property returns None.</span>
+<span class="sd">        In this case, one has to access the structure of the individual datasets.</span>
+<span class="sd">        For example:</span>
+
+<span class="sd">            self.initial_structures[0]</span>
+
+<span class="sd">        gives the structure of the first dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_initial_structures</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Datasets have different structures. Returning None. Use initial_structures[0]&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_same_final_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if all initial structures are equal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structures</span><span class="p">)</span>
+
+    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="AbinitOutputFile.final_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.final_structure">[docs]</a>    <span class="k">def</span> <span class="nf">final_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The structure defined in the output file.</span>
+
+<span class="sd">        If the input file contains multiple datasets **AND** the datasets</span>
+<span class="sd">        have different structures, this property returns None.</span>
+<span class="sd">        In this case, one has to access the structure of the individual datasets.</span>
+<span class="sd">        For example:</span>
+
+<span class="sd">            self.final_structures[0]</span>
+
+<span class="sd">        gives the structure of the first dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_final_structures</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Datasets have different structures. Returning None. Use final_structures[0]&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AbinitOutputFile.diff_datasets"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.diff_datasets">[docs]</a>    <span class="k">def</span> <span class="nf">diff_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt_list1</span><span class="p">,</span> <span class="n">dt_list2</span><span class="p">,</span> <span class="n">with_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">differ</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare datasets</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dt_list1</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">dt_list1</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt_list1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dt_list2</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">dt_list2</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt_list2</span><span class="p">]</span>
+
+        <span class="n">dt_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt_list1</span><span class="p">,</span> <span class="n">dt_list2</span><span class="p">]</span>
+        <span class="kn">import</span> <span class="nn">tempfile</span>
+        <span class="n">tmp_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">tmp_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpname</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">with_params</span><span class="p">:</span> <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idt</span> <span class="ow">in</span> <span class="n">dt_lists</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">idt</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">with_params</span><span class="p">:</span> <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">footer</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">differ</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">abipy.tools.devtools</span> <span class="k">import</span> <span class="n">HtmlDiff</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">HtmlDiff</span><span class="p">(</span><span class="n">tmp_names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">diff</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">diff</span><span class="o">.</span><span class="n">open_browser</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">differ</span><span class="p">,</span> <span class="n">tmp_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tmp_names</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">cmd</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AbinitOutputFile.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ndtset: </span><span class="si">%d</span><span class="s2">, completed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span><span class="p">)]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="c1"># Different cases depending whether final structures are available</span>
+        <span class="c1"># and whether structures are equivalent.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_final_structures</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">:</span>
+                    <span class="c1"># Structural relaxation.</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">],</span>
+                                                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;initial&quot;</span><span class="p">,</span> <span class="s2">&quot;final&quot;</span><span class="p">])</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Lattice parameters:&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">lattice</span><span class="p">))</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Atomic coordinates:&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># initial == final. Print final structure.</span>
+                    <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Final structures are not available.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_initial_structures</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">,</span>
+                                            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span><span class="p">)])</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Lattice parameters:&quot;</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">lattice</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Atomic coordinates:&quot;</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitOutputFile.next_gs_scf_cycle"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_gs_scf_cycle">[docs]</a>    <span class="k">def</span> <span class="nf">next_gs_scf_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -302,6 +681,83 @@
             <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varscache</span></div></div>
+
+
+<div class="viewcode-block" id="validate_output_parser"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.validate_output_parser">[docs]</a><span class="k">def</span> <span class="nf">validate_output_parser</span><span class="p">(</span><span class="n">abitests_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_files</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate/test Abinit output parser.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dirpath: Abinit tests directory.</span>
+<span class="sd">        output_files: List of Abinit output files.</span>
+
+<span class="sd">    Return: Exit code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">is_abinit_output</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if path is one of the output files used in the Abinit Test suite.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.abo&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.out&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;abinit&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Files are collected in paths.</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">abitests_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analyzing directory </span><span class="si">%s</span><span class="s2"> for input files&quot;</span> <span class="o">%</span> <span class="n">abitests_dir</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">abitests_dir</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_abinit_output</span><span class="p">(</span><span class="n">path</span><span class="p">):</span> <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analyzing files:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_files</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">output_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_abinit_output</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span> <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+    <span class="n">nfiles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nfiles</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Empty list of input files.&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> Abinit output files&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">))</span>
+    <span class="n">errpaths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">AbinitOutputFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">run_completed</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;FAILED&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="n">errpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                <span class="c1">#print(&quot;[%s]: Exception:\n%s&quot; % (path, str(exc)))</span>
+                <span class="c1">#with open(path, &quot;rt&quot;) as fh:</span>
+                <span class="c1">#    print(10*&quot;=&quot; + &quot;Input File&quot; + 10*&quot;=&quot;)</span>
+                <span class="c1">#    print(fh.read())</span>
+                <span class="c1">#    print()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;NOTIMPLEMENTED&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">errpaths</span><span class="p">:</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;failed: </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> [</span><span class="si">%.1f%%</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">errpaths</span><span class="p">),</span> <span class="n">nfiles</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">errpaths</span><span class="p">)</span><span class="o">/</span><span class="n">nfiles</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">epath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">errpaths</span><span class="p">):</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">epath</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;All input files successfully parsed!&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">errpaths</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

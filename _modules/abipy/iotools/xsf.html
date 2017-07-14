@@ -212,7 +212,7 @@
     <span class="n">fwrite</span><span class="p">(</span><span class="s1">&#39;END_BLOCK_DATAGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="bxsf_write"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.bxsf_write">[docs]</a><span class="k">def</span> <span class="nf">bxsf_write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">ndivs</span><span class="p">,</span> <span class="n">emesh_sbk</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="bxsf_write"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.xsf.bxsf_write">[docs]</a><span class="k">def</span> <span class="nf">bxsf_write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">ndivs</span><span class="p">,</span> <span class="n">ucdata_sbk</span><span class="p">,</span> <span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write band structure data in the Xcrysden format (XSF)</span>
 
@@ -222,8 +222,10 @@
 <span class="sd">        nsppol: Number of spins.</span>
 <span class="sd">        nband: Number of bands.</span>
 <span class="sd">        ndivs: Number of divisions of the full k-mesh.</span>
-<span class="sd">        emesh_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.</span>
+<span class="sd">        ucdata_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with energies</span>
+<span class="sd">            in the unic cell mesh in unit `unit`.</span>
 <span class="sd">        fermie: Fermi energy.</span>
+<span class="sd">        unit=Unit of input `ucdata_sbk` and `fermie`. Energies will be converted to Hartree before writing.</span>
 
 <span class="sd">    .. note::</span>
 
@@ -237,10 +239,10 @@
 
 <span class="sd">    See also http://www.xcrysden.org/doc/XSF.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">emesh_sbk</span> <span class="o">=</span> <span class="n">EnergyArray</span><span class="p">(</span><span class="n">emesh_sbk</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
+    <span class="n">ucdata_sbk</span> <span class="o">=</span> <span class="n">EnergyArray</span><span class="p">(</span><span class="n">ucdata_sbk</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
     <span class="n">fermie</span> <span class="o">=</span> <span class="n">Energy</span><span class="p">(</span><span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span>
 
-    <span class="n">emesh_sbk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">emesh_sbk</span><span class="p">,</span> <span class="p">(</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">ndivs</span><span class="p">)))</span>
+    <span class="n">ucdata_sbk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ucdata_sbk</span><span class="p">,</span> <span class="p">(</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nband</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">ndivs</span><span class="p">)))</span>
 
     <span class="n">close_it</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">):</span>
@@ -275,9 +277,9 @@
     <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nband</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsppol</span><span class="p">):</span>
             <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">enebz</span> <span class="o">=</span> <span class="n">emesh_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">enes</span> <span class="o">=</span> <span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="p">:]</span>
             <span class="n">fw</span><span class="p">(</span><span class="s2">&quot; BAND: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">idx</span><span class="p">)</span>
-            <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.18e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enebz</span><span class="p">))</span>
+            <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.18e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enes</span><span class="p">))</span>
             <span class="n">fw</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">fw</span><span class="p">(</span><span class="s1">&#39; END_BANDGRID_3D</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>

@@ -54,6 +54,7 @@
 <li><a class="reference internal" href="#module-abipy.core.gsphere"><code class="docutils literal"><span class="pre">gsphere</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.mesh3d"><code class="docutils literal"><span class="pre">mesh3d</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.mixins"><code class="docutils literal"><span class="pre">mixins</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.restapi"><code class="docutils literal"><span class="pre">restapi</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.irrepsdb"><code class="docutils literal"><span class="pre">irrepsdb</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.kpoints"><code class="docutils literal"><span class="pre">kpoints</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.structure"><code class="docutils literal"><span class="pre">structure</span></code> Module</a></li>
@@ -1020,8 +1021,14 @@ according to the ETSF-IO specifications (when available).</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.mixins.Has_Structure.plot_bz">
+<code class="descname">plot_bz</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#Has_Structure.plot_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.Has_Structure.plot_bz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.mixins.Has_Structure.show_bz">
-<code class="descname">show_bz</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#Has_Structure.show_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.Has_Structure.show_bz" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show_bz</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.core.mixins.Has_Structure.show_bz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</p>
 </dd></dl>
 
@@ -1137,10 +1144,6 @@ according to the ETSF-IO specifications (when available).</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Mixin class for objects that are able to generate jupyter notebooks.
 Subclasses must provide a concrete implementation of <cite>write_notebook</cite>.</p>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference external" href="http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb">http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb</a></p>
-</div>
 <dl class="method">
 <dt id="abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb">
 <code class="descname">get_nbformat_nbv_nb</code><span class="sig-paren">(</span><em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#NotebookWriter.get_nbformat_nbv_nb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb" title="Permalink to this definition">¶</a></dt>
@@ -1157,7 +1160,7 @@ Subclasses must provide a concrete implementation of <cite>write_notebook</cite>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>nbpath</strong> &#8211; If nbpath is None, a temporay file is created.</li>
 <li><strong>foreground</strong> &#8211; By default, jupyter is executed in background and stdout, stderr are redirected</li>
-<li><strong>devnull. Use foreground to run the process in foreground</strong> (<em>to</em>) &#8211; </li>
+<li><strong>devnull. Use foreground to run the process in foreground</strong> (<a class="reference internal" href="#abipy.core.structure.Structure.to" title="abipy.core.structure.Structure.to"><em>to</em></a>) &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -1200,6 +1203,185 @@ If filepath is None, a temporary file is created.</p>
 Return path to the notebook. A typical template is given below.</p>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.core.restapi">
+<span id="restapi-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">restapi</span></code> Module<a class="headerlink" href="#module-abipy.core.restapi" title="Permalink to this headline">¶</a></h2>
+<p>This module provides interfaces with the Materials Project REST API v2 to enable
+the creation of data structures and pymatgen objects using Materials Project data.</p>
+<dl class="class">
+<dt id="abipy.core.restapi.CodStructures">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">CodStructures</code><span class="sig-paren">(</span><em>structures</em>, <em>ids</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#CodStructures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.CodStructures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.core.restapi.DatabaseStructures" title="abipy.core.restapi.DatabaseStructures"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.restapi.DatabaseStructures</span></code></a></p>
+<p>Store the results of a query to the COD database <a class="reference external" href="http://www.crystallography.net/cod/">http://www.crystallography.net/cod/</a></p>
+<dl class="attribute">
+<dt id="abipy.core.restapi.CodStructures.dbname">
+<code class="descname">dbname</code><em class="property"> = 'COD'</em><a class="headerlink" href="#abipy.core.restapi.CodStructures.dbname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.restapi.DatabaseStructures">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">DatabaseStructures</code><span class="sig-paren">(</span><em>structures</em>, <em>ids</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#DatabaseStructures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.DatabaseStructures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Store the results of a query to the MP database.</p>
+<dl class="method">
+<dt id="abipy.core.restapi.DatabaseStructures.filter_by_spgnum">
+<code class="descname">filter_by_spgnum</code><span class="sig-paren">(</span><em>spgnum</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#DatabaseStructures.filter_by_spgnum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.DatabaseStructures.filter_by_spgnum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter structures by space group number. Return new MpStructures object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.restapi.DatabaseStructures.print_results">
+<code class="descname">print_results</code><span class="sig-paren">(</span><em>fmt='abivars'</em>, <em>verbose=0</em>, <em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#DatabaseStructures.print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.DatabaseStructures.print_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print pandas dataframe, structures using format <cite>fmt, and data to file `file</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.restapi.DatabaseStructures.table">
+<code class="descname">table</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#DatabaseStructures.table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.DatabaseStructures.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandas dataframe constructed from self.data. None if data is not available.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.restapi.Dotdict">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">Dotdict</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#Dotdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.Dotdict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a></p>
+<dl class="method">
+<dt id="abipy.core.restapi.Dotdict.dotget">
+<code class="descname">dotget</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#Dotdict.dotget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.Dotdict.dotget" title="Permalink to this definition">¶</a></dt>
+<dd><p>d.dotget[&#8220;foo.bar&#8221;] &#8211;&gt; d[&#8220;foo&#8221;][&#8220;bar&#8221;] if &#8220;foo.bar&#8221; not in self</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.restapi.MpStructures">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">MpStructures</code><span class="sig-paren">(</span><em>structures</em>, <em>ids</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#MpStructures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MpStructures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.core.restapi.DatabaseStructures" title="abipy.core.restapi.DatabaseStructures"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.restapi.DatabaseStructures</span></code></a></p>
+<p>Store the results of a query to the Materials Project database.</p>
+<dl class="attribute">
+<dt id="abipy.core.restapi.MpStructures.dbname">
+<code class="descname">dbname</code><em class="property"> = 'Materials Project'</em><a class="headerlink" href="#abipy.core.restapi.MpStructures.dbname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.restapi.MpStructures.table">
+<code class="descname">table</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#MpStructures.table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MpStructures.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandas dataframe constructed from self.data. None if data is not available.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.restapi.MyMPRester">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">MyMPRester</code><span class="sig-paren">(</span><em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#MyMPRester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MyMPRester" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.ext.matproj.html#pymatgen.ext.matproj.MPRester" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.ext.matproj.MPRester</span></code></a></p>
+<dl class="attribute">
+<dt id="abipy.core.restapi.MyMPRester.Error">
+<code class="descname">Error</code><a class="headerlink" href="#abipy.core.restapi.MyMPRester.Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">MPRestError</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.restapi.MyMPRester.get_phasediagram_results">
+<code class="descname">get_phasediagram_results</code><span class="sig-paren">(</span><em>elements</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#MyMPRester.get_phasediagram_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MyMPRester.get_phasediagram_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contact the materials project database, fetch entries and build <cite>PhaseDiagramResults</cite> instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>elements</strong> &#8211; List of chemical elements.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.restapi.PhaseDiagramResults">
+<em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">PhaseDiagramResults</code><span class="sig-paren">(</span><em>entries</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#PhaseDiagramResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.PhaseDiagramResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Simplified interface to phase-diagram pymatgen API.</p>
+<p>Inspired to:</p>
+<blockquote>
+<div><a class="reference external" href="https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook">https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook</a></div></blockquote>
+<dl class="method">
+<dt id="abipy.core.restapi.PhaseDiagramResults.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>show_unstable=True</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#PhaseDiagramResults.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.PhaseDiagramResults.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot phase diagram.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>show_unstable</strong> &#8211; Show all phases, including unstable ones</li>
+<li><strong>show</strong> &#8211; True to show plot.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">plotter object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.restapi.PhaseDiagramResults.print_dataframes">
+<code class="descname">print_dataframes</code><span class="sig-paren">(</span><em>with_spglib=False</em>, <em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#PhaseDiagramResults.print_dataframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.PhaseDiagramResults.print_dataframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print pandas dataframe to file <cite>file</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_spglib</strong> &#8211; True to compute spacegroup with spglib.</li>
+<li><strong>file</strong> &#8211; Output stream.</li>
+<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.restapi.PhaseDiagramResults.table">
+<code class="descname">table</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#PhaseDiagramResults.table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.PhaseDiagramResults.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pandas dataframe with the most important results.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.restapi.get_mprester">
+<code class="descclassname">abipy.core.restapi.</code><code class="descname">get_mprester</code><span class="sig-paren">(</span><em>api_key=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#get_mprester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.get_mprester" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+REST interface. Please apply on the Materials Project website for one.
+If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in
+your .pmgrc.yaml. If so, it will use that environment
+This makes easier for heavy users to simply add
+this environment variable to their setups and MPRester can
+then be called without any arguments.</li>
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.
+Defaults to the standard Materials Project REST address, but
+can be changed to other urls implementing a similar interface.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1258,7 +1440,7 @@ instance or a list of <cite>Kpoint</cite> items.</li>
 <dl class="class">
 <dt id="abipy.core.kpoints.Kpoint">
 <em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpoint</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>lattice</em>, <em>weight=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.serializers.pickle_coders.html#pymatgen.serializers.pickle_coders.SlotPickleMixin" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.serializers.pickle_coders.SlotPickleMixin</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.serializers.pickle_coders.html#pymatgen.serializers.pickle_coders.SlotPickleMixin" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.serializers.pickle_coders.SlotPickleMixin</span></code></a></p>
 <p>Class defining one k-point.</p>
 <dl class="classmethod">
 <dt id="abipy.core.kpoints.Kpoint.as_kpoint">
@@ -1614,14 +1796,132 @@ as well as the mapping BZ &#8211;&gt; IBZ.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="abipy.core.kpoints.find_points_along_path">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">find_points_along_path</code><span class="sig-paren">(</span><em>cart_bounds</em>, <em>cart_coords</em>, <em>dist_tol</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#find_points_along_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.find_points_along_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find points in <cite>cart_coords</cite> lying on the path defined by <cite>cart_bounds</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cart_bounds</strong> &#8211; [N, 3] array with the boundaries of the path in Cartesian coordinates.</li>
+<li><strong>cart_coords</strong> &#8211; [M, 3] array with the points in Cartesian coordinate</li>
+<li><strong>dist_tol</strong> &#8211; A point is considered to be on the path if its distance from the line
+is less than dist_tol.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>(klines, dist_list, ticks)</p>
+<p>klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
+dist_list: numpy array with the distance of the points along the line.
+ticks:</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-abipy.core.structure">
 <span id="structure-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">structure</span></code> Module<a class="headerlink" href="#module-abipy.core.structure" title="Permalink to this headline">¶</a></h2>
 <p>This module defines basic objects representing the crystalline structure.</p>
+<dl class="function">
+<dt id="abipy.core.structure.mp_match_structure">
+<code class="descclassname">abipy.core.structure.</code><code class="descname">mp_match_structure</code><span class="sig-paren">(</span><em>obj</em>, <em>api_key=None</em>, <em>endpoint=None</em>, <em>final=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#mp_match_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.mp_match_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds matching structures on the Materials Project database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> &#8211; filename or Structure object.</li>
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+REST interface.</li>
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.</li>
+<li><strong>final</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to get the final structure, or the initial
+(pre-relaxation) structure. Defaults to True.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt><code class="xref py py-class docutils literal"><span class="pre">MpStructures</span></code> object with</dt>
+<dd><p class="first last">structures: List of matching structures and list of Materials Project identifier.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.structure.mp_search">
+<code class="descclassname">abipy.core.structure.</code><code class="descname">mp_search</code><span class="sig-paren">(</span><em>chemsys_formula_id</em>, <em>api_key=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#mp_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.mp_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the materials project database.
+Get a list of structures corresponding to a chemical system, formula, or materials_id.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>chemsys_formula_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A chemical system (e.g., Li-Fe-O),
+or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).</li>
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject REST interface.
+If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.</li>
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt><code class="xref py py-class docutils literal"><span class="pre">MpStructures</span></code> object with</dt>
+<dd><p class="first last">List of Structure objects, Materials project ids associated to structures.
+and List of dictionaries with MP data (same order as structures).</p>
+</dd>
+</dl>
+<p>Note that the attributes evalute to False if no match is found</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.structure.cod_search">
+<code class="descclassname">abipy.core.structure.</code><code class="descname">cod_search</code><span class="sig-paren">(</span><em>formula</em>, <em>primitive=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#cod_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.cod_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the COD database (<a class="reference external" href="http://www.crystallography.net/">http://www.crystallography.net/</a>)
+Get a list of structures corresponding to a chemical formula</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>formula</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Chemical formula (e.g., Fe2O3)</li>
+<li><strong>primitive</strong> &#8211; True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt><code class="xref py py-class docutils literal"><span class="pre">CodStructures</span></code> object with</dt>
+<dd><p class="first last">List of Structure objects, COD ids associated to structures.
+and List of dictionaries with COD data (same order as structures).</p>
+</dd>
+</dl>
+<p>Note that the attributes evalute to False if no match is found</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="abipy.core.structure.Structure">
 <em class="property">class </em><code class="descclassname">abipy.core.structure.</code><code class="descname">Structure</code><span class="sig-paren">(</span><em>lattice</em>, <em>species</em>, <em>coords</em>, <em>validate_proximity=False</em>, <em>to_unit_cell=False</em>, <em>coords_are_cartesian=False</em>, <em>site_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Extends <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code> with Abinit-specific methods.</p>
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.ABO3">
@@ -1650,9 +1950,12 @@ as well as the mapping BZ &#8211;&gt; IBZ.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>symprec</strong> &#8211; Symmetry precision used to refine the structure.
-if <cite>symprec</cite> is None, so structure refinement is peformed.</li>
-<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to convert to a primitive cell.</li>
+<li><strong>symprec</strong> &#8211; Symmetry precision used to refine the structure.</li>
+<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese
+if <cite>symprec</cite> is None and <cite>angle_tolerance</cite> is None, no structure refinement is peformed.</li>
+<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to convert to a primitive cell following
+Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</li>
+<li><strong>primitive_standard</strong> &#8211; Returns most primitive structure found.</li>
 </ul>
 </td>
 </tr>
@@ -1756,7 +2059,7 @@ from a CIF file.</p>
 <dt id="abipy.core.structure.Structure.calc_ksampling">
 <code class="descname">calc_ksampling</code><span class="sig-paren">(</span><em>nksmall</em>, <em>symprec=0.01</em>, <em>angle_tolerance=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.calc_ksampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.calc_ksampling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the k-point sampling from the number of divisions to be used for
-the smallest lattive vectors of the reciprocal lattice.</p>
+the smallest reciprocal lattice vector.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1826,10 +2129,16 @@ to keep the shift along the symmetry axis.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.structure.Structure.chemview">
+<code class="descname">chemview</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.chemview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.chemview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize Structure in jupyter notebook using chemview package.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.structure.Structure.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>fmt='cif'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.convert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the Abinit structure to CIF, POSCAR, CSSR and pymatgen&#8217;s JSON
-serialized structures (json, mson) Return string.</p>
+<code class="descname">convert</code><span class="sig-paren">(</span><em>fmt='cif'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return string with the structure in the given format <cite>fmt</cite>
+Options include &#8220;abivars&#8221;, &#8220;cif&#8221;, &#8220;xsf&#8221;, &#8220;poscar&#8221;, &#8220;cssr&#8221;, &#8220;json&#8221;.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1931,21 +2240,19 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <dt id="abipy.core.structure.Structure.from_abivars">
 <em class="property">classmethod </em><code class="descname">from_abivars</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_abivars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_abivars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a <a class="reference internal" href="#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code></a> object from a dictionary with ABINIT variables.</p>
-<p class="rubric">Example</p>
-<dl class="docutils">
-<dt>al_structure = Structure.from_abivars(</dt>
-<dd><p class="first">acell=3*[7.5],
-rprim=[0.0, 0.5, 0.5,</p>
-<blockquote>
-<div>0.5, 0.0, 0.5,
-0.5, 0.5, 0.0],</div></blockquote>
-<p class="last">typat=1,
-xred=[0.0, 0.0, 0.0],
-ntypat=1,
-znucl=13,</p>
-</dd>
-</dl>
-<p>)</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">al_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span>
+    <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">7.5</span><span class="p">],</span>
+    <span class="n">rprim</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+           <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+           <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="n">typat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="n">ntypat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">znucl</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 <p><cite>xred</cite> can be replaced with <cite>xcart</cite> or <cite>xangst</cite>.</p>
 </dd></dl>
 
@@ -1960,6 +2267,28 @@ znucl=13,</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>atoms</strong> &#8211; ASE Atoms object</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Equivalent Structure</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.core.structure.Structure.from_cod_id">
+<em class="property">classmethod </em><code class="descname">from_cod_id</code><span class="sig-paren">(</span><em>cod_id</em>, <em>primitive=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_cod_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_cod_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries the COD for a structure by id. Returns Structure object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cod_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; COD id.</li>
+<li><strong>primitive</strong> &#8211; True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
+<li><strong>kwargs</strong> &#8211; Arguments passed to <cite>get_structure_by_id</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Structure.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1999,7 +2328,7 @@ Defaults to True.</li>
 
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.from_material_id">
-<em class="property">classmethod </em><code class="descname">from_material_id</code><span class="sig-paren">(</span><em>material_id</em>, <em>final=True</em>, <em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_material_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_material_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">from_material_id</code><span class="sig-paren">(</span><em>material_id</em>, <em>final=True</em>, <em>api_key=None</em>, <em>endpoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_material_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_material_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a Structure corresponding to a material_id.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2011,11 +2340,10 @@ Defaults to True.</li>
 (pre-relaxation) structure. Defaults to True.</li>
 <li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
 REST interface. Please apply on the Materials Project website for one.
-If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in
-your .pmgrc.yaml. If so, it will use that environment
-This makes easier for heavy users to simply add
-this environment variable to their setups and MPRester can
-then be called without any arguments.</li>
+If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.
+If so, it will use that environment
+This makes easier for heavy users to simply add this environment variable
+to their setups and MPRester can then be called without any arguments.</li>
 <li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.
 Defaults to the standard Materials Project REST address, but
 can be changed to other urls implementing a similar interface.</li>
@@ -2113,6 +2441,24 @@ norm(a1)&lt;norm(a2)&lt;norm(a3)</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.structure.Structure.get_oxi_state_decorated">
+<code class="descname">get_oxi_state_decorated</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.get_oxi_state_decorated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.get_oxi_state_decorated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use <code class="xref py py-class docutils literal"><span class="pre">BVAnalyzer</span></code> to estimate oxidation states
+Return oxidation state decorated structure.
+This currently works only for ordered structures only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Arguments passed to BVAnalyzer</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A modified structure that is oxidation state decorated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.structure.Structure.get_smallest_supercell">
 <code class="descname">get_smallest_supercell</code><span class="sig-paren">(</span><em>qpoint</em>, <em>max_supercell</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.get_smallest_supercell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.get_smallest_supercell" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -2198,6 +2544,12 @@ present in the <cite>pymatgen</cite> database.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.structure.Structure.mayaview">
+<code class="descname">mayaview</code><span class="sig-paren">(</span><em>figure=None</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.mayaview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.mayaview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize the crystalline structure with mayaview</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.structure.Structure.norm">
 <code class="descname">norm</code><span class="sig-paren">(</span><em>coords</em>, <em>space='r'</em>, <em>frac_coords=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the norm of vector(s) either in real space or reciprocal space.</p>
@@ -2234,6 +2586,119 @@ cartesian coordinates.</li>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.core.structure.Structure.plot_bz">
+<code class="descname">plot_bz</code><span class="sig-paren">(</span><em>ax=None</em>, <em>pmg_path=True</em>, <em>with_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.plot_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.plot_bz" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
+pmg_path: True if the default path used in pymatgen should be show.
+with_labels: True to plot k-point labels.</dd>
+</dl>
+<p>Returns: <cite>matplotlib</cite> figure.</p>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.structure.Structure.plot_xrd">
+<code class="descname">plot_xrd</code><span class="sig-paren">(</span><em>wavelength='CuKa'</em>, <em>symprec=0</em>, <em>debye_waller_factors=None</em>, <em>two_theta_range=(0</em>, <em>90)</em>, <em>annotate_peaks=True</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.plot_xrd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.plot_xrd" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Use pymatgen <code class="xref py py-class docutils literal"><span class="pre">XRDCalculator</span></code> to show the XRD plot.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>wavelength (str/float): The wavelength can be specified as either a</dt>
+<dd>float or a string. If it is a string, it must be one of the
+supported definitions in the AVAILABLE_RADIATION class
+variable, which provides useful commonly used wavelengths.
+If it is a float, it is interpreted as a wavelength in
+angstroms. Defaults to &#8220;CuKa&#8221;, i.e, Cu K_alpha radiation.</dd>
+<dt>symprec (float): Symmetry precision for structure refinement. If</dt>
+<dd>set to 0, no refinement is done. Otherwise, refinement is
+performed using spglib with provided precision.</dd>
+<dt>debye_waller_factors ({element symbol: float}): Allows the</dt>
+<dd>specification of Debye-Waller factors. Note that these
+factors are temperature dependent.</dd>
+<dt>two_theta_range ([float of length 2]): Tuple for range of</dt>
+<dd>two_thetas to calculate in degrees. Defaults to (0, 90). Set to
+None if you want all diffracted beams within the limiting
+sphere of radius 2 / wavelength.</dd>
+</dl>
+<p class="last">annotate_peaks: Whether to annotate the peaks with plane information.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.structure.Structure.print_neighbors">
+<code class="descname">print_neighbors</code><span class="sig-paren">(</span><em>radius=2.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.print_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.print_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get neighbors for each atom in the unit cell, out to a distance <cite>radius</cite> in Angstrom
+Print results.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.core.structure.Structure.reciprocal_lattice">
 <code class="descname">reciprocal_lattice</code><a class="headerlink" href="#abipy.core.structure.Structure.reciprocal_lattice" title="Permalink to this definition">¶</a></dt>
@@ -2257,8 +2722,10 @@ cartesian coordinates.</li>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Example</p>
-<p>Structure.rocksalt(a, [&#8220;Na&#8221;, &#8220;Cl&#8221;])</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Structure</span><span class="o">.</span><span class="n">rocksalt</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Na&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2269,13 +2736,14 @@ cartesian coordinates.</li>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.show_bz">
-<code class="descname">show_bz</code><span class="sig-paren">(</span><em>ax=None</em>, <em>pmg_path=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.show_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.show_bz" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show_bz</code><span class="sig-paren">(</span><em>ax=None</em>, <em>pmg_path=True</em>, <em>with_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.core.structure.Structure.show_bz" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-pmg_path: True if the default path used in pymatgen should be show.</dd>
+pmg_path: True if the default path used in pymatgen should be show.
+with_labels: True to plot k-point labels.</dd>
 </dl>
 <p>Returns: <cite>matplotlib</cite> figure.</p>
 </div></blockquote>
@@ -2313,38 +2781,57 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.spget_equivalent_atoms">
-<code class="descname">spget_equivalent_atoms</code><span class="sig-paren">(</span><em>printout=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.spget_equivalent_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.spget_equivalent_atoms" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spget_equivalent_atoms</code><span class="sig-paren">(</span><em>symprec=0.001</em>, <em>angle_tolerance=5</em>, <em>printout=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.spget_equivalent_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.spget_equivalent_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call spglib to find the inequivalent atoms and build symmetry tables.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>printout</strong> &#8211; True to print symmetry tables.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>symprec</strong> &#8211; Symmetry precision for distance</li>
+<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese</li>
+<li><strong>printout</strong> &#8211; True to print symmetry tables.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">irred_pos, eqmap, spgdata<dl class="docutils">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>irred_pos, eqmap, spgdata</p>
+<dl class="docutils">
 <dt>irred_pos: array giving the position of the i-th irred atom in the structure.</dt>
-<dd>The number of irred atoms is len(irred_pos)</dd>
+<dd><p class="first last">The number of irred atoms is len(irred_pos)</p>
+</dd>
 </dl>
 <p>eqmap: Mapping irred atom position &#8211;&gt; list with positions of symmetrical atoms
 spgdata: spglib dataset with additional data reported by spglib.</p>
+</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">namedtuple with the following attributes</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">namedtuple with the following attributes</p>
+</td>
 </tr>
 </tbody>
 </table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="n">irred_pos</span><span class="p">:</span>
+    <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]</span>   <span class="c1"># List of symmetrical positions associated to the irr_pos atom.</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.spget_summary">
-<code class="descname">spget_summary</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.spget_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.spget_summary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spget_summary</code><span class="sig-paren">(</span><em>symprec=0.001</em>, <em>angle_tolerance=5</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.spget_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.spget_summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return string with full information about crystalline structure i.e.
 space group, point group, wyckoff positions, equivalent sites.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; Verbosity level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>symprec</strong> &#8211; Symmetry precision for distance</li>
+<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese</li>
+<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2379,6 +2866,11 @@ already has the list of symmetries found by Abinit.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.structure.Structure.to">
+<code class="descname">to</code><span class="sig-paren">(</span><em>fmt=None</em>, <em>filename=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.structure.Structure.to_abivars">
 <code class="descname">to_abivars</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.to_abivars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.to_abivars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary with the ABINIT variables.</p>
@@ -2399,6 +2891,12 @@ already has the list of symmetries found by Abinit.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.core.structure.Structure.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.structure.Structure.valence_electrons_per_atom">
 <code class="descname">valence_electrons_per_atom</code><span class="sig-paren">(</span><em>pseudos</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.valence_electrons_per_atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.valence_electrons_per_atom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the number of valence electrons for each atom in the structure.</p>
@@ -2414,9 +2912,30 @@ already has the list of symmetries found by Abinit.</li>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.visualize">
-<code class="descname">visualize</code><span class="sig-paren">(</span><em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.visualize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize</code><span class="sig-paren">(</span><em>visu_name='vesta'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.visualize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize the crystalline structure with visualizer.
 See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.structure.Structure.vtkview">
+<code class="descname">vtkview</code><span class="sig-paren">(</span><em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.vtkview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.vtkview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize structure with VTK. Requires vtk python bindings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>show</strong> &#8211; True to show structure immediately.</li>
+<li><strong>kwargs</strong> &#8211; keyword arguments passed to <code class="xref py py-class docutils literal"><span class="pre">StructureVis</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">StructureVis object.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2485,13 +3004,14 @@ instead of Reduced coordinates.</li>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Example</p>
-<p>dfs = frames_from_structures(files)
-dfs.lattice
-dfs.coords
-for structure in dfs.structures:</p>
-<blockquote>
-<div>print(structure)</div></blockquote>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+<span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
+<span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
+<span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -2737,7 +3257,7 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 
 <dl class="method">
 <dt id="abipy.core.tensor.Tensor.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>with_reduced=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>with_reduced=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/tensor.html#Tensor.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.tensor.Tensor.to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -2779,7 +3299,7 @@ in a single location, so that test scripts can just import it and work right awa
 <dl class="class">
 <dt id="abipy.core.testing.AbipyTest">
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
 <p>Extends PymatgenTest with Abinit-specific methods</p>
 <dl class="exception">
 <dt id="abipy.core.testing.AbipyTest.SkipTest">
@@ -2881,6 +3401,12 @@ only input variables and structure are compared.
 <em class="property">static </em><code class="descname">has_matplotlib</code><span class="sig-paren">(</span><em>version=None</em>, <em>op='&gt;='</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_matplotlib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_matplotlib" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abipy.core.testing.AbipyTest.has_mayavi">
+<code class="descname">has_mayavi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_mayavi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_mayavi" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if Mayavi is available. Set also offscreen to True</p>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.has_nbformat">
 <em class="property">static </em><code class="descname">has_nbformat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.has_nbformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.has_nbformat" title="Permalink to this definition">¶</a></dt>
@@ -2916,6 +3442,12 @@ Use <cite>version</cite> and <cite>op</cite> to ask for a specific version</p>
 <em class="property">static </em><code class="descname">skip_if_not_phonopy</code><span class="sig-paren">(</span><em>version=None</em>, <em>op='&gt;='</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.skip_if_not_phonopy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.skip_if_not_phonopy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raise SkipTest if phonopy is not installed.
 Use <cite>version</cite> and <cite>op</cite> to ask for a specific version</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abipy.core.testing.AbipyTest.skip_if_not_pseudodojo">
+<em class="property">static </em><code class="descname">skip_if_not_pseudodojo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.skip_if_not_pseudodojo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.skip_if_not_pseudodojo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise SkipTest if pseudodojo package is not installed.</p>
 </dd></dl>
 
 <dl class="staticmethod">

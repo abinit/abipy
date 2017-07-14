@@ -106,7 +106,6 @@
 
     <span class="c1"># Treat Mac OsX applications.</span>
     <span class="k">if</span> <span class="n">is_macosx</span><span class="p">():</span>
-
         <span class="n">system_apps</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;/Applications&quot;</span><span class="p">)]</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">system_apps</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
@@ -204,7 +203,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">visus</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">is_available</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">visus</span>
-
         <span class="k">return</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">visus</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">support_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)]</span></div>
 
     <span class="nd">@classmethod</span>
@@ -251,7 +249,7 @@
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Visualizer.all_visunames"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.visualizer.Visualizer.all_visunames">[docs]</a>    <span class="k">def</span> <span class="nf">all_visunames</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List with the names of the visualizers supported.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">visu</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">visu</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()]</span></div></div>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">visu</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">visu</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div></div>
 
 
 <span class="c1">####################</span>

@@ -94,7 +94,7 @@
 <span class="target" id="module-abipy.iotools"></span><dl class="class">
 <dt id="abipy.iotools.ETSF_Reader">
 <em class="property">class </em><code class="descclassname">abipy.iotools.</code><code class="descname">ETSF_Reader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
 <p>Overrides the read_structure method so that we always return
 an instance of our Structure object</p>
 <dl class="method">
@@ -235,7 +235,7 @@ Possible choices are (case-insensitive):</p>
 
 <dl class="function">
 <dt id="abipy.iotools.xsf.bxsf_write">
-<code class="descclassname">abipy.iotools.xsf.</code><code class="descname">bxsf_write</code><span class="sig-paren">(</span><em>file</em>, <em>structure</em>, <em>nsppol</em>, <em>nband</em>, <em>ndivs</em>, <em>emesh_sbk</em>, <em>fermie</em>, <em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#bxsf_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.bxsf_write" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.iotools.xsf.</code><code class="descname">bxsf_write</code><span class="sig-paren">(</span><em>file</em>, <em>structure</em>, <em>nsppol</em>, <em>nband</em>, <em>ndivs</em>, <em>ucdata_sbk</em>, <em>fermie</em>, <em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/xsf.html#bxsf_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.xsf.bxsf_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write band structure data in the Xcrysden format (XSF)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -247,8 +247,10 @@ Possible choices are (case-insensitive):</p>
 <li><strong>nsppol</strong> &#8211; Number of spins.</li>
 <li><strong>nband</strong> &#8211; Number of bands.</li>
 <li><strong>ndivs</strong> &#8211; Number of divisions of the full k-mesh.</li>
-<li><strong>emesh_sbk</strong> &#8211; Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit <cite>unit</cite>.</li>
+<li><strong>ucdata_sbk</strong> &#8211; Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with energies
+in the unic cell mesh in unit <cite>unit</cite>.</li>
 <li><strong>fermie</strong> &#8211; Fermi energy.</li>
+<li><strong>of input ucdata_sbk and fermie. Energies will be converted to Hartree before writing.</strong> (<em>unit=Unit</em>) &#8211; </li>
 </ul>
 </td>
 </tr>

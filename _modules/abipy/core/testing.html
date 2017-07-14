@@ -145,17 +145,25 @@
 <span class="sd">    If version is None, the result of matplotlib.__version__ `op` version is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># have_display = &quot;DISPLAY&quot; in os.environ</span>
         <span class="kn">import</span> <span class="nn">matplotlib</span>
-        <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>  <span class="c1"># Use non-graphical display backend during test.</span>
-
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="c1"># have_display = &quot;DISPLAY&quot; in os.environ</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping matplotlib test&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="c1"># http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
+    <span class="c1">#matplotlib.use(&quot;Agg&quot;, force=True)  # Use non-graphical display backend during test.</span>
+
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;agg&quot;</span><span class="p">:</span>
+        <span class="c1">#raise RuntimeError(&quot;matplotlib backend now is %s&quot; % backend)</span>
+        <span class="c1">#matplotlib.use(&quot;Agg&quot;, warn=True, force=False)</span>
+        <span class="c1"># Switch the default backend.</span>
+        <span class="c1"># This feature is experimental, and is only expected to work switching to an image backend.</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span>
@@ -340,6 +348,18 @@
 
     <span class="n">SkipTest</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span>
 
+    <span class="c1">#def setUp(self):</span>
+    <span class="c1">#    import matplotlib</span>
+    <span class="c1">#    matplotlib.use(&quot;Agg&quot;)</span>
+    <span class="c1">#    backend = matplotlib.get_backend()</span>
+    <span class="c1">#    #if backend.lower() != &quot;agg&quot;: raise RuntimeError(&quot;matplotlib backend now is %s&quot; % backend)</span>
+
+    <span class="c1">#def tearDown(self):</span>
+    <span class="c1">#    import matplotlib</span>
+    <span class="c1">#    #backend = matplotlib.get_backend()</span>
+    <span class="c1">#    #if backend.lower() != &quot;agg&quot;: raise RuntimeError(&quot;matplotlib backend now is %s&quot; % backend)</span>
+    <span class="c1">#    matplotlib.use(&quot;Agg&quot;)</span>
+
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.which"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.which">[docs]</a>    <span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">program</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns full path to a executable. None if not found or not executable.&quot;&quot;&quot;</span>
@@ -369,8 +389,23 @@
         <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">ase</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="AbipyTest.has_mayavi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_mayavi">[docs]</a>    <span class="k">def</span> <span class="nf">has_mayavi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if Mayavi is available. Set also offscreen to True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#return False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">mayavi</span> <span class="k">import</span> <span class="n">mlab</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1">#mlab.clf()</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">offscreen</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
 <div class="viewcode-block" id="AbipyTest.assertFwSerializable"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.assertFwSerializable">[docs]</a>    <span class="k">def</span> <span class="nf">assertFwSerializable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="s1">&#39;_fw_name&#39;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="s1">&#39;_fw_name&#39;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
 
     <span class="nd">@staticmethod</span>
@@ -484,6 +519,16 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires abinit version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AbipyTest.skip_if_not_pseudodojo"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_pseudodojo">[docs]</a>    <span class="k">def</span> <span class="nf">skip_if_not_pseudodojo</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise SkipTest if pseudodojo package is not installed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pseudo_dojo</span> <span class="k">import</span> <span class="n">OfficialTables</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="s2">&quot;This test requires pseudodojo package.&quot;</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="AbipyTest.get_mock_module"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">[docs]</a>    <span class="k">def</span> <span class="nf">get_mock_module</span><span class="p">():</span>

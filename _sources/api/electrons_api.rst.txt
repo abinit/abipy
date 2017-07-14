@@ -27,7 +27,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`ebands` Module
----------------------
+--------------------
 
 .. automodule:: abipy.electrons.ebands
    :members:
@@ -42,6 +42,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`Fold2bloch` Module
+------------------------
+
+.. automodule:: abipy.electrons.Fold2bloch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gsr` Module
 -----------------
 
@@ -51,7 +59,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`gw` Module
----------------------
+----------------
 
 .. automodule:: abipy.electrons.gw
    :members:
@@ -59,7 +67,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`denpot` Module
-----------------------
+--------------------
 
 .. automodule:: abipy.electrons.denpot
    :members:
@@ -67,7 +75,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`psps` Module
-----------------------
+------------------
 
 .. automodule:: abipy.electrons.psps
    :members:
@@ -83,7 +91,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`scr` Module
-----------------------
+-----------------
 
 .. automodule:: abipy.electrons.scr
    :members:

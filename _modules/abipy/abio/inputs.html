@@ -107,7 +107,7 @@
 <span class="c1"># List of Abinit variables used to specify the structure.</span>
 <span class="c1"># This variables should not be passed to set_vars since</span>
 <span class="c1"># they will be generated with structure.to_abivars()</span>
-<span class="n">_GEOVARS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+<span class="n">GEOVARS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
     <span class="s2">&quot;acell&quot;</span><span class="p">,</span>
     <span class="s2">&quot;rprim&quot;</span><span class="p">,</span>
     <span class="s2">&quot;rprimd&quot;</span>
@@ -318,8 +318,10 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 
 <span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                output_file: output file of the run.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">                task: Task object</span>
 <span class="sd">        &quot;&quot;&quot;</span></div></div>
 
 
@@ -371,7 +373,7 @@
 
         <span class="k">if</span> <span class="n">pseudo_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pseudo_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">pseudo_dir</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pseudo_dir</span><span class="p">):</span> <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Directory  </span><span class="si">%s</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pseudo_dir</span><span class="p">):</span> <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Directory </span><span class="si">%s</span><span class="s2"> does not exist&quot;</span> <span class="o">%</span> <span class="n">pseudo_dir</span><span class="p">)</span>
             <span class="n">pseudos</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pseudo_dir</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)]</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -467,8 +469,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbinitInput</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_GEOVARS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">GEOVARS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;You cannot set the value of a variable associated to the structure.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;Use Structure objects to prepare the input file.&quot;</span><span class="p">)</span>
 
@@ -584,7 +585,8 @@
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>  <span class="c1"># TODO: This is to maintain compatibility with pickle</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="AbinitInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+                  <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation.</span>
 
@@ -592,6 +594,7 @@
 <span class="sd">            sortmode: &quot;section&quot; if variables should be gruped by sections.</span>
 <span class="sd">                &quot;a&quot; for alphabetical order, None if no sorting is wanted.</span>
 <span class="sd">            with_mnemonics: True if mnemonics should be added.</span>
+<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
 <span class="sd">            post: String that will be appended to the name of the variables</span>
 <span class="sd">                Note that post is usually autodetected when we have multiple datatasets</span>
 <span class="sd">                It is mainly used when we have an input file with a single dataset</span>
@@ -601,6 +604,7 @@
 <span class="sd">                _DS1_ to all the input and output files.</span>
 <span class="sd">            with_structure: False if section with structure variables should not be printed.</span>
 <span class="sd">            with_pseudos: False if JSON section with pseudo data should not be added.</span>
+<span class="sd">            exclude: List of variable names that should be ignored.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -608,9 +612,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="p">))</span>
 
         <span class="n">post</span> <span class="o">=</span> <span class="n">post</span> <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-
         <span class="n">mnemonics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnemonics</span>
         <span class="k">if</span> <span class="n">with_mnemonics</span><span class="p">:</span> <span class="n">mnemonics</span> <span class="o">=</span> <span class="n">with_mnemonics</span>
+        <span class="n">exclude</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span> <span class="k">if</span> <span class="n">exclude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="c1"># If spell checking is deactivates, we cannot use mmemonics or sormode == &quot;section&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">spell_check</span><span class="p">:</span>
@@ -622,25 +626,28 @@
 
         <span class="k">if</span> <span class="n">sortmode</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">):</span>
             <span class="c1"># Default is no sorting else alphabetical order.</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">sortmode</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
 
             <span class="c1"># Extract the items from the dict and add the geo variables at the end</span>
-            <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">with_structure</span><span class="p">:</span>
                 <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">mnemonics</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
 
                 <span class="c1"># Build variable, convert to string and append it</span>
-                <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="n">post</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+                <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
+                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
         <span class="k">elif</span> <span class="n">sortmode</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
             <span class="c1"># Group variables by section.</span>
             <span class="c1"># Get dict mapping section_name --&gt; list of variable names belonging to the section.</span>
-            <span class="n">sec2names</span> <span class="o">=</span> <span class="n">var_database</span><span class="o">.</span><span class="n">group_by_section</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">sec2names</span> <span class="o">=</span> <span class="n">var_database</span><span class="o">.</span><span class="n">group_by_section</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
             <span class="n">w</span> <span class="o">=</span> <span class="mi">92</span>
 
             <span class="k">for</span> <span class="n">sec</span><span class="p">,</span> <span class="n">names</span> <span class="ow">in</span> <span class="n">sec2names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -649,27 +656,32 @@
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">mnemonics</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
 
                     <span class="c1"># Build variable, convert to string and append it</span>
-                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="n">post</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+
+                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
             <span class="k">if</span> <span class="n">with_structure</span><span class="p">:</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">mnemonics</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
-                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="n">post</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">with_pseudos</span><span class="p">:</span> <span class="k">return</span> <span class="n">s</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">with_pseudos</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">s</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s2">&quot;html&quot;</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
 
         <span class="c1"># Add JSON section with pseudo potentials.</span>
         <span class="n">ppinfo</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">#&lt;JSON&gt;&quot;</span><span class="p">]</span>
@@ -677,7 +689,14 @@
         <span class="n">ppinfo</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
         <span class="n">ppinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&lt;/JSON&gt;&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">)</span></div>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">sortmode</span><span class="o">=</span><span class="s2">&quot;section&quot;</span><span class="p">,</span> <span class="n">with_mnemonics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">,</span>
+                              <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1429,12 +1448,44 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 
 <span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                output_file: output file of the run.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">                task: Task object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="n">retcode</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exec_args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--dry-run&quot;</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="n">retcode</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">stderr_file</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="n">retcode</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span>
+                               <span class="n">stderr_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">stderr_file</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitInput.abiget_spacegroup"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_spacegroup">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolsym</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)</span>
+<span class="sd">        It should be called with an input file that contains all the mandatory variables required by ABINIT.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tolsym: Abinit tolsym input variable. None correspondes to the default value.</span>
+<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            Structure object with AbinitSpaceGroup obtained from the main output file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Avoid modifications in self.</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tolsym</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;tolsym&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tolsym</span><span class="p">)</span>
+
+        <span class="c1"># Build a Task to run Abinit in --dry-run mode.</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exec_args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--dry-run&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Parse the output file and return structure extracted from run.abo</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="k">import</span> <span class="n">AbinitOutputFile</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">AbinitOutputFile</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">initial_structure</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitInput.abiget_ibz"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_ibz">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_ibz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1461,7 +1512,7 @@
 
         <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngkpt</span>
         <span class="k">if</span> <span class="n">shiftk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+            <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">kptopt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;kptopt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kptopt</span>
@@ -1990,30 +2041,77 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_same_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if all inputs in MultiDataset are equal.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span> <span class="o">==</span> <span class="n">inp</span><span class="o">.</span><span class="n">structure</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String representation i.e. the input file read by Abinit.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MultiDataset.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String representation i.e. the input file read by Abinit.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
+<span class="sd">            with_pseudos: False if JSON section with pseudo data should not be added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
+            <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># Multi dataset mode.</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ndtset </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span><span class="p">]</span>
 
-            <span class="c1">#same_structures = self.has_same_structures</span>
+            <span class="k">def</span> <span class="nf">has_same_variable</span><span class="p">(</span><span class="n">kref</span><span class="p">,</span> <span class="n">vref</span><span class="p">,</span> <span class="n">other_inp</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;True if variable kref is present in other_inp with the same value.&quot;&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">kref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">other_inp</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">otherv</span> <span class="o">=</span> <span class="n">other_inp</span><span class="p">[</span><span class="n">kref</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">vref</span><span class="p">,</span> <span class="n">otherv</span><span class="p">)</span>
+
+            <span class="c1"># Don&#39;t repeat variable that are common to the different datasets.</span>
+            <span class="c1"># Put them in the `Global Variables` section and exclude these variables in inp.to_string</span>
+            <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k0</span><span class="p">,</span> <span class="n">v0</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">isame</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span><span class="p">):</span>
+                    <span class="n">isame</span> <span class="o">=</span> <span class="n">has_same_variable</span><span class="p">(</span><span class="n">k0</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">isame</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="n">isame</span><span class="p">:</span>
+                    <span class="n">global_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k0</span><span class="p">)</span>
+            <span class="c1">#print(&quot;global_vars vars&quot;, global_vars)</span>
+
+            <span class="n">w</span> <span class="o">=</span> <span class="mi">92</span>
+            <span class="k">if</span> <span class="n">global_vars</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;### Global Variables.&quot;</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">global_vars</span><span class="p">:</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">])))</span>
+
+            <span class="n">has_same_structures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_structures</span>
+            <span class="k">if</span> <span class="n">has_same_structures</span><span class="p">:</span>
+                <span class="c1"># Write structure here and disable structure output in input.to_string</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;### DATASET </span><span class="si">%d</span><span class="s2"> ###&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">is_last</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="c1">#with_structure = True</span>
-                <span class="c1">#if same_structure and not is_last: with_structure = False</span>
-
-                <span class="n">s</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">post</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="n">is_last</span><span class="p">)</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">post</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="n">is_last</span> <span class="ow">and</span> <span class="n">with_pseudos</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+                                  <span class="n">with_structure</span><span class="o">=</span><span class="ow">not</span> <span class="n">has_same_structures</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">global_vars</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
                     <span class="n">header</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">header</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
 
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span><span class="o">==</span><span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># single datasets ==&gt; don&#39;t append the dataset index to the variables.</span>
@@ -2021,7 +2119,11 @@
             <span class="c1"># and we have variables that end with the dataset index e.g. acell1</span>
             <span class="c1"># We don&#39;t want to specify ndtset here since abinit will start to add DS# to</span>
             <span class="c1"># the input and output files thus complicating the algorithms we have to use to locate the files.</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="n">with_pseudos</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiDataset.filter_by_tags"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.filter_by_tags">[docs]</a>    <span class="k">def</span> <span class="nf">filter_by_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2051,7 +2153,6 @@
 
         <span class="k">if</span> <span class="n">exclude_tags</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">exclude_tags</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">tags</span><span class="p">)]</span>
-
 
         <span class="k">return</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="k">if</span> <span class="n">inputs</span> <span class="k">else</span> <span class="kc">None</span></div>
 
@@ -2232,28 +2333,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="c1">#@classmethod</span>
-    <span class="c1">#def phbands(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1,</span>
-    <span class="c1">#           anaddb_args=None, anaddb_kwargs=None):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Build an anaddb input file for the computation of phonon band structure.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),</span>
-    <span class="c1">#                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method=&quot;tetra&quot;,</span>
-    <span class="c1">#                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)</span>
-
-    <span class="c1">#@classmethod</span>
-    <span class="c1">#def phdos(cls, structure, ngqpt, nqsmall, q1shft=(0,0,0), asr=2, chneut=0, dipdip=1, dos_method=&quot;tetra&quot;,</span>
-    <span class="c1">#           anaddb_args=None, anaddb_kwargs=None):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Build an anaddb input file for the computation of phonon DOS.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    return self.phbands_and_dos(structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0,0,0),</span>
-    <span class="c1">#                                qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method=&quot;tetra&quot;,</span>
-    <span class="c1">#                                anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)</span>
-
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
+<div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                         <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2512,12 +2593,13 @@
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
-<div class="viewcode-block" id="AnaddbInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            sortmode: &quot;a&quot; for alphabetical order, None if no sorting is wanted</span>
+<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -2534,11 +2616,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
+        <span class="c1"># http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html&quot;</span>
         <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span>
             <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AnaddbInput.set_qpath"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2575,20 +2664,38 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 
 <span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                output_file: output file of the run.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">                task: Task object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="s2">&quot;fake_DDB&quot;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="c1"># TODO: Anaddb does not support --dry-run</span>
         <span class="c1">#retcode = task.start_and_wait(autoparal=False, exec_args=[&quot;--dry-run&quot;])</span>
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">stderr_file</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span>
+                               <span class="n">stderr_file</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">stderr_file</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="OpticVar"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar">[docs]</a><span class="k">class</span> <span class="nc">OpticVar</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;OpticVar&quot;</span><span class="p">,</span> <span class="s2">&quot;name default group help&quot;</span><span class="p">)):</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sval</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sval</span><span class="p">,</span> <span class="s2">&quot;!&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">help</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sval</span><span class="p">,</span> <span class="s2">&quot;!&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">help</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The url associated to the variable.&quot;&quot;&quot;</span>
+        <span class="c1">#http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html&quot;</span>
+        <span class="k">return</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+<div class="viewcode-block" id="OpticVar.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String with the URL of the web page.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span></div></div>
+
 
 
 <div class="viewcode-block" id="OpticError"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticError">[docs]</a><span class="k">class</span> <span class="nc">OpticError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -2736,7 +2843,7 @@
 
         <span class="k">return</span> <span class="n">my_dict</span></div>
 
-<div class="viewcode-block" id="OpticInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">append</span>
@@ -2760,6 +2867,10 @@
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
+    <span class="c1">#def _repr_html_(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.to_string(mode=&quot;html&quot;)</span>
+
 <div class="viewcode-block" id="OpticInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run OPTIC in dry-run mode to validate the input file.</span>
@@ -2773,18 +2884,25 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 
 <span class="sd">                retcode: Return code. 0 if OK.</span>
+<span class="sd">                output_file: output file of the run.</span>
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
+<span class="sd">                task: Task object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Optic does not support --dry-run</span>
         <span class="c1">#task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)</span>
         <span class="c1">#retcode = task.start_and_wait(autoparal=False, exec_args=[&quot;--dry-run&quot;])</span>
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stderr_file</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">retcode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">stderr_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Cut3DInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput">[docs]</a><span class="k">class</span> <span class="nc">Cut3DInput</span><span class="p">(</span><span class="n">MSONable</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object stores the options to run a single cut3d analysis.</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        Converters with nspden &gt; 1 won&#39;t work since cut3d asks for the ispden index.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infile_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2803,7 +2921,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Cut3DInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a string with the input.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span><span class="p">]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>

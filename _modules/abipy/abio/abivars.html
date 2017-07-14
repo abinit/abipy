@@ -153,7 +153,7 @@
 <span class="sd">    &gt;&gt;&gt; assert expand_star_syntax(&quot;3*2&quot;) == &#39;2 2 2&#39;</span>
 <span class="sd">    &gt;&gt;&gt; assert expand_star_syntax(&quot;2 *1&quot;) == &#39;1 1&#39;</span>
 <span class="sd">    &gt;&gt;&gt; assert expand_star_syntax(&quot;1 2*2&quot;) == &#39;1 2 2&#39;</span>
-<span class="sd">    &gt;&gt;&gt; assert expand_star_syntax(&quot;*2&quot;) == &#39;* 2&#39;</span>
+<span class="sd">    &gt;&gt;&gt; assert expand_star_syntax(&quot;*2&quot;) == &#39;*2&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="s2">&quot;*&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
@@ -164,11 +164,12 @@
 
     <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot; * &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">tokens</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="c1">#tokens = [c.rstrip().lstrip() for c in s.split()]</span>
 
-    <span class="c1"># Handle &quot;*2&quot; case i.e. return &quot;* 2&quot;</span>
+    <span class="c1"># Handle &quot;*2&quot; case i.e. return &quot;*2&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;*&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
 
     <span class="c1">#print(s, tokens)</span>
     <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
@@ -280,14 +281,43 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  kwargs&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">exc</span>
 
+    <span class="k">def</span> <span class="nf">get_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return dictionary with variables. The variables describing the crystalline structure</span>
+<span class="sd">        are removed from the output dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">geovars</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;acell&quot;</span><span class="p">,</span> <span class="s2">&quot;angdeg&quot;</span><span class="p">,</span> <span class="s2">&quot;rprim&quot;</span><span class="p">,</span> <span class="s2">&quot;ntypat&quot;</span><span class="p">,</span> <span class="s2">&quot;natom&quot;</span><span class="p">,</span> <span class="s2">&quot;znucl&quot;</span><span class="p">,</span> <span class="s2">&quot;typat&quot;</span><span class="p">,</span> <span class="s2">&quot;xred&quot;</span><span class="p">,</span> <span class="s2">&quot;xcart&quot;</span><span class="p">,</span> <span class="s2">&quot;xangst&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">geovars</span><span class="p">}</span>
+
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;string representation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String representation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            post: String that will be appended to the name of the variables</span>
+<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
+<span class="sd">            verbose: Verbosity level.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">post</span> <span class="o">=</span> <span class="n">post</span> <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span>
+            <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
+
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
+            <span class="n">vname</span> <span class="o">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">post</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span><span class="o">==</span><span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AbinitInputFile"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars.AbinitInputFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitInputFile</span><span class="p">(</span><span class="n">TextFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -310,16 +340,15 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">AbinitInputFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">string</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="n">string</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="n">AbinitInputParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="n">AbinitInputParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="AbinitInputFile.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars.AbinitInputFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInputFile.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars.AbinitInputFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -330,13 +359,13 @@
 
         <span class="c1"># Print info on structure(s).</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">spglib_summary</span><span class="p">())</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">structure</span> <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Input file contains </span><span class="si">%d</span><span class="s2"> structures:&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">structures</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structures</span><span class="p">):</span>
                 <span class="n">app</span><span class="p">(</span><span class="n">boxed</span><span class="p">(</span><span class="s2">&quot;Dataset: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
-                <span class="n">app</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">spglib_summary</span><span class="p">())</span>
+                <span class="n">app</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">())</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
             <span class="n">dfs</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span><span class="p">)])</span>
@@ -349,6 +378,12 @@
             <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">repr_html_from_abinit_string</span>
+        <span class="k">return</span> <span class="n">repr_html_from_abinit_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="c1">#return self.to_string(mode=&quot;html&quot;))</span>
 
 <div class="viewcode-block" id="AbinitInputFile.close"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars.AbinitInputFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;NOP, required by ABC.&quot;&quot;&quot;</span></div>
@@ -373,6 +408,8 @@
                 <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span></div>
 
+    <span class="c1">#def to_abinit_input(self):</span>
+
 <div class="viewcode-block" id="AbinitInputFile.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars.AbinitInputFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
@@ -388,14 +425,14 @@
         <span class="n">has_multi_structures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">has_multi_structures</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">for dataset in inp.datasets:</span>
 <span class="s2">    print(dataset.structure)&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndtset</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">for dataset in abinp.datasets:</span>
 <span class="s2">    print(dataset)&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="p">])</span>
@@ -411,6 +448,7 @@
 <span class="sd">        This function receives a string `s` with the Abinit input and return</span>
 <span class="sd">        a list of :class:`Dataset` objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Parse PSEUDO section if present!</span>
         <span class="c1"># Remove comments from lines.</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
@@ -425,7 +463,6 @@
         <span class="c1"># 2) split string in tokens.</span>
         <span class="c1"># 3) Evaluate star syntax i.e. &quot;3*2&quot; ==&gt; &#39;2 2 2&#39;</span>
         <span class="c1"># 4) Evaluate operators e.g. sqrt(0.75)</span>
-
         <span class="n">tokens</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="c1"># Step 3 is needed because we are gonna use python to evaluate the operators and</span>
         <span class="c1"># in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!</span>
@@ -690,6 +727,8 @@
                 <span class="c1">#    print(10*&quot;=&quot; + &quot;Input File&quot; + 10*&quot;=&quot;)</span>
                 <span class="c1">#    print(fh.read())</span>
                 <span class="c1">#    print()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;NOTIMPLEMENTED&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">errpaths</span><span class="p">:</span>
         <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;failed: </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> [</span><span class="si">%.1f%%</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">errpaths</span><span class="p">),</span> <span class="n">nfiles</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">errpaths</span><span class="p">)</span><span class="o">/</span><span class="n">nfiles</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>

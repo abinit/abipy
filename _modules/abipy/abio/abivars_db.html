@@ -192,7 +192,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;For Ipython notebook&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
         <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&lt;h2&gt;Default value:&lt;/h2&gt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultval</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&lt;br/&gt;&lt;h2&gt;Description&lt;/h2&gt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[[&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;b&gt;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]]&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;/b&gt;&quot;</span><span class="p">)</span>
 
@@ -233,7 +233,26 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isarray</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="c1"># This test is not very robust and can fail.</span>
         <span class="k">if</span> <span class="n">dimname</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">):</span> <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The url associated to the variable.&quot;&quot;&quot;</span>
+        <span class="c1"># https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/&quot;</span>
+        <span class="c1">#root = &quot;http://www.abinit.org/inpvars/html_automatically_generated/&quot;</span>
+        <span class="k">return</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.html#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">section</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varname</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Variable.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String with the URL of the web page.&quot;&quot;&quot;</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varname</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tag</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Variable.browse"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.browse">[docs]</a>    <span class="k">def</span> <span class="nf">browse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open variable documentation in browser.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">webbrowser</span>
+        <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span></div></div>
+
 
 
 <div class="viewcode-block" id="ValueWithUnit"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.ValueWithUnit">[docs]</a><span class="k">class</span> <span class="nc">ValueWithUnit</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">YAMLObject</span><span class="p">):</span>
@@ -484,6 +503,26 @@
     <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
         <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">))</span>
     <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="repr_html_from_abinit_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.repr_html_from_abinit_string">[docs]</a><span class="k">def</span> <span class="nf">repr_html_from_abinit_string</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a string `text` with an Abinit input file, replace all variables</span>
+<span class="sd">    with HTML links pointing to the official documentation. Return new string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">var_database</span> <span class="o">=</span> <span class="n">get_abinit_variables</span><span class="p">()</span>
+
+    <span class="c1"># https://stackoverflow.com/questions/6116978/python-replace-multiple-strings</span>
+    <span class="c1"># define desired replacements here e.g. rep = {&quot;condition1&quot;: &quot;&quot;, &quot;condition2&quot;: &quot;text&quot;}</span>
+    <span class="c1"># ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="p">{</span><span class="n">vname</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span> <span class="k">for</span> <span class="n">vname</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">var_database</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">rep</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rep</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
+
+    <span class="c1"># Use these three lines to do the replacement</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rep</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">rep</span><span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))],</span> <span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

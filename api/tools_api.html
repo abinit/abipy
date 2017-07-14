@@ -130,10 +130,44 @@ are available in <cite>arr</cite>.</p>
 </div>
 <div class="section" id="module-abipy.tools.devtools">
 <span id="devtools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">devtools</span></code> Module<a class="headerlink" href="#module-abipy.tools.devtools" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abipy.tools.devtools.HtmlDiff">
+<em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">HtmlDiff</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This object produces diff files in HTML format and displays them in the browser.</p>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">HtmlDiff</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span><span class="o">.</span><span class="n">open_browser</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.difflib">
+<code class="descname">difflib</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.difflib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.difflib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use difflib to generate a HTML file with the diff.
+Open file in the browser.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.open_browser">
+<code class="descname">open_browser</code><span class="sig-paren">(</span><em>diffmode='difflib'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.open_browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.open_browser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.pygmentize">
+<code class="descname">pygmentize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.pygmentize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.pygmentize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execut <cite>diff</cite> and <cite>pygmentize</cite> in a subprocess to generate a HTML file with the diff.
+Open file in the browser.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="abipy.tools.devtools.profile">
 <code class="descclassname">abipy.tools.devtools.</code><code class="descname">profile</code><span class="sig-paren">(</span><em>statement</em>, <em>global_vars</em>, <em>local_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run statement under profiler, supplying your own globals and locals</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="n">profile</span><span class="p">(</span><span class="s2">&quot;main()&quot;</span><span class="p">,</span> <span class="n">global_vars</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">local_vars</span><span class="o">=</span><span class="nb">locals</span><span class="p">())</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

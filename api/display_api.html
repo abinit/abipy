@@ -1,0 +1,330 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools Package &#8212; abipy 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dfpt Package" href="dfpt_api.html" />
+    <link rel="prev" title="data Package" href="data_api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">tools Package</a></li>
+<li><a class="reference internal" href="#module-abipy.display"><code class="docutils literal"><span class="pre">display</span></code> Module</a><ul>
+<li><a class="reference internal" href="#module-abipy.display.mvtk"><code class="docutils literal"><span class="pre">mvtk</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.pandasw"><code class="docutils literal"><span class="pre">pandasw</span></code> Module</a></li>
+<li><a class="reference internal" href="#seaborn-module"><code class="docutils literal"><span class="pre">seaborn</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.utils"><code class="docutils literal"><span class="pre">utils</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API documentation</a><ul>
+      <li>Previous: <a href="data_api.html" title="previous chapter">data Package</a></li>
+      <li>Next: <a href="dfpt_api.html" title="next chapter">dfpt Package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/display_api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tools-package">
+<h1>tools Package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="module-abipy.display">
+<span id="display-module"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">display</span></code> Module<a class="headerlink" href="#module-abipy.display" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-abipy.display.mvtk">
+<span id="mvtk-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">mvtk</span></code> Module<a class="headerlink" href="#module-abipy.display.mvtk" title="Permalink to this headline">¶</a></h2>
+<p>Mayavi toolkit.</p>
+<dl class="class">
+<dt id="abipy.display.mvtk.MayaviFieldAnimator">
+<em class="property">class </em><code class="descclassname">abipy.display.mvtk.</code><code class="descname">MayaviFieldAnimator</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="abipy.display.mvtk.MayaviFieldAnimator.volume_animate">
+<code class="descname">volume_animate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.get_fig_mlab">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">get_fig_mlab</code><span class="sig-paren">(</span><em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#get_fig_mlab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.get_fig_mlab" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_labels">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_labels</code><span class="sig-paren">(</span><em>labels</em>, <em>lattice=None</em>, <em>coords_are_cartesian=False</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds labels to a mayavi figure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>labels</strong> &#8211; dict containing the label as a key and the coordinates as value.</li>
+<li><strong>lattice</strong> &#8211; Lattice object used to convert from reciprocal to cartesian coordinates</li>
+<li><strong>coords_are_cartesian</strong> &#8211; Set to True if you are providing.
+coordinates in cartesian coordinates. Defaults to False.
+Requires lattice if False.</li>
+<li><strong>figure</strong> &#8211; mayavi figure, None to plot on the curretn figure</li>
+<li><strong>kwargs</strong> &#8211; kwargs passed to the mayavi function <cite>text3d</cite>. Color defaults to blue
+and size to 25.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_lattice_vectors">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_lattice_vectors</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_lattice_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_lattice_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the basis vectors of the lattice provided to a mayavi figure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lattice</strong> &#8211; Lattice object</li>
+<li><strong>figure</strong> &#8211; mayavi figure, None if a new figure should be created.</li>
+<li><strong>kwargs</strong> &#8211; kwargs passed to the mayavi function <cite>plot3d</cite>. Color defaults to black
+and line_width to 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_structure">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_structure</code><span class="sig-paren">(</span><em>structure</em>, <em>frac_coords=False</em>, <em>to_unit_cell=False</em>, <em>style='points+labels'</em>, <em>unit_cell_color=(0</em>, <em>0</em>, <em>0)</em>, <em>color_scheme='VESTA'</em>, <em>figure=None</em>, <em>show=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot structure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>structure</strong> &#8211; </li>
+<li><strong>frac_coords</strong> &#8211; </li>
+<li><strong>to_unit_cell</strong> &#8211; </li>
+<li><strong>style</strong> &#8211; </li>
+<li><strong>unit_cell_color</strong> &#8211; </li>
+<li><strong>color_scheme</strong> &#8211; </li>
+<li><strong>figure</strong> &#8211; </li>
+<li><strong>kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_unit_cell">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_unit_cell</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_unit_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the unit cell of the lattice to a mayavi figure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lattice</strong> &#8211; Lattice object</li>
+<li><strong>figure</strong> &#8211; mayavi figure, None to plot on the curretn figure</li>
+<li><strong>kwargs</strong> &#8211; kwargs passed to the mayavi function &#8216;plot3d&#8217;. Color defaults to black
+and line_width to 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_wigner_seitz">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_wigner_seitz</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_wigner_seitz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_wigner_seitz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi figure</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lattice</strong> &#8211; Lattice object</li>
+<li><strong>figure</strong> &#8211; mayavi figure, None to plot on the curretn figure</li>
+<li><strong>kwargs</strong> &#8211; kwargs passed to the mayavi function <cite>plot3d</cite>. Color defaults to black
+and line_width to 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.display.pandasw">
+<span id="pandasw-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">pandasw</span></code> Module<a class="headerlink" href="#module-abipy.display.pandasw" title="Permalink to this headline">¶</a></h2>
+<p>Widgets for Pandas Dataframes.</p>
+</div>
+<div class="section" id="seaborn-module">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">seaborn</span></code> Module<a class="headerlink" href="#seaborn-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abipy.display.utils">
+<span id="utils-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module<a class="headerlink" href="#module-abipy.display.utils" title="Permalink to this headline">¶</a></h2>
+<p>Tools to build ipython widgets.</p>
+<dl class="function">
+<dt id="abipy.display.utils.add_docstrings">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">add_docstrings</code><span class="sig-paren">(</span><em>*tuples</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#add_docstrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.add_docstrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>This decorator adds to the docstring the documentation for functions.
+When writing high-level API, it&#8217;s quite common to call thirdy-party functions
+with a restricted set of arguments while optional keyword arguments are
+collected in an optional dictionary.</p>
+<p>The first item of the tuple contains the function (python object) wrapped by the code.
+The second item is list of strings with the name of the actual arguments passed to function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.colormap_widget">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">colormap_widget</code><span class="sig-paren">(</span><em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colormap_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colormap_widget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.colors_dropdow">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">colors_dropdow</code><span class="sig-paren">(</span><em>default='None'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colors_dropdow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colors_dropdow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.linewidth_slider">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">linewidth_slider</code><span class="sig-paren">(</span><em>default=1</em>, <em>orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#linewidth_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.linewidth_slider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.markers_dropdown">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">markers_dropdown</code><span class="sig-paren">(</span><em>default='o'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#markers_dropdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.markers_dropdown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.saturation_slider">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">saturation_slider</code><span class="sig-paren">(</span><em>default=0.75</em>, <em>orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#saturation_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.saturation_slider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.size_slider">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">size_slider</code><span class="sig-paren">(</span><em>default=5</em>, <em>orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#size_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.size_slider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.str2bool_or_none">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">str2bool_or_none</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#str2bool_or_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.str2bool_or_none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.widget2py">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">widget2py</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, The AbiPy group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/api/display_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

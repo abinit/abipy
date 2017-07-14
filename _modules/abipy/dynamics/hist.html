@@ -72,11 +72,11 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
 
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span> <span class="c1"># is_string, list_strings,</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">EnergyArray</span><span class="p">,</span> <span class="n">ArrayWithUnit</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
@@ -116,16 +116,27 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="HistFile.to_string"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HistFile.to_string"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Initial structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Final structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of relaxation steps performed: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">an</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_relaxation_analyzer</span><span class="p">()</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Volume change in percentage: </span><span class="si">%.2f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">an</span><span class="o">.</span><span class="n">get_percentage_volume_change</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">an</span><span class="o">.</span><span class="n">get_percentage_lattice_parameter_changes</span><span class="p">()</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Percentage lattice parameter changes:</span><span class="se">\n\t</span><span class="s2">a: </span><span class="si">%.2f%%</span><span class="s2">, b: </span><span class="si">%.2f%%</span><span class="s2">, c: %2.f</span><span class="si">%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+        <span class="c1">#an.get_percentage_bond_dist_changes(max_radius=3.0)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">cart_stress_tensors</span><span class="p">,</span> <span class="n">pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensors</span><span class="p">()</span>
@@ -145,6 +156,11 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span></div>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">initial_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The initial structure.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">final_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The structure of the last iteration.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -159,29 +175,12 @@
         <span class="sd">&quot;&quot;&quot;numpy array with total energies in eV at the different steps.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_eterms</span><span class="p">()</span><span class="o">.</span><span class="n">etotals</span></div>
 
-    <span class="c1">#def export(self, filename, visu=None):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Export the crystalline structure to file filename.</span>
-
-    <span class="c1">#    Args:</span>
-    <span class="c1">#        filename: String specifying the file path and the file format.</span>
-    <span class="c1">#            The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
-    <span class="c1">#            will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
-    <span class="c1">#        visu: `Visualizer` subclass. By default, this method returns the first available</span>
-    <span class="c1">#            visualizer that supports the given file format. If visu is not None, an</span>
-    <span class="c1">#            instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.</span>
-
-    <span class="c1">#    Returns: Instance of :class:`Visualizer`</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    print(&quot;Warning: work in progress&quot;)</span>
-    <span class="c1">#    raise NotImplementedError(&quot;typat is missing in HIST --&gt; wrong structures&quot;)</span>
-
-    <span class="c1">#    if &quot;.&quot; not in filename:</span>
-    <span class="c1">#        raise ValueError(&quot;Cannot detect extension in filename %s: &quot; % filename)</span>
-
-    <span class="c1">#    from abipy.iotools.xsf import xsf_write_structure</span>
-    <span class="c1">#    with open(filename, &quot;w&quot;) as fh:</span>
-    <span class="c1">#        xsf_write_structure(fh, self.structures)</span>
+<div class="viewcode-block" id="HistFile.get_relaxation_analyzer"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.get_relaxation_analyzer">[docs]</a>    <span class="k">def</span> <span class="nf">get_relaxation_analyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a pymatgen :class:`RelaxationAnalyzer object to analyze the relaxation in a calculation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.analysis.structure_analyzer</span> <span class="k">import</span> <span class="n">RelaxationAnalyzer</span>
+        <span class="k">return</span> <span class="n">RelaxationAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">)</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
 <div class="viewcode-block" id="HistFile.plot"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -272,6 +271,77 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+<div class="viewcode-block" id="HistFile.mvplot_trajectories"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.mvplot_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">mvplot_trajectories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;hot&quot;</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_forces</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call mayavi to plot atomic trajectories and the variation of the unit cell.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
+        <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;labels&quot;</span>
+        <span class="n">line_width</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">unit_cell_color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+        <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">unit_cell_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="n">xcart_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;xcart&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">bohr_to_ang</span>
+        <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">natom</span><span class="p">):</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">xcart_list</span><span class="p">[::</span><span class="n">sampling</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+            <span class="c1">#for i in zip(x, y, z): print(i)</span>
+            <span class="n">trajectory</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">tube_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">line_width</span><span class="o">=</span><span class="n">line_width</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+            <span class="n">mlab</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Iteration&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_forces</span><span class="p">:</span>
+            <span class="n">fcart_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_forces</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">natom</span><span class="p">):</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">xcart_list</span><span class="p">[::</span><span class="n">sampling</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">fcart_list</span><span class="p">[::</span><span class="n">sampling</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">quiver3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span>
+                                  <span class="n">line_width</span><span class="o">=</span><span class="n">line_width</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+                <span class="c1">#mlab.colorbar(q, title=&#39;Forces [eV/Ang]&#39;, orientation=&#39;vertical&#39;)</span>
+
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">mlab</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">figure</span></div>
+
+<div class="viewcode-block" id="HistFile.mvanimate"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.mvanimate">[docs]</a>    <span class="k">def</span> <span class="nf">mvanimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
+        <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;points&quot;</span>
+        <span class="c1">#mvtk.plot_structure(self.initial_structure, style=style, figure=figure)</span>
+        <span class="c1">#mvtk.plot_structure(self.final_structure, style=style, figure=figure)</span>
+
+        <span class="n">xcart_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;xcart&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">bohr_to_ang</span>
+        <span class="c1">#t = np.arange(self.num_steps)</span>
+        <span class="c1">#line_width = 2</span>
+        <span class="c1">#for iatom in range(self.reader.natom):</span>
+        <span class="c1">#    x, y, z = xcart_list[:, iatom, :].T</span>
+        <span class="c1">#    trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None, line_width=line_width, figure=figure)</span>
+        <span class="c1">#mlab.colorbar(trajectory, title=&#39;Iteration&#39;, orientation=&#39;vertical&#39;)</span>
+
+        <span class="c1">#x, y, z = xcart_list[0, :, :].T</span>
+        <span class="c1">#nodes = mlab.points3d(x, y, z)</span>
+        <span class="c1">#nodes.glyph.scale_mode = &#39;scale_by_vector&#39;</span>
+        <span class="c1">#this sets the vectors to be a 3x5000 vector showing some random scalars</span>
+        <span class="c1">#nodes.mlab_source.dataset.point_data.vectors = np.tile( np.random.random((5000,)), (3,1))</span>
+        <span class="c1">#nodes.mlab_source.dataset.point_data.scalars = np.random.random((5000,))</span>
+
+        <span class="nd">@mlab</span><span class="o">.</span><span class="n">show</span>
+        <span class="nd">@mlab</span><span class="o">.</span><span class="n">animate</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">,</span> <span class="n">ui</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">anim</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;Animate.&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">it</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">):</span>
+            <span class="c1">#for it in range(self.num_steps):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating scene for iteration:&#39;</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span>
+                <span class="c1">#mlab.clf(figure=figure)</span>
+                <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+                <span class="c1">#x, y, z = xcart_list[it, :, :].T</span>
+                <span class="c1">#nodes.mlab_source.set(x=x, y=y, z=z)</span>
+                <span class="c1">#figure.scene.render()</span>
+                <span class="n">mlab</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+                <span class="k">yield</span>
+
+        <span class="n">anim</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="HistFile.write_notebook"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
@@ -319,6 +389,7 @@
         <span class="n">cart_forces_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_cart_forces</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">)</span>
 
         <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1">#print(&quot;typat&quot;, type(typat))</span>
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span>
                 <span class="n">xred</span><span class="o">=</span><span class="n">xred_list</span><span class="p">[</span><span class="n">step</span><span class="p">],</span>
@@ -335,9 +406,9 @@
 
     <span class="k">def</span> <span class="nf">read_eterms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">AttrDict</span><span class="p">(</span>
-            <span class="n">etotals</span><span class="o">=</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;etotal&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
-            <span class="n">kinetic_terms</span><span class="o">=</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ekin&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
-            <span class="n">entropies</span><span class="o">=</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
+            <span class="n">etotals</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;etotal&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
+            <span class="n">kinetic_terms</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ekin&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
+            <span class="n">entropies</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">):</span>
@@ -345,7 +416,7 @@
 <span class="sd">        Read and return a numpy array with the cartesian forces in unit `unit`.</span>
 <span class="sd">        Shape (num_steps, natom, 3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fcart&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fcart&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_reduced_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

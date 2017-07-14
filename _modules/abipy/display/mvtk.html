@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>abipy.display.mvtk &#8212; abipy 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for abipy.display.mvtk</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Mayavi toolkit.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">DEFAULT_FIGURE_KWARGS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">768</span><span class="p">),</span> <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_fig_mlab"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.get_fig_mlab">[docs]</a><span class="k">def</span> <span class="nf">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">mayavi</span> <span class="k">import</span> <span class="n">mlab</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mayavi is not installed. Use `conda install mayavi` or `pip installa mayavi&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">exc</span>
+
+    <span class="c1"># To use the full envisage application</span>
+    <span class="c1">#mlab.options.backend = &quot;envisage&quot;</span>
+    <span class="c1">#mlab.options.backend = &quot;test&quot;</span>
+    <span class="c1">#mlab.options.offscreen = True</span>
+
+    <span class="k">if</span> <span class="n">figure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Add defaults</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">DEFAULT_FIGURE_KWARGS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="n">figure</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span></div>
+
+
+<div class="viewcode-block" id="plot_wigner_seitz"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.plot_wigner_seitz">[docs]</a><span class="k">def</span> <span class="nf">plot_wigner_seitz</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi figure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        figure: mayavi figure, None to plot on the curretn figure</span>
+<span class="sd">        kwargs: kwargs passed to the mayavi function `plot3d`. Color defaults to black</span>
+<span class="sd">            and line_width to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mayavi figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s2">&quot;tube_radius&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tube_radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">bz</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_wigner_seitz_cell</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">iface</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bz</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">bz</span><span class="p">[</span><span class="n">iface</span><span class="p">],</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jface</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bz</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">iface</span> <span class="o">&lt;</span> <span class="n">jface</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bz</span><span class="p">[</span><span class="n">jface</span><span class="p">])</span>\
+                        <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bz</span><span class="p">[</span><span class="n">jface</span><span class="p">]):</span>
+                    <span class="c1">#do_plot = True</span>
+                    <span class="c1">#if in_unit_cell:</span>
+                    <span class="c1">#    kred0 = lattice.get_fractional_coords(line[0])</span>
+                    <span class="c1">#    kred1 = lattice.get_fractional_coords(line[1])</span>
+                    <span class="c1">#    do_plot = np.alltrue((kred0 &gt;= 0) &amp; (kred0 &lt;= 0.5) &amp;</span>
+                    <span class="c1">#                         (kred1 &gt;= 0) &amp; (kred1 &lt;= 0.5))</span>
+                    <span class="c1">#    print(kred0, kred1, do_plot)</span>
+                    <span class="c1">#if not do_plot: continue</span>
+                    <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figure</span></div>
+
+
+<div class="viewcode-block" id="plot_unit_cell"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.plot_unit_cell">[docs]</a><span class="k">def</span> <span class="nf">plot_unit_cell</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the unit cell of the lattice to a mayavi figure.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        figure: mayavi figure, None to plot on the curretn figure</span>
+<span class="sd">        kwargs: kwargs passed to the mayavi function &#39;plot3d&#39;. Color defaults to black</span>
+<span class="sd">            and line_width to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mayavi figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s2">&quot;tube_radius&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tube_radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+                 <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)):</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1">#mlab.xlabel(&quot;x-axis&quot;)</span>
+    <span class="c1">#mlab.ylabel(&quot;y-axis&quot;)</span>
+    <span class="c1">#mlab.zlabel(&quot;z-axis&quot;)</span>
+
+    <span class="k">return</span> <span class="n">figure</span></div>
+
+
+<div class="viewcode-block" id="plot_lattice_vectors"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.plot_lattice_vectors">[docs]</a><span class="k">def</span> <span class="nf">plot_lattice_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the basis vectors of the lattice provided to a mayavi figure.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        figure: mayavi figure, None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the mayavi function `plot3d`. Color defaults to black</span>
+<span class="sd">            and line_width to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mayavi figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;line_width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s2">&quot;tube_radius&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tube_radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">vertex1</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">vertex2</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">mlab</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">vertex2</span><span class="p">),</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figure</span></div>
+
+
+<div class="viewcode-block" id="plot_structure"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.plot_structure">[docs]</a><span class="k">def</span> <span class="nf">plot_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;points+labels&quot;</span><span class="p">,</span>
+                   <span class="n">unit_cell_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s2">&quot;VESTA&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot structure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure:</span>
+<span class="sd">        frac_coords</span>
+<span class="sd">        to_unit_cell</span>
+<span class="sd">        style</span>
+<span class="sd">        unit_cell_color:</span>
+<span class="sd">        color_scheme</span>
+<span class="sd">        figure:</span>
+<span class="sd">        kwargs:</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mayavi figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="c1">#if not frac_coords:</span>
+    <span class="n">plot_unit_cell</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">unit_cell_color</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">pymatgen.analysis.molecule_structure_comparator</span> <span class="k">import</span> <span class="n">CovalentRadius</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="k">import</span> <span class="n">EL_COLORS</span>
+    <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">:</span>
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">EL_COLORS</span><span class="p">[</span><span class="n">color_scheme</span><span class="p">][</span><span class="n">symbol</span><span class="p">])</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">CovalentRadius</span><span class="o">.</span><span class="n">radius</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">to_unit_cell</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="s2">&quot;to_unit_cell&quot;</span><span class="p">):</span> <span class="n">site</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">to_unit_cell</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">if</span> <span class="n">frac_coords</span> <span class="k">else</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span>
+
+        <span class="k">if</span> <span class="s2">&quot;points&quot;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+            <span class="n">mlab</span><span class="o">.</span><span class="n">points3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span>
+                          <span class="n">resolution</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">scale_mode</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;labels&quot;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+            <span class="n">mlab</span><span class="o">.</span><span class="n">text3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">mlab</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">figure</span></div>
+
+
+<div class="viewcode-block" id="plot_labels"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.plot_labels">[docs]</a><span class="k">def</span> <span class="nf">plot_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">lattice</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds labels to a mayavi figure.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labels: dict containing the label as a key and the coordinates as value.</span>
+<span class="sd">        lattice: Lattice object used to convert from reciprocal to cartesian coordinates</span>
+<span class="sd">        coords_are_cartesian: Set to True if you are providing.</span>
+<span class="sd">            coordinates in cartesian coordinates. Defaults to False.</span>
+<span class="sd">            Requires lattice if False.</span>
+<span class="sd">        figure: mayavi figure, None to plot on the curretn figure</span>
+<span class="sd">        kwargs: kwargs passed to the mayavi function `text3d`. Color defaults to blue</span>
+<span class="sd">            and size to 25.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mayavi figure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+    <span class="c1">#if &quot;color&quot; not in kwargs:</span>
+    <span class="c1">#    kwargs[&quot;color&quot;] = &quot;b&quot;</span>
+    <span class="c1">#if &quot;size&quot; not in kwargs:</span>
+    <span class="c1">#    kwargs[&quot;size&quot;] = 25</span>
+    <span class="c1">#if &quot;width&quot; not in kwargs:</span>
+    <span class="c1">#    kwargs[&quot;width&quot;] = 0.8</span>
+    <span class="k">if</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">k</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;$&quot;</span>
+        <span class="n">off</span> <span class="o">=</span> <span class="mf">0.01</span>
+        <span class="k">if</span> <span class="n">coords_are_cartesian</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lattice</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coords_are_cartesian False requires the lattice&quot;</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span> <span class="o">+</span> <span class="n">off</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">text3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figure</span></div>
+
+
+<div class="viewcode-block" id="MayaviFieldAnimator"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.MayaviFieldAnimator">[docs]</a><span class="k">class</span> <span class="nc">MayaviFieldAnimator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepaths</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span> <span class="o">=</span> <span class="n">filepaths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MayaviFieldAnimator.volume_animate"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.mvtk.MayaviFieldAnimator.volume_animate">[docs]</a>    <span class="k">def</span> <span class="nf">volume_animate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
+        <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+            <span class="n">nsppol</span><span class="p">,</span> <span class="n">nspden</span><span class="p">,</span> <span class="n">nspinor</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nc</span><span class="o">.</span><span class="n">nspden</span><span class="p">,</span> <span class="n">nc</span><span class="o">.</span><span class="n">nspinor</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">structure</span>
+            <span class="n">datar</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="n">datar</span>
+            <span class="c1"># [nspden, nx, ny, nz] array</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">datar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1">#cart_coords = np.empty((nx*ny*nz, 3))</span>
+        <span class="c1">#cnt = 0</span>
+        <span class="c1">#for i in range(nx):</span>
+        <span class="c1">#    for j in range(ny):</span>
+        <span class="c1">#        for k in range(nz):</span>
+        <span class="c1">#            cart_coords[ctn, :] = (i/nx, j/ny, k/nz)</span>
+        <span class="c1">#            cnt += 1</span>
+        <span class="c1">#cart_coords = structure.lattice.get_cartesian_coords(cart_coords)</span>
+        <span class="c1"># We reorder the points, scalars and vectors so this is as per VTK&#39;s</span>
+        <span class="c1"># requirement of x first, y next and z last.</span>
+        <span class="c1">#pts = pts.transpose(2, 1, 0, 3).copy()</span>
+        <span class="c1">#pts.shape = pts.size / 3, 3</span>
+        <span class="c1">#scalars = scalars.T.copy()</span>
+        <span class="c1">#vectors = vectors.transpose(2, 1, 0, 3).copy()</span>
+        <span class="c1">#vectors.shape = vectors.size / 3, 3</span>
+
+        <span class="c1">#from tvtk.api import tvtk</span>
+        <span class="c1">#sgrid = tvtk.StructuredGrid(dimensions=(dims[1], dims[0], dims[2]))</span>
+        <span class="c1">#sgrid.points = pts</span>
+        <span class="c1">#s = random.random((dims[0]*dims[1]*dims[2]))</span>
+        <span class="c1">#sgrid.point_data.scalars = ravel(s.copy())</span>
+        <span class="c1">#sgrid.point_data.scalars.name = &#39;scalars&#39;</span>
+
+        <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">scalar_field</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">data_min</span><span class="p">,</span> <span class="n">data_max</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">data_min</span><span class="p">,</span> <span class="n">data_max</span><span class="p">)</span>
+        <span class="c1">#mlab.pipeline.volume(source)</span>
+        <span class="c1">#                     #vmin=data_min + 0.65 * (data_max - data_min),</span>
+        <span class="c1">#                     #vmax=data_min + 0.9 * (data_max - data_min))</span>
+        <span class="c1">#mlab.pipeline.iso_surface(source)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;x_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;y_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;z_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="nd">@mlab</span><span class="o">.</span><span class="n">show</span>
+        <span class="nd">@mlab</span><span class="o">.</span><span class="n">animate</span><span class="p">(</span><span class="n">delay</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">ui</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">anim</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;Animate.&quot;&quot;&quot;</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1">#vmin, vmax = .1 * np.max(data[t]), .2 * np.max(data[t])</span>
+                <span class="c1">#print &#39;animation t = &#39;,tax[t],&#39;, max = &#39;,np.max(data[t])</span>
+                <span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="n">t</span><span class="p">])</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Animation step&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="s2">&quot;from file:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                    <span class="c1">#nsppol, nspden, nspinor = nc.nsppol, nc.nspden, nc.nspinor</span>
+                    <span class="n">datar</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="n">datar</span>
+                    <span class="c1"># [nspden, nx, ny, nz] array</span>
+                    <span class="c1">#nx, ny, nz = datar.shape[1:]</span>
+                    <span class="n">scalars</span> <span class="o">=</span> <span class="n">datar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1">#data_min, data_max = scalars.min(), scalars.max(),</span>
+                <span class="c1">#mlab.pipeline.volume(source, vmin=data_min + 0.65 * (data_max - data_min),</span>
+                <span class="c1">#                     vmax=data_min + 0.9 * (data_max - data_min))</span>
+                <span class="n">source</span><span class="o">.</span><span class="n">mlab_source</span><span class="o">.</span><span class="n">scalars</span> <span class="o">=</span> <span class="n">scalars</span>
+
+                <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_files</span>
+                <span class="k">yield</span>
+
+        <span class="n">anim</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, The AbiPy group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

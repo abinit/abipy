@@ -71,6 +71,7 @@
 <span class="sd">&quot;&quot;&quot;This module defines basic objects representing the crystalline structure.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -90,17 +91,127 @@
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span> <span class="c1">#, get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.symmetries</span> <span class="k">import</span> <span class="n">AbinitSpaceGroup</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span><span class="p">,</span>  <span class="n">xsf</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span><span class="p">,</span> <span class="n">Visualizer</span><span class="p">,</span> <span class="n">xsf</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk.abiobjects</span> <span class="k">import</span> <span class="n">structure_from_abivars</span><span class="p">,</span> <span class="n">structure_to_abivars</span>
 
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;mp_match_structure&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mp_search&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cod_search&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Structure&quot;</span><span class="p">,</span>
     <span class="s2">&quot;frames_from_structures&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+
+<div class="viewcode-block" id="mp_match_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.mp_match_structure">[docs]</a><span class="k">def</span> <span class="nf">mp_match_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds matching structures on the Materials Project database.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        obj: filename or Structure object.</span>
+<span class="sd">        api_key (str): A String API key for accessing the MaterialsProject</span>
+<span class="sd">            REST interface.</span>
+<span class="sd">        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
+<span class="sd">        final (bool): Whether to get the final structure, or the initial</span>
+<span class="sd">            (pre-relaxation) structure. Defaults to True.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`MpStructures` object with</span>
+<span class="sd">            structures: List of matching structures and list of Materials Project identifier.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="c1"># Must use pymatgen structure else server does not know how to handle the JSON doc.</span>
+    <span class="n">structure</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span>
+
+    <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+    <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mpids</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">find_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mpids</span><span class="p">:</span>
+                <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_material_id</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">final</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">mpids</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="n">rest</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># Back to abipy structure</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">restapi</span><span class="o">.</span><span class="n">MpStructures</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">mpids</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mp_search"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.mp_search">[docs]</a><span class="k">def</span> <span class="nf">mp_search</span><span class="p">(</span><span class="n">chemsys_formula_id</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Connect to the materials project database.</span>
+<span class="sd">    Get a list of structures corresponding to a chemical system, formula, or materials_id.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),</span>
+<span class="sd">            or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).</span>
+<span class="sd">        api_key (str): A String API key for accessing the MaterialsProject REST interface.</span>
+<span class="sd">            If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.</span>
+<span class="sd">        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`MpStructures` object with</span>
+<span class="sd">            List of Structure objects, Materials project ids associated to structures.</span>
+<span class="sd">            and List of dictionaries with MP data (same order as structures).</span>
+
+<span class="sd">        Note that the attributes evalute to False if no match is found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chemsys_formula_id</span> <span class="o">=</span> <span class="n">chemsys_formula_id</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">structures</span><span class="p">,</span> <span class="n">mpids</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">None</span>
+    <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+    <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">chemsys_formula_id</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;cif&quot;</span><span class="p">],</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                <span class="n">mpids</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                <span class="c1"># Want AbiPy structure.</span>
+                <span class="n">structures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">,</span> <span class="n">structures</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="n">rest</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">restapi</span><span class="o">.</span><span class="n">MpStructures</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">mpids</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cod_search"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.cod_search">[docs]</a><span class="k">def</span> <span class="nf">cod_search</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Connect to the COD database (http://www.crystallography.net/)</span>
+<span class="sd">    Get a list of structures corresponding to a chemical formula</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        formula_ (str): Chemical formula (e.g., Fe2O3)</span>
+<span class="sd">        primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        :class:`CodStructures` object with</span>
+<span class="sd">            List of Structure objects, COD ids associated to structures.</span>
+<span class="sd">            and List of dictionaries with COD data (same order as structures).</span>
+
+<span class="sd">        Note that the attributes evalute to False if no match is found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.ext.cod</span> <span class="k">import</span> <span class="n">COD</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">COD</span><span class="p">()</span><span class="o">.</span><span class="n">get_structure_by_formula</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+
+    <span class="n">cod_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;cod_id&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+    <span class="c1"># Want AbiPy structure.</span>
+    <span class="n">structures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">,</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;structure&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">get_primitive_structure</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
+
+    <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+    <span class="k">return</span> <span class="n">restapi</span><span class="o">.</span><span class="n">CodStructures</span><span class="p">(</span><span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">cod_ids</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure">[docs]</a><span class="k">class</span> <span class="nc">Structure</span><span class="p">(</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -170,6 +281,7 @@
                 <span class="k">return</span> <span class="n">hist</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span>
+            <span class="c1"># Generic netcdf file.</span>
             <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span>
             <span class="n">ncfile</span><span class="p">,</span> <span class="n">closeit</span> <span class="o">=</span> <span class="n">as_etsfreader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
@@ -178,16 +290,30 @@
             <span class="k">if</span> <span class="n">closeit</span><span class="p">:</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.abi&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.in&quot;</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">AbinitInputFile</span>
+            <span class="c1"># Abinit input file.</span>
             <span class="c1"># Here I assume that the input file contains a single structure.</span>
+            <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">AbinitInputFile</span>
             <span class="k">return</span> <span class="n">AbinitInputFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">structure</span>
 
+        <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.abo&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.out&quot;</span><span class="p">):</span>
+            <span class="c1"># Abinit output file. We can have multi-datasets and multiple initial/final structures!</span>
+            <span class="c1"># By desing, we return the last structure if out is completed else the initial one.</span>
+            <span class="c1"># None is returned if the structures are different.</span>
+            <span class="kn">from</span> <span class="nn">abipy.abio.outputs</span> <span class="k">import</span> <span class="n">AbinitOutputFile</span>
+            <span class="k">with</span> <span class="n">AbinitOutputFile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">out</span><span class="p">:</span>
+                <span class="c1">#print(&quot;initial_structures:\n&quot;, out.initial_structures, &quot;\nfinal_structures:\n&quot;, out.final_structures)</span>
+                <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">final_structures</span><span class="p">:</span> <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">final_structure</span>
+                <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">initial_structures</span><span class="p">:</span> <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">initial_structure</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find structure in Abinit output file `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_DDB&quot;</span><span class="p">):</span>
+            <span class="c1"># DDB file.</span>
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">abifile</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">abifile</span><span class="o">.</span><span class="n">structure</span>
 
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pickle&quot;</span><span class="p">):</span>
+            <span class="c1"># From pickle.</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                 <span class="n">new</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
@@ -201,16 +327,15 @@
                 <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">!=</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: AbinitSpacegroup is missing here.</span>
+            <span class="c1"># Invoke pymatgen and change class</span>
+            <span class="c1"># Note that AbinitSpacegroup is missing here.</span>
             <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="n">primitive</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">)</span>
-            <span class="c1"># Change the class of new.</span>
             <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">!=</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
 
         <span class="k">return</span> <span class="n">new</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Structure.from_material_id"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">from_material_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://www.materialsproject.org/rest/v2&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.from_material_id"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">from_material_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a Structure corresponding to a material_id.</span>
 
@@ -220,11 +345,10 @@
 <span class="sd">                (pre-relaxation) structure. Defaults to True.</span>
 <span class="sd">            api_key (str): A String API key for accessing the MaterialsProject</span>
 <span class="sd">                REST interface. Please apply on the Materials Project website for one.</span>
-<span class="sd">                If this is None, the code will check if there is a `PMG_MAPI_KEY` in</span>
-<span class="sd">                your .pmgrc.yaml. If so, it will use that environment</span>
-<span class="sd">                This makes easier for heavy users to simply add</span>
-<span class="sd">                this environment variable to their setups and MPRester can</span>
-<span class="sd">                then be called without any arguments.</span>
+<span class="sd">                If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.</span>
+<span class="sd">                If so, it will use that environment</span>
+<span class="sd">                This makes easier for heavy users to simply add this environment variable</span>
+<span class="sd">                to their setups and MPRester can then be called without any arguments.</span>
 <span class="sd">            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
 <span class="sd">                Defaults to the standard Materials Project REST address, but</span>
 <span class="sd">                can be changed to other urls implementing a similar interface.</span>
@@ -232,18 +356,29 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Structure object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="k">import</span> <span class="n">SETTINGS</span>
-        <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">api_key</span> <span class="o">=</span> <span class="n">SETTINGS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PMG_MAPI_KEY&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml&quot;</span><span class="p">)</span>
-
         <span class="c1"># Get pytmatgen structure and convert it to abipy structure</span>
-        <span class="kn">from</span> <span class="nn">pymatgen.matproj.rest</span> <span class="k">import</span> <span class="n">MPRester</span>
-        <span class="k">with</span> <span class="n">MPRester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+        <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
             <span class="n">new</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_structure_by_material_id</span><span class="p">(</span><span class="n">material_id</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">final</span><span class="p">)</span>
-            <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
-            <span class="k">return</span> <span class="n">new</span></div>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Structure.from_cod_id"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_cod_id">[docs]</a>    <span class="k">def</span> <span class="nf">from_cod_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cod_id</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Queries the COD for a structure by id. Returns Structure object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cod_id (int): COD id.</span>
+<span class="sd">            primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
+<span class="sd">            kwargs: Arguments passed to `get_structure_by_id`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.ext.cod</span> <span class="k">import</span> <span class="n">COD</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">COD</span><span class="p">()</span><span class="o">.</span><span class="n">get_structure_by_id</span><span class="p">(</span><span class="n">cod_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span> <span class="n">new</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">get_primitive_structure</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Structure.from_ase_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_ase_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">from_ase_atoms</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">atoms</span><span class="p">):</span>
@@ -284,8 +419,7 @@
         <span class="n">l</span> <span class="o">=</span> <span class="n">ArrayWithUnit</span><span class="p">(</span><span class="n">acell</span><span class="p">,</span> <span class="s2">&quot;bohr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">get_boxed_structure</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-        <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">cls</span>
-        <span class="k">return</span> <span class="n">new</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="Structure.boxed_atom"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.boxed_atom">[docs]</a>    <span class="k">def</span> <span class="nf">boxed_atom</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pseudo</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="mi">0</span><span class="p">,),</span> <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="mi">10</span><span class="p">,)):</span>
@@ -364,7 +498,7 @@
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 
-<span class="sd">        Example:</span>
+<span class="sd">        Example::</span>
 
 <span class="sd">            Structure.rocksalt(a, [&quot;Na&quot;, &quot;Cl&quot;])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -397,7 +531,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a :class:`Structure` object from a dictionary with ABINIT variables.</span>
 
-<span class="sd">        Example:</span>
+<span class="sd">        Example::</span>
 
 <span class="sd">            al_structure = Structure.from_abivars(</span>
 <span class="sd">                acell=3*[7.5],</span>
@@ -414,6 +548,36 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">structure_from_abivars</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+    <span class="c1">#def __str__(self):</span>
+    <span class="c1">#    return self.to_string()</span>
+
+<div class="viewcode-block" id="Structure.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="c1">#if verbose == 0: s = super(Structure, self).__str__()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Abinit Spacegroup: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="Structure.to"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to">[docs]</a>    <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">to</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+</span> \
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Accepts also fmt=&#39;abivars&#39; and `.abi` as Abinit input file extension&quot;</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fmt</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;abi&quot;</span><span class="p">,</span> <span class="s2">&quot;abivars&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.abi&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
     <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaling_matrix</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes a supercell. Allowing to have sites outside the unit cell</span>
@@ -422,8 +586,7 @@
 <span class="sd">        Wraps __mul__ operator of pymatgen structure to return abipy structure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">scaling_matrix</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
-        <span class="k">return</span> <span class="n">new</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
 
     <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
 
@@ -459,8 +622,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spga</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">spga</span><span class="o">.</span><span class="n">get_conventional_standard_structure</span><span class="p">(</span><span class="n">international_monoclinic</span><span class="o">=</span><span class="n">international_monoclinic</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
-        <span class="k">return</span> <span class="n">new</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.abi_primitive"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.abi_primitive">[docs]</a>    <span class="k">def</span> <span class="nf">abi_primitive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">no_idealize</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="c1">#TODO: this should be moved to pymatgen in the get_refined_structure or so ...</span>
@@ -479,9 +641,8 @@
                                                <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">standardized_ase_atoms</span> <span class="o">=</span> <span class="n">Atoms</span><span class="p">(</span><span class="n">scaled_positions</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">numbers</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cell</span><span class="o">=</span><span class="n">standardized</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">standardized_structure</span> <span class="o">=</span> <span class="n">ase_adaptor</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="n">standardized_ase_atoms</span><span class="p">)</span>
-        <span class="n">standardized_structure</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
 
-        <span class="k">return</span> <span class="n">standardized_structure</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">standardized_structure</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.abi_sanitize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.abi_sanitize">[docs]</a>    <span class="k">def</span> <span class="nf">abi_sanitize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">primitive_standard</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -493,11 +654,13 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            symprec: Symmetry precision used to refine the structure.</span>
-<span class="sd">                if `symprec` is None, so structure refinement is peformed.</span>
-<span class="sd">            primitive (bool): Whether to convert to a primitive cell.</span>
+<span class="sd">            angle_tolerance: Tolerance on anglese</span>
+<span class="sd">                if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.</span>
+<span class="sd">            primitive (bool): Whether to convert to a primitive cell following</span>
+<span class="sd">                Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</span>
+<span class="sd">            primitive_standard: Returns most primitive structure found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.transformations.standard_transformations</span> <span class="k">import</span> <span class="n">PrimitiveCellTransformation</span><span class="p">,</span> <span class="n">SupercellTransformation</span>
-
         <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># Refine structure</span>
@@ -508,9 +671,11 @@
         <span class="c1"># Convert to primitive structure.</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">primitive_standard</span><span class="p">:</span>
+                <span class="c1"># Setyawan, W., &amp; Curtarolo, S.</span>
                 <span class="n">sym_finder_prim</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
                 <span class="n">structure</span> <span class="o">=</span> <span class="n">sym_finder_prim</span><span class="o">.</span><span class="n">get_primitive_standard_structure</span><span class="p">(</span><span class="n">international_monoclinic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Find most primitive structure.</span>
                 <span class="n">get_prim</span> <span class="o">=</span> <span class="n">PrimitiveCellTransformation</span><span class="p">()</span>
                 <span class="n">structure</span> <span class="o">=</span> <span class="n">get_prim</span><span class="o">.</span><span class="n">apply_transformation</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
@@ -524,7 +689,23 @@
             <span class="n">x_prod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">x_prod</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;x_prod is still negative!&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">structure</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.get_oxi_state_decorated"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_oxi_state_decorated">[docs]</a>    <span class="k">def</span> <span class="nf">get_oxi_state_decorated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use :class:`BVAnalyzer` to estimate oxidation states</span>
+<span class="sd">        Return oxidation state decorated structure.</span>
+<span class="sd">        This currently works only for ordered structures only.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs: Arguments passed to BVAnalyzer</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A modified structure that is oxidation state decorated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.analysis.bond_valence</span> <span class="k">import</span> <span class="n">BVAnalyzer</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">BVAnalyzer</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">get_oxi_state_decorated_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
@@ -564,11 +745,13 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">matrix</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for space: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">space</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Structure.spget_equivalent_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">spget_equivalent_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.spget_equivalent_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">spget_equivalent_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call spglib to find the inequivalent atoms and build symmetry tables.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            symprec: Symmetry precision for distance</span>
+<span class="sd">            angle_tolerance: Tolerance on anglese</span>
 <span class="sd">            printout: True to print symmetry tables.</span>
 
 <span class="sd">        Returns:</span>
@@ -579,12 +762,12 @@
 <span class="sd">            eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
 <span class="sd">            spgdata: spglib dataset with additional data reported by spglib.</span>
 
-<span class="sd">        .. example::</span>
+<span class="sd">        Example::</span>
 
 <span class="sd">            for irr_pos in irred_pos:</span>
 <span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
         <span class="n">equivalent_atoms</span> <span class="o">=</span> <span class="n">spgdata</span><span class="p">[</span><span class="s2">&quot;equivalent_atoms&quot;</span><span class="p">]</span>
         <span class="n">irred_pos</span> <span class="o">=</span> <span class="p">[]</span>
@@ -609,15 +792,17 @@
 
         <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">irred_pos</span><span class="o">=</span><span class="n">irred_pos</span><span class="p">,</span> <span class="n">eqmap</span><span class="o">=</span><span class="n">eqmap</span><span class="p">,</span> <span class="n">spgdata</span><span class="o">=</span><span class="n">spgdata</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Structure.spget_summary"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_summary">[docs]</a>    <span class="k">def</span> <span class="nf">spget_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.spget_summary"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_summary">[docs]</a>    <span class="k">def</span> <span class="nf">spget_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return string with full information about crystalline structure i.e.</span>
 <span class="sd">        space group, point group, wyckoff positions, equivalent sites.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            symprec: Symmetry precision for distance</span>
+<span class="sd">            angle_tolerance: Tolerance on anglese</span>
 <span class="sd">            verbose: Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
         <span class="c1"># Get spacegroup number computed by Abinit if available.</span>
         <span class="n">abispg_number</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">spgid</span>
@@ -631,7 +816,8 @@
                                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">]))</span>
         <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;angles: &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">to_s</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
                                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span><span class="p">]))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Space group info (note that magnetic symmetries are not taken into account).&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Spglib space group info (magnetic symmetries are not taken into account).&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Spacegroup: </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">), Hall: </span><span class="si">%s</span><span class="s2">, Abinit spg_number: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
              <span class="n">spgan</span><span class="o">.</span><span class="n">get_space_group_symbol</span><span class="p">(),</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_space_group_number</span><span class="p">(),</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_hall</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">abispg_number</span><span class="p">)))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Crystal_system: </span><span class="si">%s</span><span class="s2">, Lattice_type: </span><span class="si">%s</span><span class="s2">, Point_group: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
@@ -653,7 +839,7 @@
         <span class="n">app</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">))</span>
 
         <span class="c1"># Print entire dataset.</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="n">StringIO</span>
             <span class="n">stream</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
             <span class="n">pprint</span><span class="p">(</span><span class="n">spgdata</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
@@ -722,6 +908,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_abi_spacegroup</span><span class="p">(</span><span class="n">abispg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">abispg</span></div>
+
+<div class="viewcode-block" id="Structure.print_neighbors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.print_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">print_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get neighbors for each atom in the unit cell, out to a distance `radius` in Angstrom</span>
+<span class="sd">        Print results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finding neighbors for each atom in the unit cell, out to a distance </span><span class="si">%s</span><span class="s2"> [Angstrom]&quot;</span> <span class="o">%</span> <span class="n">radius</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_neighbors</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">sited_list</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ns</span><span class="p">)):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">] site </span><span class="si">%s</span><span class="s2"> has </span><span class="si">%s</span><span class="s2"> neighbors:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">site</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">sited_list</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">dist</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sited_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="s2">&quot; at distance&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="Structure.hsym_kpath"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_kpath">[docs]</a>    <span class="k">def</span> <span class="nf">hsym_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -815,8 +1017,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            one-dimensional `numpy` array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span>
-                                <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Structure.get_dict4frame"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_dict4frame">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict4frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -848,23 +1049,58 @@
         <span class="p">])</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="Structure.show_bz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.show_bz">[docs]</a>    <span class="k">def</span> <span class="nf">show_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.plot_bz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_bz">[docs]</a>    <span class="k">def</span> <span class="nf">plot_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            pmg_path: True if the default path used in pymatgen should be show.</span>
+<span class="sd">            with_labels: True to plot k-point labels.</span>
 
 <span class="sd">        Returns: `matplotlib` figure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span><span class="p">,</span> <span class="n">plot_brillouin_zone_from_kpath</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">with_labels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
         <span class="c1">#pprint(labels)</span>
         <span class="k">if</span> <span class="n">pmg_path</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone_from_kpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="c1"># To maintain backward compatibility.</span>
+    <span class="n">show_bz</span> <span class="o">=</span> <span class="n">plot_bz</span>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="Structure.plot_xrd"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_xrd">[docs]</a>    <span class="k">def</span> <span class="nf">plot_xrd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="o">=</span><span class="s2">&quot;CuKa&quot;</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">debye_waller_factors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">two_theta_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">),</span> <span class="n">annotate_peaks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use pymatgen :class:`XRDCalculator` to show the XRD plot.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wavelength (str/float): The wavelength can be specified as either a</span>
+<span class="sd">                float or a string. If it is a string, it must be one of the</span>
+<span class="sd">                supported definitions in the AVAILABLE_RADIATION class</span>
+<span class="sd">                variable, which provides useful commonly used wavelengths.</span>
+<span class="sd">                If it is a float, it is interpreted as a wavelength in</span>
+<span class="sd">                angstroms. Defaults to &quot;CuKa&quot;, i.e, Cu K_alpha radiation.</span>
+<span class="sd">            symprec (float): Symmetry precision for structure refinement. If</span>
+<span class="sd">                set to 0, no refinement is done. Otherwise, refinement is</span>
+<span class="sd">                performed using spglib with provided precision.</span>
+<span class="sd">            debye_waller_factors ({element symbol: float}): Allows the</span>
+<span class="sd">                specification of Debye-Waller factors. Note that these</span>
+<span class="sd">                factors are temperature dependent.</span>
+<span class="sd">            two_theta_range ([float of length 2]): Tuple for range of</span>
+<span class="sd">                two_thetas to calculate in degrees. Defaults to (0, 90). Set to</span>
+<span class="sd">                None if you want all diffracted beams within the limiting</span>
+<span class="sd">                sphere of radius 2 / wavelength.</span>
+<span class="sd">            annotate_peaks: Whether to annotate the peaks with plane information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.analysis.diffraction.xrd</span> <span class="k">import</span> <span class="n">XRDCalculator</span>
+        <span class="n">xrd</span> <span class="o">=</span> <span class="n">XRDCalculator</span><span class="p">(</span><span class="n">wavelength</span><span class="o">=</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">debye_waller_factors</span><span class="o">=</span><span class="n">debye_waller_factors</span><span class="p">)</span>
+        <span class="n">xrd</span><span class="o">.</span><span class="n">get_xrd_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_theta_range</span><span class="o">=</span><span class="n">two_theta_range</span><span class="p">,</span> <span class="n">annotate_peaks</span><span class="o">=</span><span class="n">annotate_peaks</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="Structure.export"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -901,16 +1137,43 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Structure.visualize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.chemview"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.chemview">[docs]</a>    <span class="k">def</span> <span class="nf">chemview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize Structure in jupyter notebook using chemview package.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_chemview</span> <span class="k">import</span> <span class="n">quick_view</span>
+        <span class="k">return</span> <span class="n">quick_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.vtkview"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.vtkview">[docs]</a>    <span class="k">def</span> <span class="nf">vtkview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize structure with VTK. Requires vtk python bindings.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            show: True to show structure immediately.</span>
+<span class="sd">            kwargs: keyword arguments passed to :class:`StructureVis`.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            StructureVis object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="k">import</span> <span class="n">StructureVis</span>
+        <span class="n">vis</span> <span class="o">=</span> <span class="n">StructureVis</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">vis</span><span class="o">.</span><span class="n">set_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">vis</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">vis</span></div>
+
+<div class="viewcode-block" id="Structure.mayaview"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.mayaview">[docs]</a>    <span class="k">def</span> <span class="nf">mayaview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Visualize the crystalline structure with mayaview&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
+        <span class="k">return</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.visualize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the crystalline structure with visualizer.</span>
 <span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Code for VTK.</span>
-        <span class="c1">#from pymatgen.vis.structure_vtk import StructureVis</span>
-        <span class="c1">#vis = StructureVis()</span>
-        <span class="c1">#vis.set_structure(self)</span>
-        <span class="c1">#vis.show()</span>
+        <span class="k">if</span> <span class="n">visu_name</span> <span class="o">==</span> <span class="s2">&quot;vtk&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vtkview</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">visu_name</span> <span class="o">==</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mayaview</span><span class="p">()</span>
+
         <span class="c1"># Get the Visualizer subclass from the string.</span>
         <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">visu_name</span><span class="p">)</span>
 
@@ -925,51 +1188,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
 
-    <span class="c1">#def write_structure(self, filename):</span>
-    <span class="c1">#    &quot;&quot;&quot;Write structure fo file.&quot;&quot;&quot;</span>
-    <span class="c1">#    if filename.endswith(&quot;.nc&quot;):</span>
-    <span class="c1">#        raise NotImplementedError(&quot;Cannot write a structure to a netcdf file yet&quot;)</span>
-    <span class="c1">#    else:</span>
-    <span class="c1">#        self.to(filename=filename)</span>
-
-<div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert the Abinit structure to CIF, POSCAR, CSSR and pymatgen&#39;s JSON</span>
-<span class="sd">        serialized structures (json, mson) Return string.</span>
+<span class="sd">        Return string with the structure in the given format `fmt`</span>
+<span class="sd">        Options include &quot;abivars&quot;, &quot;cif&quot;, &quot;xsf&quot;, &quot;poscar&quot;, &quot;cssr&quot;, &quot;json&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prefix_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;POSCAR&quot;</span><span class="p">:</span> <span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="c1"># FIXME:</span>
-        <span class="c1"># Do we need symmetry operations here?</span>
-        <span class="c1"># perhaps if the CIF file is used.</span>
-        <span class="n">suffix_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;cif&quot;</span><span class="p">:</span> <span class="s2">&quot;.cif&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;cssr&quot;</span><span class="p">:</span> <span class="s2">&quot;.cssr&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="s2">&quot;.json&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;mson&quot;</span><span class="p">:</span> <span class="s2">&quot;.mson&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="k">if</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prefix_dict</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">suffix_dict</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown format </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
-
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
-        <span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-        <span class="n">tmp_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">tmp_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">tmp_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">tmp_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
-
-    <span class="c1">#def to_xsf(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Returns a string with the structure in XSF format</span>
-    <span class="c1">#    See http://www.xcrysden.org/doc/XSF.html</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    from pymatgen.io.xcrysden import XSF</span>
-    <span class="c1">#    return XSF(self).to_string()</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;abivars&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1">#def max_overlap_and_sites(self, pseudos):</span>
     <span class="c1">#    # For each site in self:</span>
@@ -977,7 +1204,6 @@
     <span class="c1">#    # 2) Get the neighbors of the site (considering the periodic images).</span>
 
     <span class="c1">#    max_overlap, ovlp_sites = 0.0, None</span>
-
     <span class="c1">#    for site in self:</span>
     <span class="c1">#        #site.specie</span>
     <span class="c1">#        #r = Length(pseudo.r_cut, &quot;Bohr&quot;).to(&quot;ang&quot;)</span>
@@ -986,10 +1212,9 @@
     <span class="c1">#        if sitedist_list:</span>
     <span class="c1">#            # Spheres are overlapping: compute overlap and update the return values</span>
     <span class="c1">#            # if the new overlap is larger than the previous one.</span>
-    <span class="c1">#            for (other_site, dist) in sitedist_list:</span>
+    <span class="c1">#            for other_site, dist in sitedist_list:</span>
     <span class="c1">#                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html</span>
     <span class="c1">#                #overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)</span>
-
     <span class="c1">#                if overlap &gt; max_overlap:</span>
     <span class="c1">#                    max_overlap = overlap</span>
     <span class="c1">#                    ovlp_sites = (site, other_site)</span>
@@ -1333,87 +1558,36 @@
         <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
-    <span class="c1">#def ksampling_from_jhudb(self, precalc, format=&quot;vasp&quot;,</span>
-    <span class="c1">#                         url=&quot;http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet&quot;):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Generate k-point grid for Brillouin zone integration.</span>
+    <span class="c1">#def ksampling_from_jhudb(self, **kwargs):</span>
+    <span class="c1">#    from pymatgen.ext.jhu import get_kpoints</span>
+    <span class="c1">#    __doc__ = get_kpoints.__doc__</span>
+    <span class="c1">#    kpoints = get_kpoints(self, **kwargs)</span>
+    <span class="c1">#    print(kpoints)</span>
+    <span class="c1">#    print(kpoints.style)</span>
+    <span class="c1">#    print(&quot;num_kpts&quot;, kpoints.num_kpts)</span>
 
-    <span class="c1">#    Args:</span>
-    <span class="c1">#        INCLUDEGAMMA: TRUE/FALSE/AUTO Determines whether the grid will be Γ-centered or not.</span>
-    <span class="c1">#            AUTO selects the grid with the smallest number of irreducible k-points. The default is AUTO.</span>
-    <span class="c1">#        MINDISTANCE: Numeric (Angstroms) The value of rmin in Angstroms. The default is 0 Å.</span>
-    <span class="c1">#        HEADER: VERBOSE/SIMPLE Set whether additional grid information will be written</span>
-    <span class="c1">#            to the header of the file. The default is SIMPLE.</span>
-    <span class="c1">#        MINTOTALKPOINTS: Numeric. The minimum value of the desired total k-points. The default is 1.</span>
-    <span class="c1">#        KPPRA: Numeric The minimum allowed number of k-points per reciprocal atom.</span>
-    <span class="c1">#            The use of this parameter for systems with less than three periodic dimensions is not recommended.</span>
-    <span class="c1">#        GAPDISTANCE: Numeric (Angstroms) This parameter is used to auto-detect slabs, nanowires,</span>
-    <span class="c1">#            and nanoparticles. If there is a gap (vacuum) that is at least as GAPDISTANCE wide in the provided</span>
-    <span class="c1">#            structure, the k-point density in the corresponding direction will be reduced accordingly.</span>
-    <span class="c1">#            The default value is 7 Å.</span>
+    <span class="c1">#    d = {&quot;kptopt&quot;: 0,</span>
+    <span class="c1">#         &quot;kpt&quot;: kpoints.kpts,</span>
+    <span class="c1">#         &quot;nkpt&quot;: kpoints.num_kpts,</span>
+    <span class="c1">#         #&quot;kptnrm&quot;: kptnrm,</span>
+    <span class="c1">#         &quot;wtk&quot;: kpoints.kpts_weights,</span>
+    <span class="c1">#         &quot;shiftk&quot;: kpoints.kpts_shift,</span>
+    <span class="c1">#         &quot;chksymbreak&quot;: 0,</span>
+    <span class="c1">#    }</span>
+    <span class="c1">#    print(d)</span>
 
-    <span class="c1">#    Note:</span>
-    <span class="c1">#        If the PRECALC file does not include at least one of MINDISTANCE, MINTOTALKPOINTS, or</span>
-    <span class="c1">#        KPPRA, then MINDISTANCE=28.1 will be used to determine grid density.</span>
-
-    <span class="c1">#    Returns:</span>
-
-    <span class="c1">#    See also:</span>
-    <span class="c1">#        http://muellergroup.jhu.edu/K-Points.html</span>
-
-    <span class="c1">#        Efficient generation of generalized Monkhorst-Pack grids through the use of informatics</span>
-    <span class="c1">#        Pandu Wisesa, Kyle A. McGill, and Tim Mueller</span>
-    <span class="c1">#        Phys. Rev. B 93, 155109</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    from six.moves import StringIO</span>
-
-    <span class="c1">#    # Prepare PRECALC file.</span>
-    <span class="c1">#    precalc_names = set((&quot;INCLUDEGAMMA&quot;, &quot;MINDISTANCE&quot;, &quot;HEADER&quot;, &quot;MINTOTALKPOINTS&quot;, &quot;KPPRA&quot;, &quot;GAPDISTANCE&quot;))</span>
-    <span class="c1">#    wrong_vars = [k for k in precalc if k not in precalc_names]</span>
-    <span class="c1">#    if wrong_vars:</span>
-    <span class="c1">#        raise ValueError(&quot;The following keys are not valid PRECALC variables:\n  %s&quot; % wrong_vars)</span>
-
-    <span class="c1">#    precalc_fobj = StringIO()</span>
-    <span class="c1">#    precalc_fobj.write(&quot;MINDISTANCE=28.1\n&quot;)</span>
-    <span class="c1">#    for k, v in precalc.items():</span>
-    <span class="c1">#        precalc_fobj.write(&quot;%s=%s&quot; % (k, v))</span>
-    <span class="c1">#    precalc_fobj.seek(0)</span>
-
-    <span class="c1">#    # Get string with structure in POSCAR format.</span>
-    <span class="c1">#    string = self.convert(format=&quot;POSCAR&quot;)</span>
-    <span class="c1">#    poscar_fobj = StringIO()</span>
-    <span class="c1">#    poscar_fobj.write(string)</span>
-    <span class="c1">#    poscar_fobj.seek(0)</span>
-
-    <span class="c1">#    #KPTS=$(curl -s http://muellergroup.jhu.edu:8080/PreCalcServer/PreCalcServlet</span>
-    <span class="c1">#    #       --form &quot;fileupload=@PRECALC&quot; --form &quot;fileupload=@POSCAR&quot;)</span>
-
-    <span class="c1">#    # See http://docs.python-requests.org/en/latest/user/advanced/#advanced</span>
-    <span class="c1">#    import requests</span>
-    <span class="c1">#    files = [</span>
-    <span class="c1">#        (&#39;fileupload&#39;, (&#39;PRECALC&#39;, precalc_fobj)),</span>
-    <span class="c1">#        (&#39;fileupload&#39;, (&#39;POSCAR&#39;, poscar_fobj)),</span>
-    <span class="c1">#    ]</span>
-
-    <span class="c1">#    r = requests.post(url, files=files)</span>
-    <span class="c1">#    #print(r.url, r.request)</span>
-    <span class="c1">#    print(r.text)</span>
-
-    <span class="c1">#    r.raise_for_status()</span>
-    <span class="c1">#    if r.status_code != requests.codes.ok:</span>
-    <span class="c1">#        raise RuntimeError(&quot;Request status code: %s&quot; % r.status_code)</span>
-
-    <span class="c1">#    # Parse Vasp Kpoints</span>
-    <span class="c1">#    from pymatgen.io.vasp.inputs import Kpoints</span>
-    <span class="c1">#    vasp_kpoints = Kpoints.from_string(r.text)</span>
-    <span class="c1">#    #print(vasp_kpoints.style)</span>
-    <span class="c1">#    #return kptrlatt, shiftk</span>
-    <span class="c1">#    #return ksamp</span>
+    <span class="c1">#    #from pymatgen.io.abinit.abiobjects import KSampling</span>
+    <span class="c1">#    #return KSampling(mode=KSamplingModes.automatic,</span>
+    <span class="c1">#    #         num_kpts= 0,</span>
+    <span class="c1">#    #         kpts=((1, 1, 1),),</span>
+    <span class="c1">#    #         kpt_shifts=(0.5, 0.5, 0.5),</span>
+    <span class="c1">#    #         kpts_weights=None, use_symmetries=True, use_time_reversal=True, chksymbreak=None,</span>
+    <span class="c1">#    #         comment=None)</span>
 
 <div class="viewcode-block" id="Structure.calc_ksampling"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ksampling">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ksampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the k-point sampling from the number of divisions to be used for</span>
-<span class="sd">        the smallest lattive vectors of the reciprocal lattice.</span>
+<span class="sd">        the smallest reciprocal lattice vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ngkpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="p">)</span>
         <span class="n">shiftk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_shiftk</span><span class="p">(</span><span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
@@ -1588,8 +1762,9 @@
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(structure.spglib_summary())&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(structure.hsym_kpoints)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = structure.show_bz()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;sanitized = structure.abi_sanitize(); print(sanitized)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = structure.plot_bz()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = structure.plot_xrd()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# sanitized = structure.abi_sanitize(); print(sanitized)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# ase_atoms = structure.to_ase_atoms()&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
@@ -1616,7 +1791,7 @@
 <span class="sd">            `coords` the atomic positions.</span>
 <span class="sd">        The list of structures is available in the `structures` entry:</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example::</span>
 
 <span class="sd">        dfs = frames_from_structures(files)</span>
 <span class="sd">        dfs.lattice</span>
@@ -1759,6 +1934,41 @@
         <span class="n">new_structure</span><span class="o">.</span><span class="n">frozen_2phonon</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">do_real1</span><span class="p">,</span> <span class="n">do_real2</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">new_structure</span>
+
+
+<span class="k">def</span> <span class="nf">diff_structures</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">(),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert list of structure to string using format `fmt`, print diff to file `file`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structures: List of structures or list of objects that can be converted into structure e.g. filepaths</span>
+<span class="sd">        fmt: Any output format supported by `structure.to` method. Non-case sensitive.</span>
+<span class="sd">        mode: `table` to show results in tabular form or `diff` to show differences with unified diff.</span>
+<span class="sd">        headers: can be an explicit list of column headers Otherwise a headerless table is produced</span>
+<span class="sd">        file: Output Stream</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">,</span> <span class="n">structures</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">izip_longest</span> <span class="k">as</span> <span class="n">zip_longest</span>  <span class="c1"># Py2</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">zip_longest</span>  <span class="c1"># Py3k</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">zip_longest</span><span class="p">(</span><span class="o">*</span><span class="n">outs</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
+        <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;diff&quot;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">difflib</span>
+        <span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">outs</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">headers</span><span class="p">:</span> <span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">headers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">difflib</span><span class="o">.</span><span class="n">unified_diff</span><span class="p">(</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">outs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fromfile</span><span class="o">=</span><span class="n">fromfile</span><span class="p">,</span> <span class="n">tofile</span><span class="o">=</span><span class="n">tofile</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported mode: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
 </pre></div>
 
           </div>

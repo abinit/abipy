@@ -27,7 +27,7 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="plot example code: plot_funcs.py" href="plot_funcs.html" />
+    <link rel="next" title="plot example code: plot_fold2bloch.py" href="plot_fold2bloch.html" />
     <link rel="prev" title="plot example code: plot_efatbands_spin.py" href="plot_efatbands_spin.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -49,7 +49,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="index.html">plot Examples</a><ul>
       <li>Previous: <a href="plot_efatbands_spin.html" title="previous chapter">plot example code: plot_efatbands_spin.py</a></li>
-      <li>Next: <a href="plot_funcs.html" title="next chapter">plot example code: plot_funcs.py</a></li>
+      <li>Next: <a href="plot_fold2bloch.html" title="next chapter">plot example code: plot_fold2bloch.py</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -88,6 +88,10 @@
 <img alt="../../_images/plot_ejdos_01.png" src="../../_images/plot_ejdos_01.png" />
 <p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_01.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_01.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_01.pdf">pdf</a>)</span></p>
 </div>
+<div class="figure" id="id3">
+<img alt="../../_images/plot_ejdos_02.png" src="../../_images/plot_ejdos_02.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_02.png">png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_02.hires.png">hires.png</a>, <a class="reference external" href="../../../abipy/examples/plot/plot_ejdos_02.pdf">pdf</a>)</span></p>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This example shows how plot the different contributions</span>
@@ -110,6 +114,10 @@
 
 <span class="c1"># Plot decomposition of joint-DOS in terms of v --&gt; c transitions</span>
 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ejdosvc</span><span class="p">(</span><span class="n">vrange</span><span class="p">,</span> <span class="n">crange</span><span class="p">,</span> <span class="n">cumulative</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Show optical (vertical) transitions of energy 2.8 eV</span>
+<span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">gsr_file</span><span class="p">:</span>
+    <span class="n">gsr_file</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_transitions</span><span class="p">(</span><span class="mf">2.8</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

@@ -89,7 +89,6 @@
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.derivatives</span> <span class="k">import</span> <span class="n">finite_diff</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">add_periodic_replicas</span>
-
 <span class="c1">#from numba import jit</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -106,6 +105,7 @@
     <span class="s2">&quot;rc_list&quot;</span><span class="p">,</span>
     <span class="s2">&quot;kmesh_from_mpdivs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Ktables&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;find_points_along_path&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Tolerance used to compare k-points.</span>
@@ -257,7 +257,7 @@
 <span class="sd">        order: &quot;unit_cell&quot; if the kpoint coordinates must be in [0,1)</span>
 <span class="sd">               &quot;bz&quot; if the kpoint coordinates must be in [-1/2, +1/2)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shifts</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shifts</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.5</span><span class="p">)</span>
 
     <span class="c1"># Build k-point grid.</span>
@@ -273,9 +273,9 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kbz</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">map_bz2ibz</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ibz</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">map_grid2ibz</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ibz</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the correspondence between the list of k-points in the *unit cell*</span>
+<span class="sd">    Compute the correspondence between a *grid* of k-points in the *unit cell*</span>
 <span class="sd">    associated to the `ngkpt` mesh and the corresponding points in the IBZ.</span>
 <span class="sd">    Requires structure with Abinit symmetries.</span>
 <span class="sd">    This routine is mainly used to symmetrize eigenvalues in the unit cell</span>
@@ -283,7 +283,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        structure: Structure with (Abinit) symmetry operations.</span>
-<span class="sd">        ibz: [*,3] array with reduced coordinates in the in the IBZ.</span>
+<span class="sd">        ibz: [*, 3] array with reduced coordinates in the in the IBZ.</span>
 <span class="sd">        ngkpt: Mesh divisions.</span>
 <span class="sd">        has_timrev: True if time-reversal can be used.</span>
 <span class="sd">        pbc: True if the mesh should contain the periodic images (closed mesh).</span>
@@ -296,7 +296,7 @@
     <span class="c1"># Extract (FM) symmetry operations in reciprocal space.</span>
     <span class="n">abispg</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span>
     <span class="k">if</span> <span class="n">abispg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structure does not contain the Abinit spacegroup!&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structure does not contain Abinit spacegroup info!&quot;</span><span class="p">)</span>
 
     <span class="c1"># Extract rotations in reciprocal space (FM part).</span>
     <span class="n">symrec_fm</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">rot_g</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">abispg</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">]</span>
@@ -315,18 +315,17 @@
                 <span class="n">bzgrid2ibz</span><span class="p">[</span><span class="n">gp_bz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gp_bz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gp_bz</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ik_ibz</span>
 
     <span class="k">if</span> <span class="n">pbc</span><span class="p">:</span>
-        <span class="c1"># Add periodical replicas.</span>
+        <span class="c1"># Add periodic replicas.</span>
         <span class="n">bzgrid2ibz</span> <span class="o">=</span> <span class="n">add_periodic_replicas</span><span class="p">(</span><span class="n">bzgrid2ibz</span><span class="p">)</span>
 
-    <span class="n">bz2ibz</span> <span class="o">=</span> <span class="n">bzgrid2ibz</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">bz2ibz</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-        <span class="c1">#for ik_bz, ik_ibz in enumerate(self.bz2ibz): print(ik_bz, &quot;&gt;&gt;&gt;&quot;, ik_ibz)</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Found </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> invalid entries in bz2ibz array&quot;</span> <span class="o">%</span> <span class="p">((</span><span class="n">bz2ibz</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">bz2ibz</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">bzgrid2ibz</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1">#for ik_bz, ik_ibz in enumerate(self.bzgrid2ibz): print(ik_bz, &quot;&gt;&gt;&gt;&quot;, ik_ibz)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Found </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> invalid entries in bzgrid2ibz array&quot;</span> <span class="o">%</span> <span class="p">((</span><span class="n">bzgrid2ibz</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">bzgrid2ibz</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;This can happen if there an inconsistency between the input IBZ and ngkpt&quot;</span>
         <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;ngkpt: </span><span class="si">%s</span><span class="s2">, has_timrev: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ngkpt</span><span class="p">),</span> <span class="n">has_timrev</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
+    <span class="n">bz2ibz</span> <span class="o">=</span> <span class="n">bzgrid2ibz</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">bz2ibz</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
@@ -659,12 +658,12 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">diff</span> <span class="o">&lt;</span> <span class="n">_ATOL_KDIFF</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%.3f</span><span class="s2">, </span><span class="si">%.3f</span><span class="s2">, </span><span class="si">%.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span>  <span class="s2">&quot;[</span><span class="si">%.3f</span><span class="s2">, </span><span class="si">%.3f</span><span class="s2">, </span><span class="si">%.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, name=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, weight=</span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">s</span> <span class="o">=</span>  <span class="s2">&quot;[</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, weight: </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
         <span class="k">return</span> <span class="n">s</span>
 
     <span class="c1"># Kpoint algebra.</span>
@@ -837,18 +836,6 @@
             <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Kpoint</span><span class="p">(</span><span class="n">rcs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
 
-    <span class="c1">#@classmethod</span>
-    <span class="c1">#def from_file(cls, filepath):</span>
-    <span class="c1">#    &quot;&quot;&quot;Initialize the object from file.&quot;&quot;&quot;</span>
-    <span class="c1">#    if filepath.endswith(&quot;.nc&quot;):</span>
-    <span class="c1">#        with KpointsReader(filepath) as r:</span>
-    <span class="c1">#            new = r.read_kpoints()</span>
-    <span class="c1">#    else:</span>
-    <span class="c1">#        raise NotImplementedError(&quot;Only netcdf files are supported.&quot;)</span>
-
-    <span class="c1">#    new.__class__ = cls</span>
-    <span class="c1">#    return new</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">reciprocal_lattice</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;`Lattice` object defining the reciprocal lattice.&quot;&quot;&quot;</span>
@@ -983,10 +970,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frac_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Fractional coordinates of the k-point as `ndarray` of shape (len(self), 3)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frac_coords</span>
+
+    <span class="k">def</span> <span class="nf">get_cart_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cartesian coordinates of the k-point as `ndarray` of shape (len(self), 3)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">cart_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1040,18 +1029,52 @@
         <span class="sd">&quot;&quot;&quot;Plot k-points with matplotlib.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span>
         <span class="n">fold</span> <span class="o">=</span> <span class="kc">False</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
             <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
             <span class="n">frac_coords_lines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="n">line</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="n">frac_coords_lines</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
                                        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="n">fold</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Not sure this works, I got points outside of the BZ in a simple with Si and Gamm-centered 8x8x8.</span>
+            <span class="c1"># Not sure this works, I got points outside of the BZ in a simple with Si and Gamma-centered 8x8x8.</span>
             <span class="c1"># Don&#39;t know if it&#39;s a bug in matplotlib or plot_brillouin_zone.</span>
             <span class="c1">#print(self.frac_coords)</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">kpoints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span>
                                        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="n">fold</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_k2kqg_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">atol_kdiff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute mapping k_index --&gt; (k + q)_index, g0</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            qpt: q-point in fractional coordinate or :class:`Kpoint` instance.</span>
+<span class="sd">            atol_kdiff: Tolerance used to compare k-points.</span>
+<span class="sd">                    Use _ATOL_KDIFF is atol is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">atol_kdiff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">atol_kdiff</span> <span class="o">=</span> <span class="n">_ATOL_KDIFF</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">Kpoint</span><span class="p">):</span>
+            <span class="n">qfrac_coords</span> <span class="o">=</span> <span class="n">qpt</span><span class="o">.</span><span class="n">frac_coords</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qfrac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+
+        <span class="n">k2kqg</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qfrac_coords</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-6</span><span class="p">):</span>
+            <span class="c1"># Gamma point, DOH!</span>
+            <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">k2kqg</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="n">g0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># N**2 scaling but this algorithm can handle k-paths</span>
+            <span class="c1"># Note that in principle one could have multiple k+q in k-points</span>
+            <span class="c1"># but only the first match is considered.</span>
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">kpq</span> <span class="o">=</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">frac_coords</span> <span class="o">+</span> <span class="n">qfrac_coords</span>
+                <span class="k">for</span> <span class="n">ikq</span><span class="p">,</span> <span class="n">ksearch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">issamek</span><span class="p">(</span><span class="n">kpq</span><span class="p">,</span> <span class="n">ksearch</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol_kdiff</span><span class="p">):</span>
+                        <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">kpq</span> <span class="o">-</span> <span class="n">ksearch</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+                        <span class="n">k2kqg</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ikq</span><span class="p">,</span> <span class="n">g0</span><span class="p">)</span>
+                        <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">k2kqg</span>
 
 
 <span class="k">class</span> <span class="nc">KpointStar</span><span class="p">(</span><span class="n">KpointList</span><span class="p">):</span>
@@ -1388,7 +1411,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to convert </span><span class="si">%s</span><span class="s2"> into KSamplingInfo object:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to convert `</span><span class="si">%s</span><span class="s2">` into KSamplingInfo object:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)))</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_mpdivs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">kptopt</span><span class="p">):</span>
@@ -1645,6 +1668,66 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">], ====&gt; </span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">],&quot;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">ik_bz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
                 <span class="n">ik_ibz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">2</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">dist_point_from_line</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return distance from point x0 to line x1 - x2. Cartesian coordinates are used.</span>
+<span class="sd">    See http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span>
+    <span class="n">denomabs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">denom</span><span class="p">,</span> <span class="n">denom</span><span class="p">))</span>
+    <span class="n">numer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">x0</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span>
+    <span class="n">numerabs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">numer</span><span class="p">,</span> <span class="n">numer</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">numerabs</span> <span class="o">/</span> <span class="n">denomabs</span>
+
+
+<div class="viewcode-block" id="find_points_along_path"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.find_points_along_path">[docs]</a><span class="k">def</span> <span class="nf">find_points_along_path</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find points in `cart_coords` lying on the path defined by `cart_bounds`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cart_bounds: [N, 3] array with the boundaries of the path in Cartesian coordinates.</span>
+<span class="sd">        cart_coords: [M, 3] array with the points in Cartesian coordinate</span>
+<span class="sd">        dist_tol: A point is considered to be on the path if its distance from the line</span>
+<span class="sd">            is less than dist_tol.</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        (klines, dist_list, ticks)</span>
+
+<span class="sd">        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.</span>
+<span class="sd">        dist_list: numpy array with the distance of the points along the line.</span>
+<span class="sd">        ticks:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">klines</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">,</span> <span class="n">ticks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">dl</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># cumulative length of the path</span>
+    <span class="k">for</span> <span class="n">ibound</span><span class="p">,</span> <span class="n">x0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">cart_bounds</span><span class="p">[</span><span class="n">ibound</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">x1</span>
+        <span class="c1">#B = x1 - x0</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">B</span><span class="p">))</span>
+        <span class="c1">#print(&quot;x0&quot;, x0, &quot;x1&quot;, x1)</span>
+        <span class="n">ticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ticks</span><span class="p">[</span><span class="n">ibound</span><span class="p">]</span> <span class="o">+</span> <span class="n">dk</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">dist_point_from_line</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+            <span class="c1">#print(frac_coords[ik], dist)</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">dist_tol</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="c1"># k-point is on the cart_bounds</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">k</span>
+            <span class="c1">#A = k - x0</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">)</span><span class="o">/</span><span class="n">dk</span>
+            <span class="c1">#print(&quot;k-x0&quot;, A, &quot;B&quot;, B)</span>
+            <span class="c1">#print(frac_coords[ik], x, x &gt; 0 and x &lt; dist_tol + dk)</span>
+            <span class="k">if</span> <span class="n">dist_tol</span> <span class="o">+</span> <span class="n">dk</span> <span class="o">&gt;=</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># k-point is within the cart_bounds range</span>
+                <span class="c1"># append k-point coordinate along the cart_bounds</span>
+                <span class="n">klines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+                <span class="n">dist_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">dl</span><span class="p">)</span>
+
+        <span class="n">dl</span> <span class="o">=</span> <span class="n">dl</span> <span class="o">+</span> <span class="n">dk</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">klines</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

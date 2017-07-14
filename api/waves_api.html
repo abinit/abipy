@@ -274,7 +274,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.waves.pwwave.PWWaveFunction.visualize_ur2">
-<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.visualize_ur2" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>visu_name='vesta'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.visualize_ur2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize u(r)**2 visualizer.</p>
 <p>See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
 </dd></dl>
@@ -301,7 +301,7 @@ the data stored in the WFK file produced by ABINIT.</p>
 <span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_structure_with</span><span class="p">(</span><span class="s2">&quot;vesta&quot;</span><span class="p">)()</span>
 
 <span class="c1"># Visualize u(r)**2 with vesta.</span>
-<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_ur2</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">)()</span>
+<span class="n">visu</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">visualize_ur2</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">visu_name</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">)()</span>
 
 <span class="c1"># Get a wavefunction.</span>
 <span class="n">wave</span> <span class="o">=</span> <span class="n">wfk</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -359,6 +359,14 @@ the data stored in the WFK file produced by ABINIT.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.waves.wfkfile.WfkFile.ipw_visualize_widget">
+<code class="descname">ipw_visualize_widget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.ipw_visualize_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.ipw_visualize_widget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an ipython widget with controllers to visualize the wavefunctions.</p>
+<p>It seems there&#8217;s a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+as the tab in vesta is not updated!</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.waves.wfkfile.WfkFile.kindex">
 <code class="descname">kindex</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.kindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.kindex" title="Permalink to this definition">¶</a></dt>
 <dd><p>The index of the k-point in the file. Accepts <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object or int.</p>
@@ -392,7 +400,7 @@ the data stored in the WFK file produced by ABINIT.</p>
 
 <dl class="method">
 <dt id="abipy.waves.wfkfile.WfkFile.visualize_ur2">
-<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.visualize_ur2" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize_ur2</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em>, <em>visu_name='vesta'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.visualize_ur2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.visualize_ur2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize <img src="../_images/mathmpl/math-78fb3f8667.png" style="position: relative; bottom: -8px"/>  with visualizer.
 See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</p>
 </dd></dl>

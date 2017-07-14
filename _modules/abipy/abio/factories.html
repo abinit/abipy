@@ -269,14 +269,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;shift_mode not valid.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;shift_mode `</span><span class="si">%s</span><span class="s2"> `not valid.&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">shift_mode</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="gs_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.gs_input">[docs]</a><span class="k">def</span> <span class="nf">gs_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
              <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
              <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`AbinitInput` for band structure calculations.</span>
+<span class="sd">    Returns a :class:`AbinitInput` for ground-state calculation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        structure: :class:`Structure` object.</span>
@@ -294,7 +294,7 @@
 <span class="sd">        scf_algorithm: Algorithm used for solving of the SCF cycle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">multi</span> <span class="o">=</span> <span class="n">ebands_input</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
-                 <span class="n">kppa</span><span class="o">=</span><span class="n">kppa</span><span class="p">,</span>
+                 <span class="n">kppa</span><span class="o">=</span><span class="n">kppa</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                  <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="n">pawecutdg</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="n">scf_nband</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="n">spin_mode</span><span class="p">,</span>
                  <span class="n">smearing</span><span class="o">=</span><span class="n">smearing</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="n">scf_algorithm</span><span class="p">)</span>
 
@@ -314,6 +314,7 @@
 <span class="sd">        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.</span>
 <span class="sd">        nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</span>
 <span class="sd">        ndivsm: Number of divisions used to sample the smallest segment of the k-path.</span>
+<span class="sd">            if 0, only the GS input is returned in multi[0].</span>
 <span class="sd">        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</span>
 <span class="sd">        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos</span>
 <span class="sd">            according to accuracy)</span>
@@ -352,6 +353,7 @@
     <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_ksampling</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_electrons</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">_stopping_criterion</span><span class="p">(</span><span class="s2">&quot;scf&quot;</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">ndivsm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">multi</span>
 
     <span class="c1"># Band structure calculation.</span>
     <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">path_from_structure</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
@@ -576,8 +578,8 @@
 <span class="sd">        scf_nband: number of scf bands</span>
 <span class="sd">        ecut: ecut for all calcs that that are not ecut convergence  cals at scf level</span>
 <span class="sd">        scf_ Defines the sampling used for the SCF run.</span>
-<span class="sd">        nscf_nband: a list of number of bands included in the screening and sigmaruns. The NSCF run will be done on the</span>
-<span class="sd">            maximum</span>
+<span class="sd">        nscf_nband: a list of number of bands included in the screening and sigmaruns.</span>
+<span class="sd">            The NSCF run will be done with the maximum.</span>
 <span class="sd">        ecuteps: list of Cutoff energy [Ha] for the screening matrix.</span>
 <span class="sd">        ecutsigx: Cutoff energy [Ha] for the exchange part of the self-energy.</span>
 <span class="sd">        accuracy: Accuracy of the calculation.</span>
@@ -635,7 +637,6 @@
         <span class="n">gwmem</span><span class="o">=</span><span class="s1">&#39;10&#39;</span><span class="p">,</span>
         <span class="n">prtsuscep</span><span class="o">=</span><span class="mi">0</span>
     <span class="p">)</span>
-
 
     <span class="c1"># all these too many options are for development only the current idea for the final version is</span>
     <span class="c1">#if gamma:</span>
@@ -890,7 +891,7 @@
             <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>          <span class="c1"># One wavevector is to be considered</span>
             <span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span>         <span class="c1"># This wavevector is q=0 (Gamma)</span>
             <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.0e-20</span><span class="p">,</span>
-            <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># One could used symmetries for Gamma.</span>
+            <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># TODO: One could use symmetries for Gamma.</span>
         <span class="p">)</span>
             <span class="c1">#rfatpol   1 1   # Only the first atom is displaced</span>
             <span class="c1">#rfdir   1 0 0   # Along the first reduced coordinate axis</span>

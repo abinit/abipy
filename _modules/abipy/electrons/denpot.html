@@ -71,6 +71,8 @@
 <span class="sd">&quot;&quot;&quot;Density/potential files in netcdf/fortran format.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
@@ -78,13 +80,10 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">,</span>
     <span class="n">AbinitFortranFile</span><span class="p">,</span> <span class="n">CubeFile</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Cut3D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">FieldReader</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
-<span class="c1">#from abipy.tools import duck</span>
-<span class="c1">#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims</span>
-
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -96,6 +95,27 @@
 <span class="p">]</span>
 
 
+<span class="k">class</span> <span class="nc">Cut3dDenPotNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Netcdf file with structure and density/potential produced by CUT3d</span>
+<span class="sd">    Unlike _NcFileWithField subclasses, this object does not contain an electronic band-structure</span>
+<span class="sd">    and it&#39;s mainly used to convert from Fortran DEN/POT to netcdf.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Cut3dDenPotNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">FieldReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_field</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
 <span class="k">class</span> <span class="nc">_DenPotNcReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">FieldReader</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Object used to read data from density/potential files in netcdf format.&quot;&quot;&quot;</span>
 
@@ -104,7 +124,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class providing commong methods for netcdf files with density/potential</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -131,13 +151,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span>
 
     <span class="nd">@lazy_property</span>
-    <span class="k">def</span> <span class="nf">_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The field object provided by the subclass.</span>
-<span class="sd">        Methods of this base class should use self._field to implement</span>
+<span class="sd">        Methods of this base class should use self.field to implement</span>
 <span class="sd">        logic common to the sub-classes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_field_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">field_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -160,8 +180,8 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;XC functional: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xc</span><span class="p">))</span>
 
         <span class="c1"># Add info on the field</span>
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
@@ -198,7 +218,7 @@
 <span class="sd">            ncfile.density</span>
 <span class="sd">            ncfile.ebands.plot()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;density&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;density&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="DensityNcFile.density"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.density">[docs]</a>    <span class="k">def</span> <span class="nf">density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -246,7 +266,7 @@
 
 
 <div class="viewcode-block" id="VhartreeNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhartreeNcFile">[docs]</a><span class="k">class</span> <span class="nc">VhartreeNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vh&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;vh&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="VhartreeNcFile.vh"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhartreeNcFile.vh">[docs]</a>    <span class="k">def</span> <span class="nf">vh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -255,7 +275,7 @@
 
 
 <div class="viewcode-block" id="VxcNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VxcNcFile">[docs]</a><span class="k">class</span> <span class="nc">VxcNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vxc&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;vxc&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="VxcNcFile.vxc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VxcNcFile.vxc">[docs]</a>    <span class="k">def</span> <span class="nf">vxc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -264,7 +284,7 @@
 
 
 <div class="viewcode-block" id="VhxcNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhxcNcFile">[docs]</a><span class="k">class</span> <span class="nc">VhxcNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vhxc&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;vhxc&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="VhxcNcFile.vhxc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.VhxcNcFile.vhxc">[docs]</a>    <span class="k">def</span> <span class="nf">vhxc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -273,7 +293,7 @@
 
 
 <div class="viewcode-block" id="PotNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.PotNcFile">[docs]</a><span class="k">class</span> <span class="nc">PotNcFile</span><span class="p">(</span><span class="n">_NcFileWithField</span><span class="p">):</span>
-    <span class="n">_field_name</span> <span class="o">=</span> <span class="s2">&quot;vks&quot;</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s2">&quot;vks&quot;</span>
 
     <span class="nd">@lazy_property</span>
 <div class="viewcode-block" id="PotNcFile.vks"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.denpot.PotNcFile.vks">[docs]</a>    <span class="k">def</span> <span class="nf">vks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -292,9 +312,6 @@
 <span class="sd">        Internal function to run a conversion using cut3d.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
-
-        <span class="c1"># local import to avoid circular references</span>
-        <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Cut3D</span>
         <span class="n">outfile</span><span class="p">,</span> <span class="n">converted_file</span> <span class="o">=</span> <span class="n">Cut3D</span><span class="p">()</span><span class="o">.</span><span class="n">cut3d</span><span class="p">(</span><span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">converted_file</span>
@@ -312,7 +329,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (CubeFile) the converted file as a CubeFile object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
         <span class="k">return</span> <span class="n">CubeFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_cube</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
                                       <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">))</span>
 
@@ -330,9 +346,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (string) path to the converted file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_xsf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">out_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">),</span>
-                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_xsf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span>
+                             <span class="n">output_filepath</span><span class="o">=</span><span class="n">out_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_tecplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -347,8 +362,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (string) path to the converted file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_tecplot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_tecplot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
+                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_molekel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -363,8 +378,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (string) path to the converted file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_molekel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_molekel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
+                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -379,8 +394,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (string) path to the converted file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
+                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_3d_formatted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -395,8 +410,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            (string) path to the converted file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">cut3d_input</span><span class="o">=</span><span class="n">Cut3DInput</span><span class="o">.</span><span class="n">den_to_3d_indexed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">out_filepath</span><span class="p">),</span>
+                             <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_hirshfeld</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fhi_all_el_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -419,10 +434,6 @@
         <span class="k">if</span> <span class="n">all_el_dens_paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">fhi_all_el_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;all_el_dens_paths and fhi_all_el_path are mutually exclusive.&quot;</span><span class="p">)</span>
 
-        <span class="c1"># local import to avoid circular references</span>
-        <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Cut3D</span>
-        <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">Cut3DInput</span>
-
         <span class="k">if</span> <span class="n">all_el_dens_paths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">cut3d_input</span> <span class="o">=</span> <span class="n">Cut3DInput</span><span class="o">.</span><span class="n">hirshfeld</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -435,6 +446,23 @@
 
         <span class="kn">from</span> <span class="nn">abipy.electrons.charges</span> <span class="k">import</span> <span class="n">HirshfeldCharges</span>
         <span class="k">return</span> <span class="n">HirshfeldCharges</span><span class="o">.</span><span class="n">from_cut3d_outfile</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="n">cut3d</span><span class="o">.</span><span class="n">stdout_fname</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            workdir: directory in which cut3d is executed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;field_CUT3DDENPOT.nc&quot;</span><span class="p">)</span>
+        <span class="c1"># FIXME Converters with nspden &gt; 1 won&#39;t work since cut3d asks for the ispden index.</span>
+        <span class="n">cut3d_input</span> <span class="o">=</span> <span class="n">Cut3DInput</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">output_filepath</span><span class="p">,</span>
+                                 <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;17&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">])</span>
+        <span class="n">outfile</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Cut3D</span><span class="p">()</span><span class="o">.</span><span class="n">cut3d</span><span class="p">(</span><span class="n">cut3d_input</span><span class="p">,</span> <span class="n">workdir</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">Cut3dDenPotNcFile</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">nc</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="n">is_density_like</span> <span class="ow">and</span> <span class="n">nc</span><span class="o">.</span><span class="n">field</span><span class="o">.</span><span class="n">netcdf_name</span> <span class="o">==</span> <span class="s2">&quot;density&quot;</span>
+            <span class="k">return</span> <span class="n">nc</span><span class="o">.</span><span class="n">field</span>
 </pre></div>
 
           </div>

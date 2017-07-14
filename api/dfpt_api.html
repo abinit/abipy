@@ -198,6 +198,20 @@ None if the file does not contain this information.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -241,7 +255,7 @@ the error messages of the run.</p>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.Becs.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs.to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -313,7 +327,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs">
-<code class="descname">anaget_emacro_and_becs</code><span class="sig-paren">(</span><em>chneut=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_emacro_and_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anaget_emacro_and_becs</code><span class="sig-paren">(</span><em>chneut=1</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_emacro_and_becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_emacro_and_becs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -322,6 +336,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>chneut</strong> &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
+<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
 <li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
 </td>
@@ -335,7 +350,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_ifc">
-<code class="descname">anaget_ifc</code><span class="sig-paren">(</span><em>ifcout=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ngqpt=None</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_ifc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_ifc" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anaget_ifc</code><span class="sig-paren">(</span><em>ifcout=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ngqpt=None</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_ifc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_ifc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute anaddb to compute the interatomic forces.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -345,6 +360,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <li><strong>ifcout</strong> &#8211; Number of neighbouring atoms for which the ifc&#8217;s will be output. If None all the atoms in the big box.</li>
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
+<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
 <li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
@@ -361,7 +377,7 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files">
-<code class="descname">anaget_phbst_and_phdos_files</code><span class="sig-paren">(</span><em>nqsmall=10</em>, <em>ndivsm=20</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting=False</em>, <em>ngqpt=None</em>, <em>qptbounds=None</em>, <em>anaddb_kwargs=None</em>, <em>verbose=0</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phbst_and_phdos_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anaget_phbst_and_phdos_files</code><span class="sig-paren">(</span><em>nqsmall=10</em>, <em>ndivsm=20</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting=False</em>, <em>ngqpt=None</em>, <em>qptbounds=None</em>, <em>anaddb_kwargs=None</em>, <em>verbose=0</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phbst_and_phdos_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute anaddb to compute the phonon band structure and the phonon DOS</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -380,6 +396,7 @@ In the later case, the value 0.001 eV is used as gaussian broadening</li>
 depending on the input structure.</li>
 <li><strong>anaddb_kwargs</strong> &#8211; additional kwargs for anaddb</li>
 <li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
 <li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
 </ul>
@@ -395,7 +412,7 @@ depending on the input structure.</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint">
-<code class="descname">anaget_phmodes_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>lo_to_splitting=False</em>, <em>directions=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phmodes_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anaget_phmodes_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>workdir=None</em>, <em>mpi_procs=1</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>lo_to_splitting=False</em>, <em>directions=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phmodes_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute anaddb to compute phonon modes at the given q-point.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -405,6 +422,7 @@ depending on the input structure.</li>
 <li><strong>qpoint</strong> &#8211; Reduced coordinates of the qpoint where phonon modes are computed.</li>
 <li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
+<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
 <li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>lo_to_splitting</strong> &#8211; if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
@@ -1334,8 +1352,8 @@ If None labels will be determined automatically.</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>with_structure=True</em>, <em>with_qpoints=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Human-readable string with useful info such as band gaps, position of HOMO, LOMO...</p>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>with_structure=True</em>, <em>with_qpoints=False</em>, <em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human-readable string with useful information such as structure, q-points, ...</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1412,7 +1430,7 @@ Used only if <cite>phdos</cite> is not None.</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.animate">
-<code class="descname">animate</code><span class="sig-paren">(</span><em>interval=250</em>, <em>savefile=None</em>, <em>units='eV'</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">animate</code><span class="sig-paren">(</span><em>interval=500</em>, <em>savefile=None</em>, <em>units='eV'</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use matplotlib to animate a list of band structure plots (with or without DOS).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1784,6 +1802,20 @@ or an integer giving the sequential index (C-convention).</li>
 <dt id="abipy.dfpt.phonons.PhbstFile.structure">
 <code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.structure" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhbstFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2529,6 +2561,14 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.dfpt.phonons.PhdosFile.structure">
 <code class="descname">structure</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhdosFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human-readable string with useful information such as structure...</p>
+<blockquote>
+<div>verbose: Verbosity level.</div></blockquote>
 </dd></dl>
 
 <dl class="method">

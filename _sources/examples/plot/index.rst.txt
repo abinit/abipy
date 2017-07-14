@@ -19,6 +19,7 @@ plot Examples
     plot_ebands_boxplot <plot_ebands_boxplot.rst>
     plot_ebands_edos <plot_ebands_edos.rst>
     plot_ebands_grid <plot_ebands_grid.rst>
+    plot_ebands_scatter3d <plot_ebands_scatter3d.rst>
     plot_ebands_spin <plot_ebands_spin.rst>
     plot_ederivatives <plot_ederivatives.rst>
     plot_edos <plot_edos.rst>
@@ -27,6 +28,7 @@ plot Examples
     plot_efatbands_lm <plot_efatbands_lm.rst>
     plot_efatbands_spin <plot_efatbands_spin.rst>
     plot_ejdos <plot_ejdos.rst>
+    plot_fold2bloch <plot_fold2bloch.rst>
     plot_funcs <plot_funcs.rst>
     plot_gruneisen <plot_gruneisen.rst>
     plot_gscycle <plot_gscycle.rst>
@@ -52,3 +54,4 @@ plot Examples
     plot_sigmaw <plot_sigmaw.rst>
     plot_spectral_functions <plot_spectral_functions.rst>
     plot_wfk <plot_wfk.rst>
+    plot_xrd <plot_xrd.rst>

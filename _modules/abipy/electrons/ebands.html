@@ -93,11 +93,11 @@
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="p">(</span><span class="n">Kpoint</span><span class="p">,</span> <span class="n">KpointList</span><span class="p">,</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">,</span> <span class="n">KSamplingInfo</span><span class="p">,</span> <span class="n">KpointsReaderMixin</span><span class="p">,</span>
-    <span class="n">kmesh_from_mpdivs</span><span class="p">,</span> <span class="n">Ktables</span><span class="p">,</span> <span class="n">has_timrev_from_kptopt</span><span class="p">,</span> <span class="n">map_bz2ibz</span><span class="p">)</span>
+    <span class="n">Ktables</span><span class="p">,</span> <span class="n">has_timrev_from_kptopt</span><span class="p">,</span> <span class="n">map_grid2ibz</span><span class="p">,</span> <span class="n">kmesh_from_mpdivs</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span><span class="p">,</span> <span class="n">bxsf_write</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">duck</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_ax3d_fig_plt</span>
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -461,7 +461,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to extract ebands from object </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
 
     <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="ElectronBands.from_material_id"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">from_material_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://www.materialsproject.org/rest/v2&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="ElectronBands.from_material_id"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_material_id">[docs]</a>    <span class="k">def</span> <span class="nf">from_material_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">nelect</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">has_timerev</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nspinor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nspden</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read bandstructure data corresponding to a materials project material_id.</span>
@@ -482,15 +482,9 @@
 <span class="sd">            nelect: Number of electrons in the unit cell.</span>
 <span class="sd">            nspinor: 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">pymatgen</span> <span class="k">import</span> <span class="n">SETTINGS</span>
-        <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">api_key</span> <span class="o">=</span> <span class="n">SETTINGS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PMG_MAPI_KEY&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml&quot;</span><span class="p">)</span>
-
         <span class="c1"># Get pytmatgen structure and convert it to abipy structure</span>
-        <span class="kn">from</span> <span class="nn">pymatgen.matproj.rest</span> <span class="k">import</span> <span class="n">MPRester</span>
-        <span class="k">with</span> <span class="n">MPRester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+        <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
             <span class="n">pmgb</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_bandstructure_by_material_id</span><span class="p">(</span><span class="n">material_id</span><span class="o">=</span><span class="n">material_id</span><span class="p">)</span>
 
             <span class="c1"># Structure is set to None so we have to perform another request and patch the object.</span>
@@ -583,16 +577,45 @@
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">findname_in_hsym_stars</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">_auto_klabels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
-                <span class="k">if</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">kpoint</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># If the first or the last k-point are not recognized in findname_in_hsym_stars</span>
+        <span class="c1"># matplotlib won&#39;t show the full band structure along the k-path</span>
+        <span class="c1"># because the labels are not defined. Here we make sure that</span>
+        <span class="c1"># the labels for the extrema of the path are always defined.</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_auto_klabels</span><span class="p">:</span> <span class="n">_auto_klabels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">last</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_auto_klabels</span><span class="p">:</span> <span class="n">_auto_klabels</span><span class="p">[</span><span class="n">last</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+
         <span class="k">return</span> <span class="n">_auto_klabels</span>
 
-    <span class="c1">#def __repr__(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;String representation (short version)&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation (short version)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">, nk=</span><span class="si">%d</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, id=</span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;self + other returns a :class:`ElectronBandsPlotter`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">ElectronBands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot add </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">):</span>
+            <span class="n">self_key</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">self_key</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+            <span class="n">self_key</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">self_key</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="n">self_key</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">other_key</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">other_key</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">plotter</span>
+
+    <span class="fm">__radd__</span> <span class="o">=</span> <span class="fm">__add__</span>
 
     <span class="c1"># Handy variables used to loop</span>
     <span class="nd">@property</span>
@@ -1232,11 +1255,17 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; For spin </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">enough_bands</span><span class="p">:</span>
-                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Direct gap:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
-                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Fundamental gap:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fundamental_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
+                    <span class="c1"># This can fail so we have to catch the exception.</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Direct gap:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
+                        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Fundamental gap:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fundamental_gaps</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;WARNING: Cannot compute direct and fundamental gap.&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Exception:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Bandwidth: </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence minimum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lomos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence max located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence maximum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">with_kpoints</span><span class="p">:</span>
@@ -1344,16 +1373,15 @@
             <span class="n">err_msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">))</span> <span class="c1"># + &quot;\n&quot; + str(self.kpoints)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
 
-        <span class="c1"># Compute the linear mesh.</span>
+        <span class="c1"># Compute linear mesh.</span>
         <span class="n">epad</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">width</span>
         <span class="n">e_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enemin</span><span class="p">()</span> <span class="o">-</span> <span class="n">epad</span>
         <span class="n">e_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enemax</span><span class="p">()</span> <span class="o">+</span> <span class="n">epad</span>
-
         <span class="n">nw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">e_max</span> <span class="o">-</span> <span class="n">e_min</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>
         <span class="n">mesh</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">e_min</span><span class="p">,</span> <span class="n">e_max</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">dos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nw</span><span class="p">))</span>
 
         <span class="c1"># TODO: Write cython version.</span>
+        <span class="n">dos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">nw</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">):</span>
@@ -1373,6 +1401,68 @@
         <span class="n">edos</span> <span class="o">=</span> <span class="n">ElectronDos</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">dos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="n">fermie</span><span class="o">=</span><span class="n">fermie</span><span class="p">)</span>
         <span class="c1">#print(&quot;ebands.fermie&quot;, self.fermie, &quot;edos.fermie&quot;, edos.fermie)</span>
         <span class="k">return</span> <span class="n">edos</span></div>
+
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="ElectronBands.plot_transitions"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">plot_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omega_ev</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">atol_ev</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">atol_kdiff</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot energy bands with arrows signaling possible k --&gt; k + q indipendent-particle transitions</span>
+<span class="sd">        of energy `omega_ev` connecting occupied to empty states.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            omega_ev: Transition energy in eV.</span>
+<span class="sd">            qpt: Q-point in reduced coordinates.</span>
+<span class="sd">            atol_ev: Absolute tolerance for energy difference in eV</span>
+<span class="sd">            atol_kdiff: Tolerance used to compare k-points.</span>
+<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="s2">&quot;fermie&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Pre-compute mapping k_index --&gt; (k + q)_index, g0</span>
+        <span class="n">k2kqg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">get_k2kqg_map</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span> <span class="n">atol_kdiff</span><span class="o">=</span><span class="n">atol_kdiff</span><span class="p">)</span>
+
+        <span class="c1"># Add arrows to the plot (different colors for spin up/down)</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">FancyArrowPatch</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+            <span class="n">cachek</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">arrow_opts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;red&quot;</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="p">(</span><span class="n">ikq</span><span class="p">,</span> <span class="n">g0</span><span class="p">)</span> <span class="ow">in</span> <span class="n">k2kqg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">ikq</span> <span class="o">-</span> <span class="n">ik</span>
+                <span class="n">ek</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]</span>
+                <span class="n">ekq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikq</span><span class="p">]</span>
+                <span class="c1"># Find rightmost value less than or equal to fermie.</span>
+                <span class="n">nv_k</span> <span class="o">=</span> <span class="n">cachek</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nv_k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">nv_k</span> <span class="o">=</span> <span class="n">find_le</span><span class="p">(</span><span class="n">ek</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_fermie</span><span class="p">)</span>
+                    <span class="n">cachek</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="n">nv_k</span>
+
+                <span class="k">if</span> <span class="n">ik</span> <span class="o">==</span> <span class="n">ikq</span><span class="p">:</span>
+                    <span class="n">nv_kq</span> <span class="o">=</span> <span class="n">nv_k</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">nv_kq</span> <span class="o">=</span> <span class="n">cachek</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ikq</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">nv_kq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">nv_kq</span> <span class="o">=</span> <span class="n">find_le</span><span class="p">(</span><span class="n">ekq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_fermie</span><span class="p">)</span>
+                        <span class="n">cachek</span><span class="p">[</span><span class="n">ikq</span><span class="p">]</span> <span class="o">=</span> <span class="n">nv_kq</span>
+
+                <span class="c1">#print(&quot;nv_k:&quot;, nv_k, &quot;nc_kq&quot;, nv_kq)</span>
+                <span class="k">for</span> <span class="n">v_k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nv_k</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">c_kq</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nv_kq</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">):</span>
+                        <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikq</span><span class="p">,</span> <span class="n">c_kq</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">v_k</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dy</span> <span class="o">-</span> <span class="n">omega_ev</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">atol_ev</span><span class="p">:</span> <span class="k">continue</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">v_k</span><span class="p">]</span> <span class="o">-</span> <span class="n">e0</span>
+                        <span class="c1"># http://matthiaseisen.com/matplotlib/shapes/arrow/</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">FancyArrowPatch</span><span class="p">((</span><span class="n">ik</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">ik</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">dy</span><span class="p">),</span>
+                                <span class="n">connectionstyle</span><span class="o">=</span><span class="s1">&#39;arc3&#39;</span><span class="p">,</span> <span class="n">mutation_scale</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">**</span><span class="n">arrow_opts</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="ElectronBands.get_ejdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_ejdos">[docs]</a>    <span class="k">def</span> <span class="nf">get_ejdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">valence</span><span class="p">,</span> <span class="n">conduction</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1436,11 +1526,11 @@
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">):</span>
                 <span class="n">weight</span> <span class="o">=</span> <span class="n">kpoint</span><span class="o">.</span><span class="n">weight</span>
                 <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conduction</span><span class="p">:</span>
-                    <span class="n">ec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">c</span><span class="p">]</span>
+                    <span class="n">ec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span>
                     <span class="n">fc</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">occfacts</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">c</span><span class="p">]</span> <span class="o">/</span> <span class="n">full</span>
                     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valence</span><span class="p">:</span>
-                        <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">]</span>
-                        <span class="n">fv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">occfacts</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">]</span> <span class="o">/</span> <span class="n">full</span>
+                        <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span>
+                        <span class="n">fv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">occfacts</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span> <span class="o">/</span> <span class="n">full</span>
                         <span class="n">fact</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">fv</span> <span class="o">*</span> <span class="n">fc</span>
                         <span class="n">jdos</span> <span class="o">+=</span> <span class="n">fact</span> <span class="o">*</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">ec</span><span class="o">-</span><span class="n">ev</span><span class="p">)</span>
 
@@ -1450,7 +1540,7 @@
         <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">jdos</span><span class="p">)</span></div>
 
     <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="ElectronBands.plot_ejdosvc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_ejdosvc">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ejdosvc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vrange</span><span class="p">,</span> <span class="n">crange</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<div class="viewcode-block" id="ElectronBands.plot_ejdosvc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_ejdosvc">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ejdosvc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vrange</span><span class="p">,</span> <span class="n">crange</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span>
                      <span class="n">cumulative</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the decomposition of the joint-density of States (JDOS).</span>
@@ -1465,6 +1555,8 @@
 <span class="sd">            method: String defining the method.</span>
 <span class="sd">            step: Energy step (eV) of the linear mesh.</span>
 <span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
+<span class="sd">            colormap: Have a look at the colormaps here and decide which one you like:</span>
+<span class="sd">                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</span>
 <span class="sd">            cumulative: True for cumulative plots (default).</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 
@@ -1477,7 +1569,7 @@
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
-        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;jet&quot;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.0</span>
 
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
@@ -1607,9 +1699,45 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="ElectronBands.plot_scatter3d"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.plot_scatter3d">[docs]</a>    <span class="k">def</span> <span class="nf">plot_scatter3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use matplotlib `scatter3D` to produce a scatter plot of the eigenvalues in 3D.</span>
+<span class="sd">        The color of the points gives the energy of the state wrt to the Fermi level.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            band: Band index</span>
+<span class="sd">            spin: Spin index.</span>
+<span class="sd">            e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+<span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).</span>
+<span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+<span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">            colormap: Have a look at the colormaps here and decide which one you like:</span>
+<span class="sd">                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</span>
+<span class="sd">            ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kcart_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">get_cart_coords</span><span class="p">()</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax3d_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
+        <span class="c1">#ax.scatter3D(xs, ys, zs, s=6, alpha=0.8, marker=&#39;,&#39;, facecolors=cmap(N), lw=0)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter3D</span><span class="p">(</span><span class="n">kcart_coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">kcart_coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">zs</span><span class="o">=</span><span class="n">kcart_coords</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">zdir</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span>
+                         <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">depthshade</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+
+        <span class="c1">#self.structure.plot_bz(ax=ax, pmg_path=False, with_labels=False, show=False, linewidth=0)</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_wigner_seitz</span>
+        <span class="n">plot_wigner_seitz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;$K_x$&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$K_y$&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s2">&quot;$K_z$&quot;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
 <div class="viewcode-block" id="ElectronBands.decorate_ax"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.decorate_ax">[docs]</a>    <span class="k">def</span> <span class="nf">decorate_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Decoracte matplotlib Axis</span>
+<span class="sd">        Decorate matplotlib Axis</span>
 
 <span class="sd">        Accept:</span>
 <span class="sd">            title:</span>
@@ -1849,39 +1977,13 @@
 <div class="viewcode-block" id="ElectronBands.to_bxsf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.to_bxsf">[docs]</a>    <span class="k">def</span> <span class="nf">to_bxsf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Export the full band structure to `filepath` in BXSF format</span>
-<span class="sd">        suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).</span>
+<span class="sd">        suitable for the visualization of isosurfaces with Xcrysden (xcrysden --bxsf FILE).</span>
 <span class="sd">        Require k-points in IBZ and gamma-centered k-mesh.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Sanity check.</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">eapp</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">append</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband_sk</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;The number of bands in nband must be constant&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span>
-            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Expecting an IBZ sampling for the Fermi surface but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_mpmesh</span><span class="p">:</span>
-            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Monkhorst-Pack meshes are required for BXSF output.</span><span class="se">\n</span><span class="s2">kpoints.ksampling: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">ksampling</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_ebands3d</span><span class="p">()</span><span class="o">.</span><span class="n">to_bxsf</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
-        <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">mpdivs_shifts</span>
-        <span class="k">if</span> <span class="n">shifts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">shifts</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">):</span>
-            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Gamma-centered k-meshes are required by Xcrysden.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
-
-        <span class="c1"># Xcrysden requires points in the unit cell (C-order)</span>
-        <span class="c1"># and the mesh must include the periodic images hence pbc=True.</span>
-        <span class="n">bz2ibz</span> <span class="o">=</span> <span class="n">map_bz2ibz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">mpdivs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># Construct bands in BZ: e_{TSk} = e_{k}</span>
-        <span class="n">len_bz</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bz2ibz</span><span class="p">)</span>
-        <span class="n">emesh_sbk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">,</span> <span class="n">len_bz</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">ik_bz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">len_bz</span><span class="p">):</span>
-            <span class="n">ik_ibz</span> <span class="o">=</span> <span class="n">bz2ibz</span><span class="p">[</span><span class="n">ik_bz</span><span class="p">]</span>
-            <span class="n">emesh_sbk</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ik_bz</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[:,</span> <span class="n">ik_ibz</span><span class="p">,</span> <span class="p">:]</span>
-
-        <span class="c1"># Write BXSF file.</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">bxsf_write</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">,</span> <span class="n">mpdivs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">emesh_sbk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ElectronBands.get_ebands3d"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_ebands3d">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ElectronBands3D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronBands.derivatives"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.derivatives">[docs]</a>    <span class="k">def</span> <span class="nf">derivatives</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2044,7 +2146,6 @@
 
         <span class="n">ebands_kpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">kpts_kpath</span><span class="p">,</span> <span class="n">eigens_kpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">occfacts_kpath</span><span class="p">,</span>
                                       <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">)</span>
-
         <span class="n">ebands_kmesh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">kmesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Get kpts and weights in IBZ.</span>
@@ -2159,7 +2260,7 @@
         <span class="sd">&quot;&quot;&quot;Invoked by str&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ElectronBandsPlotter.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBandsPlotter.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
@@ -2174,7 +2275,9 @@
 
 <div class="viewcode-block" id="ElectronBandsPlotter.get_ebands_frame"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a pandas dataframe with the most important results available in the band structures.&quot;&quot;&quot;</span>
+<span class="sd">        Build a pandas dataframe with the most important results available in the band structures.</span>
+<span class="sd">        Useful to analyze band-gaps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">frame_from_ebands</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
                                  <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span></div>
 
@@ -2501,7 +2604,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="ElectronBandsPlotter.animate"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.animate">[docs]</a>    <span class="k">def</span> <span class="nf">animate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBandsPlotter.animate"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.animate">[docs]</a>    <span class="k">def</span> <span class="nf">animate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use matplotlib to animate a list of band structure plots (with or without DOS).</span>
 
@@ -2535,6 +2638,7 @@
         <span class="n">ebands_list</span><span class="p">,</span> <span class="n">edos_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_list</span>
         <span class="k">if</span> <span class="n">edos_list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">edos_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ebands_list</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The number of objects for DOS must be equal to the number of bands&quot;</span><span class="p">)</span>
+        <span class="c1">#titles = list(self.ebands_dict.keys())</span>
 
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -2580,6 +2684,10 @@
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">anim</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ipw_select_plot</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ElectronBandsPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2853,7 +2961,6 @@
             <span class="k">return</span> <span class="mf">0.0</span>
 
         <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">e0</span><span class="p">):</span>
-
             <span class="k">if</span> <span class="n">e0</span> <span class="o">==</span> <span class="s2">&quot;fermie&quot;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span>
             <span class="k">elif</span> <span class="n">e0</span> <span class="o">==</span> <span class="s2">&quot;None&quot;</span><span class="p">:</span>
@@ -3092,7 +3199,6 @@
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
 
         <span class="n">can_use_basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_use_basenames_as_labels</span><span class="p">()</span>
-
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">dos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">can_use_basename</span><span class="p">:</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
@@ -3205,6 +3311,364 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="p">]</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">plot_unit_cell</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the unit cell of the lattice to a matplotlib Axes3D</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to black</span>
+<span class="sd">            and linewidth to 3.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax3d_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;k&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;linewidth&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+                 <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
+
+
+<span class="k">class</span> <span class="nc">Bands3D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ibz</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">fermie</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span> <span class="o">=</span> <span class="n">ibz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span> <span class="o">=</span> <span class="n">has_timrev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span> <span class="o">=</span> <span class="n">fermie</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_3d</span><span class="p">(</span><span class="n">eigens</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># Sanity check.</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">eapp</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span>
+            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Expecting an IBZ sampling but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">is_mpmesh</span><span class="p">:</span>
+            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Monkhorst-Pack meshes are required.</span><span class="se">\n</span><span class="s2">ksampling: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">ksampling</span><span class="p">))</span>
+
+        <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">mpdivs_shifts</span>
+        <span class="k">if</span> <span class="n">shifts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">shifts</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">):</span>
+            <span class="n">eapp</span><span class="p">(</span><span class="s2">&quot;Gamma-centered k-meshes are required by Xcrysden.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+
+        <span class="c1"># Xcrysden requires points in the unit cell (C-order)</span>
+        <span class="c1"># and the mesh must include the periodic images hence pbc=True.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uc2ibz</span> <span class="o">=</span> <span class="n">map_grid2ibz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">mpdivs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span> <span class="o">=</span> <span class="n">mpdivs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span> <span class="o">=</span> <span class="n">mpdivs</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">mpdivs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ucdata_shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span>
+        <span class="c1">#self.ibzdata_shape = (self.nsppol, self.nband, len(self.ibz))</span>
+
+        <span class="c1"># Construct energy bands on unit cell grid: e_{TSk} = e_{k}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetrize_ibz_scalars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ucell_scalars</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ucell_vectors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="c1">#if reference_sb is None:</span>
+        <span class="c1">#self.reference_sb = [[] for _ in self.spins]</span>
+        <span class="c1">#for spin in self.spins:</span>
+        <span class="c1">#    self.reference_sb[spin] = {band: band for band in self.bands}</span>
+        <span class="c1">#else:</span>
+
+    <span class="c1"># Handy variables used to loop</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">spins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_ucell_scalars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">scalars</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ucell_scalars</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ucdata_shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_ibz_scalars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">inshape</span><span class="o">=</span><span class="s2">&quot;skb&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_ucell_scalars</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetrize_ibz_scalars</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="n">inshape</span><span class="o">=</span><span class="n">inshape</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">symmetrize_ibz_scalars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalars</span><span class="p">,</span> <span class="n">inshape</span><span class="o">=</span><span class="s2">&quot;skb&quot;</span><span class="p">):</span>
+        <span class="c1"># Symmetrize scalars unit cell grid: e_{TSk} = e_{k}</span>
+        <span class="n">ucdata_sbk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uc2ibz</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">inshape</span> <span class="o">==</span> <span class="s2">&quot;skb&quot;</span><span class="p">:</span>
+            <span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ikuc</span><span class="p">,</span> <span class="n">ik_ibz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uc2ibz</span><span class="p">):</span>
+                <span class="n">ucdata_sbk</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ikuc</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalars</span><span class="p">[:,</span> <span class="n">ik_ibz</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">elif</span> <span class="n">inshape</span> <span class="o">==</span> <span class="s2">&quot;sbk&quot;</span><span class="p">:</span>
+            <span class="n">scalars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scalars</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">ikuc</span><span class="p">,</span> <span class="n">ik_ibz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uc2ibz</span><span class="p">):</span>
+                <span class="n">ucdata_sbk</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ikuc</span><span class="p">]</span> <span class="o">=</span> <span class="n">scalars</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ik_ibz</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong inshape: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">insp</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">ucdata_sbk</span>
+
+    <span class="c1">#def add_ucell_vectors(self, name, vectors, inshape=&quot;skb&quot;):</span>
+    <span class="c1">#    self.ucell_vectors[name] = np.reshape(vectors, self.ucdata + (3,))</span>
+
+    <span class="c1">#def add_ibz_vectors(self, name, scalars, inshape=&quot;skb&quot;)</span>
+    <span class="c1">#    self.add_ucell_vectors(name, self.symmetrize_ibz_vectors(vectors, inshape=inshape))</span>
+
+    <span class="c1">#def wsmap(self):</span>
+        <span class="c1">#ws = -np.ones(ngkpt, dtype=np.int)</span>
+        <span class="c1">#for i in range(ngkpt[0]):</span>
+        <span class="c1">#    ki = (i - ngkpt[0] // 2)</span>
+        <span class="c1">#    if ki &lt; 0: ki += ngkpt[0]</span>
+        <span class="c1">#    for j in range(ngkpt[1]):</span>
+        <span class="c1">#        kj = (j - ngkpt[1] // 2)</span>
+        <span class="c1">#        if kj &lt; 0: kj += ngkpt[1]</span>
+        <span class="c1">#        for k in range(ngkpt[2]):</span>
+        <span class="c1">#            kz = (k - ngkpt[2] // 2)</span>
+        <span class="c1">#            if kz &lt; 0: kz += ngkpt[2]</span>
+        <span class="c1">#            #bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz</span>
+        <span class="c1">#            ws[i, j, k] = bzgrid2ibz[ki, kj, kz]</span>
+        <span class="c1">#bzgrid2ibz = ws</span>
+
+    <span class="k">def</span> <span class="nf">get_isobands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return index of the bands crossing e0. None if no band is found.&quot;&quot;&quot;</span>
+        <span class="n">isobands</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bands</span><span class="p">:</span>
+                <span class="n">emin</span><span class="p">,</span> <span class="n">emax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="p">:,</span> <span class="n">band</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">isobands</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span> <span class="ow">and</span> <span class="n">e0</span> <span class="o">&gt;</span> <span class="n">emax</span><span class="p">:</span> <span class="k">break</span>
+                <span class="k">if</span> <span class="n">emax</span> <span class="o">&gt;=</span> <span class="n">e0</span> <span class="o">&gt;=</span> <span class="n">emin</span><span class="p">:</span> <span class="n">isobands</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="ow">not</span> <span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">isobands</span><span class="p">):</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">isobands</span>
+
+    <span class="k">def</span> <span class="nf">to_bxsf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export the full band structure to `filepath` in BXSF format</span>
+<span class="sd">        suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).</span>
+<span class="sd">        Require k-points in IBZ and gamma-centered k-mesh.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">bxsf_write</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">bxsf_write</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">filepath</span>
+
+    <span class="k">def</span> <span class="nf">get_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        e0: Option used to define the zero of energy in the band structure plot. Possible values:</span>
+<span class="sd">                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).</span>
+<span class="sd">                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
+<span class="sd">                -  None: Don&#39;t shift energies, equivalent to e0=0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">e0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">is_string</span><span class="p">(</span><span class="n">e0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">e0</span> <span class="o">==</span> <span class="s2">&quot;fermie&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span>
+            <span class="k">elif</span> <span class="n">e0</span> <span class="o">==</span> <span class="s2">&quot;None&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for e0: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Assume number</span>
+            <span class="k">return</span> <span class="n">e0</span>
+
+    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_isosurfaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            e0:</span>
+<span class="sd">            view:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">measure</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;scikit-image not installed.&quot;</span>
+                <span class="s2">&quot;Please install with it with `conda install scikit-image` or `pip install scikit-image`&quot;</span><span class="p">)</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="n">isobands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_isobands</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isobands</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bands for isosurface:&quot;</span><span class="p">,</span> <span class="n">isobands</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_lattice_vectors</span><span class="p">,</span> <span class="n">plot_wigner_seitz</span> <span class="c1"># plot_unit_cell</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax3d_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">plot_unit_cell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#plot_wigner_seitz(self.reciprocal_lattice, ax=ax, color=&quot;k&quot;, linewidth=1)</span>
+
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">isobands</span><span class="p">[</span><span class="n">spin</span><span class="p">]:</span>
+                <span class="c1"># From http://scikit-image.org/docs/stable/api/skimage.measure.html#marching-cubes</span>
+                <span class="c1"># verts: (V, 3) array</span>
+                <span class="c1">#   Spatial coordinates for V unique mesh vertices. Coordinate order matches input volume (M, N, P).</span>
+                <span class="c1"># faces: (F, 3) array</span>
+                <span class="c1">#   Define triangular faces via referencing vertex indices from verts.</span>
+                <span class="c1">#   This algorithm specifically outputs triangles, so each face has exactly three indices.</span>
+                <span class="c1"># normals: (V, 3) array</span>
+                <span class="c1">#   The normal direction at each vertex, as calculated from the data.</span>
+                <span class="c1"># values: (V, ) array</span>
+                <span class="c1">#   Gives a measure for the maximum value of the data in the local region near each vertex.</span>
+                <span class="c1">#   This can be used by visualization tools to apply a colormap to the mesh</span>
+                <span class="n">voldata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span>
+                <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">measure</span><span class="o">.</span><span class="n">marching_cubes</span><span class="p">(</span><span class="n">voldata</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spacing</span><span class="p">))</span>
+                <span class="n">verts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot_trisurf</span><span class="p">(</span><span class="n">verts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">verts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">verts</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span> <span class="c1">#, cmap=&#39;Spectral&#39;, lw=1, antialiased=True)</span>
+                <span class="c1"># mayavi package:</span>
+                <span class="c1">#mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="k">def</span> <span class="nf">mvplot_isosurfaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            e0:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Find bands crossing e0.</span>
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="n">isobands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_isobands</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isobands</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bands for isosurface:&quot;</span><span class="p">,</span> <span class="n">isobands</span><span class="p">)</span>
+
+        <span class="c1">#from pymatgen.electronic_structure.plotter import plot_fermi_surface</span>
+        <span class="c1">#spin, band = 0, 4</span>
+        <span class="c1">#for i, band in enumerate(isobands[spin]):</span>
+        <span class="c1">#data = np.reshape(isoenes[0][band], mpdivs + 1 if pbc else mpdivs)</span>
+        <span class="c1">#plot_fermi_surface(data, self.structure, False, energy_levels=[e0]) interative=not (i == len(isobands[spin]) - 1))</span>
+
+        <span class="c1"># Plot isosurface with mayavi.</span>
+        <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
+        <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_unit_cell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+        <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_wigner_seitz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">matrix</span>
+
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">isobands</span><span class="p">[</span><span class="n">spin</span><span class="p">]:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span>
+                <span class="n">cp</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">contour3d</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="p">[</span><span class="n">e0</span><span class="p">],</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                    <span class="c1">#colormap=&#39;hot&#39;, color=(0, 0, 1), opacity=1.0, figure=figure)</span>
+                                    <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;Set3&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+                <span class="n">polydata</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">actors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">input</span>
+                <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">polydata</span><span class="o">.</span><span class="n">points</span><span class="p">)</span> <span class="c1">#  - 1  # TODO this + mpdivs should be correct</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shape:&quot;</span><span class="p">,</span> <span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span>
+                <span class="n">polydata</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">cell</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span>
+                <span class="c1">#polydata.points = np.dot(pts, cell / np.array(self.mpdivs)[:, np.newaxis])</span>
+                <span class="n">mlab</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+        <span class="c1"># Add k-point labels.</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">}</span>
+        <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">lattice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">mlab</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">figure</span>
+
+    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_contour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="n">elevation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">fxy</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">fxy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">clabel</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">kvert</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">xz</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">yz</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)[</span><span class="n">plane</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Band </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2"> plane at $K_</span><span class="si">%s</span><span class="s2">=</span><span class="si">%d</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">band</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">kvert</span><span class="p">,</span> <span class="n">elevation</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;$K_</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">plane</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$K_</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">plane</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="c1">#def interpolate(self, densify_mpdivs):</span>
+        <span class="c1">#densify_mpdivs = np.array(densify_mpdivs)</span>
+        <span class="c1">#if np.any(densify_mpdivs &gt; 1):</span>
+        <span class="c1">#dense_mpdivs = densify_mpdivs * mpdivs</span>
+        <span class="c1">#dense_kpts = kmesh_from_mpdivs(dense_mpdivs, shifts=(0, 0, 0), pbc=pbc, order=&quot;unit_cell&quot;)</span>
+        <span class="c1">#from scipy.interpolate import RegularGridInterpolator</span>
+        <span class="c1">#x = np.arange(0, mpdivs[0] + 1) / mpdivs[0]</span>
+        <span class="c1">#y = np.arange(0, mpdivs[1] + 1) / mpdivs[1]</span>
+        <span class="c1">#z = np.arange(0, mpdivs[2] + 1) / mpdivs[2]</span>
+        <span class="c1">#for spin in self.spins:</span>
+        <span class="c1">#    for band in isobands[spin]:</span>
+        <span class="c1">#        interp = RegularGridInterpolator((x, y, z), isoenes[spin][band], method=&#39;linear&#39;)</span>
+        <span class="c1">#        isoenes[spin][band] = interp(dense_mpdivs)</span>
+
+    <span class="c1">#def mvplot_surf(self):</span>
+        <span class="c1">#spin, band = 0, 2</span>
+        <span class="c1">#data = np.reshape(isoenes[spin][band], mpdivs + 1 if pbc else mpdivs)</span>
+        <span class="c1">#x, y = np.arange(data.shape[0]), np.arange(data.shape[1])</span>
+        <span class="c1">#cp = mlab.surf(x, y, data[0,:,:], figure=figure)</span>
+        <span class="c1">#polydata = cp.actor.actors[0].mapper.input</span>
+        <span class="c1">#pts = np.array(polydata.points) # - 1</span>
+        <span class="c1">#xs, ys, zs = pts.T</span>
+        <span class="c1">#print(pts.shape)</span>
+        <span class="c1">#print(zs)</span>
+        <span class="c1">#polydata.points = np.dot(pts, cell / np.array(data.shape)[:, np.newaxis])</span>
+
+        <span class="c1">#data = np.reshape(isoenes[spin][band+1], mpdivs + 1 if pbc else mpdivs)</span>
+        <span class="c1">#cp = mlab.surf(x, y, data[0,:,:], figure=figure)</span>
+        <span class="c1">#polydata = cp.actor.actors[0].mapper.input</span>
+        <span class="c1">#pts = np.array(polydata.points) # - 1</span>
+        <span class="c1">#polydata.points = np.dot(pts, cell / np.array(data.shape)[:, np.newaxis])</span>
+        <span class="c1">#mlab.view(distance=&quot;auto&quot;, figure=figure)</span>
+        <span class="c1">#if show: mlab.show()</span>
+        <span class="c1">#return</span>
+
+    <span class="k">def</span> <span class="nf">mvplot_cutplanes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span>
+        <span class="n">contours</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+        <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
+        <span class="n">figure</span><span class="p">,</span> <span class="n">mlab</span> <span class="o">=</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">get_fig_mlab</span><span class="p">(</span><span class="n">figure</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">scalar_field</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;x_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;y_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">image_plane_widget</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">plane_orientation</span><span class="o">=</span><span class="s1">&#39;z_axes&#39;</span><span class="p">,</span> <span class="n">slice_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">iso_surface</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">contours</span><span class="o">=</span><span class="n">contours</span><span class="p">)</span> <span class="c1">#, opacity=0.1)</span>
+        <span class="c1">#mlab.pipeline.iso_surface(src, contours=[data.min()+ 0.1 * data.ptp()], opacity=0.1)</span>
+        <span class="n">mlab</span><span class="o">.</span><span class="n">outline</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span> <span class="n">mlab</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">figure</span>
+
+    <span class="c1">#def write_data(self, workdir, fmt=&quot;cube&quot;, rmdir=False)</span>
+
+
+<span class="k">class</span> <span class="nc">ElectronBands3D</span><span class="p">(</span><span class="n">Bands3D</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">PhononBands3D</span><span class="p">(</span><span class="n">Bands3D</span><span class="p">):</span>
+    <span class="k">pass</span>
 </pre></div>
 
           </div>

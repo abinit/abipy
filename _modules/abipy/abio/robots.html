@@ -620,7 +620,7 @@
 
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span>
-                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%s</span><span class="s2"> because kpoint sampling not IBZ&quot;</span> <span class="o">%</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;violet&quot;</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%s</span><span class="s2"> because kpoint sampling not IBZ&quot;</span> <span class="o">%</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">plotter</span><span class="o">.</span><span class="n">add_edos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
@@ -655,6 +655,13 @@
             <span class="k">return</span> <span class="n">fits</span><span class="p">,</span> <span class="n">frame</span></div>
             <span class="c1">#return dict2namedtuple(fits=fits, frame=frame)</span>
 
+    <span class="c1">#def get_phasediagram_results(self):</span>
+    <span class="c1">#    from abipy.core.restapi import PhaseDiagramResults</span>
+    <span class="c1">#    entries = []</span>
+    <span class="c1">#    for label, gsr in self:</span>
+    <span class="c1">#        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))</span>
+    <span class="c1">#    return PhaseDiagramResults(entries)</span>
+
 <div class="viewcode-block" id="GsrRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
@@ -667,9 +674,8 @@
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.GsrRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
 
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df = plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(df)&quot;</span><span class="p">),</span>
-
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter = robot.get_ebands_plotter()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df = ebands_plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(df)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#anim = ebands_plotter.animate()&quot;</span><span class="p">),</span>
 
@@ -739,7 +745,7 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
-<div class="viewcode-block" id="SigresRobot.plot_conv_qpgap"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.plot_conv_qpgap">[docs]</a>    <span class="k">def</span> <span class="nf">plot_conv_qpgap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vars</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="SigresRobot.plot_conv_qpgap"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.plot_conv_qpgap">[docs]</a>    <span class="k">def</span> <span class="nf">plot_conv_qpgap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vars</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the convergence of the Quasi-particle gap.</span>
 <span class="sd">        kwargs are passed to :class:`seaborn.PairGrid`.</span>
@@ -752,7 +758,8 @@
         <span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_vars</span><span class="o">=</span><span class="n">x_vars</span><span class="p">,</span> <span class="n">y_vars</span><span class="o">=</span><span class="s2">&quot;qpgap&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">add_legend</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SigresRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

@@ -80,6 +80,7 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.inspect</span> <span class="k">import</span> <span class="n">all_subclasses</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="k">import</span> <span class="n">Poscar</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Chgcar</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
@@ -982,6 +983,18 @@
             <span class="n">nfft2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector2&quot;</span><span class="p">),</span>
             <span class="n">nfft3</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;number_of_grid_points_vector3&quot;</span><span class="p">),</span>
         <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read and return the first field variable found in the netcdf file.</span>
+<span class="sd">        Raise ValueError if cannot find a field or multiple fields are found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">field_cls</span> <span class="k">for</span> <span class="n">field_cls</span> <span class="ow">in</span> <span class="n">all_subclasses</span><span class="p">(</span><span class="n">_Field</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="n">field_cls</span><span class="o">.</span><span class="n">netcdf_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found `</span><span class="si">%s</span><span class="s2">` fields in file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">found</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+        <span class="n">field_cls</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_denpot</span><span class="p">(</span><span class="n">varname</span><span class="o">=</span><span class="n">field_cls</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">,</span> <span class="n">field_cls</span><span class="o">=</span><span class="n">field_cls</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">read_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_cls</span><span class="o">=</span><span class="n">Density</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Read density data. Return :class:`Density` object.&quot;&quot;&quot;</span>

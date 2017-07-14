@@ -150,7 +150,7 @@ For example:</p>
 
 <dl class="method">
 <dt id="abipy.abio.abivars.AbinitInputFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars.html#AbinitInputFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars.AbinitInputFile.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars.html#AbinitInputFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars.AbinitInputFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -286,6 +286,12 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <em class="property">class </em><code class="descclassname">abipy.abio.abivars_db.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>vartype=None</em>, <em>characteristics=None</em>, <em>definition=None</em>, <em>dimensions=None</em>, <em>default=None</em>, <em>text=None</em>, <em>varname=None</em>, <em>section=None</em>, <em>range=None</em>, <em>commentdefault=None</em>, <em>commentdims=None</em>, <em>requires=None</em>, <em>excludes=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">yaml.YAMLObject</span></code></p>
 <dl class="method">
+<dt id="abipy.abio.abivars_db.Variable.browse">
+<code class="descname">browse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.browse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.browse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open variable documentation in browser.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.abivars_db.Variable.depends_on_dimension">
 <code class="descname">depends_on_dimension</code><span class="sig-paren">(</span><em>dimname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.depends_on_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.depends_on_dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if variable is an array whose shape depends on dimension name <cite>dimname</cite>.</p>
@@ -304,6 +310,12 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <em class="property">classmethod </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abipy.abio.abivars_db.Variable.html_link">
+<code class="descname">html_link</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.html_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>String with the URL of the web page.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.abio.abivars_db.Variable.info">
 <code class="descname">info</code><a class="headerlink" href="#abipy.abio.abivars_db.Variable.info" title="Permalink to this definition">¶</a></dt>
@@ -320,6 +332,12 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <dt id="abipy.abio.abivars_db.Variable.name">
 <code class="descname">name</code><a class="headerlink" href="#abipy.abio.abivars_db.Variable.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>An alias for self.varname</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.abivars_db.Variable.url">
+<code class="descname">url</code><a class="headerlink" href="#abipy.abio.abivars_db.Variable.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The url associated to the variable.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -425,6 +443,13 @@ sections can be a string or a list of strings.</p>
 <dt id="abipy.abio.abivars_db.literal_unicode_representer">
 <code class="descclassname">abipy.abio.abivars_db.</code><code class="descname">literal_unicode_representer</code><span class="sig-paren">(</span><em>dumper</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#literal_unicode_representer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.literal_unicode_representer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.abio.abivars_db.repr_html_from_abinit_string">
+<code class="descclassname">abipy.abio.abivars_db.</code><code class="descname">repr_html_from_abinit_string</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#repr_html_from_abinit_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.repr_html_from_abinit_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string <cite>text</cite> with an Abinit input file, replace all variables
+with HTML links pointing to the official documentation. Return new string.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="abipy.abio.abivars_db.valuewithunit_representer">
@@ -562,7 +587,7 @@ with its methods and then call the factory function without having to decorate a
 <dl class="function">
 <dt id="abipy.abio.factories.gs_input">
 <code class="descclassname">abipy.abio.factories.</code><code class="descname">gs_input</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa=None</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>scf_nband=None</em>, <em>accuracy='normal'</em>, <em>spin_mode='polarized'</em>, <em>smearing='fermi_dirac:0.1 eV'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#gs_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.gs_input" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code> for band structure calculations.</p>
+<dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code> for ground-state calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -601,7 +626,8 @@ from the list of pseudos, the structure and the smearing option.</li>
 <li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
 <li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
 <li><strong>nscf_nband</strong> &#8211; Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</li>
-<li><strong>ndivsm</strong> &#8211; Number of divisions used to sample the smallest segment of the k-path.</li>
+<li><strong>ndivsm</strong> &#8211; Number of divisions used to sample the smallest segment of the k-path.
+if 0, only the GS input is returned in multi[0].</li>
 <li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
 <li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
 according to accuracy)</li>
@@ -717,8 +743,8 @@ QP energies for all the point in the IBZ and one band above and one band below t
 <li><strong>scf_nband</strong> &#8211; number of scf bands</li>
 <li><strong>ecut</strong> &#8211; ecut for all calcs that that are not ecut convergence  cals at scf level</li>
 <li><strong>Defines the sampling used for the SCF run.</strong> (<em>scf</em>) &#8211; </li>
-<li><strong>nscf_nband</strong> &#8211; a list of number of bands included in the screening and sigmaruns. The NSCF run will be done on the
-maximum</li>
+<li><strong>nscf_nband</strong> &#8211; a list of number of bands included in the screening and sigmaruns.
+The NSCF run will be done with the maximum.</li>
 <li><strong>ecuteps</strong> &#8211; list of Cutoff energy [Ha] for the screening matrix.</li>
 <li><strong>ecutsigx</strong> &#8211; Cutoff energy [Ha] for the exchange part of the self-energy.</li>
 <li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
@@ -1117,6 +1143,29 @@ It should be called with an input file that contains all the mandatory variables
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.inputs.AbinitInput.abiget_spacegroup">
+<code class="descname">abiget_spacegroup</code><span class="sig-paren">(</span><em>tolsym=None</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abiget_spacegroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abiget_spacegroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
+It should be called with an input file that contains all the mandatory variables required by ABINIT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tolsym</strong> &#8211; Abinit tolsym input variable. None correspondes to the default value.</li>
+<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Structure object with AbinitSpaceGroup obtained from the main output file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.abivalidate">
 <code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.abivalidate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run ABINIT in dry-run mode to validate the input file.</p>
@@ -1131,8 +1180,10 @@ It should be called with an input file that contains all the mandatory variables
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+output_file: output file of the run.
 log_file:  log file of the Abinit run, use log_file.read() to access its content.
-stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+task: Task object</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
@@ -1620,7 +1671,7 @@ Return dictionary with the variables that have been removed.</p>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>sortmode='section'</em>, <em>post=None</em>, <em>with_mnemonics=False</em>, <em>with_structure=True</em>, <em>with_pseudos=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>sortmode='section'</em>, <em>post=None</em>, <em>with_mnemonics=False</em>, <em>mode='text'</em>, <em>with_structure=True</em>, <em>with_pseudos=True</em>, <em>exclude=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1630,6 +1681,7 @@ Return dictionary with the variables that have been removed.</p>
 <li><strong>sortmode</strong> &#8211; &#8220;section&#8221; if variables should be gruped by sections.
 &#8220;a&#8221; for alphabetical order, None if no sorting is wanted.</li>
 <li><strong>with_mnemonics</strong> &#8211; True if mnemonics should be added.</li>
+<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
 <li><strong>post</strong> &#8211; String that will be appended to the name of the variables
 Note that post is usually autodetected when we have multiple datatasets
 It is mainly used when we have an input file with a single dataset
@@ -1639,6 +1691,7 @@ and we don&#8217;t want ndtset=1 simply because the code will start to add
 _DS1_ to all the input and output files.</li>
 <li><strong>with_structure</strong> &#8211; False if section with structure variables should not be printed.</li>
 <li><strong>with_pseudos</strong> &#8211; False if JSON section with pseudo data should not be added.</li>
+<li><strong>exclude</strong> &#8211; List of variable names that should be ignored.</li>
 </ul>
 </td>
 </tr>
@@ -1704,8 +1757,10 @@ that invokes the parser to validate the input and exits.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+output_file: output file of the run.
 log_file:  log file of the Abinit run, use log_file.read() to access its content.
-stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+task: Task object</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
@@ -1828,8 +1883,10 @@ Return dict with the variables added to the input.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+output_file: output file of the run.
 log_file:  log file of the Abinit run, use log_file.read() to access its content.
-stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+task: Task object</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
@@ -2075,13 +2132,17 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AnaddbInput.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>sortmode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>sortmode=None</em>, <em>mode='text'</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sortmode</strong> &#8211; &#8220;a&#8221; for alphabetical order, None if no sorting is wanted</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sortmode</strong> &#8211; &#8220;a&#8221; for alphabetical order, None if no sorting is wanted</li>
+<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2106,6 +2167,10 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">Cut3DInput</code><span class="sig-paren">(</span><em>infile_path=None</em>, <em>output_filepath=None</em>, <em>options=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code>, <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>This object stores the options to run a single cut3d analysis.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Converters with nspden &gt; 1 won&#8217;t work since cut3d asks for the ispden index.</p>
+</div>
 <dl class="method">
 <dt id="abipy.abio.inputs.Cut3DInput.as_dict">
 <code class="descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.as_dict" title="Permalink to this definition">¶</a></dt>
@@ -2292,7 +2357,7 @@ defined at a later time.</li>
 
 <dl class="method">
 <dt id="abipy.abio.inputs.Cut3DInput.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a string with the input.</p>
 </dd></dl>
 
@@ -2428,7 +2493,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.MultiDataset.has_same_structures">
 <code class="descname">has_same_structures</code><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.has_same_structures" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>True if all inputs in MultiDataset are equal.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.abio.inputs.MultiDataset.isnc">
@@ -2482,6 +2548,24 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <dt id="abipy.abio.inputs.MultiDataset.split_datasets">
 <code class="descname">split_datasets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.split_datasets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.split_datasets" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of AbinitInput files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.inputs.MultiDataset.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>mode='text'</em>, <em>verbose=0</em>, <em>with_pseudos=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#MultiDataset.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.MultiDataset.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation i.e. the input file read by Abinit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
+<li><strong>with_pseudos</strong> &#8211; False if JSON section with pseudo data should not be added.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2553,8 +2637,10 @@ Note: This method is a stub, it always return retcode 0</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">retcode: Return code. 0 if OK.
+output_file: output file of the run.
 log_file:  log file of the Abinit run, use log_file.read() to access its content.
-stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</p>
+stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+task: Task object</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>namedtuple</cite> with the following attributes</p>
@@ -2584,7 +2670,7 @@ stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its
 
 <dl class="method">
 <dt id="abipy.abio.inputs.OpticInput.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -2599,6 +2685,18 @@ stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its
 <dt id="abipy.abio.inputs.OpticVar">
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">OpticVar</code><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticVar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticVar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.OpticVar" title="abipy.abio.inputs.OpticVar"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.OpticVar</span></code></a></p>
+<dl class="method">
+<dt id="abipy.abio.inputs.OpticVar.html_link">
+<code class="descname">html_link</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticVar.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticVar.html_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>String with the URL of the web page.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.inputs.OpticVar.url">
+<code class="descname">url</code><a class="headerlink" href="#abipy.abio.inputs.OpticVar.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The url associated to the variable.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -2623,7 +2721,7 @@ working directory is created. Return path to the notebook.</p>
 <dt id="abipy.abio.outputs.AbinitOutputFile">
 <em class="property">class </em><code class="descclassname">abipy.abio.outputs.</code><code class="descname">AbinitOutputFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.outputs.AbinitTextFile" title="abipy.abio.outputs.AbinitTextFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.outputs.AbinitTextFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>Class representing the main output file.</p>
+<p>Class representing the main Abinit output file.</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.compare_d2de_scf_cycles">
 <code class="descname">compare_d2de_scf_cycles</code><span class="sig-paren">(</span><em>others</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.compare_d2de_scf_cycles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.compare_d2de_scf_cycles" title="Permalink to this definition">¶</a></dt>
@@ -2663,6 +2761,62 @@ cycle in self with the ones in others.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.outputs.AbinitOutputFile.diff_datasets">
+<code class="descname">diff_datasets</code><span class="sig-paren">(</span><em>dt_list1</em>, <em>dt_list2</em>, <em>with_params=True</em>, <em>differ='html'</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.diff_datasets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.diff_datasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare datasets</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.final_structure">
+<code class="descname">final_structure</code><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.final_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.final_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>The structure defined in the output file.</p>
+<p>If the input file contains multiple datasets <strong>AND</strong> the datasets
+have different structures, this property returns None.
+In this case, one has to access the structure of the individual datasets.
+For example:</p>
+<blockquote>
+<div>self.final_structures[0]</div></blockquote>
+<p>gives the structure of the first dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.final_structures">
+<code class="descname">final_structures</code><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.final_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.final_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of final structures.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.has_same_final_structures">
+<code class="descname">has_same_final_structures</code><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.has_same_final_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if all initial structures are equal.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.has_same_initial_structures">
+<code class="descname">has_same_initial_structures</code><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.has_same_initial_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if all initial structures are equal.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.initial_structure">
+<code class="descname">initial_structure</code><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.initial_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.initial_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>The structure defined in the output file.</p>
+<p>If the input file contains multiple datasets <strong>AND</strong> the datasets
+have different structures, this property returns None.
+In this case, one has to access the structure of the individual datasets.
+For example:</p>
+<blockquote>
+<div>self.initial_structures[0]</div></blockquote>
+<p>gives the structure of the first dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AbinitOutputFile.initial_structures">
+<code class="descname">initial_structures</code><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.initial_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.initial_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of initial structures.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.next_d2de_scf_cycle">
 <code class="descname">next_d2de_scf_cycle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.next_d2de_scf_cycle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.next_d2de_scf_cycle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <code class="xref py py-class docutils literal"><span class="pre">GroundStateScfCycle</span></code> with information on the GS iterations. None if not found.</p>
@@ -2673,6 +2827,11 @@ cycle in self with the ones in others.</p>
 <code class="descname">next_gs_scf_cycle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.next_gs_scf_cycle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.next_gs_scf_cycle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the next <code class="xref py py-class docutils literal"><span class="pre">GroundStateScfCycle</span></code> in the file. None if not found.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.outputs.AbinitOutputFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.write_notebook">
@@ -2721,6 +2880,25 @@ via instance attribute e.g. <cite>outfile.ecut</cite>. Provides integration with
 Return dictionary varname &#8211;&gt; value</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abio.outputs.validate_output_parser">
+<code class="descclassname">abipy.abio.outputs.</code><code class="descname">validate_output_parser</code><span class="sig-paren">(</span><em>abitests_dir=None</em>, <em>output_files=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#validate_output_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.validate_output_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate/test Abinit output parser.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dirpath</strong> &#8211; Abinit tests directory.</li>
+<li><strong>output_files</strong> &#8211; List of Abinit output files.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: Exit code.</p>
 </dd></dl>
 
 </div>
@@ -3156,7 +3334,7 @@ If start is None, os.getcwd() is used. Set <cite>self.start</cite> attribute, re
 
 <dl class="method">
 <dt id="abipy.abio.robots.SigresRobot.plot_conv_qpgap">
-<code class="descname">plot_conv_qpgap</code><span class="sig-paren">(</span><em>x_vars</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.plot_conv_qpgap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.plot_conv_qpgap" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_conv_qpgap</code><span class="sig-paren">(</span><em>x_vars</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.plot_conv_qpgap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.plot_conv_qpgap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the convergence of the Quasi-particle gap.
 kwargs are passed to <code class="xref py py-class docutils literal"><span class="pre">seaborn.PairGrid</span></code>.</p>
 </dd></dl>
@@ -3194,7 +3372,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v4.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>

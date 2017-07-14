@@ -52,6 +52,7 @@
 <li><a class="reference internal" href="#module-abipy.electrons.charges"><code class="docutils literal"><span class="pre">charges</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.electrons.ebands"><code class="docutils literal"><span class="pre">ebands</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.electrons.fatbands"><code class="docutils literal"><span class="pre">fatbands</span></code> Module</a></li>
+<li><a class="reference internal" href="#fold2bloch-module"><code class="docutils literal"><span class="pre">Fold2bloch</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.electrons.gsr"><code class="docutils literal"><span class="pre">gsr</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.electrons.gw"><code class="docutils literal"><span class="pre">gw</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.electrons.denpot"><code class="docutils literal"><span class="pre">denpot</span></code> Module</a></li>
@@ -361,7 +362,7 @@ Possible choices are<blockquote>
 
 <dl class="method">
 <dt id="abipy.electrons.bse.DielectricFunction.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>with_info=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricFunction.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricFunction.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>with_info=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#DielectricFunction.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.DielectricFunction.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -484,7 +485,7 @@ Possible choices are</p>
 
 <dl class="method">
 <dt id="abipy.electrons.bse.MdfFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#MdfFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.MdfFile.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/bse.html#MdfFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.bse.MdfFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -797,11 +798,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </div>
 <div class="section" id="module-abipy.electrons.charges">
 <span id="charges-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">charges</span></code> Module<a class="headerlink" href="#module-abipy.electrons.charges" title="Permalink to this headline">¶</a></h2>
-<p>HirshfeldCharges&#8221;.</p>
+<p>HirshfeldCharges.</p>
 <dl class="class">
 <dt id="abipy.electrons.charges.HirshfeldCharges">
 <em class="property">class </em><code class="descclassname">abipy.electrons.charges.</code><code class="descname">HirshfeldCharges</code><span class="sig-paren">(</span><em>charges</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <dl class="classmethod">
 <dt id="abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile">
 <em class="property">classmethod </em><code class="descname">from_cut3d_outfile</code><span class="sig-paren">(</span><em>filepath</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges.from_cut3d_outfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile" title="Permalink to this definition">¶</a></dt>
@@ -942,7 +943,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.decorate_ax">
 <code class="descname">decorate_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.decorate_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.decorate_ax" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decoracte matplotlib Axis</p>
+<dd><p>Decorate matplotlib Axis</p>
 <dl class="docutils">
 <dt>Accept:</dt>
 <dd>title:
@@ -1103,7 +1104,7 @@ and the path contains duplicated k-points, the first k-point is selected.</li>
 
 <dl class="classmethod">
 <dt id="abipy.electrons.ebands.ElectronBands.from_material_id">
-<em class="property">classmethod </em><code class="descname">from_material_id</code><span class="sig-paren">(</span><em>material_id</em>, <em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em>, <em>nelect=None</em>, <em>has_timerev=True</em>, <em>nspinor=1</em>, <em>nspden=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_material_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_material_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">from_material_id</code><span class="sig-paren">(</span><em>material_id</em>, <em>api_key=None</em>, <em>endpoint=None</em>, <em>nelect=None</em>, <em>has_timerev=True</em>, <em>nspinor=1</em>, <em>nspden=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.from_material_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.from_material_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read bandstructure data corresponding to a materials project material_id.
 and return Abipy ElectronBands object.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1209,6 +1210,11 @@ additional data required by Abipy if you need a complete conversion.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.get_ebands3d">
+<code class="descname">get_ebands3d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_ebands3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_ebands3d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.get_edos">
@@ -1552,7 +1558,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.plot_ejdosvc">
-<code class="descname">plot_ejdosvc</code><span class="sig-paren">(</span><em>vrange</em>, <em>crange</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>cumulative=True</em>, <em>ax=None</em>, <em>alpha=0.7</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_ejdosvc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_ejdosvc" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_ejdosvc</code><span class="sig-paren">(</span><em>vrange</em>, <em>crange</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>colormap='jet'</em>, <em>cumulative=True</em>, <em>ax=None</em>, <em>alpha=0.7</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_ejdosvc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_ejdosvc" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Plot the decomposition of the joint-density of States (JDOS).</p>
 <div class="admonition warning">
@@ -1561,13 +1567,128 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </div>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>vrange: Int or <cite>Iterable</cite> with the indices of the valence bands to consider.
+<dd><p class="first">vrange: Int or <cite>Iterable</cite> with the indices of the valence bands to consider.
 crange: Int or <cite>Iterable</cite> with the indices of the conduction bands to consider.
 method: String defining the method.
 step: Energy step (eV) of the linear mesh.
 width: Standard deviation (eV) of the gaussian.
-cumulative: True for cumulative plots (default).
-ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</dd>
+colormap: Have a look at the colormaps here and decide which one you like:</p>
+<blockquote>
+<div><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></div></blockquote>
+<p class="last">cumulative: True for cumulative plots (default).
+ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd><cite>matplotlib</cite> figure</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.plot_scatter3d">
+<code class="descname">plot_scatter3d</code><span class="sig-paren">(</span><em>band</em>, <em>spin=0</em>, <em>e0='fermie'</em>, <em>colormap='jet'</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_scatter3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_scatter3d" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Use matplotlib <cite>scatter3D</cite> to produce a scatter plot of the eigenvalues in 3D.
+The color of the points gives the energy of the state wrt to the Fermi level.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">band: Band index
+spin: Spin index.
+e0: Option used to define the zero of energy in the band structure plot. Possible values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (<cite>self.fermie</cite>).</li>
+<li>Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</li>
+<li>None: Don&#8217;t shift energies, equivalent to e0=0</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>colormap: Have a look at the colormaps here and decide which one you like:</dt>
+<dd><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></dd>
+</dl>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes3D</span></code> or None if a new figure should be created.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True if to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.plot_transitions">
+<code class="descname">plot_transitions</code><span class="sig-paren">(</span><em>omega_ev</em>, <em>qpt=(0</em>, <em>0</em>, <em>0)</em>, <em>atol_ev=0.1</em>, <em>atol_kdiff=0.0001</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.plot_transitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.plot_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot energy bands with arrows signaling possible k &#8211;&gt; k + q indipendent-particle transitions
+of energy <cite>omega_ev</cite> connecting occupied to empty states.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">omega_ev: Transition energy in eV.
+qpt: Q-point in reduced coordinates.
+atol_ev: Absolute tolerance for energy difference in eV
+atol_kdiff: Tolerance used to compare k-points.
+ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
+<blockquote>
+<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
 <dt>Returns:</dt>
 <dd><cite>matplotlib</cite> figure</dd>
 </dl>
@@ -1749,7 +1870,7 @@ default computes <cite>|self.eigens - other.eigens|</cite>.</li>
 <dt id="abipy.electrons.ebands.ElectronBands.to_bxsf">
 <code class="descname">to_bxsf</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.to_bxsf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.to_bxsf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export the full band structure to <cite>filepath</cite> in BXSF format
-suitable for the visualization of the Fermi surface with Xcrysden (xcrysden &#8211;bxsf FILE).
+suitable for the visualization of isosurfaces with Xcrysden (xcrysden &#8211;bxsf FILE).
 Require k-points in IBZ and gamma-centered k-mesh.</p>
 </dd></dl>
 
@@ -2224,7 +2345,7 @@ Used only if <cite>dos</cite> is not None and it not an ElectronDos instance.</l
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.animate">
-<code class="descname">animate</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>interval=250</em>, <em>savefile=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">animate</code><span class="sig-paren">(</span><em>e0='fermie'</em>, <em>interval=500</em>, <em>savefile=None</em>, <em>width_ratios=(2</em>, <em>1)</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.animate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use matplotlib to animate a list of band structure plots (with or without DOS).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2472,7 +2593,8 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame">
 <code class="descname">get_ebands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.get_ebands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.get_ebands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a pandas dataframe with the most important results available in the band structures.</p>
+<dd><p>Build a pandas dataframe with the most important results available in the band structures.
+Useful to analyze band-gaps.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2571,7 +2693,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -3498,6 +3620,9 @@ working directory is created. Return path to the notebook.</p>
 <dd></dd></dl>
 
 </div>
+<div class="section" id="fold2bloch-module">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">Fold2bloch</span></code> Module<a class="headerlink" href="#fold2bloch-module" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-abipy.electrons.gsr">
 <span id="gsr-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gsr</span></code> Module<a class="headerlink" href="#module-abipy.electrons.gsr" title="Permalink to this headline">¶</a></h2>
 <p>GSR file.</p>
@@ -3587,11 +3712,11 @@ Same API as the one used in vasp_output.get_computed_entry.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>inc_structure</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Set to True if you want
 ComputedStructureEntries to be returned instead of ComputedEntries.</li>
-<li><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; Input parameters to include. It has to be one of
+<li><strong>parameters</strong> (<em>list</em>) &#8211; Input parameters to include. It has to be one of
 the properties supported by the GSR object. If
 parameters is None, a default set of parameters that are
 necessary for typical post-processing will be set.</li>
-<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; Output data to include. Has to be one of the properties
+<li><strong>data</strong> (<em>list</em>) &#8211; Output data to include. Has to be one of the properties
 supported by the GSR object.</li>
 </ul>
 </td>
@@ -4081,6 +4206,12 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.electrons.gw.SigresFile.to_dataframe">
+<code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns pandas DataFrame with QP results for all k-points included in the GW calculation</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
@@ -4356,6 +4487,11 @@ the values in the sigres.params dictionaries.</p>
 <code class="descname">density</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.density" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.DensityNcFile.field_name">
+<code class="descname">field_name</code><em class="property"> = 'density'</em><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="abipy.electrons.denpot.DensityNcFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#DensityNcFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.DensityNcFile.to_string" title="Permalink to this definition">¶</a></dt>
@@ -4385,6 +4521,11 @@ the values in the sigres.params dictionaries.</p>
 <em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VhartreeNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhartreeNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
 <dl class="attribute">
+<dt id="abipy.electrons.denpot.VhartreeNcFile.field_name">
+<code class="descname">field_name</code><em class="property"> = 'vh'</em><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile.field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.electrons.denpot.VhartreeNcFile.vh">
 <code class="descname">vh</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhartreeNcFile.vh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhartreeNcFile.vh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hartree potential.</p>
@@ -4396,6 +4537,11 @@ the values in the sigres.params dictionaries.</p>
 <dt id="abipy.electrons.denpot.VxcNcFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VxcNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VxcNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.VxcNcFile.field_name">
+<code class="descname">field_name</code><em class="property"> = 'vxc'</em><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile.field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.electrons.denpot.VxcNcFile.vxc">
 <code class="descname">vxc</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VxcNcFile.vxc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VxcNcFile.vxc" title="Permalink to this definition">¶</a></dt>
@@ -4409,6 +4555,11 @@ the values in the sigres.params dictionaries.</p>
 <em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">VhxcNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhxcNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
 <dl class="attribute">
+<dt id="abipy.electrons.denpot.VhxcNcFile.field_name">
+<code class="descname">field_name</code><em class="property"> = 'vhxc'</em><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile.field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.electrons.denpot.VhxcNcFile.vhxc">
 <code class="descname">vhxc</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#VhxcNcFile.vhxc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.VhxcNcFile.vhxc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hartree + XC potential.</p>
@@ -4420,6 +4571,11 @@ the values in the sigres.params dictionaries.</p>
 <dt id="abipy.electrons.denpot.PotNcFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.denpot.</code><code class="descname">PotNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#PotNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.denpot._NcFileWithField</span></code></p>
+<dl class="attribute">
+<dt id="abipy.electrons.denpot.PotNcFile.field_name">
+<code class="descname">field_name</code><em class="property"> = 'vks'</em><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile.field_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.electrons.denpot.PotNcFile.vks">
 <code class="descname">vks</code><a class="reference internal" href="../_modules/abipy/electrons/denpot.html#PotNcFile.vks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.denpot.PotNcFile.vks" title="Permalink to this definition">¶</a></dt>

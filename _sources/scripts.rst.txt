@@ -73,7 +73,7 @@ The ``convert`` command is quite useful if you need to convert the crystalline s
 from one format to another one.
 For example, one can read a ``cif`` file and print the corresponding Abinit variables with::
 
-    $ abistruct.py convert CIF abivars
+    $ abistruct.py convert CIF
 
 To get the list of options, use
 
@@ -160,4 +160,3 @@ At the time of writing (|today|), AbiPy supports the following resource managers
 To obtain the list of options supported by a particular resource manager e.g. ``slurm``::
 
     $ abirun.py . doc_manager slurm
-

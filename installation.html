@@ -53,7 +53,12 @@
 <li><a class="reference internal" href="#developmental-version">Developmental version</a></li>
 <li><a class="reference internal" href="#how-to-compile-the-python-interpreter">How to compile the Python interpreter</a></li>
 <li><a class="reference internal" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings">How to install HDF5/Netcdf4 and the python bindings</a></li>
-<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li><a class="reference internal" href="#unknown-locale-utf-8">unknown locale: UTF-8</a></li>
+<li><a class="reference internal" href="#netcdf-does-not-work">netcdf does not work</a></li>
+<li><a class="reference internal" href="#unicodedecodeerror">UnicodeDecodeError</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -165,18 +170,18 @@ For example, you can install <code class="docutils literal"><span class="pre">py
 </pre></div>
 </div>
 <p>Remember that if a package is not available in the official conda repository, you can always
-use <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span></code> or download the package from one of the conda channels.
-For example, if you encounter problems while installing the spacegroup library
-with <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyspglib</span></code>, you can install the pre-compiled library from the <code class="docutils literal"><span class="pre">jochym</span></code> channel with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install -c jochym pyspglib
+download the package from one of the conda channels or use <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span></code> if no conda package is available.</p>
+<p>Fortunately there are conda channels providing all dependencies needed by AbiPy.
+To install <code class="docutils literal"><span class="pre">pymatgen</span></code> from the <code class="docutils literal"><span class="pre">matsci</span></code> channel, use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pymatgen --channel matsci
 </pre></div>
 </div>
-<p>Now you can install the stable version of <code class="docutils literal"><span class="pre">abipy</span></code> with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install abipy
+<p>then install Abipy from the abinit channel with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pymatgen --channel abinit
 </pre></div>
 </div>
-<p>If you want to use the developmental version, clone (or fork and clone) the repositories on github
-(see also the <a class="reference internal" href="#developmental-version"><span class="std std-ref">Developmental version</span></a> section).</p>
+<p>Visit <a class="reference external" href="http://materials.sh">materials.sh</a> for instructions on how to use the
+matsci channel to install pymatgen and other packages.</p>
 <p>Once you have completed the installation of AbiPy and pymatgen, open the <code class="docutils literal"><span class="pre">ipython</span></code> shell and type:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">abilab</span>
 </pre></div>
@@ -233,7 +238,7 @@ In order to run the tests, you need a working set of Abinit executables and
 a <code class="docutils literal"><span class="pre">manager.yml</span></code> configuration file.
 For further information on the syntax of the configuration file, please consult the <a class="reference internal" href="taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> section.</p>
 <p>A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install abinit -c gmatteo
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install abinit -c abinit
 </pre></div>
 </div>
 <p>Contributing to AbiPy is relatively easy.
@@ -372,15 +377,48 @@ Define the environment variable <code class="docutils literal"><span class="pre"
 </div>
 <div class="section" id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="unknown-locale-utf-8">
+<h3>unknown locale: UTF-8<a class="headerlink" href="#unknown-locale-utf-8" title="Permalink to this headline">¶</a></h3>
 <p>If python stops with the error message:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;ValueError: unknown locale: UTF-8&quot;</span>
 </pre></div>
 </div>
 <p>add the following line to your <code class="docutils literal"><span class="pre">.bashrc</span></code> file inside your <code class="docutils literal"><span class="pre">$HOME</span></code> (<code class="docutils literal"><span class="pre">.profile</span></code> if MacOSx):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">LC_ALL</span><span class="o">=</span><span class="n">C</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ export LC_ALL=C
 </pre></div>
 </div>
 <p>reload the environment with <code class="docutils literal"><span class="pre">source</span> <span class="pre">~/.bashrc</span></code> and rerun the code.</p>
+</div>
+<div class="section" id="netcdf-does-not-work">
+<h3>netcdf does not work<a class="headerlink" href="#netcdf-does-not-work" title="Permalink to this headline">¶</a></h3>
+<p>The version of hdf5 installed by conda may not be compatible with python netcdf.
+Try the hdf5/netcdf4 libraries provided by conda forge:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda uninstall hdf4 hdf5
+$ conda config --add channels conda-forge
+$ conda install netcdf4
+</pre></div>
+</div>
+<p>These packages are known to work on MacOsX:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda list hdf4
+hdf4                      4.2.12                        0    conda-forge
+$ conda list hdf5
+hdf5                      1.8.17                        9    conda-forge
+$ conda list netcdf4
+netcdf4                   1.2.7               np112py36_0    conda-forge
+</pre></div>
+</div>
+</div>
+<div class="section" id="unicodedecodeerror">
+<h3>UnicodeDecodeError<a class="headerlink" href="#unicodedecodeerror" title="Permalink to this headline">¶</a></h3>
+<p>Python2.7 raises an <cite>UnicodeDecodeError: &#8216;ascii&#8217; codec can&#8217;t decode byte ...</cite>
+when trying to open files with abiopen. Add</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>at the beginning of your script.</p>
+</div>
 </div>
 </div>
 

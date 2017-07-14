@@ -1,0 +1,310 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>abipy.display.utils &#8212; abipy 0.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for abipy.display.utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Tools to build ipython widgets.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">ipw</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">get_ax_fig_plt</span>
+
+
+<div class="viewcode-block" id="add_docstrings"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.add_docstrings">[docs]</a><span class="k">def</span> <span class="nf">add_docstrings</span><span class="p">(</span><span class="o">*</span><span class="n">tuples</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This decorator adds to the docstring the documentation for functions.</span>
+<span class="sd">    When writing high-level API, it&#39;s quite common to call thirdy-party functions</span>
+<span class="sd">    with a restricted set of arguments while optional keyword arguments are</span>
+<span class="sd">    collected in an optional dictionary.</span>
+
+<span class="sd">    The first item of the tuple contains the function (python object) wrapped by the code.</span>
+<span class="sd">    The second item is list of strings with the name of the actual arguments passed to function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapped_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Add docstrings for the functions that will be called by func.</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tuples</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="c1"># List of strings or string.</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="n">fargs</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fargs</span> <span class="o">=</span> <span class="s2">&quot;`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">%s</span><span class="s2"> are passed to function :func:`</span><span class="si">%s</span><span class="s2">` in module :mod:`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fargs</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__module__</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Docstring of `</span><span class="si">%s</span><span class="s2">`:&quot;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Add s at the end of the docstring.</span>
+            <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">s</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Use s</span>
+            <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">return</span> <span class="n">wrapped_func</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+
+
+<div class="viewcode-block" id="widget2py"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.widget2py">[docs]</a><span class="k">def</span> <span class="nf">widget2py</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="s2">&quot;None&quot;</span> <span class="k">else</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">l</span></div>
+
+
+<div class="viewcode-block" id="str2bool_or_none"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.str2bool_or_none">[docs]</a><span class="k">def</span> <span class="nf">str2bool_or_none</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;None&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;True&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">l</span></div>
+
+
+<span class="c1"># Taken from matplotlib.markers.MarkerStyle (replaced dict with OrderedDict).</span>
+<span class="n">_mpl_markers</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;point&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;pixel&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;circle&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;triangle_down&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;triangle_up&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;triangle_left&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;triangle_right&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;tri_down&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;tri_up&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;tri_left&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;tri_right&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;8&#39;</span><span class="p">,</span> <span class="s1">&#39;octagon&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;square&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;pentagon&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;star&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;hexagon1&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;hexagon2&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;plus&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;diamond&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;thin_diamond&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="s1">&#39;vline&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;hline&#39;</span><span class="p">),</span>
+    <span class="c1">#(TICKLEFT: &#39;tickleft&#39;,</span>
+    <span class="c1">#(TICKRIGHT: &#39;tickright&#39;,</span>
+    <span class="c1">#(TICKUP: &#39;tickup&#39;,</span>
+    <span class="c1">#(TICKDOWN: &#39;tickdown&#39;,</span>
+    <span class="c1">#(CARETLEFT: &#39;caretleft&#39;,</span>
+    <span class="c1">#(CARETRIGHT: &#39;caretright&#39;,</span>
+    <span class="c1">#(CARETUP: &#39;caretup&#39;,</span>
+    <span class="c1">#(CARETDOWN: &#39;caretdown&#39;,</span>
+    <span class="p">(</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="s1">&#39;nothing&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;nothing&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;nothing&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;nothing&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+
+
+<div class="viewcode-block" id="markers_dropdown"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.markers_dropdown">[docs]</a><span class="k">def</span> <span class="nf">markers_dropdown</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_mpl_markers</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;marker&#39;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<span class="n">_mpl_colors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+    <span class="p">(</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;cyan&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">),</span>
+<span class="p">])</span>
+
+
+<div class="viewcode-block" id="colors_dropdow"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.colors_dropdow">[docs]</a><span class="k">def</span> <span class="nf">colors_dropdow</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">_mpl_colors</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;color&#39;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="linewidth_slider"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.linewidth_slider">[docs]</a><span class="k">def</span> <span class="nf">linewidth_slider</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+        <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span>
+        <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">,</span>
+        <span class="n">readout_format</span><span class="o">=</span><span class="s1">&#39;.1f&#39;</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="size_slider"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.size_slider">[docs]</a><span class="k">def</span> <span class="nf">size_slider</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+        <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="nb">max</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">,</span>
+        <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">,</span>
+        <span class="n">readout_format</span><span class="o">=</span><span class="s1">&#39;.1f&#39;</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="saturation_slider"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.saturation_slider">[docs]</a><span class="k">def</span> <span class="nf">saturation_slider</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">default</span><span class="p">,</span>
+        <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;saturation&#39;</span><span class="p">,</span>
+        <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">,</span>
+        <span class="n">readout_format</span><span class="o">=</span><span class="s1">&#39;.1f&#39;</span>
+    <span class="p">)</span></div>
+
+<span class="c1"># Have colormaps separated into categories:</span>
+<span class="c1"># http://matplotlib.org/examples/color/colormaps_reference.html</span>
+<span class="n">_mpl_categ_cmaps</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="c1">#(&#39;Perceptually Uniform Sequential&#39;,</span>
+    <span class="p">(</span><span class="s1">&#39;Uniform&#39;</span><span class="p">,</span>        <span class="p">[</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="s1">&#39;inferno&#39;</span><span class="p">,</span> <span class="s1">&#39;plasma&#39;</span><span class="p">,</span> <span class="s1">&#39;magma&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;Sequential&#39;</span><span class="p">,</span>     <span class="p">[</span><span class="s1">&#39;Blues&#39;</span><span class="p">,</span> <span class="s1">&#39;BuGn&#39;</span><span class="p">,</span> <span class="s1">&#39;BuPu&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;GnBu&#39;</span><span class="p">,</span> <span class="s1">&#39;Greens&#39;</span><span class="p">,</span> <span class="s1">&#39;Greys&#39;</span><span class="p">,</span> <span class="s1">&#39;Oranges&#39;</span><span class="p">,</span> <span class="s1">&#39;OrRd&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;PuBu&#39;</span><span class="p">,</span> <span class="s1">&#39;PuBuGn&#39;</span><span class="p">,</span> <span class="s1">&#39;PuRd&#39;</span><span class="p">,</span> <span class="s1">&#39;Purples&#39;</span><span class="p">,</span> <span class="s1">&#39;RdPu&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Reds&#39;</span><span class="p">,</span> <span class="s1">&#39;YlGn&#39;</span><span class="p">,</span> <span class="s1">&#39;YlGnBu&#39;</span><span class="p">,</span> <span class="s1">&#39;YlOrBr&#39;</span><span class="p">,</span> <span class="s1">&#39;YlOrRd&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;Sequential(2)&#39;</span><span class="p">,</span>  <span class="p">[</span><span class="s1">&#39;afmhot&#39;</span><span class="p">,</span> <span class="s1">&#39;autumn&#39;</span><span class="p">,</span> <span class="s1">&#39;bone&#39;</span><span class="p">,</span> <span class="s1">&#39;cool&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;copper&#39;</span><span class="p">,</span> <span class="s1">&#39;gist_heat&#39;</span><span class="p">,</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="s1">&#39;hot&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;pink&#39;</span><span class="p">,</span> <span class="s1">&#39;spring&#39;</span><span class="p">,</span> <span class="s1">&#39;summer&#39;</span><span class="p">,</span> <span class="s1">&#39;winter&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;Diverging&#39;</span><span class="p">,</span>      <span class="p">[</span><span class="s1">&#39;BrBG&#39;</span><span class="p">,</span> <span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span> <span class="s1">&#39;PiYG&#39;</span><span class="p">,</span> <span class="s1">&#39;PRGn&#39;</span><span class="p">,</span> <span class="s1">&#39;PuOr&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;RdBu&#39;</span><span class="p">,</span> <span class="s1">&#39;RdGy&#39;</span><span class="p">,</span> <span class="s1">&#39;RdYlBu&#39;</span><span class="p">,</span> <span class="s1">&#39;RdYlGn&#39;</span><span class="p">,</span> <span class="s1">&#39;Spectral&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;seismic&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;Qualitative&#39;</span><span class="p">,</span>    <span class="p">[</span><span class="s1">&#39;Accent&#39;</span><span class="p">,</span> <span class="s1">&#39;Dark2&#39;</span><span class="p">,</span> <span class="s1">&#39;Paired&#39;</span><span class="p">,</span> <span class="s1">&#39;Pastel1&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;Pastel2&#39;</span><span class="p">,</span> <span class="s1">&#39;Set1&#39;</span><span class="p">,</span> <span class="s1">&#39;Set2&#39;</span><span class="p">,</span> <span class="s1">&#39;Set3&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;Miscellaneous&#39;</span><span class="p">,</span>  <span class="p">[</span><span class="s1">&#39;gist_earth&#39;</span><span class="p">,</span> <span class="s1">&#39;terrain&#39;</span><span class="p">,</span> <span class="s1">&#39;ocean&#39;</span><span class="p">,</span> <span class="s1">&#39;gist_stern&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;brg&#39;</span><span class="p">,</span> <span class="s1">&#39;CMRmap&#39;</span><span class="p">,</span> <span class="s1">&#39;cubehelix&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;gnuplot&#39;</span><span class="p">,</span> <span class="s1">&#39;gnuplot2&#39;</span><span class="p">,</span> <span class="s1">&#39;gist_ncar&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;nipy_spectral&#39;</span><span class="p">,</span> <span class="s1">&#39;jet&#39;</span><span class="p">,</span> <span class="s1">&#39;rainbow&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;gist_rainbow&#39;</span><span class="p">,</span> <span class="s1">&#39;hsv&#39;</span><span class="p">,</span> <span class="s1">&#39;flag&#39;</span><span class="p">,</span> <span class="s1">&#39;prism&#39;</span><span class="p">])</span>
+<span class="p">])</span>
+
+<span class="c1"># flat list.</span>
+<span class="n">_mpl_cmaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">_mpl_categ_cmaps</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+
+<div class="viewcode-block" id="colormap_widget"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.colormap_widget">[docs]</a><span class="k">def</span> <span class="nf">colormap_widget</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">_mpl_cmaps</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="k">if</span> <span class="n">default</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_mpl_cmaps</span><span class="p">:</span> <span class="n">options</span><span class="p">[:]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;colormap&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1">#def colormap_widget():</span>
+<span class="c1">#    from IPython.display import display, clear_output</span>
+<span class="c1">#    w_type = ipw.Dropdown(options=list(_mpl_categ_cmaps.keys()), description=&#39;colormap category&#39;)</span>
+<span class="c1">#    w_cmap = ipw.Dropdown(options=_mpl_categ_cmaps[&quot;Uniform&quot;], description=&#39;colormap name&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#    def on_value_change(change):</span>
+<span class="c1">#        print(change)</span>
+<span class="c1">#        print(w_cmap.value)</span>
+<span class="c1">#        w_cmap.options = _mpl_categ_cmaps[w_type.value]</span>
+<span class="c1">#        print(w_cmap.value)</span>
+<span class="c1">#</span>
+<span class="c1">#    w_type.observe(on_value_change, names=&#39;value&#39;)</span>
+<span class="c1">#    box = ipw.HBox(children=[w_type, w_cmap])</span>
+<span class="c1">#    return display(box)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, The AbiPy group.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/abinit/abipy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

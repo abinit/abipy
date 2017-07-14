@@ -71,35 +71,113 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 
-<span class="c1">#class NumPyArangeEncoder(json.JSONEncoder):</span>
-<span class="c1">#    def default(self, obj):</span>
-<span class="c1">#        if isinstance(obj, np.ndarray):</span>
-<span class="c1">#            return obj.tolist() # or map(int, obj)</span>
-<span class="c1">#</span>
-<span class="c1">#        return json.JSONEncoder.default(self, obj)</span>
-
-
 <div class="viewcode-block" id="profile"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.profile">[docs]</a><span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Run statement under profiler, supplying your own globals and locals</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        stats = profile(&quot;main()&quot;, global_vars=globals(), local_vars=locals())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pstats</span>
     <span class="kn">import</span> <span class="nn">cProfile</span>
-    <span class="kn">import</span> <span class="nn">tempfile</span>
-
     <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">()</span>
     <span class="n">cProfile</span><span class="o">.</span><span class="n">runctx</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
 
     <span class="n">s</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">strip_dirs</span><span class="p">()</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+    <span class="n">s</span><span class="o">.</span><span class="n">strip_dirs</span><span class="p">()</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="HtmlDiff"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.HtmlDiff">[docs]</a><span class="k">class</span> <span class="nc">HtmlDiff</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object produces diff files in HTML format and displays them in the browser.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        HtmlDiff(filepaths).open_browser()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepaths</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You need more than one file to compare!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span> <span class="o">=</span> <span class="n">filepaths</span>
+
+<div class="viewcode-block" id="HtmlDiff.open_browser"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.HtmlDiff.open_browser">[docs]</a>    <span class="k">def</span> <span class="nf">open_browser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diffmode</span><span class="o">=</span><span class="s2">&quot;difflib&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diffmode</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for diffmode: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">diffmode</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_launch_browser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmpname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open `tmpname` file in the default browser.&quot;&quot;&quot;</span>
+        <span class="c1"># warning: This code is not portable since we should pass a url.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tmpname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;file://&quot;</span><span class="p">):</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="s2">&quot;file://&quot;</span> <span class="o">+</span> <span class="n">tmpname</span>
+        <span class="kn">import</span> <span class="nn">webbrowser</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="c1"># Warn the user and ignore the exception.</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="HtmlDiff.difflib"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.HtmlDiff.difflib">[docs]</a>    <span class="k">def</span> <span class="nf">difflib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use difflib to generate a HTML file with the diff.</span>
+<span class="sd">        Open file in the browser.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fromlines</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="n">diffs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">tolines</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+            <span class="n">_</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.html&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">difflib</span>
+            <span class="c1">#diff = difflib.HtmlDiff().make_table(fromlines, tolines,</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">HtmlDiff</span><span class="p">()</span><span class="o">.</span><span class="n">make_file</span><span class="p">(</span><span class="n">fromlines</span><span class="p">,</span> <span class="n">tolines</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">path</span><span class="p">)</span>
+                                                 <span class="c1">#context=options.c, numlines=n)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpname</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_launch_browser</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HtmlDiff.pygmentize"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.devtools.HtmlDiff.pygmentize">[docs]</a>    <span class="k">def</span> <span class="nf">pygmentize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execut `diff` and `pygmentize` in a subprocess to generate a HTML file with the diff.</span>
+<span class="sd">        Open file in the browser.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">file2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">tmpname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.html&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># https://stackoverflow.com/questions/641055/diff-to-html-diff2html-program</span>
+            <span class="c1">#cmd = &quot;/usr/bin/diff -y %s %s | pygmentize -l diff -f html -O full -o %s&quot; % (</span>
+            <span class="c1">#    self.filepaths[0], file2, tmpname)</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;diff -U9999999 </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> | pygmentize -l diff -f html -O full -o </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">file2</span><span class="p">,</span> <span class="n">tmpname</span><span class="p">)</span>
+
+            <span class="n">retcode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">retcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Non-zero exit status returned by: `</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please install pygmentize with `pip install pygmentize` or `conda install pygmentize`&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">retcode</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_launch_browser</span><span class="p">(</span><span class="n">tmpname</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

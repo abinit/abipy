@@ -1226,6 +1226,19 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+<div class="viewcode-block" id="SigresFile.to_dataframe"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns pandas DataFrame with QP results for all k-points included in the GW calculation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">gwkpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwkpoints</span><span class="p">:</span>
+                <span class="n">df_sk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataframe_sk</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">gwkpoint</span><span class="p">)</span>
+                <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_sk</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="SigresFile.get_dataframe_sk"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.get_dataframe_sk">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns pandas DataFrame with QP results for the given (spin, k-point).</span>
@@ -1362,7 +1375,8 @@
         <span class="kn">from</span> <span class="nn">abipy.core.skw</span> <span class="k">import</span> <span class="n">SkwInterpolator</span>
         <span class="n">cell</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span><span class="p">)</span>
         <span class="n">qpdata</span> <span class="o">=</span> <span class="n">qpdata</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">bstart</span><span class="p">:</span><span class="n">bstop</span><span class="p">]</span>
-        <span class="n">has_timrev</span> <span class="o">=</span> <span class="n">has_timrev_from_kptopt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">))</span>
+        <span class="c1"># Old sigres files do not have kptopt.</span>
+        <span class="n">has_timrev</span> <span class="o">=</span> <span class="n">has_timrev_from_kptopt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;kptopt&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
         <span class="n">skw</span> <span class="o">=</span> <span class="n">SkwInterpolator</span><span class="p">(</span><span class="n">lpratio</span><span class="p">,</span> <span class="n">gw_kcoords</span><span class="p">,</span> <span class="n">qpdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">fermie</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span>
                               <span class="n">cell</span><span class="p">,</span> <span class="n">fm_symrel</span><span class="p">,</span> <span class="n">has_timrev</span><span class="p">,</span>
