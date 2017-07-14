@@ -44,6 +44,9 @@ install:
   # phonopy is not a requirement but we test scripts in data/runs that use it
   - conda install -c conda-forge phonopy
 
+  # Mayavi (optional requirement)
+  - conda install mayavi 
+
   # Get pymatgen from matsci
   - conda config --add channels matsci
   #- conda install pymatgen #=4.7.2

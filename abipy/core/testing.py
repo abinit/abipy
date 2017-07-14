@@ -324,7 +324,7 @@ class AbipyTest(PymatgenTest):
         """
         True if Mayavi is available. Set also offscreen to True
         """
-        return False
+        #return False
         try:
             from mayavi import mlab
         except ImportError:
