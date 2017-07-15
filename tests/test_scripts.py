@@ -338,6 +338,10 @@ class TestAbirun(ScriptTest):
                         expect_stderr=self.expect_stderr)
             assert r.returncode == 0
 
+        r = env.run(self.script, flowdir, "abivars", "-vn", "ecut,nband", self.loglevel, self.verbose, *no_logo_colors,
+                    expect_stderr=self.expect_stderr)
+        assert r.returncode == 0
+
 
 class TestAbicheck(ScriptTest):
     script = os.path.join(script_dir, "abicheck.py")

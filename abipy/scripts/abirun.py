@@ -16,7 +16,7 @@ import abipy.flowtk as flowtk
 import abipy.abilab as abilab
 
 from pprint import pprint
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from socket import gethostname
 from monty import termcolor
 from monty.os.path import which
@@ -187,7 +187,7 @@ from abipy import abilab
 
 
 # TODO: Make it a flow method.
-def compare_structures(flow, options, with_spglib=False, precision=3, printout=False):
+def flow_compare_structures(flow, options, with_spglib=False, precision=3, printout=False, with_colors=False):
     """
     Analyze structures of the tasks (input and output structures if it's a relaxation
     task. Print pandas DataFrame
@@ -197,6 +197,7 @@ def compare_structures(flow, options, with_spglib=False, precision=3, printout=F
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion
         printout: True to print dataframe.
+        with_colors: True if task status should be colored.
     """
     #flow.check_status()
     #nids = selected_nids(flow, options)
@@ -208,7 +209,7 @@ def compare_structures(flow, options, with_spglib=False, precision=3, printout=F
         """Helper function to fill lists"""
         index.append(task.pos_str + post)
         structures.append(structure)
-        status.append(task.status.colored)
+        status.append(task.status.colored if with_colors else str(task.status))
         if cart_forces is not None:
             fmods = np.sqrt([np.dot(f, f) for f in cart_forces])
             max_forces.append(fmods.max())
@@ -246,7 +247,7 @@ def compare_structures(flow, options, with_spglib=False, precision=3, printout=F
         dfs.lattice["P [GPa]"] = pressures
         dfs.lattice["Max|F| eV/ang"] = max_forces
 
-    # Add status to the dataframe.
+    # Add columns to the dataframe.
     status = [str(s) for s in status]
     dfs.lattice["task_class"] = task_classes
     dfs.lattice["status"] = dfs.coords["status"] = status
@@ -261,11 +262,53 @@ def compare_structures(flow, options, with_spglib=False, precision=3, printout=F
     return dfs
 
 
+def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False, with_colors=False):
+    """
+    Print the input of the tasks to the given stream.
+
+    Args:
+        varnames:
+            List of Abinit variables. If not None, only the variable in varnames
+            are selected and printed.
+        nids:
+            List of node identifiers. By defaults all nodes are shown
+        wslice:
+            Slice object used to select works.
+        printout: True to print dataframe.
+        with_colors: True if task status should be colored.
+    """
+    from monty.string import list_strings
+    # Build dictionary varname --> [(task1, value), (task2, value), ...]
+    varnames = [s.strip() for s in list_strings(varnames)]
+    index, rows = [], []
+    for task in flow.select_tasks(nids=nids, wslice=wslice):
+        index.append(task.pos_str)
+        dstruct = task.input.structure.as_dict(fmt="abivars")
+
+        od = OrderedDict()
+        for vname in varnames:
+            value = task.input.get(vname, None)
+            if value is None: # maybe in structure?
+                value = dstruct.get(vname, None)
+            od[vname] = value
+
+        od["task_class"] = task.__class__.__name__
+        od["status"] = task.status.colored if with_colors else str(task.status)
+        rows.append(od)
+
+    import pandas as pd
+    df = pd.DataFrame(rows, index=index)
+    if printout:
+        abilab.print_frame(df, title="Input variables:") #, precision=precision)
+    return df
+
+
 @prof_main
 def main():
 
     def str_examples():
-        return """\
+        usage = """\
+
 Usage example:
 
 ###########
@@ -279,17 +322,19 @@ Usage example:
   abirun.py [FLOWDIR] history               => Print Task histories.
   abirun.py [FLOWDIR] cancel                => Cancel jobs in the queue.
   abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
+  abirun.py [FLOWDIR] correction            => Show AbiPy corrections performed at runtime.
+  abirun.py [FLOWDIR] handlers              => Show event handlers installed in the flow.
 
-###############
-# Documentation
-###############
+##########
+# Analysis
+##########
 
-  abirun.py [FLOWDIR] tail
-  abirun.py [FLOWDIR] deps
-  abirun.py [FLOWDIR] inspect
-  abirun.py [FLOWDIR] structures
-  abirun.py [FLOWDIR] corrections
-  abirun.py [FLOWDIR] handlers
+  abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
+  abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
+  abirun.py [FLOWDIR] inputs                => Print input files.
+  abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
+  abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
+  abirun.py [FLOWDIR] deps                  => Show task dependencies.
 
 ###############
 # Miscelleanous
@@ -307,33 +352,42 @@ Usage example:
   abirun.py [FLOWDIR] doc_manager slurm     => Document the TaskManager options availabe for Slurm.
   abirun.py . doc_manager script            => Show the job script that will be produced with the current settings.
   abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
-
-If FLOWDIR is not given, abirun.py automatically selects the database located within
-the working directory. An Exception is raised if multiple databases are found.
-
-Note, moreover, that one can replace FLOWDIR with the directory of a work/task
-to make the command operate on this node of the flow without having to specify the node ids with --nids.
-For example, to have the list of events of the task in `FLOWDIR/w0/t1` use:
-
-    $ abirun.py FLOWDIR/w0/t1 events
-
-instead of
-
-    $ abirun.py FLOWDIR events -n 123
-
-where 123 is the node identifier associated to w0/t1.
-
-To start the scheduler with a time interval of 30 seconds, use:
-
-    $ nohup abirun.py [FLOWDIR] scheduler -s 30 &
-
-Alternatively one can specify the scheduler options via the `scheduler.yml` file.
-Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
-in the current working directory and then inside $HOME/.abinit/abipy/
-
-Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
-Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
+
+        notes = """\
+
+Notes:
+
+    If FLOWDIR is not given, abirun.py automatically selects the database located within
+    the working directory. An Exception is raised if multiple databases are found.
+
+    Note, moreover, that one can replace FLOWDIR with the directory of a work/task
+    to make the command operate on this node of the flow without having to specify the node ids with --nids.
+    For example, to have the list of events of the task in `FLOWDIR/w0/t1` use:
+
+        $ abirun.py FLOWDIR/w0/t1 events
+
+    instead of
+
+        $ abirun.py FLOWDIR events -n 123
+
+    where 123 is the node identifier associated to w0/t1.
+
+    To start the scheduler with a time interval of 30 seconds, use:
+
+        $ nohup abirun.py [FLOWDIR] scheduler -s 30 &
+
+    Alternatively one can specify the scheduler options via the `scheduler.yml` file.
+    Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
+    in the current working directory and then inside $HOME/.abinit/abipy/
+
+    Use `abirun.py --help` for help and `abirun.py COMMAND --help` to get the documentation for `COMMAND`.
+    Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+"""
+
+        return notes + usage
+
+
 #Options for developers:
 #    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
 #    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
@@ -356,7 +410,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
         except Exception:
-            raise argparse.ArgumentTypeError("Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
+            raise argparse.ArgumentTypeError(
+                    "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
     def parse_wslice(s):
         s = as_slice(s)
@@ -381,7 +436,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     group.add_argument("-S", '--task-status', default=None, type=Status.as_status,
                         help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s." %
                         Status.all_status_strings())
-    #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice, help="List of tuples with the position of the tasl in the flow.")
+    #group.add_argument("-p", "--task-pos", default=None, type=parse_wslice,
+    #    help="List of tuples with the position of the tasl in the flow.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -393,7 +449,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
     copts_parser.add_argument('--remove-lock', default=False, action="store_true",
-        help="Remove the lock file of the pickle file storing the flow.")
+        help="Remove the lock on the pickle file used to save the status of the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -413,11 +469,11 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
         help="Run all tasks with a Python scheduler. Requires scheduler.yml.")
-    p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait.")
-    p_scheduler.add_argument('-d', '--days', default=0, type=int, help="number of days to wait.")
-    p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="number of hours to wait.")
-    p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="number of minutes to wait.")
-    p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="number of seconds to wait.")
+    p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="Number of weeks to wait.")
+    p_scheduler.add_argument('-d', '--days', default=0, type=int, help="Number of days to wait.")
+    p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
+    p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
+    p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
 
     # Subparser for batch command.
     p_batch = subparsers.add_parser('batch', parents=[copts_parser], help="Run scheduler in batch script.")
@@ -445,7 +501,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser],
-        help="Restart the tasks of the flow. By default, only the task with status==Unconverged are restarted. "
+        help="Restart the tasks of the flow. By default, only the task whose status==Unconverged are restarted. "
              "Use -S `status` and/or -n node_ids to select particular tasks.")
 
     # Subparser for reset command.
@@ -501,7 +557,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for tail.
     p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser],
-        help="Use tail to follow the main output files of the flow.")
+        help="Use unix tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o",
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
 
@@ -522,7 +578,8 @@ Specify the files to open. Possible choices:
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot.")
 
     # Subparser for inspect.
-    p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser], help="Inspect the tasks.")
+    p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
+            help="Call matplotlib to inspect the tasks (execute task.inspect method)")
 
     # Subparser for inputs.
     p_inputs = subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser],
@@ -530,8 +587,15 @@ Specify the files to open. Possible choices:
     p_inputs.add_argument("-vn", "--varnames", nargs="?", default=None, type=parse_strings,
         help="Comma-separated variable names. Can be used to print only these variables.")
 
+    # Subparser for abivars.
+    p_abivars = subparsers.add_parser('abivars', parents=[copts_parser, flow_selector_parser],
+        help="Show pandas dataframe with Abinit input variables.")
+    p_abivars.add_argument("-vn", "--varnames", required=True, type=parse_strings,
+        help="Comma-separated variable names e.g. `-vn ecut,nband,ngkpt`.")
+
     # Subparser for structures command.
-    p_structures = subparsers.add_parser('structures', parents=[copts_parser], help="Compare structures.")
+    p_structures = subparsers.add_parser('structures', parents=[copts_parser],
+        help="Compare input/output structures of the tasks. Print max force and pressure if available.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -545,7 +609,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for corrections.
     p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser],
-        help="Show AbiPy corrections.")
+        help="Show AbiPy corrections performed at runtime.")
 
     # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
@@ -612,7 +676,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for timer.
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
-        help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0)"
+        help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0) "
               "Open Ipython terminal to inspect data."))
 
     # Parse command line.
@@ -973,7 +1037,6 @@ Specify the files to open. Possible choices:
             pprint(excs)
 
     elif options.command == "reset":
-
         if options.nids is None and options.task_status is None:
             # Default status for reset command is QCritical
             options.task_status = Status.as_status("QCritical")
@@ -1111,8 +1174,12 @@ Specify the files to open. Possible choices:
     elif options.command == "inputs":
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
 
+    elif options.command == "abivars":
+        flow_compare_abivars(flow, varnames=options.varnames, nids=selected_nids(flow, options),
+                             printout=True, with_colors=True)
+
     elif options.command == "structures":
-        compare_structures(flow, options, with_spglib=False, printout=True)
+        flow_compare_structures(flow, options, with_spglib=False, printout=True, with_colors=True)
 
     elif options.command == "notebook":
         return write_open_notebook(flow, options)
