@@ -11,6 +11,7 @@ import argparse
 import shlex
 import time
 import platform
+import numpy as np
 import abipy.flowtk as flowtk
 import abipy.abilab as abilab
 
@@ -22,6 +23,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed
+from abipy.core.structure import frames_from_structures
 from abipy.flowtk import Status
 
 
@@ -172,21 +174,91 @@ from abipy import abilab
         raise RuntimeError("Cannot find jupyter in $PATH. Install it with `pip install`")
 
     if options.foreground:
-        cmd = "jupyter notebook %s" % nbpath
-        return os.system(cmd)
+        return os.system("jupyter notebook %s" % nbpath)
     else:
-        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
-        print("Executing:", cmd)
-        import subprocess
+        fd, tmpname = tempfile.mkstemp(text=True)
+        print(tmpname)
         cmd = "jupyter notebook %s" % nbpath
-
-        try:
-            from subprocess import DEVNULL # py3k
-        except ImportError:
-            DEVNULL = open(os.devnull, "wb")
-
-        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+        print("Executing:", cmd)
+        print("stdout and stderr redirected to %s" % tmpname)
+        import subprocess
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
+
+
+# TODO: Make it a flow method.
+def compare_structures(flow, options, with_spglib=False, precision=3, printout=False):
+    """
+    Analyze structures of the tasks (input and output structures if it's a relaxation
+    task. Print pandas DataFrame
+
+    Args:
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        precision: Floating point output precision (number of significant digits).
+            This is only a suggestion
+        printout: True to print dataframe.
+    """
+    #flow.check_status()
+    #nids = selected_nids(flow, options)
+    nids = None
+
+    structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
+
+    def push_data(post, task, structure, cart_forces, pressure):
+        """Helper function to fill lists"""
+        index.append(task.pos_str + post)
+        structures.append(structure)
+        status.append(task.status.colored)
+        if cart_forces is not None:
+            fmods = np.sqrt([np.dot(f, f) for f in cart_forces])
+            max_forces.append(fmods.max())
+        else:
+            max_forces.append(None)
+        pressures.append(pressure)
+        task_classes.append(task.__class__.__name__)
+
+    for task in flow.iflat_tasks(nids=nids):
+        push_data("_in", task, task.input.structure, cart_forces=None, pressure=None)
+
+        # Add final structure, pressure and max force if relaxation task or GS task
+        if task.status in (task.S_RUN, task.S_OK):
+            if hasattr(task, "open_hist"):
+                # Structural relaxations produce HIST.nc and we can get
+                # the final structure or the structure of the last relaxation step.
+                try:
+                    with task.open_hist() as hist:
+                        final_structure = hist.final_structure
+                        stress_cart_tensors, pressures_hist = hist.reader.read_cart_stress_tensors()
+                        forces = hist.reader.read_cart_forces(unit="eV ang^-1")[-1]
+                        push_data("_out", task, final.structure, forces, pressures_hist[-1])
+                except Exception as exc:
+                    cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
+
+            elif hasattr(task, "open_gsr") and task.status == task.S_OK and task.input.get("iscf", 7) >= 0:
+                with task.open_gsr() as gsr:
+                    forces = gsr.reader.read_cart_forces(unit="eV ang^-1")
+                    push_data("_out", task, gsr.structure, forces, gsr.pressure)
+
+    dfs = frames_from_structures(structures, index=index, with_spglib=with_spglib, cart_coords=False)
+
+    if any(f is not None for f in max_forces):
+        # Add pressure and forces to the dataframe
+        dfs.lattice["P [GPa]"] = pressures
+        dfs.lattice["Max|F| eV/ang"] = max_forces
+
+    # Add status to the dataframe.
+    status = [str(s) for s in status]
+    dfs.lattice["task_class"] = task_classes
+    dfs.lattice["status"] = dfs.coords["status"] = status
+
+    if printout:
+        abilab.print_frame(dfs.lattice, title="Lattice parameters:", precision=precision)
+        if options.verbose:
+            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+        else:
+            print("Use `--verbose` to print atoms.")
+
+    return dfs
 
 
 @prof_main
@@ -196,15 +268,45 @@ def main():
         return """\
 Usage example:
 
-    abirun.py [FLOWDIR] rapid                 => Keep repeating, stop when no task can be executed.
-    abirun.py [FLOWDIR] scheduler             => Execute flow with the scheduler.
-    abirun.py [FLOWDIR] events                => Print ABINIT events (Warning/Error/Comment).
-    abirun.py [FLOWDIR] history               => Print Task history.
-    abirun.py [FLOWDIR] cancel                => Cancel the tasks in the queue.
-    abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
-    abirun.py [FLOWDIR] doc_manager slurm     => Document the TaskManager options availabe for Slurm.
-    abirun.py . doc_manager script            => Show the job script that will be produced with the current settings.
-    abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
+###########
+# Execution
+###########
+
+  abirun.py [FLOWDIR] rapid                 => Keep repeating, stop when no task can be executed.
+  abirun.py [FLOWDIR] scheduler             => Execute flow with the scheduler.
+  abirun.py [FLOWDIR] status                => Show status table.
+  abirun.py [FLOWDIR] events                => Print ABINIT events (Warnings/Errors/Comments) found in log files.
+  abirun.py [FLOWDIR] history               => Print Task histories.
+  abirun.py [FLOWDIR] cancel                => Cancel jobs in the queue.
+  abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
+
+###############
+# Documentation
+###############
+
+  abirun.py [FLOWDIR] tail
+  abirun.py [FLOWDIR] deps
+  abirun.py [FLOWDIR] inspect
+  abirun.py [FLOWDIR] structures
+  abirun.py [FLOWDIR] corrections
+  abirun.py [FLOWDIR] handlers
+
+###############
+# Miscelleanous
+###############
+
+  abirun.py [FLOWDIR] ipython               => Open flow in ipython terminal
+  abirun.py [FLOWDIR] notebook              => Generate jupyter notebook
+  abirun.py [FLOWDIR] networkx              => Plot dependency graph.
+  abirun.py abibuild                        => Show ABINIT build information and exit
+
+###############
+# Documentation
+###############
+
+  abirun.py [FLOWDIR] doc_manager slurm     => Document the TaskManager options availabe for Slurm.
+  abirun.py . doc_manager script            => Show the job script that will be produced with the current settings.
+  abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
 
 If FLOWDIR is not given, abirun.py automatically selects the database located within
 the working directory. An Exception is raised if multiple databases are found.
@@ -273,10 +375,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
         ))
 
     group.add_argument("-w", '--wslice', default=None, type=parse_wslice,
-                                      help=("Select the list of works to analyze (python syntax for slices): "
-                                      "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2, "
-                                      "--wslice=-1 for the last workflow, --wslice::2 for even indices."))
-
+        help=("Select the list of works to analyze (python syntax for slices): "
+              "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2, "
+              "--wslice=-1 for the last workflow, --wslice::2 for even indices."))
     group.add_argument("-S", '--task-status', default=None, type=Status.as_status,
                         help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s." %
                         Status.all_status_strings())
@@ -285,14 +386,14 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity.')
+        help='verbose, can be supplied multiple times to increase verbosity.')
 
     copts_parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     copts_parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
     copts_parser.add_argument('--remove-lock', default=False, action="store_true",
-                       help="Remove the lock file of the pickle file storing the flow.")
+        help="Remove the lock file of the pickle file storing the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -311,8 +412,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
-                                        help="Run all tasks with a Python scheduler. Requires scheduler.yml.")
-
+        help="Run all tasks with a Python scheduler. Requires scheduler.yml.")
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="number of weeks to wait.")
     p_scheduler.add_argument('-d', '--days', default=0, type=int, help="number of days to wait.")
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="number of hours to wait.")
@@ -329,9 +429,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
-                          help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs)."))
+        help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs)."))
     p_status.add_argument('-s', '--summary', default=False, action="store_true",
-                          help="Print short version with status counters.")
+        help="Print short version with status counters.")
 
     # Subparser for set_status command.
     p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser],
@@ -340,28 +440,28 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser],
-                                     help="Cancel the tasks in the queue. Not available if qtype==shell.")
+        help="Cancel the tasks in the queue. Not available if qtype==shell.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser],
-                help="Restart the tasks of the flow. By default, only the task with status==Unconverged are restarted. "
-                     "Use -S `status` and/or -n node_ids to select particular tasks.")
+        help="Restart the tasks of the flow. By default, only the task with status==Unconverged are restarted. "
+             "Use -S `status` and/or -n node_ids to select particular tasks.")
 
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
-                                    help="Reset the tasks of the flow with the specified status.")
+        help="Reset the tasks of the flow with the specified status.")
     p_reset.add_argument("--relaunch", action="store_true", default=False,
-                         help="Relaunch tasks in rapid mode after reset.")
+        help="Relaunch tasks in rapid mode after reset.")
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser],
-                                    help="Move the flow to a new directory and change the absolute paths.")
+        help="Move the flow to a new directory and change the absolute paths.")
     p_move.add_argument('dest', nargs=1)
 
     # Subparser for open command.
     p_open = subparsers.add_parser('open', parents=[copts_parser, flow_selector_parser],
-                                   help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help).")
+        help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help).")
     p_open.add_argument('what', nargs="?", default="o",
         help="""\
 Specify the files to open. Possible choices:
@@ -372,8 +472,7 @@ Specify the files to open. Possible choices:
     l ==> log_file
     e ==> stderr_file
     q ==> qout_file
-    all ==> all files.
-""")
+    all ==> all files.""")
 
     # Subparser for ncopen.
     p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser],
@@ -382,11 +481,11 @@ Specify the files to open. Possible choices:
 
     # Subparser for abibuild
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
-                                        help="Show ABINIT build information and exit.")
+        help="Show ABINIT build information and exit.")
 
     # Subparser for doc_scheduler
     p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
-                                       help="Document the options available in scheduler.yml.")
+        help="Document the options available in scheduler.yml.")
 
     # Subparser for gui command.
     p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
@@ -397,14 +496,14 @@ Specify the files to open. Possible choices:
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
-                                          help="Change the TaskManager.")
+        help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager.")
 
     # Subparser for tail.
     p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser],
-                                   help="Use tail to follow the main output files of the flow.")
+        help="Use tail to follow the main output files of the flow.")
     p_tail.add_argument('what_tail', nargs="?", type=str, default="o",
-                        help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
+        help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
 
     # Subparser for qstat.
     p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
@@ -419,7 +518,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for plot.
     p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser],
-                                   help="Plot data. Use --help for more info.")
+        help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot.")
 
     # Subparser for inspect.
@@ -427,9 +526,12 @@ Specify the files to open. Possible choices:
 
     # Subparser for inputs.
     p_inputs = subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser],
-                                     help="Show the input files of the tasks.")
+        help="Show the input files of the tasks.")
     p_inputs.add_argument("-vn", "--varnames", nargs="?", default=None, type=parse_strings,
-                           help="Comma-separated variable names. Can be used to print only these variables.")
+        help="Comma-separated variable names. Can be used to print only these variables.")
+
+    # Subparser for structures command.
+    p_structures = subparsers.add_parser('structures', parents=[copts_parser], help="Compare structures.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -438,82 +540,80 @@ Specify the files to open. Possible choices:
 
     # Subparser for events.
     p_events = subparsers.add_parser('events', parents=[copts_parser, flow_selector_parser],
-                                    help="Show ABINIT events (error messages, warnings, comments).")
+        help="Show ABINIT events (error messages, warnings, comments).")
     #p_events.add_argument("-t", "event-type", default=)
 
     # Subparser for corrections.
     p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser],
-                                          help="Show AbiPy corrections.")
+        help="Show AbiPy corrections.")
 
     # Subparser for history.
     p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata.")
     p_history.add_argument("-f", "--full-history", action="store_true", default=False,
-                           help="Print full history set, including nodes with an empty history.")
+        help="Print full history set, including nodes with an empty history.")
     #p_history.add_argument("-t", "--task-history", action="store_true", default=True, help=)
 
     # Subparser for handlers.
     p_handlers = subparsers.add_parser('handlers', parents=[copts_parser], help="Show event handlers installed in the flow.")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False,
-                            help="Show documentation about all the handlers that can be installed.")
+        help="Show documentation about all the handlers that can be installed.")
 
     # Subparser for notebook.
     p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
-                                       help="Create and open an ipython notebook to interact with the flow.")
+        help="Create and open an ipython notebook to interact with the flow.")
     p_notebook.add_argument('--foreground', action='store_true', default=False,
-                            help="Run jupyter notebook in the foreground.")
+        help="Run jupyter notebook in the foreground.")
 
     # Subparser for ipython.
     p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
-                                      help="Embed IPython. Useful for advanced operations or debugging purposes.")
+        help="Embed IPython. Useful for advanced operations or debugging purposes.")
     p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
-                           help="Command-line options passed to ipython. Must be enclosed by quotes. "
-                                "Example: --argv='--matplotlib=wx'")
+        help="Command-line options passed to ipython. Must be enclosed by quotes. "
+             "Example: --argv='--matplotlib=wx'")
 
     # Subparser for tar.
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None,
-                       help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
+        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
 
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
-                       help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
-
+        help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
     p_tar.add_argument("-d", "--exclude-dirs", default=None, type=parse_strings,
-                       help="Exclude directories. Accept string or comma-separated strings. Ex: --exlude-dirs=indir,outdir")
-
+        help="Exclude directories. Accept string or comma-separated strings. Ex: --exlude-dirs=indir,outdir")
     p_tar.add_argument("-l", "--light", default=False, action="store_true",
-                       help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
+        help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
 
     # Subparser for debug.
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser],
-                                     help="Analyze error files and log files for possible error messages.")
+        help="Analyze error files and log files for possible error messages.")
 
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
-                                     help="Group tasks according to property.")
+        help="Group tasks according to property.")
 
     # Subparser for diff.
     p_diff = subparsers.add_parser('diff', parents=[copts_parser, flow_selector_parser],
-                                   help="Compare files produced by two or three nodes.")
+        help="Compare files produced by two or three nodes.")
     p_diff.add_argument('what_diff', nargs="?", type=str, default="i",
-                        help="What to diff: `i` for input (default), `o` for output, `l` for logfile, `e` for stderr.")
+        help="What to diff: `i` for input (default), `o` for output, `l` for logfile, `e` for stderr.")
 
     # Subparser for networkx.
     p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser],
-                                     help="Draw flow and node dependecies with networkx package.")
+        help="Draw flow and node dependecies with networkx package.")
     p_networkx.add_argument('--nxmode', default="status",
-                            help="Type of network plot. Possible values: `status`, `network`. Default: `status`.")
+        help="Type of network plot. Possible values: `status`, `network`. Default: `status`.")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels.")
 
     # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser],
-                                     help="List all the output files with the given extension that have been produced by the nodes.")
+        help="List all the output files with the given extension that have been produced by the nodes.")
     p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Subparser for timer.
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
-                                    help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0)"
-                                          "Open Ipython terminal to inspect data."))
+        help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0)"
+              "Open Ipython terminal to inspect data."))
 
     # Parse command line.
     try:
@@ -960,9 +1060,7 @@ Specify the files to open. Possible choices:
             #robot.make_and_open_notebook(nbpath=None, foreground=True)
 
     elif options.command == "plot":
-        fext = dict(
-            ebands="gsr",
-        )[options.what]
+        fext = dict(ebands="gsr")[options.what]
 
         open_method = "open_" + fext
         plot_method = "plot_" + options.what
@@ -1012,6 +1110,9 @@ Specify the files to open. Possible choices:
 
     elif options.command == "inputs":
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
+
+    elif options.command == "structures":
+        compare_structures(flow, options, with_spglib=False, printout=True)
 
     elif options.command == "notebook":
         return write_open_notebook(flow, options)

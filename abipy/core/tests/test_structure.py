@@ -122,7 +122,7 @@ class TestStructure(AbipyTest):
             assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
-            si.mayaview(show=False)
+            assert si.mayaview(show=False)
 
         #if self.has_vtk():
         #    si.vtkview(show=False)
@@ -179,11 +179,21 @@ class TestStructure(AbipyTest):
         #assert len(batom.cart_coords) == 1
         #self.assert_equal(batom.cart_coords[0], [1, 2, 3])
 
+        # Function to compute cubic a0 from primitive v0 (depends on struct_type)
+        vol2a = {"fcc": lambda vol: (4 * vol) ** (1/3.),
+                 "bcc": lambda vol: (2 * vol) ** (1/3.),
+                 "rocksalt": lambda vol: (4 * vol) ** (1/3.),
+                 "ABO3": lambda vol: vol ** (1/3.),
+                 "hH": lambda vol: (4 * vol) ** (1/3.),
+                 }
+
         #bcc_prim = Structure.bcc(10, ["Si"], primitive=True)
         #bcc_conv = Structure.bcc(10, ["Si"], primitive=False)
         #fcc_prim = Structure.bcc(10, ["Si"], primitive=True)
         #fcc_conv = Structure.bcc(10, ["Si"], primitive=False)
-        #rock = Structure.rocksalt(10, ["Na", "Cl"])
+        a = 10
+        rock = Structure.rocksalt(a, ["Na", "Cl"])
+        self.assert_almost_equal(a, vol2a["rocksalt"](rock.volume))
         #perov = Structure.ABO3(10, ["A", "B", "O", "O", "O"])
 
         # Test notebook generation.

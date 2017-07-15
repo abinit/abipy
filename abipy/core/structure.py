@@ -957,7 +957,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
             - The spacegroup number computed by Abinit (set to None if not available).
-            - The spacegroup number and symbol computed by spglib (set to None not `with_spglib`).
+            - The spacegroup number and symbol computed by spglib (if `with_spglib`).
 
         Useful to construct pandas DataFrames
 
@@ -971,13 +971,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
-        return OrderedDict([
+        od = OrderedDict([
             ("formula", self.formula), ("natom", self.num_sites),
             ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
-            ("spglib_symb", spglib_symbol), ("spglib_num", spglib_number),
         ])
+        if with_spglib:
+            od["spglib_symb"] = spglib_symbol
+            od["spglib_num"] = spglib_number
+
+        return od
 
     @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
@@ -1740,13 +1744,14 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
                                  columns=list(odict_list[0].keys()) if odict_list else None)
 
     # Build Frame with atomic positions.
+    vtos = lambda v: "%+0.6f %+0.6f %+0.6f" % (v[0], v[1], v[2])
     max_numsite = max(len(s) for s in structures)
     odict_list = []
     for structure in structures:
         if cart_coords:
-            odict_list.append({i: (site.species_string, site.coords) for i, site in enumerate(structure)})
+            odict_list.append({i: (site.species_string, vtos(site.coords)) for i, site in enumerate(structure)})
         else:
-            odict_list.append({i: (site.species_string, site.frac_coords) for i, site in enumerate(structure)})
+            odict_list.append({i: (site.species_string, vtos(site.frac_coords)) for i, site in enumerate(structure)})
 
     coords_frame = pd.DataFrame(odict_list, index=index,
                                 columns=list(range(max_numsite)) if odict_list else None)
