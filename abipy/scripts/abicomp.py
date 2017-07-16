@@ -613,8 +613,8 @@ Usage example:
 # Miscelleanous
 ###############
 
-  abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files and print results.
-                                                     Use `--show` to get list of possible names.
+  abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files
+                                                     and print results. Use `--show` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
 
 ############

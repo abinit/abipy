@@ -1240,7 +1240,7 @@ class IrredZone(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 
@@ -1250,7 +1250,8 @@ class IrredZone(KpointList):
             s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
             app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
         else:
-            app(str(self.ksampling))
+            app("nkpt: %d" % len(self))
+            app(self.ksampling.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -1404,15 +1405,18 @@ class KSamplingInfo(AttrDict):
                     self["mpdivs"] = None
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
-        app("kptopt: %s" % str(self.kptopt))
+        app("kptopt:\n  %s" % str(self.kptopt))
         app("mpdivs: %s" % str(self.mpdivs))
-        app("kptrlatt: %s" % str(self.kptrlatt))
-        app("shifts: %s" % str(self.shifts))
-        app("kptrlatt_orig: %s" % str(self.kptrlatt_orig))
-        app("shifts_orig: %s" % str(self.shifts_orig))
+        app("kptrlatt:\n %s" % str(self.kptrlatt))
+        app("shifts:\n %s" % str(self.shifts))
+        app("kptrlatt_orig:\n %s" % str(self.kptrlatt_orig))
+        app("shifts_orig:\n %s" % str(self.shifts_orig))
 
         return "\n".join(lines)
 

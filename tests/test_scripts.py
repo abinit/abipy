@@ -332,7 +332,7 @@ class TestAbirun(ScriptTest):
         flow.build_and_pickle_dump()
 
         # Test abirun commands requiring a flow (no submission)
-        for command in ["status", "debug", "deps", "inputs", "corrections", "events",
+        for command in ["status", "debug", "debug_reset", "deps", "inputs", "corrections", "events",
                         "history", "handlers", "cancel", "tail", "inspect", "structures"]:
             r = env.run(self.script, flowdir, command, self.loglevel, self.verbose, *no_logo_colors,
                         expect_stderr=self.expect_stderr)

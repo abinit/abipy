@@ -22,9 +22,9 @@ from monty import termcolor
 from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
-from monty.string import boxed
-from abipy.core.structure import frames_from_structures
+from monty.string import boxed, list_strings, make_banner
 from abipy.flowtk import Status
+from abipy.core.structure import frames_from_structures
 
 
 def straceback():
@@ -126,7 +126,8 @@ def selected_nids(flow, options):
     return set(work_ids + task_ids)
 
 
-def write_open_notebook(flow, options):
+# TODO: These should become flow methods.
+def flow_write_open_notebook(flow, options):
     """
     Generate an ipython notebook and open it in the browser.
     Return system exit code.
@@ -186,13 +187,15 @@ from abipy import abilab
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
-# TODO: Make it a flow method.
-def flow_compare_structures(flow, options, with_spglib=False, precision=3, printout=False, with_colors=False):
+
+def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
+                            precision=3, printout=False, with_colors=False):
     """
     Analyze structures of the tasks (input and output structures if it's a relaxation
     task. Print pandas DataFrame
 
     Args:
+        nids: List of node identifiers. By defaults all nodes are shown
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion
@@ -200,9 +203,6 @@ def flow_compare_structures(flow, options, with_spglib=False, precision=3, print
         with_colors: True if task status should be colored.
     """
     #flow.check_status()
-    #nids = selected_nids(flow, options)
-    nids = None
-
     structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
 
     def push_data(post, task, structure, cart_forces, pressure):
@@ -254,12 +254,65 @@ def flow_compare_structures(flow, options, with_spglib=False, precision=3, print
 
     if printout:
         abilab.print_frame(dfs.lattice, title="Lattice parameters:", precision=precision)
-        if options.verbose:
+        if verbose:
             abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
         else:
             print("Use `--verbose` to print atoms.")
 
     return dfs
+
+
+def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
+                        precision=3, printout=False, with_colors=False):
+    """
+    Analyze electron bands produced by the tasks. Print pandas DataFrame
+
+    Args:
+        nids: List of node identifiers. By defaults all nodes are shown
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        precision: Floating point output precision (number of significant digits).
+            This is only a suggestion
+        printout: True to print dataframe.
+        with_colors: True if task status should be colored.
+    """
+    #flow.check_status()
+    ebands_list, index, status, ncfiles, task_classes = [], [], [], [], []
+
+    for task in flow.iflat_tasks(nids=nids, status=flow.S_OK):
+        # Read ebands either from GSR or SIGRES files.
+        for ext in ("gsr", "sigres"):
+            task_open_ncfile = getattr(task, "open_%s" % ext, None)
+            if task_open_ncfile is not None: break
+        else:
+            continue
+
+        # Structural relaxations produce HIST.nc and we can get
+        # the final structure or the structure of the last relaxation step.
+        try:
+            with task_open_ncfile() as ncfile:
+                ebands_list.append(ncfile.ebands)
+                index.append(task.pos_str)
+                status.append(task.status.colored if with_colors else str(task.status))
+                ncfiles.append(os.path.relpath(ncfile.filepath))
+                task_classes.append(task.__class__.__name__)
+
+        except Exception as exc:
+            cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
+
+    if not ebands_list: return
+    from abipy.electrons.ebands import frame_from_ebands
+    df = frame_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
+
+    # Add columns to the dataframe.
+    status = [str(s) for s in status]
+    df["task_class"] = task_classes
+    df["ncfile"] = ncfiles
+    df["status"] = df["status"] = status
+
+    if printout:
+        abilab.print_frame(df, title="KS electronic bands:", precision=precision)
+
+    return df
 
 
 def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False, with_colors=False):
@@ -277,8 +330,6 @@ def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False,
         printout: True to print dataframe.
         with_colors: True if task status should be colored.
     """
-    from monty.string import list_strings
-    # Build dictionary varname --> [(task1, value), (task2, value), ...]
     varnames = [s.strip() for s in list_strings(varnames)]
     index, rows = [], []
     for task in flow.select_tasks(nids=nids, wslice=wslice):
@@ -299,8 +350,143 @@ def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False,
     import pandas as pd
     df = pd.DataFrame(rows, index=index)
     if printout:
-        abilab.print_frame(df, title="Input variables:") #, precision=precision)
+        abilab.print_frame(df, title="Input variables:")
     return df
+
+
+def flow_debug_reset_tasks(flow, nids=None, verbose=0):
+    """
+    Analyze error files produced by reset tasks for possible error messages
+
+    Args:
+        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        verbose: Verbosity level.
+    """
+    ntasks = 0
+    nrows, ncols = get_terminal_size()
+    for task in flow.select_tasks(nids=nids):
+        # See task.reset_from_scratch
+        if task.num_restarts == 0: continue
+        reset_dir = os.path.join(task.workdir, "_reset")
+        reset_file = os.path.join(reset_dir, "_counter")
+        if not os.path.isdir(reset_dir) and not os.path.isfile(reset_file):
+            continue
+
+        ntasks += 1
+        with open(reset_file, "rt") as fh:
+            num_reset = int(fh.read())
+
+        for i in range(num_reset):
+            #("output_file", "log_file", "stderr_file", "qout_file", "qerr_file", "mpiabort_file")
+            for fname in ("stderr_file", "qerr_file", "mpiabort_file"):
+                path = os.path.join(reset_dir, fname + "_" + str(i))
+                with open(path, "rt") as fh:
+                    s = fh.read()
+                    if not s: continue
+                    print(2 * "\n")
+                    print(make_banner(os.path.relpath(path), width=ncols, mark="="))
+                    cprint(s, color="red")
+                    print(2 * "\n")
+
+    print("Number of tasks analyzed: %d" % ntasks)
+
+
+def flow_watch_status(flow, delay=5, nids=None, verbose=0, func_name="show_func"):
+    """
+    Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs).
+
+    Args:
+        delay: delay execution for the given number of seconds. (default: 5 secs).
+        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        verbose: Verbosity level.
+        func_name: Name of the function used to show the status of the flow.
+    """
+    cprint("Entering infinite loop (delay: %d s). Only changes are shown\nPress <CTRL+C> to exit" %
+           delay, color="magenta", end="", flush=True)
+
+    show_func = getattr(flow, func_name)
+    assert callable(show_func)
+
+    # Total counter and dicts used to detect changes.
+    tot_count = 0
+    before_task2stat, now_task2stat = {}, {}
+    # Progressbar setup
+    from tqdm import tqdm
+    pbar, pbar_count, pbar_total = None, 0, 100
+
+    exit_code = 0
+    def exit_now():
+        """
+        Function used to test if we have to exit from the infinite loop below.
+        Return: != 0 if we must exit. > 0 if some error occurred.
+        """
+        if flow.all_ok:
+            cprint("Flow reached all_ok", "green")
+            return -1
+        if any(st.is_critical for st in before_task2stat.values()):
+            cprint(boxed("Found tasks with critical status"), "red")
+            return 1
+        return 0
+
+    try:
+        while True:
+            tot_count += 1
+            flow.check_status()
+
+            # Here I test whether there's been some change in the flow
+            # before printing the status table.
+            # Note that the flow in memory could not correspond to the one that
+            # is being executed by the scheduler. This is the reason why we
+            # reload it when we reach pbar_count.
+            if tot_count == 1:
+                for task in flow.iflat_tasks(nids=nids):
+                    before_task2stat[task] = task.status
+            else:
+                for task in flow.iflat_tasks(nids=nids):
+                    now_task2stat[task] = task.status
+
+                if (len(before_task2stat) == len(now_task2stat) and
+                    all(now_task2stat[t] == before_task2stat[t] for t in now_task2stat)):
+                    # In principle this is not needed but ...
+                    exit_code = exit_now()
+                    if exit_code: break
+
+                    # Progress bar section.
+                    if pbar is None:
+                        print("No change detected in the flow. Won't print status table till next change...")
+                        pbar = tqdm(total=pbar_total)
+
+                    if pbar_count <= pbar_total:
+                        pbar_count += 1
+                        pbar.update(1)
+                    else:
+                        pbar_count = 0
+                        pbar.close()
+                        pbar = tqdm(total=pbar_total)
+                        flow.reload()
+
+                    time.sleep(delay)
+                    continue
+
+                # copy now --> before
+                before_task2stat = now_task2stat.copy()
+
+            # Print status table. Exit if success or critical errors.
+            print(2*"\n" + time.asctime() + "\n")
+            show_func(verbose=verbose, nids=nids)
+            # Add summary table to status table.
+            if show_func is flow.show_status: flow.show_summary()
+
+            exit_code = exit_now()
+            if exit_code: break
+            time.sleep(delay)
+
+        # Print status table if something bad happened.
+        if exit_code == 1:
+            flow.show_status()
+
+    except KeyboardInterrupt:
+        cprint("Received KeyboardInterrupt from user\n", "yellow")
 
 
 @prof_main
@@ -322,16 +508,17 @@ Usage example:
   abirun.py [FLOWDIR] history               => Print Task histories.
   abirun.py [FLOWDIR] cancel                => Cancel jobs in the queue.
   abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
-  abirun.py [FLOWDIR] correction            => Show AbiPy corrections performed at runtime.
+  abirun.py [FLOWDIR] corrections           => Show AbiPy corrections performed at runtime.
   abirun.py [FLOWDIR] handlers              => Show event handlers installed in the flow.
 
 ##########
 # Analysis
 ##########
 
-  abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
-  abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
   abirun.py [FLOWDIR] inputs                => Print input files.
+  abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
+  abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
+  abirun.py [FLOWDIR] ebands                => Print table with electronic properties.
   abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
   abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
   abirun.py [FLOWDIR] deps                  => Show task dependencies.
@@ -385,12 +572,13 @@ Notes:
     Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
+        developers = """\
+Options for developers:
+
+    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
+    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python"""
+
         return notes + usage
-
-
-#Options for developers:
-#    abirun.py prof ABIRUN_ARGS               => to profile abirun.py
-#    abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -496,7 +684,7 @@ Notes:
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser],
-        help="Cancel the tasks in the queue. Not available if qtype==shell.")
+        help="Cancel the tasks in the queue. Not available if qtype == shell.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
@@ -532,7 +720,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for ncopen.
     p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser],
-                                      help="Open netcdf files in ipython. Use --help for more info.")
+        help="Open netcdf files in ipython. Use --help for more info.")
     p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open.")
 
     # Subparser for abibuild
@@ -579,7 +767,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for inspect.
     p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
-            help="Call matplotlib to inspect the tasks (execute task.inspect method)")
+        help="Call matplotlib to inspect the tasks (execute task.inspect method)")
 
     # Subparser for inputs.
     p_inputs = subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser],
@@ -594,8 +782,12 @@ Specify the files to open. Possible choices:
         help="Comma-separated variable names e.g. `-vn ecut,nband,ngkpt`.")
 
     # Subparser for structures command.
-    p_structures = subparsers.add_parser('structures', parents=[copts_parser],
+    p_structures = subparsers.add_parser('structures', parents=[copts_parser, flow_selector_parser],
         help="Compare input/output structures of the tasks. Print max force and pressure if available.")
+
+    # Subparser for ebands command.
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, flow_selector_parser],
+        help="Compare electronic bands produced by the tasks.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -651,6 +843,10 @@ Specify the files to open. Possible choices:
     # Subparser for debug.
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files for possible error messages.")
+
+    # Subparser for debug_reset.
+    p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
+        help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
@@ -708,15 +904,9 @@ Specify the files to open. Possible choices:
         if qtype == "script":
             manager = flowtk.TaskManager.from_user_config()
             script = manager.qadapter.get_script_str(
-                job_name="job_name",
-                launch_dir="workdir",
-                executable="executable",
-                qout_path="qout_file.path",
-                qerr_path="qerr_file.path",
-                stdin="stdin",
-                stdout="stdout",
-                stderr="stderr",
-            )
+                job_name="job_name", launch_dir="workdir", executable="executable",
+                qout_path="qout_file.path", qerr_path="qerr_file.path",
+                stdin="stdin", stdout="stdout", stderr="stderr")
             print(script)
 
         else:
@@ -833,16 +1023,13 @@ Specify the files to open. Possible choices:
 
     elif options.command == "events":
         flow.show_events(status=options.task_status, nids=selected_nids(flow, options))
-        return 0
 
     elif options.command == "corrections":
         flow.show_corrections(status=options.task_status, nids=selected_nids(flow, options))
-        return 0
 
     elif options.command == "history":
         flow.show_history(status=options.task_status, nids=selected_nids(flow, options),
-                         full_history=options.full_history, metadata=options.metadata)
-        return 0
+                          full_history=options.full_history, metadata=options.metadata)
 
     elif options.command == "handlers":
         if options.doc:
@@ -883,89 +1070,8 @@ Specify the files to open. Possible choices:
         show_func = flow.show_status if not options.summary else flow.show_summary
 
         if options.delay:
-            cprint("Entering infinite loop (delay: %d s). Only changes are shown\nPress <CTRL+C> to exit" %
-                   options.delay, color="magenta", end="", flush=True)
-
-            # Total counter and dicts used to detect changes.
-            tot_count = 0
-            before_task2stat, now_task2stat = {}, {}
-            # Progressbar setup
-            from tqdm import tqdm
-            pbar, pbar_count, pbar_total = None, 0, 100
-
-            exit_code = 0
-            def exit_now():
-                """
-                Function used to test if we have to exit from the infinite loop below.
-                Return: != 0 if we must exit. > 0 if some error occurred.
-                """
-                if flow.all_ok:
-                    cprint("Flow reached all_ok", "green")
-                    return -1
-                if any(st.is_critical for st in before_task2stat.values()):
-                    cprint(boxed("Found tasks with critical status"), "red")
-                    return 1
-                return 0
-
-            try:
-                while True:
-                    tot_count += 1
-                    flow.check_status()
-
-                    # Here I test whether there's been some change in the flow
-                    # before printing the status table.
-                    # Note that the flow in memory could not correspond to the one that
-                    # is being executed by the scheduler. This is the reason why we
-                    # reload it when we reach pbar_count.
-                    if tot_count == 1:
-                        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-                            before_task2stat[task] = task.status
-                    else:
-                        for task in flow.iflat_tasks(nids=selected_nids(flow, options)):
-                            now_task2stat[task] = task.status
-
-                        if (len(before_task2stat) == len(now_task2stat) and
-                            all(now_task2stat[t] == before_task2stat[t] for t in now_task2stat)):
-                            # In principle this is not needed but ...
-                            exit_code = exit_now()
-                            if exit_code: break
-
-                            # Progress bar section.
-                            if pbar is None:
-                                print("No change detected in the flow. Won't print status table till next change...")
-                                pbar = tqdm(total=pbar_total)
-
-                            if pbar_count <= pbar_total:
-                                pbar_count += 1
-                                pbar.update(1)
-                            else:
-                                pbar_count = 0
-                                pbar.close()
-                                pbar = tqdm(total=pbar_total)
-                                flow.reload()
-
-                            time.sleep(options.delay)
-                            continue
-
-                        # copy now --> before
-                        before_task2stat = now_task2stat.copy()
-
-                    # Print status table. Exit if success or critical errors.
-                    print(2*"\n" + time.asctime() + "\n")
-                    show_func(verbose=options.verbose, nids=selected_nids(flow, options))
-                    # Add summary table to status table.
-                    if show_func is flow.show_status: flow.show_summary()
-
-                    exit_code = exit_now()
-                    if exit_code: break
-                    time.sleep(options.delay)
-
-                # Print status table if something bad happened.
-                if exit_code == 1:
-                    flow.show_status()
-
-            except KeyboardInterrupt:
-                cprint("Received KeyboardInterrupt from user\n", "yellow")
+            flow_watch_status(flow, delay=options.delay, verbose=options.verbose,
+                              nids=selected_nids(flow, options), func_name=show_func.__name__)
         else:
             show_func(verbose=options.verbose, nids=selected_nids(flow, options))
             if options.verbose and flow.manager.has_queue:
@@ -1013,7 +1119,7 @@ Specify the files to open. Possible choices:
         if options.rmtree: flow.rmtree()
 
     elif options.command == "restart":
-        # Default status for reset is Unconverged if no option is provided by the user.
+        # Default status for restart is Unconverged if no option is provided by the user.
         if options.task_status is None and options.nids is None:
             options.task_status = Status.as_status("Unconverged")
 
@@ -1176,19 +1282,23 @@ Specify the files to open. Possible choices:
 
     elif options.command == "abivars":
         flow_compare_abivars(flow, varnames=options.varnames, nids=selected_nids(flow, options),
-                             printout=True, with_colors=True)
+                             printout=True, with_colors=not options.no_colors)
 
     elif options.command == "structures":
-        flow_compare_structures(flow, options, with_spglib=False, printout=True, with_colors=True)
+        flow_compare_structures(flow, nids=selected_nids(flow, options), verbose=options.verbose,
+                                with_spglib=False, printout=True, with_colors=not options.no_colors)
+
+    elif options.command == "ebands":
+        flow_compare_ebands(flow, nids=selected_nids(flow, options), verbose=options.verbose,
+                            with_spglib=False, printout=True, with_colors=not options.no_colors)
 
     elif options.command == "notebook":
-        return write_open_notebook(flow, options)
+        return flow_write_open_notebook(flow, options)
 
     elif options.command == "ipython":
         import IPython
-        #IPython.embed(header="")
-        #print("options:", options.argv)
-        IPython.start_ipython(argv=options.argv, user_ns={"flow": flow})# , header="flow.show_status()")
+        print("Invoking Ipython, `flow` object will be available in the Ipython terminal")
+        IPython.start_ipython(argv=options.argv, user_ns={"flow": flow})
 
     elif options.command == "tar":
         if not options.light:
@@ -1204,7 +1314,13 @@ Specify the files to open. Possible choices:
 
     elif options.command == "debug":
         flow.debug(status=options.task_status, nids=selected_nids(flow, options))
-        return 0
+
+    elif options.command == "debug_reset":
+        flow_debug_reset_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
+
+    # TODO
+    #elif options.command == "debug_restart":
+    #    flow_debug_restart_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
 
     elif options.command == "group":
         d = defaultdict(list)

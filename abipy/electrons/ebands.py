@@ -2138,8 +2138,8 @@ def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
     odict_list = [(ebands.get_dict4frame(with_spglib=with_spglib)) for ebands in ebands_list]
 
     import pandas as pd
-    return pd.DataFrame(odict_list, index=index,
-                        columns=list(odict_list[0].keys()) if odict_list else None)
+    return pd.DataFrame(odict_list, index=index)
+                        #columns=list(odict_list[0].keys()) if odict_list else None)
 
 
 class ElectronBandsPlotter(NotebookWriter):
