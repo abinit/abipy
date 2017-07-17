@@ -160,7 +160,7 @@ class TestStructure(AbipyTest):
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(verbose=10))
-        #print(structure.__repr_html__())
+        #print(structure._repr_html_())
 
         self.serialize_with_pickle(mgb2)
 
@@ -187,14 +187,25 @@ class TestStructure(AbipyTest):
                  "hH": lambda vol: (4 * vol) ** (1/3.),
                  }
 
-        #bcc_prim = Structure.bcc(10, ["Si"], primitive=True)
-        #bcc_conv = Structure.bcc(10, ["Si"], primitive=False)
-        #fcc_prim = Structure.bcc(10, ["Si"], primitive=True)
-        #fcc_conv = Structure.bcc(10, ["Si"], primitive=False)
         a = 10
+        bcc_prim = Structure.bcc(a, ["Si"], primitive=True)
+        assert len(bcc_prim) == 1
+        self.assert_almost_equal(a, vol2a["bcc"](bcc_prim.volume))
+        bcc_conv = Structure.bcc(a, ["Si"], primitive=False)
+        assert len(bcc_conv) == 2
+        self.assert_almost_equal(a**3, bcc_conv.volume)
+        fcc_prim = Structure.fcc(a, ["Si"], primitive=True)
+        assert len(fcc_prim) == 1
+        self.assert_almost_equal(a, vol2a["fcc"](fcc_prim.volume))
+        fcc_conv = Structure.fcc(a, ["Si"], primitive=False)
+        assert len(fcc_conv) == 4
+        self.assert_almost_equal(a**3, fcc_conv.volume)
         rock = Structure.rocksalt(a, ["Na", "Cl"])
+        assert len(rock) == 2
         self.assert_almost_equal(a, vol2a["rocksalt"](rock.volume))
-        #perov = Structure.ABO3(10, ["A", "B", "O", "O", "O"])
+        perov = Structure.ABO3(a, ["Ca", "Ti", "O", "O", "O"])
+        assert len(perov) == 5
+        self.assert_almost_equal(a**3, perov.volume)
 
         # Test notebook generation.
         if self.has_nbformat():

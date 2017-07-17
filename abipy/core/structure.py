@@ -10,7 +10,7 @@ import numpy as np
 import pickle
 import pymatgen
 
-from pprint import pprint
+from pprint import pprint, pformat
 from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
@@ -403,7 +403,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
         if primitive:
-            # This is problematic
             lattice = 0.5 * float(a) * np.array([
                 0,  1,  1,
                 1,  0,  1,
@@ -761,7 +760,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             table.append([
                 i,
                 site.specie.symbol,
-                "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                "%+.5f %+.5f %+.5f" % tuple(site.frac_coords),
                 "%s" % wickoffs[i],
                 "%d" % equivalent_atoms[i],
             ])
@@ -771,10 +770,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         # Print entire dataset.
         if verbose > 1:
-            from six.moves import StringIO
-            stream = StringIO()
-            pprint(spgdata, stream=stream)
-            app(stream.getvalue())
+            app(pformat(spgdata, indent=4))
 
         return "\n".join(outs)
 
@@ -1004,7 +1000,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
     # To maintain backward compatibility.
-    show_bz = plot_bz
+    @deprecated(message="show_bz has been replaced by plot_bz and it will be removed in 0.4")
+    def show_bz(self, **kwargs):
+        return self.plot_bz(**kwargs)
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
@@ -1138,18 +1136,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
     #    # 1) Get the radius of the pseudopotential sphere
     #    # 2) Get the neighbors of the site (considering the periodic images).
 
+    #    pseudos = PseudoTable.as_table(pseudos)
     #    max_overlap, ovlp_sites = 0.0, None
     #    for site in self:
-    #        #site.specie
-    #        #r = Length(pseudo.r_cut, "Bohr").to("ang")
-    #        sitedist_list = self.get_neighbors(site, r, include_index=False)
+    #        symbol = site.specie.symbol
+    #        pseudo = pseudos[symbol]
+    #        r1 = Length(pseudo.r_cut, "Bohr").to("ang")
+    #        sitedist_list = self.get_neighbors(site, r1, include_index=False)
 
     #        if sitedist_list:
     #            # Spheres are overlapping: compute overlap and update the return values
     #            # if the new overlap is larger than the previous one.
     #            for other_site, dist in sitedist_list:
+    #                other_symbol = other_site.specie.symbol
+    #                other_pseudo = pseudos[other_symbol]
+    #                r2 = Length(other_pseudo.r_cut, "Bohr").to("ang")
     #                # Eq 16 of http://mathworld.wolfram.com/Sphere-SphereIntersection.html
-    #                #overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)
+    #                overlap = sphere_overlap(site.coords, r1, other_site.coords, r2)
     #                if overlap > max_overlap:
     #                    max_overlap = overlap
     #                    ovlp_sites = (site, other_site)
@@ -1170,11 +1173,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
             frac_coords: Boolean stating whether the vector corresponds to fractional or cartesian coordinates.
         """
         # Get a copy since we are going to modify displ.
-        displ = np.reshape(displ, (-1,3)).copy()
+        displ = np.reshape(displ, (-1, 3)).copy()
 
         if len(displ) != len(self):
             raise ValueError("Displ must contains 3 * natom entries")
-
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
 
@@ -1305,10 +1307,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
             crange[None, None, :]
         all_points = all_points.reshape((-1, 3))
 
-        #find the translation vectors (in terms of the initial lattice vectors)
-        #that are inside the unit cell defined by the scale matrix
-        #we're using a slightly offset interval from 0 to 1 to avoid numerical
-        #precision issues
+        # find the translation vectors (in terms of the initial lattice vectors)
+        # that are inside the unit cell defined by the scale matrix
+        # we're using a slightly offset interval from 0 to 1 to avoid numerical
+        # precision issues
         inv_matrix = np.linalg.inv(scale_matrix)
 
         frac_points = np.dot(all_points, inv_matrix)

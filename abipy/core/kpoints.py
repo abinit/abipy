@@ -1240,7 +1240,7 @@ class IrredZone(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 

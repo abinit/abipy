@@ -45,6 +45,9 @@ class HtmlDiff(object):
         self.filepaths = filepaths
 
     def open_browser(self, diffmode="difflib", **kwargs):
+        """
+        Generate diff with `diffmode`, open browser, return exit code.
+        """
         try:
             func = getattr(self, diffmode)
         except AttributeError:
@@ -58,7 +61,7 @@ class HtmlDiff(object):
         if not tmpname.startswith("file://"): tmpname = "file://" + tmpname
         import webbrowser
         try:
-            return webbrowser.open(tmpname)
+            return int(webbrowser.open(tmpname))
         except webbrowser.Error as exc:
             # Warn the user and ignore the exception.
             warnings.warn(str(exc))

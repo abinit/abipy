@@ -394,10 +394,10 @@ def make_scf_nscf_inputs(paral_kgb=1, usepaw=0):
     return scf_input, nscf_input
 
 
-class TestAbimovie(ScriptTest):
-    script = os.path.join(script_dir, "abimovie.py")
+class TestAbiView(ScriptTest):
+    script = os.path.join(script_dir, "abiview.py")
 
-    def test_abimovie(self):
-        """Testing abimovie.py script"""
+    def test_abiview(self):
+        """Testing abiview.py script"""
         env = self.get_env()
         #r = env.run(self.script, "man", "ecut", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

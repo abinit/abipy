@@ -40,7 +40,7 @@ def sort_paths(options):
     print("Use --no-sort to disable automatic sorting.")
 
 
-def abimovie_hist(options):
+def abiview_hist(options):
     """Visualize structural relaxation/molecular dynamics run from data stored in the HIST.nc file.
     Requires mayavi."""
     for path in options.paths:
@@ -53,7 +53,7 @@ def abimovie_hist(options):
     return 0
 
 
-def abimovie_ebands(options):
+def abiview_ebands(options):
     """Animate electron bands. Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ..."""
     #paths, e0 = options.paths, "fermie" # options.e0
     plotter = abilab.ElectronBandsPlotter(key_ebands=[(os.path.relpath(p), p) for p in options.paths])
@@ -85,14 +85,23 @@ def abimovie_ebands(options):
     return 0
 
 
-def abimovie_phbands(options):
+def abiview_phbands(options):
     """Animate phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ..."""
     plotter = abilab.PhononBandsPlotter(key_phbands=[(os.path.relpath(p), p) for p in options.paths])
     plotter.animate()
     return 0
 
 
-def abimovie_fields(options):
+def abiview_phweb(options):
+    """"""
+    retcode = 0
+    for p in options.paths:
+        with abilab.abiopen(p) as ncfile:
+            retcode += ncfile.phbands.view_phononwebsite(open_browser=not options.no_browser)
+    return retcode
+
+
+def abiview_fields(options):
     """Animate fields with Mayavi. Accept any file with densities, potentials ..."""
     from abipy.display.mvtk import MayaviFieldAnimator
     sort_paths(options)
@@ -111,23 +120,23 @@ Usage example:
 # Structure
 ###########
 
-    abimovie.py hist HIST_FILE(s)    ==> Visualize structural relaxation/molecular dynamics
-                                         run from data stored in the HIST.nc file.
+    abiview.py hist HIST_FILE(s)    ==> Visualize structural relaxation/molecular dynamics
+                                        run from data stored in the HIST.nc file.
 
 ###########
 # Electrons
 ###########
 
-    abimovie.py ebands *_GSR.nc      ==>   Animate electron bands.
-    abimovie.py fields *_DEN.nc      ==>   Animate densities on FFT mesh.
+    abiview.py ebands *_GSR.nc      ==>   Animate electron bands.
+    abiview.py fields *_DEN.nc      ==>   Animate densities on FFT mesh.
 
 #########
 # Phonons
 #########
 
-    abimovie.py phbands *_PHBST.nc   ==>   Animate phonon bands.
+    abiview.py phbands *_PHBST.nc   ==>   Animate phonon bands.
 
-Use `abimovie.py --help` for help and `abimovie.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
@@ -155,17 +164,21 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for hist command.
-    p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abimovie_hist.__doc__)
+    p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
     p_hist.add_argument("-t", "--trajectories", default=False, action="store_true", help="Plot trajectories.")
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abimovie_ebands.__doc__)
+    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abiview_ebands.__doc__)
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abimovie_phbands.__doc__)
+    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abiview_phbands.__doc__)
+
+    # Subparser for phweb command.
+    p_phweb = subparsers.add_parser('phweb', parents=[copts_parser], help=abiview_phweb.__doc__)
+    p_phweb.add_argument("--no-browser", default=False, action="store_true", help="Do not open web browser")
 
     # Subparser for fields command.
-    p_fields = subparsers.add_parser('fields', parents=[copts_parser], help=abimovie_fields.__doc__)
+    p_fields = subparsers.add_parser('fields', parents=[copts_parser], help=abiview_fields.__doc__)
     p_fields.add_argument('--no-sort', default=False, action="store_true", help="Disable automatic sorting of filepaths.")
 
     # Parse the command line.
@@ -189,10 +202,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     if options.verbose > 1:
         print(options)
 
-
-
     # Dispatch
-    return globals()["abimovie_" + options.command](options)
+    return globals()["abiview_" + options.command](options)
 
     return 0
 

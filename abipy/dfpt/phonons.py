@@ -692,10 +692,45 @@ class PhononBands(object):
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
-    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
-                                  highsym_qpts_mode="split"):
+    def view_phononwebsite(self, open_browser=True, verbose=1, **kwargs):
         """
-        Writes a json file that can be parsed from phononwebsite https://github.com/henriquemiranda/phononwebsite
+        Produce json file that can be parsed from the phononwebsite. Contact the server, get
+        the url of the webpage and open it in the browser if `open_browser`.
+
+        Return:
+            Exit status
+        """
+        filename = kwargs.pop("filename", None)
+        if filename is None:
+            import tempfile
+            prefix = self.structure.formula.replace(" ", "")
+            _, filename = tempfile.mkstemp(text=True, prefix=prefix, suffix=".json")
+
+        if verbose: print("Writing json file", filename)
+        self.create_phononwebsite_json(filename, indent=None, **kwargs)
+        url = "http://henriquemiranda.github.io/phononwebsite/phonon.html"
+        import requests
+        with open(filename, 'rt') as f:
+            files = {'file-input': (filename, f)}
+            r = requests.post(url, files=files)
+            # @Henrique: the response should contain the url of the bandstructure plot
+            # so that I can open it in the browser.
+            if verbose:
+                print(r)
+                print(r.text)
+
+        print("Phonon band structure available at:", phbst_url)
+        if open_browser:
+           import webbrowser
+           return int(webbrowser.open(phbst_url))
+        return 0
+
+    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
+                                  highsym_qpts_mode="split", indent=2):
+        """
+        Writes a json file that can be parsed from the phononwebsite. See:
+
+                https://github.com/henriquemiranda/phononwebsite
 
         Args:
             filename: name of the json file that will be created
@@ -710,12 +745,13 @@ class PhononBands(object):
                         Similar to the what is done in phononwebsite. Only Gamma will be labeled.
                     'std' uses the standard generation procedure for points and labels used in PhononBands.
                     None does not set any point.
+            indent: Indentation level, passed to json.dump
         """
 
         def split_non_collinear(qpts):
             r"""
             function that splits the list of qpoints at repetitions (only the first point will be considered as
-            high symm) and where the direction changes. Also sets $\Gamma$ for [0,0,0].
+            high symm) and where the direction changes. Also sets $\Gamma$ for [0, 0, 0].
             Similar to what is done in phononwebsite.
             """
             h = []
@@ -745,7 +781,7 @@ class PhononBands(object):
         data["chemical_symbols"] = self.structure.symbol_set
         data["atomic_numbers"] = list(set(self.structure.atomic_numbers))
         data["formula"] = self.structure.formula.replace(" ", "")
-        data["repetitions"] = repetitions or (3,3,3)
+        data["repetitions"] = repetitions or (3, 3, 3)
         data["atom_pos_car"] = self.structure.cart_coords.tolist()
         data["atom_pos_red"] = self.structure.frac_coords.tolist()
 
@@ -764,7 +800,7 @@ class PhononBands(object):
             data["highsym_qpts"] = highsym_qpts
 
         distances = [0]
-        for i in range(1,len(qpoints)):
+        for i in range(1, len(qpoints)):
             q_coord_1 = self.structure.reciprocal_lattice.get_cartesian_coords(qpoints[i])
             q_coord_2 = self.structure.reciprocal_lattice.get_cartesian_coords(qpoints[i-1])
             distances.append(distances[-1] + np.linalg.norm(q_coord_1-q_coord_2))
@@ -805,7 +841,7 @@ class PhononBands(object):
         data["vectors"] = vectors
 
         with open(filename, 'wt') as json_file:
-            json.dump(data, json_file, indent=2)
+            json.dump(data, json_file, indent=indent)
 
     def decorate_ax(self, ax, units='eV', **kwargs):
         title = kwargs.pop("title", None)
