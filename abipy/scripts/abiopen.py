@@ -55,20 +55,15 @@ from abipy import abilab\
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
     if options.foreground:
-        cmd = "jupyter notebook %s" % nbpath
-        return os.system(cmd)
-
+        return os.system("jupyter notebook %s" % nbpath)
     else:
-        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+        fd, tmpname = tempfile.mkstemp(text=True)
+        print(tmpname)
+        cmd = "jupyter notebook %s" % nbpath
         print("Executing:", cmd)
-
+        print("stdout and stderr redirected to %s" % tmpname)
         import subprocess
-        try:
-            from subprocess import DEVNULL # py3k
-        except ImportError:
-            DEVNULL = open(os.devnull, "wb")
-
-        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL) #, stderr=DEVNULL)
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
@@ -140,7 +135,6 @@ File extensions supported:
                 print(abifile.to_string(verbose=options.verbose))
             else:
                 print(abifile)
-
             return 0
 
         import IPython

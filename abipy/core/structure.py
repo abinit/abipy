@@ -770,6 +770,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         # Print entire dataset.
         if verbose > 1:
+            app("\nSpglib dataset:")
             app(pformat(spgdata, indent=4))
 
         return "\n".join(outs)

@@ -41,15 +41,29 @@ def sort_paths(options):
 
 
 def abiview_hist(options):
-    """Visualize structural relaxation/molecular dynamics run from data stored in the HIST.nc file.
-    Requires mayavi."""
+    """
+    Visualize structural relaxation/molecular-dynamics run
+    from data stored in the HIST.nc file. Requires mayavi.
+    """
     for path in options.paths:
         with abilab.abiopen(path) as hist:
-            print(hist)
+            print(hist.to_string(verbose=options.verbose))
             if options.trajectories:
                 hist.mvplot_trajectories()
             else:
                 hist.mvanimate()
+    return 0
+
+
+def abiview_abo(options):
+    """
+    Plot SCF iterations extracted from Abinit output file
+    as well as timer data (if present)
+    """
+    for path in options.paths:
+        with abilab.abiopen(path) as abo:
+            print(abo.to_string(verbose=options.verbose))
+            abo.plot()
     return 0
 
 
@@ -98,16 +112,46 @@ def abiview_phweb(options):
     for p in options.paths:
         with abilab.abiopen(p) as ncfile:
             retcode += ncfile.phbands.view_phononwebsite(open_browser=not options.no_browser)
+            #view_seekpath(ncfile.structure)
     return retcode
 
 
+#def view_seekpath(structure, verbose=1):
+#    #import tempfile
+#    #prefix = self.structure.formula.replace(" ", "")
+#    #_, filename = tempfile.mkstemp(text=True, prefix=prefix, suffix=".json")
+#    #if verbose: print("Writing json file", filename)
+#
+#    url = "http://www.materialscloud.org/tools/seekpath/input_structure/"
+#    url = "http://www.materialscloud.org/tools/seekpath/process_structure/"
+#    filename = "POSCAR"
+#    import requests
+#    with open(filename, 'rt') as f:
+#        files = {'structurefile': f}
+#        data = {"fileformat": "vasp"}
+#        r = requests.post(url, data=data, files=files)
+#        if verbose:
+#            #print(r)
+#            #print(r.headers)
+#            #print(r.json())
+#            #print(r.text)
+#            #print(r.text.replace("../static", "https://github.com/giovannipizzi/seekpath/tree/develop/webservice/static"))
+#
+#    #print("Phonon band structure available at:", phbst_url)
+#    #if open_browser:
+#    #   import webbrowser
+#    #   return int(webbrowser.open(phbst_url))
+#    return 0
+
+
 def abiview_fields(options):
-    """Animate fields with Mayavi. Accept any file with densities, potentials ..."""
+    """Animate fields with Mayavi. Accept any file with density or potential ..."""
     from abipy.display.mvtk import MayaviFieldAnimator
     sort_paths(options)
     a = MayaviFieldAnimator(options.paths)
     a.volume_animate()
     return 0
+
 
 @prof_main
 def main():
@@ -122,6 +166,12 @@ Usage example:
 
     abiview.py hist HIST_FILE(s)    ==> Visualize structural relaxation/molecular dynamics
                                         run from data stored in the HIST.nc file.
+
+############
+# Text files
+############
+
+    abiview.py abo run.abo          ==> Plot SCF iterations extracted from Abinit output file
 
 ###########
 # Electrons
@@ -167,6 +217,10 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
     p_hist.add_argument("-t", "--trajectories", default=False, action="store_true", help="Plot trajectories.")
 
+    # Subparser for abo command.
+    p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
+    #p_abo.add_argument("-t", "--trajectories", default=False, action="store_true", help="Plot trajectories.")
+
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abiview_ebands.__doc__)
 
@@ -174,8 +228,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abiview_phbands.__doc__)
 
     # Subparser for phweb command.
-    p_phweb = subparsers.add_parser('phweb', parents=[copts_parser], help=abiview_phweb.__doc__)
-    p_phweb.add_argument("--no-browser", default=False, action="store_true", help="Do not open web browser")
+    #p_phweb = subparsers.add_parser('phweb', parents=[copts_parser], help=abiview_phweb.__doc__)
+    #p_phweb.add_argument("--no-browser", default=False, action="store_true", help="Do not open web browser")
 
     # Subparser for fields command.
     p_fields = subparsers.add_parser('fields', parents=[copts_parser], help=abiview_fields.__doc__)

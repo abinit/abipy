@@ -1405,6 +1405,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Avoid modifications in self.
         inp = self.deepcopy()
         if tolsym is not None: inp["tolsym"] = float(tolsym)
+        # Bypass Abinit check as we always want to return results.
+        inp["chksymbreak"] = 0
 
         # Build a Task to run Abinit in --dry-run mode.
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -1440,6 +1442,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         # The magic value that makes ABINIT print the ibz and then stop.
         inp["prtkpt"] = -2
+        # Bypass Abinit check as we always want to return results.
+        inp["chksymbreak"] = 0
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
@@ -1534,6 +1538,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         qpt = inp.get("qpt") if qpt is None else qpt
         if qpt is None:
             raise ValueError("qpt is not in the input and therefore it must be passed explicitly")
+
+        # Bypass Abinit check as we always want to return results.
+        inp["chksymbreak"] = 0
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
@@ -1711,6 +1718,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         inp = self.deepcopy()
         inp.set_vars(autoparal=autoparal, max_ncpus=max_ncpus)
+
+        # Bypass Abinit check as we always want to return results.
+        inp["chksymbreak"] = 0
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0

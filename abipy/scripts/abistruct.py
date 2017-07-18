@@ -89,8 +89,10 @@ Usage example:
   abistruct.py bz FILE                     => Read structure from FILE, plot BZ with matplotlib.
   abistruct.py ngkpt FILE -n 4             => Compute `ngkpt` and `shiftk` from the number of divisions used to sample
                                               the smallest reciprocal lattice vector.
-  abistruct.py kmesh FILE -m 2 2 2         => Read structure from FILE, call spglib to sample the BZ
-                                              with a 2, 2, 2 mesh, print points in IBZ with weights.
+  abistruct.py abikmesh FILE --ngkpt 2 2 2 => Read structure from FILE, call Abinit to sample the BZ
+                                              with a 2, 2, 2 k-mesh, print points in IBZ with weights.
+  abistruct.py ktables FILE -m 2 2 2       => Read structure from FILE, call spglib to sample the BZ
+                                              with a 2, 2, 2 k-mesh, print points in IBZ with weights.
   abistruct.py lgk FILE -k 0.25 0 0        => Read structure from FILE, find little group of k-point,
                                               print Bilbao character table.
   abistruct.py kstar FILE -k 0.25 0 0      => Read structure from FILE, print star of k-point.
@@ -108,7 +110,8 @@ Usage example:
 # Visualization
 ###############
 
-  abistruct.py visualize FILE vesta        => Visualize the structure with e.g. vesta (xcrysden, vtk, --help)
+  abistruct.py visualize FILE vesta        => Visualize the structure with vesta (default if not given)
+                                              Supports also xcrysden, vtk, mayavi. See --help
   abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
 
@@ -302,16 +305,25 @@ closest points in this particular structure. This is usually what you want in a 
              "lattice vector of the reciprocal lattice.")
     p_ngkpt.add_argument("-n", "--nksmall", required=True, type=int,
                          help="Number of divisions used to sample the smallest reciprocal lattice vector.")
-    # Subparser for kmesh.
-    p_kmesh = subparsers.add_parser('kmesh', parents=[copts_parser, path_selector],
+    # Subparser for ktables.
+    p_ktables = subparsers.add_parser('ktables', parents=[copts_parser, path_selector],
         help=("Read structure from filepath, call spglib to sample the BZ,"
               "print k-points in the IBZ with weights."))
-    p_kmesh.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
-    p_kmesh.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
+    p_ktables.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_ktables.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
         help=("Three integers (spglib API). The kmesh is shifted along " +
               "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
               "Default: Unshifted mesh."))
-    p_kmesh.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+    p_ktables.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
+
+    # Subparser for abikmesh.
+    p_abikmesh = subparsers.add_parser('abikmesh', parents=[copts_parser, path_selector],
+        help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt."
+              "Print k-points in the IBZ with weights."))
+    p_abikmesh.add_argument("--ngkpt", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_abikmesh.add_argument("--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float,
+       help="Kmesh shifts. Default: 0.5 0.5 0.5")
+    p_abikmesh.add_argument("--kptopt", default=1, type=int, help="Kptopt input variable. Default: 1")
 
     # Subparser for kmesh_jhu.
     #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
@@ -414,7 +426,7 @@ closest points in this particular structure. This is usually what you want in a 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                     verbose=options.verbose))
+                                      verbose=options.verbose))
 
         #remove_equivalent_atoms(structure)
 
@@ -430,7 +442,7 @@ closest points in this particular structure. This is usually what you want in a 
             print("FILE does not contain Abinit symmetry operations.")
             print("Calling Abinit in --dry-run mode to get space group.")
             from abipy.data.hgh_pseudos import HGH_TABLE
-            gsinp = factories.gs_input(structure, HGH_TABLE)
+            gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
 
@@ -618,7 +630,7 @@ closest points in this particular structure. This is usually what you want in a 
         for s in d.shiftk:
             print("  %s %s %s" % (s[0], s[1], s[2]))
 
-    elif options.command == "kmesh":
+    elif options.command == "ktables":
         structure = abilab.Structure.from_file(options.filepath)
         k = Ktables(structure, options.mesh, options.is_shift, not options.no_time_reversal)
         print(k)
@@ -629,14 +641,16 @@ closest points in this particular structure. This is usually what you want in a 
         if not options.verbose:
             print("\nUse -v to obtain the BZ --> IBZ mapping.")
         else:
+            print()
             k.print_bz2ibz()
 
-    #elif options.command == "abikmesh":
-    #    structure = abilab.Structure.from_file(options.filepath)
-    #    from abipy.data import HGH_TABLE
-    #    gsinp = factories.gs_input(structure, HGH_TABLE)
-    #    k = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
-    #    print(k)
+    elif options.command == "abikmesh":
+        structure = abilab.Structure.from_file(options.filepath)
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        ibz = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
+        for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
+            print("%6d) [%+.3f, %+.3f, %+.3f]  weight=%.3f" % (i, k[0], k[1], k[2], w))
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)

@@ -1598,9 +1598,9 @@ class Ktables(object):
 
     def print_bz2ibz(self, file=sys.stdout):
         """Print BZ --> IBZ mapping."""
-        print("BZ points --> IBZ points", file=file)
+        print("BZ points --> IBZ points mapping", file=file)
         for ik_bz, ik_ibz in enumerate(self.bz2ibz):
-            print("%6d) [%9.6f, %9.6f, %9.6f], ====> %6d) [%9.6f, %9.6f, %9.6f]," %
+            print("%6d) [%9.6f, %9.6f, %9.6f], ===> %6d) [%9.6f, %9.6f, %9.6f]," %
                 (ik_bz, self.bz[ik_ibz][0], self.bz[ik_ibz][1], self.bz[ik_ibz][2],
                 ik_ibz, self.ibz[ik_ibz][0], self.ibz[ik_ibz][1], self.ibz[ik_ibz][2]), file=file)
 

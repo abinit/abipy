@@ -159,12 +159,15 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "ngkpt", ncfile, "-n 4", self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-    def test_kmesh(self):
-        """Testing abistruct kmesh"""
+    def test_ktables(self):
+        """Testing abistruct ktables"""
         env = self.get_env()
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
-        r = env.run(self.script, "kmesh", "--mesh", "2", "2", "2", "--is_shift", "1", "1", "1",
+        r = env.run(self.script, "ktables", "--mesh", "2", "2", "2", "--is_shift", "1", "1", "1",
                     "--no-time-reversal", ncfile, expect_stderr=self.expect_stderr)
+
+        r = env.run(self.script, "abikmesh", "--ngkpt", "2", "2", "2", "--shiftk", "0", "0", "0",
+                    "--kptopt=1", ncfile, expect_stderr=self.expect_stderr)
 
     def test_lgk(self):
         """Testing abistruct lgk"""

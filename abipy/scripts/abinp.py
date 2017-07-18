@@ -286,37 +286,37 @@ For a more flexible interface please use the AbiPy objects to generate input fil
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity')
+        help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument("--mapi-key", default=None,
-                              help="Pymatgen MAPI_KEY used if mp identifier is used to select structure.\n"
-                                   "Use value in .pmgrc.yaml if not specified.")
+        help="Pymatgen MAPI_KEY used if mp identifier is used to select structure.\n"
+             "Use value in .pmgrc.yaml if not specified.")
     copts_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
 
     copts_parser.add_argument("-m", '--mnemonics', default=False, action="store_true",
-                              help="Print brief description of input variables in the input file.")
+        help="Print brief description of input variables in the input file.")
     copts_parser.add_argument('--usepaw', default=False, action="store_true",
-                              help="Use PAW pseudos instead of norm-conserving.")
+        help="Use PAW pseudos instead of norm-conserving.")
 
     # Parent parser for command options operating on Abinit input files.
     abiinput_parser = argparse.ArgumentParser(add_help=False)
     abiinput_parser.add_argument('--jdtset', default=1, type=int,
-                                help="jdtset index. Used to select the dataset index when the input file " +
-                                     "contains more than one dataset.")
+        help="jdtset index. Used to select the dataset index when the input file " +
+             "contains more than one dataset.")
     abiinput_parser.add_argument("-p", '--pseudos', nargs="+", default=None, help="List of pseudopotentials")
 
     # Parent parser for commands that need to know the filepath for the structure.
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', type=str,
-                               help="File with the crystalline structure (netcdf, cif, POSCAR, input files ...)")
+        help="File with the crystalline structure (netcdf, cif, POSCAR, input files ...)")
 
     parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity')
+        help='verbose, can be supplied multiple times to increase verbosity')
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',

@@ -457,6 +457,31 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return D2DEScfCycle.from_stream(self)
 
+    def plot(self, tight_layout=True, show=True):
+        """
+        Plot GS/DFPT SCF cycles and timer data found in the output file.
+        """
+        self.seek(0)
+        icycle = -1
+        while True:
+            gs_cycle = self.next_gs_scf_cycle()
+            if gs_cycle is None: break
+            icycle += 1
+            gs_cycle.plot(title="SCF cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+
+        self.seek(0)
+        icycle = -1
+        while True:
+            d2de_cycle = self.next_d2de_scf_cycle()
+            if d2de_cycle is None: break
+            icycle += 1
+            d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+
+        self.seek(0)
+        timer = self.get_timer()
+        if timer:
+            timer.plot_all(tight_layout=tight_layout, show=show)
+
     def compare_gs_scf_cycles(self, others, show=True):
         """
         Produce and returns a list of `matplotlib` figure comparing the GS self-consistent
@@ -545,28 +570,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("abo = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(abo.events)"),
-            nbv.new_code_cell("""
-abo.seek(0); icycle = -1
-while True:
-    gs_cycle = abo.next_gs_scf_cycle()
-    if gs_cycle is None: break
-    icycle += 1
-    gs_cycle.plot(title="SCF cycle no %d" % icycle, tight_layout=True)"""),
-
-        nbv.new_code_cell("""
-abo.seek(0); icycle = -1
-while True:
-    d2de_cycle = abo.next_d2de_scf_cycle()
-    if d2de_cycle is None: break
-    icycle += 1
-    d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=True)"""),
-
-       nbv.new_code_cell("""
-abo.seek(0)
-timer = abo.get_timer()
-if timer:
-    timer.plot_all()
-"""),
+            nbv.new_code_cell("abo.plot()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
