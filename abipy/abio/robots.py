@@ -279,16 +279,23 @@ class Robot(object):
                     #raise
 
     def change_labels(self, new_labels, dryrun=False):
+        """
+        Change labels of the files. Return mapping new --> old.
+        """
         if len(new_labels) != len(self):
             raise ValueError("Robot has %d files while len(new_labels) = %d" % (len(new_labels), len(self)))
 
         old_labels = list(self._ncfiles.keys())
         old_ncfiles = self._ncfiles
         self._ncfiles = OrderedDict()
+        new2old = OrderedDict()
         for old, new in zip(old_labels, new_labels):
             print("old [%s] --> new [%s]" % (old, new))
+            new2old[new] = old
             if not dryrun:
                 self._ncfiles[new] = old_ncfiles[old]
+
+        return new2old
 
     def trim_paths(self, start=None):
         """
@@ -560,10 +567,14 @@ class GsrRobot(Robot, NotebookWriter):
     # FIXME: EOS has been changed in pymatgen.
     def eos_fit(self, eos_name="murnaghan"):
         """
-        Fit E(V)
-        For the list of available models, see EOS.MODELS
+        Fit energy as function of volume to get the equation of state, equilibrium volume,
+        bulk modulus and its derivative wrt to pressure.
 
-        TODO: which default? all should return a list of fits
+        Args:
+            eos_name:
+                For the list of available models, see pymatgen.analysis.eos.
+
+        Return
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []
@@ -572,17 +583,23 @@ class GsrRobot(Robot, NotebookWriter):
             volumes.append(gsr.structure.volume)
 
         # Note that eos.fit expects lengths in Angstrom, and energies in eV.
+        # I'm also monkey-patching the plot method.
         if eos_name != "all":
-            return EOS(eos_name=eos_name).fit(volumes, energies)
+            fit = EOS(eos_name=eos_name).fit(volumes, energies)
+            fit.plot = my_fit_plot
+            return fit
         else:
             # Use all the available models.
             fits, rows = [], []
-            for eos_name in EOS.MODELS:
+            models = list(EOS.MODELS.keys())
+            for eos_name in models:
                 fit = EOS(eos_name=eos_name).fit(volumes, energies)
+                fit.plot = my_fit_plot
                 fits.append(fit)
-                rows.append(fit.results)
+                rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in
+                    ("v0", "e0", "b0_GPa", "b1")]))
 
-            frame = pd.DataFrame(rows, index=EOS.MODELS, columns=list(rows[0].keys()))
+            frame = pd.DataFrame(rows, index=models, columns=list(rows[0].keys()))
             return fits, frame
             #return dict2namedtuple(fits=fits, frame=frame)
 
@@ -604,17 +621,58 @@ class GsrRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
-
             nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
             nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
             nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
             nbv.new_code_cell("#anim = ebands_plotter.animate()"),
-
             nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
             nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+@add_fig_kwargs
+def my_fit_plot(self, ax=None, **kwargs):
+    """
+    Plot the equation of state.
+
+    Args:
+
+    Returns:
+        Matplotlib figure object.
+    """
+    ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+    color = kwargs.get("color", "r")
+    label = kwargs.get("label", "{} fit".format(self.__class__.__name__))
+    lines = ["Equation of State: %s" % self.__class__.__name__,
+             "Minimum energy = %1.2f eV" % self.e0,
+             "Minimum or reference volume = %1.2f Ang^3" % self.v0,
+             "Bulk modulus = %1.2f eV/Ang^3 = %1.2f GPa" %
+             (self.b0, self.b0_GPa),
+             "Derivative of bulk modulus wrt pressure = %1.2f" % self.b1]
+    text = "\n".join(lines)
+    text = kwargs.get("text", text)
+
+    # Plot input data.
+    ax.plot(self.volumes, self.energies, linestyle="None", marker="o", color=color)
+
+    # Plot eos fit.
+    vmin, vmax = min(self.volumes), max(self.volumes)
+    vmin, vmax = (vmin - 0.01 * abs(vmin), vmax + 0.01 * abs(vmax))
+    vfit = np.linspace(vmin, vmax, 100)
+
+    ax.plot(vfit, self.func(vfit), linestyle="dashed", color=color, label=label)
+
+    ax.grid(True)
+    ax.xlabel("Volume $\\AA^3$")
+    ax.ylabel("Energy (eV)")
+    ax.legend(loc="best", shadow=True)
+    # Add text with fit parameters.
+    ax.text(0.4, 0.5, text, transform=ax.transAxes)
+
+    return fig
 
 
 class SigresRobot(Robot, NotebookWriter):
@@ -947,15 +1005,11 @@ class DdbRobot(Robot, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
-
             nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
-
             nbv.new_code_cell("r = robot.get_phonon_plotters(%s)" % get_phonon_plotters_kwargs),
-
             nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),
-
             nbv.new_code_cell("r.phdos_plotter.ipw_select_plot()"),
             nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
         ])

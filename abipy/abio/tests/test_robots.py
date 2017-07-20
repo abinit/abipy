@@ -95,6 +95,8 @@ class RobotTest(AbipyTest):
             robot.pop_label(os.path.relpath(filepaths[0], start=start))
             assert len(robot) == 2
             robot.pop_label("foobar")
+            new2old = robot.change_labels(["hello", "world"], dryrun=True)
+            assert len(new2old) == 2 and "hello" in new2old
 
     def test_mdf_robot(self):
         """Testing MDF robot."""

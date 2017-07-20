@@ -274,6 +274,16 @@ class TestAbinitInput(AbipyTest):
         assert np.all(ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
 
+        # This to test what happes with wrong inputs and Abinit errors.
+        wrong = inp_si.deepcopy()
+        removed = wrong.pop_vars("ecut")
+        assert "ecut" not in wrong
+        assert "ecut" in removed
+        assert removed["ecut"] == 2
+        with self.assertRaises(wrong.Error):
+            #wrong["ecut"] = -12.0
+            wrong.abiget_ibz(ngkpt=[-1, -1, -1])
+
         # Test abiget_irred_phperts
         # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
         irred_perts = inp_si.abiget_irred_phperts(qpt=(0, 0, 0))

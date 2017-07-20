@@ -354,6 +354,7 @@ class TestAbicheck(ScriptTest):
         env = self.get_env()
         r = env.run(self.script, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         #r = env.run(self.script, "--with-flow", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "--show-managers", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 def make_scf_nscf_inputs(paral_kgb=1, usepaw=0):

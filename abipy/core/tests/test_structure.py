@@ -77,6 +77,10 @@ class TestStructure(AbipyTest):
         assert si_abi.formula == "Si2"
         self.assert_equal(si_abi.frac_coords, [[0, 0, 0], [0.25, 0.25, 0.25]])
 
+        si_abo = Structure.from_file(abidata.ref_file("refs/si_ebands/run.abo"))
+        assert si_abo == si_abi
+        assert "ntypat" in si_abi.to(fmt="abivars")
+
         znse = Structure.from_file(abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB"))
         assert len(znse) == 4
         assert znse.formula == "Zn2 Se2"
@@ -122,6 +126,7 @@ class TestStructure(AbipyTest):
             assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
+            assert si.vtkview(show=False)
             assert si.mayaview(show=False)
 
         #if self.has_vtk():
@@ -216,6 +221,7 @@ class TestStructure(AbipyTest):
         mgb2 = abidata.structure_from_ucell("MgB2")
         sic = abidata.structure_from_ucell("SiC")
         alas = abidata.structure_from_ucell("AlAs")
+        dfs = frames_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=True)
         dfs = frames_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=False)
 
         assert dfs.lattice is not None

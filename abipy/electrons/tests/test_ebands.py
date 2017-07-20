@@ -446,7 +446,6 @@ class ElectronBandsTest(AbipyTest):
                 assert eb3d.mvplot_isosurfaces(verbose=1, show=False)
                 #assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
 
-
     def test_frame_from_ebands(self):
         """Testing frame_from_ebands."""
         gsr_kmesh = abidata.ref_file("si_scf_GSR.nc")

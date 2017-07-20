@@ -113,7 +113,7 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
         except rest.Error as exc:
             cprint(str(exc), "magenta")
 
-        return restapi.MpStructures(structures=structures, ids=mpids, data=data)
+        return restapi.MpStructures(structures, mpids, data=data)
 
 
 def cod_search(formula, primitive=False):
@@ -142,7 +142,7 @@ def cod_search(formula, primitive=False):
         structures = [s.get_primitive_structure() for s in structures]
 
     from abipy.core import restapi
-    return restapi.CodStructures(structures=structures, ids=cod_ids, data=data)
+    return restapi.CodStructures(structures, cod_ids, data=data)
 
 
 class Structure(pymatgen.Structure, NotebookWriter):

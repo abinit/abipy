@@ -174,7 +174,7 @@ class DatabaseStructures(object):
 
     def print_results(self, fmt="abivars", verbose=0, file=sys.stdout):
         """
-        Print pandas dataframe, structures using format `fmt, and data to file `file`.
+        Print pandas dataframe, structures using format `fmt`, and data to file `file`.
         """
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
