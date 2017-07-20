@@ -126,11 +126,8 @@ class TestStructure(AbipyTest):
             assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
-            assert si.vtkview(show=False)
+            #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
             assert si.mayaview(show=False)
-
-        #if self.has_vtk():
-        #    si.vtkview(show=False)
 
         assert si is Structure.as_structure(si)
         assert si == Structure.as_structure(si.to_abivars())
