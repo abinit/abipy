@@ -139,7 +139,7 @@ def is_number(s):
 
 def is_iter(obj):
     """Return True if the argument is list-like."""
-    return hasattr(obj, '__iter__')
+    return hasattr(obj, '__iter__') and not isinstance(obj, str)
 
 def is_scalar(obj):
     """Return True if the argument is not list-like."""
