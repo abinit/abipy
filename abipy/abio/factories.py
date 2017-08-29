@@ -562,6 +562,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
 
     extra_abivars_gw = dict(
         inclvkb=2,
+        symsigma=1,
         gwpara=2,
         gwmem='10',
         prtsuscep=0
