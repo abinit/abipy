@@ -298,13 +298,8 @@ def get_abinit_variables():
 
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
-            yaml_file = abidata.var_file('abinit_vars.yml')
-            with open(yaml_file, "rt") as fh:
-                var_list = yaml.load(fh)
-
-            # Build ordered dict with variables in alphabetical order.
-            var_list = sorted(var_list, key=lambda v: v.varname)
-            __VARS_DATABASE = VariableDatabase([(v.varname, v) for v in var_list])
+            yaml_path = abidata.var_file('abinit_vars.yml')
+            __VARS_DATABASE = VariableDatabase.from_file(yaml_path)
 
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
@@ -315,6 +310,15 @@ def get_abinit_variables():
 
 class VariableDatabase(OrderedDict):
     """Stores the mapping varname --> variable object."""
+
+    @classmethod
+    def from_file(cls, yaml_path):
+        with open(yaml_path, "rt") as fh:
+            var_list = yaml.load(fh)
+
+        # Build ordered dict with variables in alphabetical order.
+        var_list = sorted(var_list, key=lambda v: v.varname)
+        return cls([(v.varname, v) for v in var_list])
 
     @lazy_property
     def characteristics(self):

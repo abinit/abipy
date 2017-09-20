@@ -22,7 +22,10 @@ from monty.string import is_string, list_strings
 from monty.os.path import which
 from monty.json import MSONable
 from pymatgen.core.units import Energy
-from pymatgen.serializers.json_coders import pmg_serialize
+try:
+    from pymatgen.util.serialization import pmg_serialize
+except ImportError:
+    from pymatgen.serializers.json_coders import pmg_serialize
 from abipy.flowtk import PseudoTable, Pseudo, TaskManager, AbinitTask, NetcdfReader
 from pymatgen.io.abinit.abiinspect import yaml_read_irred_perts
 from abipy.core.structure import Structure

@@ -15,8 +15,14 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
-from pymatgen.serializers.json_coders import pmg_serialize
-from pymatgen.serializers.pickle_coders import SlotPickleMixin
+try:
+    from pymatgen.util.serialization import pmg_serialize
+except ImportError:
+    from pymatgen.serializers.json_coders import pmg_serialize
+try:
+    from pymatgen.util.serialization import SlotPickleMixin
+except ImportError:
+    from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas

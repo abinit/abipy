@@ -318,7 +318,8 @@ class AbipyTest(PymatgenTest):
         """
         True if Mayavi is available. Set also offscreen to True
         """
-        #return False
+        # This to run mayavi tests only on Travis
+        if not os.environ.get("TRAVIS"): return False
         try:
             from mayavi import mlab
         except ImportError:

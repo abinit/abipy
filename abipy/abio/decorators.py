@@ -8,7 +8,11 @@ import pymatgen.io.abinit.abiobjects as aobj
 
 from monty.inspect import initializer
 from monty.json import MSONable
-from pymatgen.serializers.json_coders import pmg_serialize
+try:
+    from pymatgen.util.serialization import pmg_serialize
+except ImportError:
+    from pymatgen.serializers.json_coders import pmg_serialize
+
 from abipy.htc.input import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
 
@@ -22,13 +26,13 @@ class InputDecoratorError(Exception):
 
 class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, MSONable)):
     """
-    An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput` 
+    An `AbinitInputDecorator` adds new options to an existing :class:`AbinitInput`
     or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.
 
     Example:
-        
+
         decorator = MyDecorator(arguments)
-        
+
         new_abinit_input = decorator(abinit_input)
         new_multidataset = decorator(multidataset)
 
@@ -36,11 +40,11 @@ class AbinitInputDecorator(six.with_metaclass(abc.ABCMeta, MSONable)):
 
     .. warning::
 
-        Please avoid introducing decorators acting on the structure (in particular the lattice) 
-        since the initial input may use the initial structure to  compute important variables. 
-        For instance, the list of k-points for band structure calculation depend on the bravais lattice 
-        and a decorator that changes it should recompute the path. 
-        This should  not represent a serious limitation because it's always possible to change the structure 
+        Please avoid introducing decorators acting on the structure (in particular the lattice)
+        since the initial input may use the initial structure to  compute important variables.
+        For instance, the list of k-points for band structure calculation depend on the bravais lattice
+        and a decorator that changes it should recompute the path.
+        This should  not represent a serious limitation because it's always possible to change the structure
         with its methods and then call the factory function without having to decorate an already existing object.
     """
     Error = InputDecoratorError
@@ -212,8 +216,8 @@ class LexxDecorator(AbinitInputDecorator):
     def __init__(self, symbols_lexx, exchmix=None):
         """
         Args:
-            symbols_lexx: dictionary mapping chemical symbols to the angular momentum l on which lexx is applied. 
-            exchmix: ratio of exact exchange when useexexch is used. The default value of 0.25 corresponds to PBE0. 
+            symbols_lexx: dictionary mapping chemical symbols to the angular momentum l on which lexx is applied.
+            exchmix: ratio of exact exchange when useexexch is used. The default value of 0.25 corresponds to PBE0.
 
             Example. To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
             channel of the nickel atoms:
@@ -267,7 +271,7 @@ class LexxDecorator(AbinitInputDecorator):
 #
 #    def _decorate(self, inp, deepcopy=True)
 #        if deepcopy: inp = inp.deepcopy()
-#        kptopt = 
+#        kptopt =
 #        if inp.ispaw:
 #            for dt in inp.datasets:
 #               dt.set_vars(pawspnorb=1, kptopt=kptopt)
@@ -285,7 +289,7 @@ class LexxDecorator(AbinitInputDecorator):
 #    def _decorate(self, inp, deepcopy=True)
 #        if deepcopy: inp = inp.deepcopy()
 #         for dt in inp[1:]:
-#            runlevel = dt.runlevel 
+#            runlevel = dt.runlevel
 #        return inp
 
 

@@ -17,7 +17,10 @@ from monty.itertools import iuptri
 
 from monty.functools import lazy_property
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.serializers.pickle_coders import SlotPickleMixin
+try:
+    from pymatgen.util.serialization import SlotPickleMixin
+except:
+    from pymatgen.serializers.pickle_coders import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
 from abipy.iotools import as_etsfreader
 
