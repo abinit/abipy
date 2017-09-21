@@ -15,7 +15,6 @@ Regression plots
 lmplot(x, y, data[, hue, col, row, palette, ...])	Plot data and regression model fits across a FacetGrid.
 regplot(x, y[, data, x_estimator, x_bins, ...])	Plot data and a linear regression model fit.
 residplot(x, y[, data, lowess, x_partial, ...])	Plot the residuals of a linear regression.
-interactplot(x1, x2, y[, data, filled, ...])	Visualize a continuous two-way interaction with a contour plot.
 coefplot(formula, data[, groupby, ...])	Plot the coefficients from a linear model.
 
 # Categorical plots
@@ -66,7 +65,6 @@ __all__ = [
     "lmplot",
     #"regplot",
     #"residplot",
-    #"interactplot",
     #"coefplot",
     # Categorical plots
     "factorplot",
@@ -248,25 +246,25 @@ def lmplot(data, scatter_kws=None, line_kws=None):
             )
 
 
-@wraps(sns.interactplot)
-def interactplot(data, contour_kws=None, scatter_kws=None, **kwargs):
-
-    def sns_interactplot(x1, x2, y, filled, colorbar, logistic):
-        ax, fig, _ = ut.get_ax_fig_plt()
-        return sns.interactplot(x1, x2, y, data=data, filled=filled, cmap='RdBu_r', colorbar=colorbar,
-                         levels=30, logistic=logistic, contour_kws=contour_kws, scatter_kws=scatter_kws,
-                         ax=ax, **kwargs)
-
-    allcols = list(data.keys())
-    return ipw.interact_manual(
-                sns_interactplot,
-                x1=allcols,
-                x2=allcols,
-                y=allcols,
-                filled=False,
-                colorbar=True,
-                logistic=False,
-            )
+#@wraps(sns.interactplot)
+#def interactplot(data, contour_kws=None, scatter_kws=None, **kwargs):
+#
+#    def sns_interactplot(x1, x2, y, filled, colorbar, logistic):
+#        ax, fig, _ = ut.get_ax_fig_plt()
+#        return sns.interactplot(x1, x2, y, data=data, filled=filled, cmap='RdBu_r', colorbar=colorbar,
+#                         levels=30, logistic=logistic, contour_kws=contour_kws, scatter_kws=scatter_kws,
+#                         ax=ax, **kwargs)
+#
+#    allcols = list(data.keys())
+#    return ipw.interact_manual(
+#                sns_interactplot,
+#                x1=allcols,
+#                x2=allcols,
+#                y=allcols,
+#                filled=False,
+#                colorbar=True,
+#                logistic=False,
+#            )
 
 
 #####################
