@@ -382,8 +382,11 @@ closest points in this particular structure. This is usually what you want in a 
               "Requires internet connection and MAPI_KEY"))
     p_mp_pda.add_argument("file_or_elements", type=str, default=None,
         help="FILE with structure or elements e.g., Li-Fe-O).")
-    p_mp_pda.add_argument("-u", "--show-unstable", default=False, action="store_true",
-        help="Show all phases, including unstable ones")
+    p_mp_pda.add_argument("-u", "--show-unstable", type=int, default=0,
+        help="""Whether unstable phases will be plotted as
+well as red crosses. If a number > 0 is entered, all phases with
+ehull < show_unstable will be shown.""")
+
 
     # Subparser for cod_search command.
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser],

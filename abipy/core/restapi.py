@@ -91,13 +91,18 @@ class PhaseDiagramResults(object):
         Plot phase diagram.
 
         Args:
-            show_unstable: Show all phases, including unstable ones
+            show_unstable (float): Whether unstable phases will be plotted as
+                well as red crosses. If a number > 0 is entered, all phases with
+                ehull < show_unstable will be shown.
             show: True to show plot.
 
         Return:
             plotter object.
         """
-        from pymatgen.phasediagram.plotter import PDPlotter
+        try:
+            from pymatgen.analysis.phase_diagram import PDPlotter
+        except ImportError:
+            from pymatgen.phasediagram.plotter import PDPlotter
         plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
         if show:
             plotter.show()
@@ -106,6 +111,7 @@ class PhaseDiagramResults(object):
     @lazy_property
     def table(self):
         """Pandas dataframe with the most important results."""
+        # TODO: Use PhaseDiagram but enforce new pymatgen first.
         from pymatgen.phasediagram.analyzer import PDAnalyzer
         pda = PDAnalyzer(self.phasediagram)
         rows = []
