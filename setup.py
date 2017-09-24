@@ -104,7 +104,7 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data': ["cifs/*.cif", "pseudos/*", "hgh_pseudos/*", "runs/*", "refs/*.nc", "variables/*"],
+        'abipy.data': ["cifs/*.cif", "pseudos/*", "hgh_pseudos/*", "runs/*", "managers/*", "refs/*.nc", "variables/*"],
         'abipy.data.refs' : [
             "al_g0w0_spfunc/*",
             "alas_nl_dfpt/*",
@@ -129,7 +129,7 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ["managers", 'benchmarks','runs/flow_*','runs/gspert'],
+        'abipy.data': ["managers", 'benchmarks', 'runs/flow_*', 'runs/gspert'],
     }
     return package_data
 
@@ -142,7 +142,7 @@ def find_scripts():
     """Find abipy scripts."""
     scripts = []
     # All python files in abipy/scripts
-    pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
+    pyfiles = glob(os.path.join('abipy', 'scripts', "*.py"))
     scripts.extend(pyfiles)
     return scripts
 
@@ -218,14 +218,6 @@ if with_wxpython:
 # Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
 
-# Get the set of packages to be included.
-my_packages = find_packages(exclude=())
-
-my_scripts = find_scripts()
-
-my_package_data = find_package_data()
-my_excl_package_data = find_exclude_package_data()
-
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
@@ -243,10 +235,10 @@ setup_args = dict(
       keywords=keywords,
       classifiers=classifiers,
       install_requires=install_requires,
-      packages=my_packages,
-      package_data=my_package_data,
-      exclude_package_data=my_excl_package_data,
-      scripts=my_scripts,
+      packages=find_packages(exclude=()),
+      package_data=find_package_data(),
+      exclude_package_data=find_exclude_package_data(),
+      scripts=find_scripts(),
       download_url=download_url,
       ext_modules=ext_modules,
       )
