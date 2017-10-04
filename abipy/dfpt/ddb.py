@@ -586,6 +586,97 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
+    def update_header(self):
+        """
+        Updates the header.lines with the variables contained in the header dictionary
+        The variables are written from a list in the correct order (check if this is necessary)
+        """
+
+        header = self.header
+        #list of variables with the correct order
+        variables = ['usepaw','natom','nkpt','nsppol','nsym','ntypat','occopt','nband',
+                     'acell','amu','dilatmx','ecut','pawecutdg','ecutsm','intxc','iscf',
+                     'ixc','kpt','kptnrm','ngfft','nspden','nspinor','occ','rprim',
+                     'dfpt_sciss','spinat','symafm','symrel','tnons','tolwfr','tphysel',
+                     'tsmear','typat','wtk','xred','znucl','zion']
+        header_lines = []
+
+        #add header
+        n = 0 
+        while True:
+            line = header.lines[n]
+            n+=1
+            if "usepaw" in line:
+                break
+            header_lines.append(line)
+
+        nskip=10
+        fmt = "%22.14e"
+        fmt3 = " "*nskip+fmt*3+'\n'
+
+        #write all the variables in order
+        for variable in variables:
+            data = header[variable]
+            string = ""
+           
+            #dfpt variable bug
+            if variable == 'dfpt_sciss':
+                variable = "  "+variable
+
+            #specific variables
+            if variable == 'symrel':
+                for sym in data:
+                    string += "     "+("%5d"*9)%tuple(sym.flatten())
+            elif variable in ['typat','ngfft','symafm']:
+                string = "     "+("%5d"*len(data))%tuple(data)
+            elif variable in ['occ','spinat','wtk','znucl']:
+                nchunks = int(len(data)/3)
+                for i in xrange(nchunks):
+                    string += fmt3%tuple(data[3*i:3*(i+1)])
+                string = string[nskip:-1]
+            #general
+            elif isinstance(data,int):
+                string = "    %3d"%data
+            elif isinstance(data,float):
+                string = fmt%data
+            elif isinstance(data,list):
+                string = (fmt*len(data))%tuple(data)
+            elif isinstance(data,np.ndarray):
+                #check dimensions
+                dim = len(data.shape)
+                if dim == 1:
+                    string += ""
+                elif dim == 2:
+                    for line in data:
+                        string += fmt3%tuple(line)
+                    string = string[nskip:-1]
+                else:
+                    raise ValueError('invalid dimensions: %d'%dim)
+            else:
+                string = str(type(data))
+
+            header_lines.append( u"%10s%s"%(variable,string.replace('e','D')) )
+
+        #skip all the variables
+        n = 0
+        while True:
+            line = header.lines[n]
+            n+=1
+            if "zion" in line:
+                break
+
+        #add footer
+        nlines = len(header.lines)
+        header_lines.append("")
+        while True:
+            n+=1
+            if n >= nlines:
+                break
+            line = header.lines[n]
+            header_lines.append(line)
+            
+        self.header.lines = header_lines
+
     def write(self, filepath):
         """
         Writes the DDB file in filepath.
