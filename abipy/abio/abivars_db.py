@@ -170,14 +170,13 @@ class Variable(yaml.YAMLObject):
     def url(self):
         """The url associated to the variable."""
         # https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell
-        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/"
-        #root = "http://www.abinit.org/inpvars/html_automatically_generated/"
+        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/"
         return root + "%s.html#%s" % (self.section, self.varname)
 
-    def html_link(self, tag=None):
+    def html_link(self, label=None):
         """String with the URL of the web page."""
-        tag = self.varname if tag is None else tag
-        return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
+        label = self.varname if label is None else label
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, label)
 
     def browse(self):
         """Open variable documentation in browser."""
@@ -451,7 +450,7 @@ def repr_html_from_abinit_string(text):
     # define desired replacements here e.g. rep = {"condition1": "", "condition2": "text"}
     # ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair
     import re
-    rep = {vname: var.html_link(tag=vname) for vname, var in var_database.items()}
+    rep = {vname: var.html_link(label=vname) for vname, var in var_database.items()}
     rep = OrderedDict([(re.escape(k), rep[k]) for k in sorted(rep.keys(), key=lambda n: len(n), reverse=True)])
 
     # Use these three lines to do the replacement

@@ -651,7 +651,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 warn(str(exc) +
                      "\n_repr_html_ requires nbjsmol package\n."
                      "Install it with `pip install nbjsmol.`\n"
-                     "See also https://github.com/gmatteo/nbjsmol.\n"
+                     "See also https://github.com/gmatteo/nbjsmol\n"
                      "Returning `str(self)` in HTML form.")
             return str(self).replace("\n", "<br>")
 
@@ -1727,7 +1727,7 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
         namedtuple with two pandas :class:`DataFrame`:
             `lattice` contains the lattice parameters,
             `coords` the atomic positions.
-        The list of structures is available in the `structures` entry:
+        The list of structures is available in the `structures` entry.
 
     Example::
 

@@ -35,7 +35,7 @@ The variables used to specify the occupation scheme in metals are:
 
 
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 _ipython_lesson_ = """
 For a more detailed description of the variables, you are invited to consult the abinit documentation.

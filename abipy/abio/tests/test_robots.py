@@ -43,6 +43,11 @@ class RobotTest(AbipyTest):
         assert len(robot) == 2
         robot.show_files()
 
+        dfs = robot.get_structure_dataframes()
+        assert dfs.lattice is not None
+        assert dfs.coords is not None
+        assert len(dfs.structures) == len(robot)
+
         ebands_plotter = robot.get_ebands_plotter()
         edos_plotter = robot.get_edos_plotter()
 

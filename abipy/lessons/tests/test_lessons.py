@@ -26,26 +26,6 @@ class TestLessons(AbipyTest):
         analyze_flow(flow)
         flow.rmtree()
 
-    #def test_lesson_base2(self):
-    #    """Testing lesson_base2."""
-    #    from abipy.lessons.lesson_base2 import ecut_convergence_study
-    #    #acell_convergence_study()
-
-    #def test_lesson_base3(self):
-    #    """Testing lesson_base3."""
-    #    from abipy.lessons.lesson_base3 import make_ngkpt_flow, make_relax_flow, make_ebands_flow
-
-    #    for func in [make_ngkpt_flow, make_relax_flow, make_ebands_flow]:
-    #        flow = func()
-    #        flow.show_inputs()
-    #        flow.make_scheduler().start()
-    #        flow.analyze()
-    #        flow.rmtree()
-
-    #def test_lesson_base4(self):
-    #    """Testing lesson_base4."""
-    #    from abipy.lessons.lesson_base3 import relax_flow
-
     def test_lesson_bse(self):
         """Testing lesson_bse."""
         from abipy.lessons.lesson_bse import make_scf_nscf_bse_inputs
@@ -109,13 +89,6 @@ class TestLessons(AbipyTest):
         flow = lesson.make_ngkpt_flow()
         flow.make_scheduler().start()
         flow.rmtree()
-
-    def test_lesson_paw1(self):
-        """Testing lesson_paw1."""
-        from abipy.lessons.lesson_paw1 import flow_ecut_conv, flow_pawecutdg_conv_flow, flow_eos
-        #flow_ecut_conv()
-        #flow_pawecutdg_conv()
-        #flow_eos()
 
     def test_lesson_relaxation(self):
         """Testing lesson_relaxation."""

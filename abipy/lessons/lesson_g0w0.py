@@ -35,7 +35,7 @@ Related ABINIT variables
     * all gw** variables
 
 """
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 _ipython_lesson_ = """
 More info on the input variables and it's usage can be obtained using the command:

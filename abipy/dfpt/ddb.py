@@ -655,13 +655,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                      'ixc','kpt','kptnrm','ngfft','nspden','nspinor','occ','rprim',
                      'dfpt_sciss','spinat','symafm','symrel','tnons','tolwfr','tphysel',
                      'tsmear','typat','wtk','xred','znucl','zion']
+
+        # Adjust variables according to usepaw and version
+        if int(self.header["usepaw"]) == 0:
+            variables.remove("pawecutdg")
+        if "sciss" in self.header:
+            # old header with sciss instead of dfpt_sciss
+            variables[variables.index("dfpt_sciss")] = "sciss"
+
         header_lines = []
 
         #add header
-        n = 0 
+        n = 0
         while True:
             line = header.lines[n]
-            n+=1
+            n += 1
             if "usepaw" in line:
                 break
             header_lines.append(line)
@@ -674,10 +682,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for variable in variables:
             data = header[variable]
             string = ""
-           
+
             #dfpt variable bug
-            if variable == 'dfpt_sciss':
-                variable = "  "+variable
+            if variable in ('dfpt_sciss', "sciss"):
+                variable = "  " + variable
 
             #specific variables
             if variable == 'symrel':
@@ -687,7 +695,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 string = "     "+("%5d"*len(data))%tuple(data)
             elif variable in ['occ','spinat','wtk','znucl']:
                 nchunks = int(len(data)/3)
-                for i in xrange(nchunks):
+                for i in range(nchunks):
                     string += fmt3%tuple(data[3*i:3*(i+1)])
                 string = string[nskip:-1]
             #general
@@ -711,7 +719,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             else:
                 string = str(type(data))
 
-            header_lines.append( u"%10s%s"%(variable,string.replace('e','D')) )
+            header_lines.append( "%10s%s"%(variable,string.replace('e','D')) )
 
         #skip all the variables
         n = 0
@@ -730,7 +738,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 break
             line = header.lines[n]
             header_lines.append(line)
-            
+
         self.header.lines = header_lines
 
     def write(self, filepath):

@@ -66,6 +66,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     """
     Class representing the main Abinit output file.
     """
+    # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath):
         super(AbinitOutputFile, self).__init__(filepath)
@@ -478,9 +479,12 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=tight_layout, show=show)
 
         self.seek(0)
-        timer = self.get_timer()
-        if timer:
-            timer.plot_all(tight_layout=tight_layout, show=show)
+        try:
+            timer = self.get_timer()
+            if timer:
+                timer.plot_all(tight_layout=tight_layout, show=show)
+        except:
+            pass
 
     def compare_gs_scf_cycles(self, others, show=True):
         """

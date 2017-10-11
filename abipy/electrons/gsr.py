@@ -71,6 +71,7 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             app("")
             app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
             app("Pressure: %.3f [GPa]" % self.pressure)
+            app("Energy: %.8f [eV]" % self.energy)
         app("")
         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 

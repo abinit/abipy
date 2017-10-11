@@ -691,7 +691,7 @@ class OpticInputTest(AbipyTest):
         for var in OpticInput._VARIABLES:
             repr(var); str(var)
             assert str(var.help) and var.group
-            assert str(var.html_link(tag="foo"))
+            assert str(var.html_link(label="foo"))
 
         with self.assertRaises(optic_input.Error):
             optic_input["foo"] = 23

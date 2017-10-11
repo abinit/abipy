@@ -574,7 +574,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                 # Build variable, convert to string and append it
                 vname = name + post
-                if mode == "html": vname = var_database[name].html_link(tag=vname)
+                if mode == "html": vname = var_database[name].html_link(label=vname)
                 app(str(InputVariable(vname, value)))
 
         elif sortmode == "section":
@@ -595,7 +595,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
                     # Build variable, convert to string and append it
                     vname = name + post
-                    if mode == "html": vname = var_database[name].html_link(tag=vname)
+                    if mode == "html": vname = var_database[name].html_link(label=vname)
 
                     app(str(InputVariable(vname, value)))
 
@@ -607,7 +607,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                     if mnemonics and value is not None:
                         app("# <" + var_database[name].definition + ">")
                     vname = name + post
-                    if mode == "html": vname = var_database[name].html_link(tag=vname)
+                    if mode == "html": vname = var_database[name].html_link(label=vname)
                     app(str(InputVariable(vname, value)))
 
         else:
@@ -2031,7 +2031,7 @@ class MultiDataset(object):
                 lines.append("### Global Variables.")
                 lines.append(w * "#")
                 for key in global_vars:
-                    vname = key if mode == "text" else var_database[key].html_link(tag=key)
+                    vname = key if mode == "text" else var_database[key].html_link(label=key)
                     lines.append(str(InputVariable(vname, self[0][key])))
 
             has_same_structures = self.has_same_structures
@@ -2041,7 +2041,7 @@ class MultiDataset(object):
                 lines.append("#" + ("STRUCTURE").center(w - 1))
                 lines.append(w * "#")
                 for key, value in self[0].structure.to_abivars().items():
-                    vname = key if mode == "text" else var_database[key].html_link(tag=key)
+                    vname = key if mode == "text" else var_database[key].html_link(label=key)
                     lines.append(str(InputVariable(vname, value)))
 
             for i, inp in enumerate(self):
@@ -2560,8 +2560,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
         else:
             raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
 
-        # http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar
-        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html"
+        # https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar
+        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html"
         for varname in keys:
             value = self[varname]
             if mode == "html": varname = root + "#%s" % varname
@@ -2629,16 +2629,13 @@ class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
     @property
     def url(self):
         """The url associated to the variable."""
-        #http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp
-        root = "http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html"
+        #https://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp
+        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html"
         return root + "#%s" % self.name
 
-    def html_link(self, tag=None):
+    def html_link(self, label=None):
         """String with the URL of the web page."""
-        if tag is None:
-            return '<a href="%s" target="_blank">%s</a>' % (self.url, self.name)
-        else:
-            return '<a href="%s" target="_blank">%s</a>' % (self.url, tag)
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.name if label is None else label)
 
 
 
@@ -3000,7 +2997,7 @@ class Cut3DInput(MSONable, object):
             density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be
                 defined at a later time.
             all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
-                in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.
+                in the abinit input. See https://www.abinit.org/downloads/all_core_electron for files.
         """
         options = ['11']  # Option to convert _DEN file to a .cube file
         for p in all_el_dens_paths:
@@ -3014,7 +3011,7 @@ class Cut3DInput(MSONable, object):
         """
         Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Automatically
         selects the all-electron density files from a folder containing the fhi all-electron density files:
-        http://www.abinit.org/downloads/all_core_electron
+        https://www.abinit.org/downloads/all_core_electron
 
         This will work only if the input has been generated with AbinitInput and the Structure object is the same
         provided to AbinitInput.

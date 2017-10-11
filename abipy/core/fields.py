@@ -353,8 +353,7 @@ class _Field(Has_Structure):
             `matplotlib` figure
         """
         # Interpolate along line.
-        interpolator = self.get_interpolator()
-        r = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian)
+        r = self.get_interpolator().eval_line(point1, point2, num=num, cartesian=cartesian)
 
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -362,7 +361,11 @@ class _Field(Has_Structure):
             ax.plot(r.dist, r.values[ispden], label=latexlabel_ispden(ispden, self.nspden))
 
         ax.grid(True)
-        ax.set_xlabel("Distance from site1 [Angstrom]")
+        if r.site1 is None:
+            ax.set_xlabel("Distance from point %s [Angstrom]" % str(point1))
+        else:
+            cs = "[%+.5f, %+.5f, %+.5f]" % tuple(r.site1.frac_coords)
+            ax.set_xlabel("Distance in Angstrom from %s at %s" % (r.site1.specie.symbol, cs))
         ax.set_ylabel(self.latex_label)
         if self.nspden > 1:
             ax.legend(loc="best")

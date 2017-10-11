@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """DFPT lesson: phonon band structure of AlAs with Born effective charges."""
-from __future__ import division, print_function, unicode_literals
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 import abipy.abilab as abilab
 import abipy.data as abidata

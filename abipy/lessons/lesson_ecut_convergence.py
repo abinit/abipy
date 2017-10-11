@@ -33,7 +33,7 @@ The related abinit variables
     * ecutsm      (smoothing of the kinetic energy)
 
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 _ipython_lesson_ = """
 More info on the input variables and their use can be obtained using:

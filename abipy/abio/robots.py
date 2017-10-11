@@ -11,7 +11,6 @@ from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
-#from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import Flow
@@ -21,6 +20,12 @@ from abipy.core.mixins import NotebookWriter
 #__all__ = [
 #    "abirobot",
 #]
+
+# TODO: Robot for Abinit output files?
+
+def _to_relpaths(paths):
+    root = os.getcwd()
+    return [os.path.relpath(p, root) for p in paths]
 
 
 def abirobot(obj, ext, nids=None):
@@ -111,6 +116,8 @@ class Robot(object):
     @classmethod
     def _open_files_in_dir(cls, top, walk):
         """Open files in directory tree starting from `top`. Return list of Abinit files."""
+        if not os.path.isdir(top):
+            raise ValueError("%s: no such directory" % str(top))
         from abipy.abilab import abiopen
         items = []
         if walk:
@@ -430,19 +437,27 @@ class Robot(object):
                 key, value = func(arg)
                 d[key] = value
             except Exception as exc:
+                cprint("Exception: %s" % str(exc), "red")
                 self._exceptions.append(str(exc))
         return d
 
-    #def get_structure_dataframe(self):
-    #    from abipy.core.structure import frames_from_structures
-    #    index = list(self.keys())
-    #    frames_from_structures(self.ncfiles, index=None, with_spglib=True, cart_coords=False)
+    def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
+        """
+        Wrap frames_from_structures function.
 
-    #def get_ebands_dataframe(self):
-    #    from abipy.electrons.ebands import frames_from_ebands
-    #    for abifile in self.ncfiles:
-    #    index = list(self.keys())
-    #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
+        Args:
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            filter_abifile: Function that receives an `abifile` object and returns
+                True if the file should be added to the plotter.
+        """
+        from abipy.core.structure import frames_from_structures
+        if "index" not in kwargs:
+            index = list(self._ncfiles.keys())
+            if not abspath: index = _to_relpaths(index)
+            kwargs["index"] = index
+
+        ncfiles = self.ncfiles if filter_abifile is not None else list(filter(filter_abifile, self.ncfiles))
+        return frames_from_structures(struct_objects=ncfiles, **kwargs)
 
     #def ncread_and_plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):
     #    """
@@ -477,18 +492,71 @@ class Robot(object):
     #    return fig
 
 
-class GsrRobot(Robot, NotebookWriter):
+class _RobotWithEbands(object):
+    """Mixin class for robots associated to files with `ElectronBands`."""
+
+    def get_ebands_plotter(self, filter_abifile=None, cls=None):
+        """
+        Build and return an instance of `ElectronBandsPlotter` or a subclass is cls is not None.
+
+        Args:
+            filter_abifile: Function that receives an `abifile` object and returns
+                True if the file should be added to the plotter.
+            cls: subclass of `ElectronBandsPlotter`
+        """
+        from abipy.electrons.ebands import ElectronBandsPlotter
+        plotter = ElectronBandsPlotter() if cls is None else cls()
+
+        for label, abifile in self:
+            if filter_abifile is not None and not filter_abifile(abifile): continue
+            plotter.add_ebands(label, abifile.ebands)
+
+        return plotter
+
+    def get_edos_plotter(self, cls=None, filter_abifile=None, **kwargs):
+        """
+        Build and return an instance of `ElectronDosPlotter` or a subclass is cls is not None.
+
+        Args:
+            filter_abifile: Function that receives an `abifile` object and returns
+                True if the file should be added to the plotter.
+            cls: subclass of `ElectronDosPlotter`
+            kwargs: Arguments passed to ebands.get_edos
+        """
+        from abipy.electrons.ebands import ElectronDosPlotter
+        plotter = ElectronDosPlotter() if cls is None else cls()
+
+        for label, abifile in self:
+            if filter_abifile is not None and not filter_abifile(abifile): continue
+            if not abifile.ebands.kpoints.is_ibz:
+                cprint("Skipping %s because kpoint sampling not IBZ" % abifile.filepath, "magenta")
+                continue
+            plotter.add_edos(label, abifile.ebands.get_edos(**kwargs))
+
+        return plotter
+
+    #def get_ebands_dataframe(self):
+    #    from abipy.electrons.ebands import frames_from_ebands
+    #    for abifile in self.ncfiles:
+    #    index = list(self.keys())
+    #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
+
+
+
+class GsrRobot(Robot, _RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple GSR files.
     """
     EXT = "GSR"
 
-    def get_dataframe(self, with_geo=True, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, **kwargs):
         """
         Return a pandas DataFrame with the most important GS results.
+        and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
 
         kwargs:
             attrs:
@@ -528,41 +596,8 @@ class GsrRobot(Robot, NotebookWriter):
             d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
             rows.append(d)
 
+        row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    def get_ebands_plotter(self, cls=None):
-        """
-        Build and return an instance of `ElectronBandsPlotter` or a subclass is cls is not None.
-
-        Args:
-            cls: subclass of `ElectronBandsPlotter`
-        """
-        from abipy.electrons.ebands import ElectronBandsPlotter
-        plotter = ElectronBandsPlotter() if cls is None else cls()
-
-        for label, gsr in self:
-            plotter.add_ebands(label, gsr.ebands)
-
-        return plotter
-
-    def get_edos_plotter(self, cls=None, **kwargs):
-        """
-        Build and return an instance of `ElectronDosPlotter` or a subclass is cls is not None.
-
-        Args:
-            cls: subclass of `ElectronDosPlotter`
-            kwargs: Arguments passed to ebands.get_edos
-        """
-        from abipy.electrons.ebands import ElectronDosPlotter
-        plotter = ElectronDosPlotter() if cls is None else cls()
-
-        for label, gsr in self:
-            if not gsr.ebands.kpoints.is_ibz:
-                cprint("Skipping %s because kpoint sampling not IBZ" % gsr.filepath, "magenta")
-                continue
-            plotter.add_edos(label, gsr.ebands.get_edos(**kwargs))
-
-        return plotter
 
     # FIXME: EOS has been changed in pymatgen.
     def eos_fit(self, eos_name="murnaghan"):
@@ -675,7 +710,7 @@ def my_fit_plot(self, ax=None, **kwargs):
     return fig
 
 
-class SigresRobot(Robot, NotebookWriter):
+class SigresRobot(Robot, _RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple SIGRES files.
     """
@@ -691,7 +726,7 @@ class SigresRobot(Robot, NotebookWriter):
 
         return table
 
-    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, **kwargs):
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, **kwargs):
         """
         Return a pandas DataFrame with the most important results for the given (spin, kpoint).
 
@@ -699,6 +734,7 @@ class SigresRobot(Robot, NotebookWriter):
             spin: Spin index.
             kpoint
             with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
         """
         # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
         # TODO: In principle the SIGRES might have different k-points
@@ -732,6 +768,7 @@ class SigresRobot(Robot, NotebookWriter):
             d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
             rows.append(d)
 
+        row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_qpgap(self, x_vars, show=True, **kwargs):
@@ -743,7 +780,7 @@ class SigresRobot(Robot, NotebookWriter):
         import seaborn.apionly as sns
 
         data = self.get_qpgaps_dataframe()
-        print(list(data.keys()))
+        #print(list(data.keys()))
         grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
         grid.map(plt.plot, marker="o")
         grid.add_legend()
@@ -768,7 +805,7 @@ class SigresRobot(Robot, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class MdfRobot(Robot, NotebookWriter):
+class MdfRobot(Robot, _RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple MDF files.
     """
@@ -786,12 +823,14 @@ class MdfRobot(Robot, NotebookWriter):
 
         return plotter
 
-    def get_dataframe(self, with_geo=False, **kwargs):
+    def get_dataframe(self, with_geo=False, abspath=False, **kwargs):
         """
         Build and return Pandas dataframe with the most import BSE results.
+        and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs:
 
         Return:
@@ -819,6 +858,7 @@ class MdfRobot(Robot, NotebookWriter):
             d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
             rows.append(d)
 
+        row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     #@add_fig_kwargs
@@ -888,7 +928,8 @@ class DdbRobot(Robot, NotebookWriter):
     #
     #    return np.array(qpoints)
 
-    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
+            abspath=False, **kwargs):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results
@@ -897,6 +938,7 @@ class DdbRobot(Robot, NotebookWriter):
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
 
         Return:
             pandas DataFrame
@@ -935,6 +977,7 @@ class DdbRobot(Robot, NotebookWriter):
 
             rows.append(d)
 
+        row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
