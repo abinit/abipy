@@ -675,8 +675,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             header_lines.append(line)
 
         nskip=10
-        fmt = "%22.14e"
-        fmt3 = " "*nskip+fmt*3+'\n'
+        fmti = "%5d"
+        fmtf = "%22.14e"
+        fmt3 = " "*nskip+fmtf*3+'\n'
 
         #write all the variables in order
         for variable in variables:
@@ -690,21 +691,32 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             #specific variables
             if variable == 'symrel':
                 for sym in data:
-                    string += "     "+("%5d"*9)%tuple(sym.flatten())
+                    string += " "*15+(fmti*9)%tuple(sym.T.flatten())+'\n'
+                string = string[10:-1]
+            elif variable == 'symafm':
+                nchunks = int(len(data)/12)
+                for i in range(nchunks):
+                    string += " "*15+(fmti*12)%tuple(data[12*i:12*(i+1)])+'\n'
+                string = string[10:-1]
             elif variable in ['typat','ngfft','symafm']:
-                string = "     "+("%5d"*len(data))%tuple(data)
+                string = "     "+(fmti*len(data))%tuple(data)
             elif variable in ['occ','spinat','wtk','znucl']:
                 nchunks = int(len(data)/3)
                 for i in range(nchunks):
                     string += fmt3%tuple(data[3*i:3*(i+1)])
+                #add missing lines
+                missing_data = data[3*nchunks:]
+                if len(missing_data):
+                    fmtn = " "*nskip+fmtf*len(missing_data)+'\n'
+                    string += fmtn%tuple(missing_data)
                 string = string[nskip:-1]
             #general
             elif isinstance(data,int):
-                string = "    %3d"%data
+                string = "     "+fmti%data
             elif isinstance(data,float):
-                string = fmt%data
+                string = fmtf%data
             elif isinstance(data,list):
-                string = (fmt*len(data))%tuple(data)
+                string = (fmtf*len(data))%tuple(data)
             elif isinstance(data,np.ndarray):
                 #check dimensions
                 dim = len(data.shape)
@@ -717,15 +729,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 else:
                     raise ValueError('invalid dimensions: %d'%dim)
             else:
-                string = str(type(data))
+                raise ValueError('unkown type of variable in the dictionary')
 
-            header_lines.append( "%10s%s"%(variable,string.replace('e','D')) )
-
+            string = "%10s%s"%(variable,string.replace('e','D'))
+            header_lines += string.split('\n')
+        
         #skip all the variables
         n = 0
         while True:
             line = header.lines[n]
-            n+=1
+            n += 1
             if "zion" in line:
                 break
 
@@ -733,7 +746,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         nlines = len(header.lines)
         header_lines.append("")
         while True:
-            n+=1
+            n += 1
             if n >= nlines:
                 break
             line = header.lines[n]
