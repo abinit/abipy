@@ -458,9 +458,12 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return D2DEScfCycle.from_stream(self)
 
-    def plot(self, tight_layout=True, show=True):
+    def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
+
+        Args:
+            with_timer: True if timer section should be plotted
         """
         self.seek(0)
         icycle = -1
@@ -478,13 +481,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             icycle += 1
             d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=tight_layout, show=show)
 
-        self.seek(0)
-        try:
-            timer = self.get_timer()
-            if timer:
-                timer.plot_all(tight_layout=tight_layout, show=show)
-        except:
-            pass
+        if with_timer:
+            self.seek(0)
+            self.get_timer().plot_all(tight_layout=tight_layout, show=show)
 
     def compare_gs_scf_cycles(self, others, show=True):
         """

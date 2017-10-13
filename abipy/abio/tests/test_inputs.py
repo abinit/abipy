@@ -169,6 +169,10 @@ class TestAbinitInput(AbipyTest):
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
         assert inp.uses_ktimereversal
 
+        inp.set_gamma_sampling()
+        assert inp["kptopt"] == 1 and inp["nshiftk"] == 1
+        assert np.all(inp["shiftk"] == 0)
+
         inp.set_autokmesh(nksmall=2)
         assert inp["kptopt"] == 1 and np.all(inp["ngkpt"] == [2, 2, 2]) and inp["nshiftk"] == 4
 

@@ -398,7 +398,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
 
         #if lo_to_splitting and not self.has_lo_to_data:
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
@@ -458,7 +458,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         #if lo_to_splitting and not self.has_lo_to_data:
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,

@@ -540,6 +540,14 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             with_pseudos: False if JSON section with pseudo data should not be added.
             exclude: List of variable names that should be ignored.
         """
+        if mode == "html":
+            import cgi
+            def escape(text):
+                return cgi.escape(text, quote=True)
+        else:
+            def escape(text):
+                return text
+
         lines = []
         app = lines.append
 
@@ -591,7 +599,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 for name in names:
                     value = self[name]
                     if mnemonics and value is not None:
-                        app("# <" + var_database[name].definition + ">")
+                        app(escape("# <" + var_database[name].definition + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
@@ -605,7 +613,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
                     if mnemonics and value is not None:
-                        app("# <" + var_database[name].definition + ">")
+                        app(escape("# <" + var_database[name].definition + ">"))
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
                     app(str(InputVariable(vname, value)))
@@ -623,7 +631,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         ppinfo.extend(json.dumps(d, indent=4).splitlines())
         ppinfo.append("</JSON>")
 
-        s += "\n#".join(ppinfo)
+        s += escape("\n#".join(ppinfo))
         if mode == "html": s = s.replace("\n", "<br>")
         return s
 
@@ -670,6 +678,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         shiftk = np.reshape(shiftk, (-1,3))
         return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
+
+    def set_gamma_sampling(self):
+        """Gamma-only sampling of the BZ."""
+        return self.set_kmesh(ngkpt=(1, 1, 1), shiftk=(0, 0, 0))
 
     def set_autokmesh(self, nksmall, kptopt=1):
         """

@@ -100,7 +100,7 @@ class Robot(object):
     for_ext = class_for_ext
 
     @classmethod
-    def from_dir(cls, top, walk=True):
+    def from_dir(cls, top, walk=True, abspath=False):
         """
         This class method builds a robot by scanning all files located within directory `top`.
         This method should be invoked with a concrete robot class, for example:
@@ -110,8 +110,33 @@ class Robot(object):
         Args:
             top (str): Root directory
 	    walk: if True, directories inside `top` are included as well.
+            abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
-        return cls(*cls._open_files_in_dir(top, walk))
+        new = cls(*cls._open_files_in_dir(top, walk))
+        if not abspath: new.trim_paths(start=top)
+        return new
+
+    @classmethod
+    def from_dir_glob(cls, pattern, walk=True, abspath=False):
+        """
+        This class method builds a robot by scanning all files located within the directories
+        matching `pattern` as implemented by glob.glob
+        This method should be invoked with a concrete robot class, for example:
+
+            robot = GsrRobot.from_dir_glob("flow_dir/w*/outdata/")
+
+        Args:
+            pattern: Pattern string
+	    walk: if True, directories inside `top` are included as well.
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+        """
+        import glob
+        items = []
+        for top in filter(os.path.isdir, glob.iglob(pattern)):
+            items += cls._open_files_in_dir(top, walk=walk)
+        new = cls(*items)
+        if not abspath: new.trim_paths(start=os.getcwd())
+        return new
 
     @classmethod
     def _open_files_in_dir(cls, top, walk):
@@ -236,7 +261,7 @@ class Robot(object):
 
         return count
 
-    def add_file(self, label, ncfile):
+    def add_file(self, label, ncfile, filter_abifile=None):
         """
         Add a file to the robot with the given label.
 
@@ -244,10 +269,16 @@ class Robot(object):
             label: String used to identify the file (must be unique, ax exceptions is
                 raised if label is already present.
             ncfile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.
+            filter_abifile: Function that receives an `abifile` object and returns
+                True if the file should be added to the plotter.
         """
         if is_string(ncfile):
             from abipy.abilab import abiopen
             ncfile = abiopen(ncfile)
+            if filter_abifile is not None and not filter_abifile(ncfile):
+                ncfile.close()
+                return
+
             # Open file here --> have to close it.
             self._do_close[ncfile.filepath] = True
 
@@ -362,7 +393,6 @@ class Robot(object):
         lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
         app = lines.append
         for i, f in enumerate(self.ncfiles):
-            app(" ")
             app(func(f))
             app(" ")
 

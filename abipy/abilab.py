@@ -38,6 +38,7 @@ from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, 
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
+from abipy.tools.plotting import DirTreePlotter
 from abipy.tools.pandas import print_frame
 from abipy.tools.notebooks import print_source
 from abipy.abio.factories import *

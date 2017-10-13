@@ -8,9 +8,12 @@ Utilities for generating matplotlib plots.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import numpy as np
+import os
 import collections
+import numpy as np
 
+from monty.string import list_strings
+from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 
 
@@ -288,3 +291,125 @@ class Marker(collections.namedtuple("Marker", "x y s")):
                 neg_s.append(s)
 
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
+
+
+class Node(object):
+    def __init__(self, path):
+        self.path = path
+        self.basename = os.path.basename(path)
+        self.isdir = os.path.isdir(self.path)
+        self.isfile = os.path.isfile(self.path)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__): return False
+        return self.path == other.path
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.path)
+
+
+class FileNode(Node):
+    color = np.array((255, 0, 0)) / 255
+
+
+class DirNode(Node):
+    color = np.array((0, 0, 255)) / 255
+
+    @lazy_property
+    def isempty(self):
+        """True if empty directory."""
+        return bool(os.listdir(self.path))
+
+
+class DirTreePlotter(object):
+
+    def __init__(self, top):
+        self.top = os.path.abspath(top)
+        self.build_graph()
+
+    def build_graph(self):
+        import networkx as nx
+        g = nx.Graph()
+        g.add_node(DirNode(self.top))
+
+        for root, dirs, files in os.walk(self.top):
+            for dirpath in dirs:
+                dirpath = os.path.join(root, dirpath)
+                head, basename = os.path.split(dirpath)
+                node = DirNode(dirpath)
+                g.add_node(node)
+                g.add_edge(DirNode(head), node)
+
+            for f in files:
+                filepath = os.path.join(root, f)
+                node = FileNode(filepath)
+                g.add_node(node)
+                g.add_edge(DirNode(os.path.dirname(filepath)), node)
+
+        self.graph = g
+
+    @add_fig_kwargs
+    def plot(self, filter_ends=None, ax=None, **kwargs):
+        """
+        Plot directory tree with files
+
+        Args:
+            filter_ends: List of file extensions (actually file ends) that should be displayed.
+                If None, all files are displayed
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        fixed, initial_pos = None, None
+        fixed = True
+        arrows = False
+
+        g = self.graph
+        if filter_ends:
+            filter_ends = list_strings(filter_ends)
+            g = self.graph.subgraph([n for n in self.graph.nodes() if n.isdir # and not n.isempty)
+                or (n.isfile and any(n.basename.endswith(e) for e in filter_ends))])
+
+        if arrows:
+            g = nx.convert_to_directed(g)
+
+        top = self.top
+        top_nodes = [DirNode(os.path.join(top, d)) for d in os.listdir(top) if os.path.isdir(os.path.join(top, d))]
+        #print("top_nodes", top_nodes)
+        import networkx as nx
+        t = nx.Graph()
+        t.add_nodes_from(top_nodes)
+        initial_pos = nx.circular_layout(t)
+
+        # Get positions for all nodes using layout_type.
+        # e.g. pos = nx.spring_layout(g)
+        #layout_type = "spring"
+        #pos = getattr(nx, layout_type + "_layout")(g)
+
+        pos = nx.spring_layout(g, iterations=50, fixed=top_nodes, pos=initial_pos)
+
+        nx.draw_networkx(g, pos,
+                         labels={n: n.basename for n in g.nodes()},
+                         node_color=[n.color for n in g.nodes()],
+                         #node_size=[make_node_size(task) for task in g.nodes()],
+                         #node_size=50,
+                         width=1,
+                         style="dotted",
+                         with_labels=True,
+                         font_size=10,
+                         arrows=arrows,
+                         alpha= 0.6,
+                         ax=ax,
+        )
+
+        ax.axis("off")
+        return fig
+
+    #def __str__(self)
+    #    from monty.pprint import _draw_tree
+    #    return _draw_tree(node, prefix, child_iter, text_str)
