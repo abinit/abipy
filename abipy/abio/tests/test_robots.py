@@ -18,6 +18,7 @@ class RobotTest(AbipyTest):
         # With context.
         with Robot() as robot:
             repr(robot); str(robot)
+            assert robot._repr_html_()
             assert len(robot) == 0 and not robot.exceptions
 
         assert Robot.class_for_ext("DDB") is DdbRobot

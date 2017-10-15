@@ -1010,13 +1010,13 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Tuple of :class:`QPList` objects indexed by spin."""
         return self.reader.read_allqps()
 
-    def get_qplist(self, spin, kpoint):
+    def get_qplist(self, spin, kpoint, ignore_imag=False):
         """Return :class`QPList` for the given (spin, kpoint)"""
-        return self.reader.read_qplist_sk(spin, kpoint)
+        return self.reader.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag)
 
-    def get_qpcorr(self, spin, kpoint, band):
+    def get_qpcorr(self, spin, kpoint, band, ignore_imag=False):
         """Returns the :class:`QPState` object for the given (s, k, b)"""
-        return self.reader.read_qp(spin, kpoint, band)
+        return self.reader.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
 
     @lazy_property
     def qpgaps(self):
@@ -1157,29 +1157,35 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    def to_dataframe(self):
+    def to_dataframe(self, ignore_imag=False):
         """
         Returns pandas DataFrame with QP results for all k-points included in the GW calculation
+
+        Args:
+            ignore_imag: Only real part is returned if `ignore_imag`.
         """
         import pandas as pd
         df_list = []
         for spin in range(self.nsppol):
             for gwkpoint in self.gwkpoints:
-                df_sk = self.get_dataframe_sk(spin, gwkpoint)
+                df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)
                 df_list.append(df_sk)
 
         return pd.concat(df_list)
 
-    def get_dataframe_sk(self, spin, kpoint, index=None):
+    def get_dataframe_sk(self, spin, kpoint, index=None, ignore_imag=False):
         """
         Returns pandas DataFrame with QP results for the given (spin, k-point).
+
+        Args:
+            ignore_imag: Only real part is returned if `ignore_imag`.
         """
         rows, bands = [], []
         # FIXME start and stop should depend on k
         for band in range(self.min_gwbstart, self.max_gwbstop):
             bands.append(band)
             # Build dictionary with the QP results.
-            qpstate = self.reader.read_qp(spin, kpoint, band)
+            qpstate = self.reader.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
             d = qpstate.as_dict()
             # Add other entries that may be useful when comparing different calculations.
             d.update(self.params)
@@ -1652,7 +1658,13 @@ class SigresReader(ETSF_Reader):
     def read_redc_gwkpoints(self):
         return self.read_value("kptgw")
 
-    def read_allqps(self):
+    def read_allqps(self, ignore_imag=False):
+        """
+        Return list with `nsppol` items. Each item is a `QPList` with the QP results
+
+        Args:
+            ignore_imag: Only real part is returned if `ignore_imag`.
+        """
         qps_spin = self.nsppol * [None]
 
         for spin in range(self.nsppol):
@@ -1660,39 +1672,52 @@ class SigresReader(ETSF_Reader):
             for gwkpoint in self.gwkpoints:
                 ik = self.gwkpt2seqindex(gwkpoint)
                 for band in range(self.gwbstart_sk[spin,ik], self.gwbstop_sk[spin,ik]):
-                    qps.append(self.read_qp(spin, gwkpoint, band))
+                    qps.append(self.read_qp(spin, gwkpoint, band, ignore_imag=ignore_imag))
 
             qps_spin[spin] = QPList(qps)
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin, kpoint):
+    def read_qplist_sk(self, spin, kpoint, ignore_imag=False):
+        """
+        Read and Return `QPList` object for the given spin, kpoint.
+
+        Args:
+            ignore_imag: Only real part is returned if `ignore_imag`.
+        """
         ik = self.gwkpt2seqindex(kpoint)
         bstart, bstop = self.gwbstart_sk[spin, ik], self.gwbstop_sk[spin, ik]
 
-        return QPList([self.read_qp(spin, kpoint, band) for band in range(bstart, bstop)])
+        return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag) for band in range(bstart, bstop)])
 
     #def read_qpene(self, spin, kpoint, band)
 
     def read_qpenes(self):
         return self._egw[:, :, :]
 
-    def read_qp(self, spin, kpoint, band):
+    def read_qp(self, spin, kpoint, band, ignore_imag=False):
+        """
+        Return `QPState` for the given (spin, kpoint, band).
+        Only real part is returned if `ignore_imag`.
+        """
         ik_file = self.kpt2fileindex(kpoint)
         ib_file = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
+
+        def ri(a):
+            return np.real(a) if ignore_imag else a
 
         return QPState(
             spin=spin,
             kpoint=kpoint,
             band=band,
             e0=self.read_e0(spin, ik_file, band),
-            qpe=self._egw[spin, ik_file, band],
-            qpe_diago=self._en_qp_diago[spin, ik_file, band],
+            qpe=ri(self._egw[spin, ik_file, band]),
+            qpe_diago=ri(self._en_qp_diago[spin, ik_file, band]),
             vxcme=self._vxcme[spin, ik_file, ib_file],
             sigxme=self._sigxme[spin, ik_file, ib_file],
-            sigcmee0=self._sigcmee0[spin, ik_file, ib_file],
+            sigcmee0=ri(self._sigcmee0[spin, ik_file, ib_file]),
             vUme=self._vUme[spin, ik_file, ib_file],
-            ze0=self._ze0[spin, ik_file, ib_file],
+            ze0=ri(self._ze0[spin, ik_file, ib_file]),
         )
 
     def read_qpgaps(self):
@@ -1762,6 +1787,7 @@ class SigresReader(ETSF_Reader):
 
         return params
 
+    @deprecated(message="print_qps is deprecated and will be removed in version 0.4")
     def print_qps(self, spin=None, kpoints=None, bands=None, fmt=None, stream=sys.stdout):
         """
         Args:

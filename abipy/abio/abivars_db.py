@@ -169,8 +169,8 @@ class Variable(yaml.YAMLObject):
     @property
     def url(self):
         """The url associated to the variable."""
-        # https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell
-        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/"
+        # TODO: root will change once we move to the new website.
+        root = "https://www.abinit.org/sites/default/files/last/input_variables/html_automatically_generated/"
         return root + "%s.html#%s" % (self.section, self.varname)
 
     def html_link(self, label=None):

@@ -117,6 +117,21 @@ class Robot(object):
         return new
 
     @classmethod
+    def from_dirs(cls, dirpaths, walk=True, abspath=False):
+        """
+        Similar to `from_dir` but accepts a list of directories instead of a single directory.
+
+        Args:
+	    walk: if True, directories inside `top` are included as well.
+            abspath: True if paths in index should be absolute. Default: Relative to `top`.
+        """
+        items = []
+        for top in list_strings(dirpaths):
+            items.extend(cls._open_files_in_dir(top, walk))
+        if not abspath: new.trim_paths(start=os.path.getcwd())
+        return new
+
+    @classmethod
     def from_dir_glob(cls, pattern, walk=True, abspath=False):
         """
         This class method builds a robot by scanning all files located within the directories
@@ -398,6 +413,10 @@ class Robot(object):
 
         return "\n".join(lines)
 
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label in self))
+
     @property
     def ncfiles(self):
         """List of netcdf files."""
@@ -414,7 +433,6 @@ class Robot(object):
                 except:
                     print("Exception while closing: ", ncfile.filepath)
                     print(exc)
-                    #raise
 
     @classmethod
     def open(cls, obj, nids=None, **kwargs):

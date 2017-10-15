@@ -2641,8 +2641,8 @@ class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
     @property
     def url(self):
         """The url associated to the variable."""
-        #https://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp
-        root = "https://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html"
+        # TODO: root will change once we move to the new website.
+        root = "https://www.abinit.org/sites/default/files/last/users/optic_help.html"
         return root + "#%s" % self.name
 
     def html_link(self, label=None):
