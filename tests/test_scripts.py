@@ -2,6 +2,7 @@
 """Test abipy command line scripts."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import sys
 import os
 import abipy.data as abidata
 import abipy.flowtk as flowtk
@@ -34,6 +35,8 @@ class ScriptTest(AbipyTest):
     loglevel = "--loglevel=ERROR"
     verbose = "-vv"
 
+    # Don’t raise an exception if anything is printed to stderr
+    #if sys.version_info[0] <= 2 else str(s)
     expect_stderr = True   # else tests fail due to warnings and deprecation messages
 
     def get_env(self, check_help_version=True):

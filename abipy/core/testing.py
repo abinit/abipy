@@ -318,6 +318,8 @@ class AbipyTest(PymatgenTest):
         """
         True if Mayavi is available. Set also offscreen to True
         """
+        # Disable mayavi for the time being.
+        return False
         # This to run mayavi tests only on Travis
         if not os.environ.get("TRAVIS"): return False
         try:
@@ -372,6 +374,8 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def has_ipywidgets():
         """Return True if ipywidgets is available."""
+        # Disable widget tests on TRAVIS
+        if os.environ.get("TRAVIS"): return False
         try:
             import ipywidgets as ipw
             return True
