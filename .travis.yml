@@ -26,7 +26,8 @@ install:
   # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
   - conda install gcc 
-  - conda install  scipy sympy
+  - conda install libgcc
+  - conda install scipy sympy
   - conda install pandas
   - conda install netcdf4 
   # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
