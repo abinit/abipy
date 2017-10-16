@@ -3362,19 +3362,20 @@ class Bands3D(object):
         Add scalar quantities given in the unit cell.
 
         Args:
-            name:
+            name: keyword used to store scalars.
             scalars:
         """
         self.ucell_scalars[name] = np.reshape(scalars, self.ucdata_shape)
 
     def add_ibz_scalars(self, name, scalars, inshape="skb"):
         """
-        Add scalar quantities given in the IBZ.
+        Add scalar quantities given in the IBZ i.e. symmetrize values to get array in unit cell.
 
         Args:
-            name:
-            scalars:
-            inshape:
+            name: keyword used to store symmetrized values.
+            scalars: scalars in IBZ. See `inshape` for shape
+            inshape: shape of input scalars. "skb" if (nsppol, nkibz, nband)
+            "sbk" for (nsppol, nband, nkibz).
         """
         self.add_ucell_scalars(name, self.symmetrize_ibz_scalars(scalars, inshape=inshape))
 
@@ -3383,10 +3384,12 @@ class Bands3D(object):
         Symmetrize scalar quantities given in the IBZ.
 
         Args:
-            scalars:
-            inshape:
+            scalars: scalars in IBZ. See `inshape` for shape
+            inshape: shape of input scalars. "skb" if (nsppol, nkibz, nband)
+            "sbk" for (nsppol, nband, nkibz).
 
         Return:
+            numpy array with scalars in unit cell. shape is **always**: (nsppol, nband, nkbz)
         """
         # Symmetrize scalars unit cell grid: e_{TSk} = e_{k}
         ucdata_sbk = np.empty((self.nsppol, self.nband, len(self.uc2ibz)))
