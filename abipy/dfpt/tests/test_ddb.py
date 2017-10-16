@@ -43,23 +43,21 @@ class DdbTest(AbipyTest):
             assert struct.formula == "Al1 As1"
 
             # Test update header
-            """
             h_copy = ddb.header.copy()
             ddb.update_header()
             for k, v in ddb.header.items():
                 if k == "lines":
                     err = 0
-                    #assert len(ddb.header.lines) == len(h_copy.lines)
-                    for line1, line2 in zip(ddb.header.lines, h_copy.lines):
-                        if line1 != line2:
-                            err += 1
-                            print("line1", line1)
-                            print("line2", line2)
-                    assert err == 0
-                other = h_copy.pop(k)
-                assert str(other) == str(v)
+                    assert len(ddb.header.lines) == len(h_copy.lines)
+                    #for line1, line2 in zip(ddb.header.lines, h_copy.lines):
+                    #    if line1 != line2:
+                    #        err += 1
+                    #        print("line1", line1)
+                    #        print("line2", line2)
+                    #assert err == 0
+                #other = h_copy.pop(k)
+                #assert str(other) == str(v)
             #self.assertDictEqual(h_copy, ddb.header)
-            """
 
             # Test interface with Anaddb.
             print(ddb.qpoints[0])
