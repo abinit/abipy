@@ -697,6 +697,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 nchunks = int(len(data)/12)
                 for i in range(nchunks):
                     string += " "*15+(fmti*12)%tuple(data[12*i:12*(i+1)])+'\n'
+                #add missing lines
+                missing_data = data[12*nchunks:]
+                if len(missing_data):
+                    fmtn = " "*15+fmti*len(missing_data)+'\n'
+                    string += fmtn%tuple(missing_data)
                 string = string[10:-1]
             elif variable in ['typat','ngfft','symafm']:
                 string = "     "+(fmti*len(data))%tuple(data)
