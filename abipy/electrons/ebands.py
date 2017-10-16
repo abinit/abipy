@@ -3287,6 +3287,17 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
 class Bands3D(object):
 
     def __init__(self, structure, ibz, has_timrev, eigens, fermie):
+        """
+        This object reconstructs by symmetri the eigenvalues in the full BZ starting from the IBZ.
+        Provides methods to extract and visualize isosurfaces.
+
+        Args:
+            structure:
+            ibz:
+            has_timrev:
+            eigens:
+            fermie
+        """
         self.ibz = ibz
         self.structure = structure
         self.reciprocal_lattice = structure.lattice.reciprocal_lattice
@@ -3341,17 +3352,42 @@ class Bands3D(object):
         return self.to_string()
 
     def to_string(self, verbose=0):
+        """String representation."""
         lines = []
         app = lines.append
         return "\n".join(lines)
 
     def add_ucell_scalars(self, name, scalars):
+        """
+        Add scalar quantities given in the unit cell.
+
+        Args:
+            name:
+            scalars:
+        """
         self.ucell_scalars[name] = np.reshape(scalars, self.ucdata_shape)
 
     def add_ibz_scalars(self, name, scalars, inshape="skb"):
+        """
+        Add scalar quantities given in the IBZ.
+
+        Args:
+            name:
+            scalars:
+            inshape:
+        """
         self.add_ucell_scalars(name, self.symmetrize_ibz_scalars(scalars, inshape=inshape))
 
     def symmetrize_ibz_scalars(self, scalars, inshape="skb"):
+        """
+        Symmetrize scalar quantities given in the IBZ.
+
+        Args:
+            scalars:
+            inshape:
+
+        Return:
+        """
         # Symmetrize scalars unit cell grid: e_{TSk} = e_{k}
         ucdata_sbk = np.empty((self.nsppol, self.nband, len(self.uc2ibz)))
 
@@ -3400,15 +3436,19 @@ class Bands3D(object):
         if all(not l for l in isobands): return None
         return isobands
 
-    def to_bxsf(self, filepath):
+    def to_bxsf(self, filepath, unit="eV"):
         """
         Export the full band structure to `filepath` in BXSF format
-        suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bxsf FILE).
+        suitable for the visualization of the Fermi surface with Xcrysden (use `xcrysden --bxsf FILE`).
         Require k-points in IBZ and gamma-centered k-mesh.
+
+        Args:
+            filepath: BXSF filename.
+            unit: Input energies are in unit `unit`.
         """
         from abipy.iotools import bxsf_write
         with open(filepath, "wt") as fh:
-            bxsf_write(fh, self.structure, self.nsppol, self.nband, self.kdivs, self.ucdata_sbk, self.fermie, unit="eV")
+            bxsf_write(fh, self.structure, self.nsppol, self.nband, self.kdivs, self.ucdata_sbk, self.fermie, unit=unit)
             return filepath
 
     def get_e0(self, e0):
@@ -3434,9 +3474,14 @@ class Bands3D(object):
     @add_fig_kwargs
     def plot_isosurfaces(self, e0="fermie", verbose=1, **kwargs):
         """
+        Plot isosurface with matplotlib (rendering could be slow).
+
         Args:
             e0:
             view:
+
+        Return:
+            `matplotlib` figure
         """
         try:
             from skimage import measure
@@ -3478,8 +3523,12 @@ class Bands3D(object):
 
     def mvplot_isosurfaces(self, e0="fermie", verbose=1, show=True):
         """
+        Plot isosurface with mayavi
+
         Args:
             e0:
+            verbose:
+            show:
         """
         # Find bands crossing e0.
         e0 = self.get_e0(e0)
@@ -3523,6 +3572,19 @@ class Bands3D(object):
 
     @add_fig_kwargs
     def plot_contour(self, band, spin=0, plane="xy", elevation=0, ax=None, **kwargs):
+        """
+        Contour plot with matplotlib.
+
+        Args:
+            band:
+            spin:
+            plane:
+            elevation:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Return:
+            `matplotlib` figure
+        """
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
 
         x = np.arange(self.kdivs[0]) / (self.kdivs[0] - 1)
@@ -3577,6 +3639,7 @@ class Bands3D(object):
         #return
 
     def mvplot_cutplanes(self, band, spin=0, show=True, **kwargs):
+        """Plot cutplanes with mayavi."""
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
         contours = [-1.0, 0.0, 1.0]
 

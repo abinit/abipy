@@ -52,12 +52,8 @@ class DdbTest(AbipyTest):
                     #for line1, line2 in zip(ddb.header.lines, h_copy.lines):
                     #    if line1 != line2:
                     #        err += 1
-                    #        print("line1", line1)
-                    #        print("line2", line2)
+                    #        print("line1", line1, "\nline2, line2)
                     #assert err == 0
-                #other = h_copy.pop(k)
-                #assert str(other) == str(v)
-            #self.assertDictEqual(h_copy, ddb.header)
 
             # Test interface with Anaddb.
             print(ddb.qpoints[0])

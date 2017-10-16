@@ -168,6 +168,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
 
     See also http://www.xcrysden.org/doc/XSF.html
     """
+    # Xscryden uses Ha for energies.
     ucdata_sbk = EnergyArray(ucdata_sbk, unit).to("Ha")
     fermie = Energy(fermie, unit).to("Ha")
 
