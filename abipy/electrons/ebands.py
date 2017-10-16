@@ -3489,7 +3489,7 @@ class Bands3D(object):
         try:
             from skimage import measure
         except ImportError:
-            raise ImportError("scikit-image not installed."
+            raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
 
         e0 = self.get_e0(e0)

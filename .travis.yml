@@ -15,7 +15,7 @@ matrix:
 #      env: PYTHON_VERSION=2.7
 
 sudo: false
-dist: precise
+#dist: precise
 install:
   #- sudo apt-get update
   - env
@@ -35,9 +35,12 @@ install:
   - pip install pytest scripttest nose nose-exclude
   - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install pep8 python-coveralls
-  - conda install matplotlib seaborn
-  - conda install ipython jupyter nbformat
-  - conda install -c conda-forge ipywidgets
+  #- conda install matplotlib seaborn
+  - pip install matplotlib seaborn
+  #- conda install ipython jupyter nbformat
+  - pip install ipython jupyter nbformat
+  #- conda install -c conda-forge ipywidgets
+  - pip install ipywidgets
 
   # Install abinit from abinit conda channel.
   - conda config --add channels conda-forge
@@ -66,7 +69,6 @@ install:
   - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
   - ./dev_scripts/pyclean.py .
 
-before_script:
 before_script:
     # This to run tests requiring a graphical user e.g. mayavi
     # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
