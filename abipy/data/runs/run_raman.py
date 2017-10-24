@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 """
-This script shows how to perform a RAMAN calculation with 
+This script shows how to perform a RAMAN calculation with
 excitonic effects included with the BSE formalism.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import sys 
+import sys
 import os
 import numpy as np
 import abipy.abilab as abilab
-import abipy.data as data  
+import abipy.data as abidata
 from abipy import flowtk
 
 
@@ -17,14 +17,14 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
-    pseudos = data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
 
     # Get the unperturbed structure.
-    base_structure = data.structure_from_ucell("Si")
+    base_structure = abidata.structure_from_ucell("Si")
 
     etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
@@ -32,7 +32,7 @@ def build_flow(options):
     ph_displ[1,:] = [-1, 0, 0]
 
     # Build new structures by displacing atoms according to the phonon displacement
-    # ph_displ (in cartesian coordinates). The Displacement is normalized so that 
+    # ph_displ (in cartesian coordinates). The Displacement is normalized so that
     # the maximum atomic diplacement is 1 Angstrom and then multiplied by eta.
     modifier = abilab.StructureModifier(base_structure)
 
@@ -93,7 +93,7 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
         ecuteps=3,
         inclvkb=2,
         bs_algorithm=2,       # Haydock
-        bs_haydock_niter=4,  # No. of iterations for Haydock
+        bs_haydock_niter=4,   # No. of iterations for Haydock
         bs_exchange_term=1,
         bs_coulomb_term=21,   # Use model W and full W_GG.
         mdf_epsinf=12.0,

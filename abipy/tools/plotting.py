@@ -75,7 +75,7 @@ def data_from_cplx_mode(cplx_mode, arr):
     if cplx_mode == "im": return arr.imag
     if cplx_mode == "abs": return np.abs(arr)
     if cplx_mode == "angle": return np.angle(arr, deg=False)
-    raise ValueError("Unsupported mode %s" % cplx_mode)
+    raise ValueError("Unsupported mode `%s`" % str(cplx_mode))
 
 
 @add_fig_kwargs

@@ -15,7 +15,7 @@ class TestWFKFile(AbipyTest):
         """Testing WfkFile and waves from NC example data files."""
         wfk = WfkFile(abidata.ref_file("si_nscf_WFK.nc"))
         repr(wfk); str(wfk)
-        assert len(wfk.to_string(verbose=1))
+        assert len(wfk.to_string(verbose=2))
         assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
 
         spin, kpoint, band = (0, 0, 0)
@@ -24,7 +24,7 @@ class TestWFKFile(AbipyTest):
 
         wave = wfk.get_wave(spin, kpoint, band)
         repr(wave); str(wave)
-        assert len(wave.to_string(verbose=1))
+        assert len(wave.to_string(verbose=2))
         assert wave.structure is wfk.structure
         assert wave.shape == (wfk.nspinor, wave.npw)
         assert wave.isnc and not wave.ispaw

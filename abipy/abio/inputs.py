@@ -275,8 +275,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args:
             structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object
             file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.
-            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings with the name
-                of the pseudopotential files, list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings
+                with the name of the pseudopotential files, list of :class:`Pseudo` objects
+                or :class:`PseudoTable` object.
             pseudo_dir: Name of the directory where the pseudopotential files are located.
             ndtset: Number of datasets.
             comment: Optional string with a comment that will be placed at the beginning of the file.
@@ -1117,12 +1118,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return ph_inputs
 
-    def make_ddk_inputs(self, tolerance=None):
+    def make_ddk_inputs(self, tolerance=None, kptopt=2):
         """
         Return inputs for performing DDK calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
+            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
 
@@ -1140,7 +1142,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         # Call Abinit to get the list of irred perts.
         #perts = self.abiget_irred_phperts(qpt=qpt)
-        # TODO Add symmetries
+        # TODO Add symmetries when implemented.
         ddk_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
         # Build list of datasets (one input per perturbation)
@@ -1153,7 +1155,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 rfdir=rfdir,          # Direction of the per ddk.
                 nqpt=1,               # One wavevector is to be considered
                 qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=2,             # Take into account time-reversal symmetry.
+                kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
                 iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
             )
 
@@ -2693,15 +2695,15 @@ class OpticInput(AbstractInput, MSONable):
 
         # PARAMETERS section:
         OpticVar(name="broadening", default=0.01, group='PARAMETERS',
-                 help="Value of the *smearing factor*, in Hartree"),
+                 help="Value of the smearing factor, in Hartree"),
         OpticVar(name="domega", default=0.010, group='PARAMETERS',
-                 help="Frequency *step* (Ha)"),
+                 help="Frequency step (Ha)"),
         OpticVar(name="maxomega", default=1, group='PARAMETERS',
                  help="Maximum frequency (Ha)"),
         OpticVar(name="scissor", default=0.000, group='PARAMETERS',
-                 help="*Scissor* shift if needed, in Hartree"),
+                 help="Scissor shift if needed, in Hartree"),
         OpticVar(name="tolerance", default=0.001, group='PARAMETERS',
-                 help="*Tolerance* on closeness of singularities (in Hartree)"),
+                 help="Tolerance on closeness of singularities (in Hartree)"),
         OpticVar(name="autoparal", default=0, group='PARAMETERS',
                  help="Autoparal option"),
         OpticVar(name="max_ncpus", default=0, group='PARAMETERS',
@@ -2709,9 +2711,9 @@ class OpticInput(AbstractInput, MSONable):
 
         # COMPUTATIONS section:
         OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS',
-                 help="*Number of components* of linear optic tensor to be computed"),
+                 help="Number of components of linear optic tensor to be computed"),
         OpticVar(name="lin_comp", default=0, group='COMPUTATIONS',
-                 help="Linear *coefficients* to be computed (x=1, y=2, z=3)"),
+                 help="Linear coefficients to be computed (x=1, y=2, z=3)"),
         OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS',
                  help="Number of components of nonlinear optic tensor to be computed"),
         OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS',
@@ -2823,6 +2825,52 @@ class OpticInput(AbstractInput, MSONable):
     #def _repr_html_(self):
     #    """Integration with jupyter notebooks."""
     #    return self.to_string(mode="html")
+
+    def only_independent_chi_components(self, structure, assume_symmetric_tensor=False,
+                                        symprec=1e-3, angle_tolerance=5):
+        """
+        Use the crystal system returned by spglib to find the independent components
+        of the linear susceptibility tensor and set the appropriate variables.
+
+        Args:
+            structure: Crystalline structure
+            assume_symmetric_tensor: True if tensor can be assumed symmetric.
+                Note that the tensor is symmetric only for a lossless and non-optically active material.
+            symprec, angle_tolerance: Parameters passed to spglib.
+
+        Return:
+            Set internal variables and return list of components to compute.
+        """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+        spgan = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        system = spgan.get_crystal_system()
+
+        # Table 1.5.1 of https://booksite.elsevier.com/samplechapters/9780123694706/Sample_Chapters/02~Chapter_1.pdf.
+        # Note that the tensor is symmetric only for a lossless and non-optically active material.
+        components_for_system = {
+            "triclinic": "xx yy zz xy yx xz zx yz zy",
+            "monoclinic": "xx yy zz xz zx",
+            "orthorhombic": "xx yy zz",
+            "tetragonal": "xx zz",
+            "cubic": "xx",
+        }
+
+        if assume_symmetric_tensor:
+            components_for_system["triclinic"] = "xx yy zz xy xz yz"
+            components_for_system["monoclinic"] = "xx yy zz xz"
+
+        components_for_system["trigonal"] = components_for_system["tetragonal"]
+        components_for_system["hexagonal"] = components_for_system["tetragonal"]
+
+        for k, v in components_for_system.items():
+            components_for_system[k] = v.split()
+
+        ind_comps = components_for_system[system]
+        d = {"x": 1, "y": 2, "z": 3}
+        self["num_lin_comp"] = len(ind_comps)
+        self["lin_comp"] = [10 * d[comp[0]] + d[comp[1]] for comp in ind_comps]
+
+        return ind_comps
 
     def abivalidate(self, workdir=None, manager=None):
         """

@@ -50,7 +50,7 @@ class TestMDF_Reader(AbipyTest):
 
             rpa = mdf_file.get_mdf("rpa")
             repr(rpa); str(rpa)
-            rpa.to_string(with_info=True)
+            rpa.to_string(with_info=True, verbose=2)
             assert rpa.num_qpoints == 6
             assert rpa.num_qpoints == len(rpa.qfrac_coords)
             assert mdf_file.qpoints == rpa.qpoints

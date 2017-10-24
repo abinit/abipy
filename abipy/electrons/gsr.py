@@ -75,7 +75,17 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
 
+        if verbose > 1:
+            app("")
+            app(marquee("Abinit Header", mark="="))
+            app(self.hdr.to_string(verbose=verbose))
+
         return "\n".join(lines)
+
+    @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
 
     @property
     def ebands(self):

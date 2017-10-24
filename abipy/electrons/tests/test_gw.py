@@ -16,6 +16,7 @@ class TestQPList(AbipyTest):
     def setUp(self):
         self.sigres = sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         repr(self.sigres); str(self.sigres)
+        assert self.sigres.to_string(verbose=2)
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
 
     def tearDown(self):

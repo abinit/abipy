@@ -722,11 +722,9 @@ class OpticInputTest(AbipyTest):
             nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
         )
 
-
         repr(optic_input); str(optic_input)
-        #print(optic_input)
-        #print(optic_input._repr_html_())
-        #assert 0
+        # TODO
+        #assert optic_input._repr_html_()
         assert optic_input.vars
 
         # Compatible with Pickle and MSONable?
@@ -736,3 +734,12 @@ class OpticInputTest(AbipyTest):
         #self.assertMSONable(optic_input)
 
         self.abivalidate_input(optic_input)
+
+        # Test helper functions
+        si_structure = abidata.structure_from_ucell("Si")
+        comps = optic_input.only_independent_chi_components(si_structure)
+        assert comps == ["xx"]
+        assert optic_input["num_lin_comp"] == 1
+        assert optic_input["lin_comp"] == [11]
+        self.abivalidate_input(optic_input)
+        #print(optic_input)

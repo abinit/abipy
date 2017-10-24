@@ -46,7 +46,7 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
     frame_from_ebands)
 from abipy.electrons.gsr import GsrFile
 from abipy.electrons.psps import PspsFile
-#from abipy.electrons.ddk import DdkNcFile
+from abipy.electrons.ddk import DdkFile
 from abipy.electrons.gw import SigresFile, SigresPlotter
 from abipy.electrons.bse import MdfFile
 from abipy.electrons.scissors import ScissorsBuilder
@@ -54,6 +54,7 @@ from abipy.electrons.scr import ScrFile
 from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile,
     Cut3dDenPotNcFile)
 from abipy.electrons.fatbands import FatBandsFile
+from abipy.electrons.optic import OpticNcFile
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
@@ -97,7 +98,7 @@ abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
-    #("DDK.nc", DdkNcFile),
+    ("DDK.nc", DdkFile),
     ("VHA.nc", VhartreeNcFile),
     ("VXC.nc", VxcNcFile),
     ("VHXC.nc", VhxcNcFile),
@@ -116,6 +117,7 @@ abiext2ncfile = collections.OrderedDict([
     ("FATBANDS.nc", FatBandsFile),
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
+    ("OPTIC.nc", OpticNcFile),
 ])
 
 

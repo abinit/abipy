@@ -107,7 +107,7 @@ def prune_ord(alist):
     2) items in alist MUST be hashable.
 
     Taken from http://code.activestate.com/recipes/52560/
-    >>> prune_ord([1,1,2,3,3])
+    >>> prune_ord([1, 1, 2, 3, 3])
     [1, 2, 3]
     """
     mset = {}
@@ -116,7 +116,6 @@ def prune_ord(alist):
 #########################################################################################
 # Special functions
 #########################################################################################
-
 
 def gaussian(x, width, center=0.0, height=None):
     """

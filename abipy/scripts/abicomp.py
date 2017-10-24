@@ -390,6 +390,13 @@ def abicomp_mdf(options):
     return _invoke_robot(options)
 
 
+def abicomp_optic(options):
+    """
+    Compare results stored in OPTIC.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def dataframe_from_pseudos(pseudos, index=None):
     """
     Build pandas dataframe with the most important info associated to
@@ -591,8 +598,9 @@ Usage example:
 
   abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter via the jupyter notebook.
+  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter in the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
+  abicomp.py optic DIR                            => Compare optic results in the jupyter notebook.
 
 #########
 # Phonons
@@ -717,6 +725,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
                         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
+
+
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
@@ -741,6 +751,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
+    p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)

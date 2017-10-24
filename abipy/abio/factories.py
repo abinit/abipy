@@ -956,7 +956,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
     for qpt in qpoints:
         if np.allclose(qpt, 0):
             if with_ddk:
-                multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+                multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
                 multi_ddk.add_tags(DDK)
                 multi.extend(multi_ddk)
             if with_dde:
@@ -1301,7 +1301,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
     multi = []
 
-    multi_ddk = gs_inp.make_ddk_inputs(ddk_tol)
+    multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
     multi_ddk.add_tags(DDK)
     multi.extend(multi_ddk)
     multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False)

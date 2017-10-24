@@ -469,15 +469,15 @@ class AbipyTest(PymatgenTest):
     def abivalidate_input(self, abinput, must_fail=False):
         """
         Invoke Abinit to test validity of an Input object
-        Print info to stdout if failuer before raising AssertionError.
+        Print info to stdout if failure before raising AssertionError.
         """
         v = abinput.abivalidate()
         if must_fail:
             assert v.retcode != 0 and v.log_file.read()
         else:
             if v.retcode != 0:
-                print(type(abinput))
-                print(abinput)
+                print("type abinput:", type(abinput))
+                print("abinput:\n", abinput)
                 lines = v.log_file.readlines()
                 i = len(lines) - 50 if len(lines) >= 50 else 0
                 print("Last 50 line from logfile:")
@@ -499,6 +499,7 @@ class AbipyTest(PymatgenTest):
             try:
                 self.abivalidate_input(inp)
             except Exception as exc:
+                errors.append(self.straceback())
                 errors.append(str(exc))
 
         if errors:

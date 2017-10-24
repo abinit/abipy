@@ -317,7 +317,17 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
                 ])
             app(tabulate(table, headers="firstrow"))
 
+        if verbose > 1:
+            app("")
+            app(marquee("Abinit Header", mark="="))
+            app(self.hdr.to_string(verbose=verbose))
+
         return "\n".join(lines)
+
+    @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
 
     def get_wl_atom(self, iatom, spin=None, band=None):
         """

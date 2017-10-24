@@ -82,6 +82,11 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         return self.reader.read_abinit_xcfunc()
 
     @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
+
+    @lazy_property
     def field(self):
         """
         The field object provided by the subclass.
@@ -113,6 +118,11 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
         # Add info on the field
         app(marquee(self.field.__class__.__name__, mark="="))
         app(str(self.field))
+
+        if verbose > 1:
+            app("")
+            app(marquee("Abinit Header", mark="="))
+            app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
 

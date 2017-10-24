@@ -928,6 +928,16 @@ class KpointList(collections.Sequence):
         """Returns the sum of the weights."""
         return np.sum(self.weights)
 
+    def check_weights(self):
+        """Check if weights are normalized to one. Raise ValueError."""
+        # Weights must be normalized to one.
+        wsum = self.sum_weights()
+        if abs(wsum - 1) > 1.e-6:
+            err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
+            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
+            err_msg += "%s\n%s" % (self.__class__, self.to_string(verbose=0))
+            raise ValueError(err_msg)
+
     def remove_duplicated(self):
         """
         Remove duplicated k-points from self. Returns new KpointList instance.

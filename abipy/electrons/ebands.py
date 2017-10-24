@@ -1299,13 +1299,7 @@ class ElectronBands(Has_Structure):
         Returns:
             :class:`ElectronDos` object.
         """
-        # Weights must be normalized to one.
-        wsum = self.kpoints.sum_weights()
-        if abs(wsum - 1) > 1.e-6:
-            err_msg = "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
-            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
-            err_msg += str(type(self.kpoints)) # + "\n" + str(self.kpoints)
-            raise ValueError(err_msg)
+        self.kpoints.check_weights()
 
         # Compute linear mesh.
         epad = 3.0 * width
@@ -1420,13 +1414,7 @@ class ElectronBands(Has_Structure):
         Returns:
             :class:`Function1D` object.
         """
-        wsum = self.kpoints.sum_weights()
-        if abs(wsum - 1) > 1.e-6:
-            err_msg =  "Kpoint weights should sum up to one while sum_weights is %.3f\n" % wsum
-            err_msg += "The list of kpoints does not represent a homogeneous sampling of the BZ\n"
-            err_msg += str(type(self.kpoints)) + "\n" + str(self.kpoints)
-            raise ValueError(err_msg)
-
+        self.kpoints.check_weights()
         if not isinstance(valence, Iterable): valence = [valence]
         if not isinstance(conduction, Iterable): conduction = [conduction]
 
@@ -2803,6 +2791,10 @@ class ElectronDos(object):
                 raise
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
         lines = []; app = lines.append
         app("nsppol=%d, nelect=%s" % (self.nsppol, self.nelect))
         app("Fermi energy: %s (recomputed from nelect):" % self.fermie)

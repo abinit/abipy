@@ -1,49 +1,25 @@
 #!/usr/bin/env python
 """
-This script shows how to perform a RAMAN calculation with excitonic effects 
+This script shows how to perform a RAMAN calculation with excitonic effects
 included with the BSE formalism.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import sys 
+import sys
 import os
 import numpy as np
 
 import abipy.abilab as abilab
-import abipy.data as data  
+import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 
-optic_input = abilab.OpticInput(
-    broadening=0.002,     # Value of the smearing factor, in Hartree
-    domega=0.0003,        # Frequency mesh.
-    maxomega=0.3,
-    scissor=0.000,        # Scissor shift if needed, in Hartree
-    tolerance=0.002,      # Tolerance on closeness of singularities (in Hartree)
-    num_lin_comp=6,       # Number of components of linear optic tensor to be computed
-    lin_comp=(11, 12, 13, 22, 23, 33), # Linear coefficients to be computed (x=1, y=2, z=3)
-    num_nonlin_comp=0     # Number of components of nonlinear optic tensor to be computed
-    #nonlin_comp=(123, 222),
-    )
-
-global_vars = dict(
-    istwfk="*1",
-    paral_kgb=0,
-    ecut=8,
-    nstep=200,
-    diemac=12,
-    ixc=7,
-    chksymbreak=0,
-    #accesswff=3
-)
-
 def build_flow(options):
     # Get the unperturbed structure.
-    pseudos=data.pseudos("14si.pspnc")
+    pseudos = abidata.pseudos("14si.pspnc")
+    base_structure = abidata.structure_from_ucell("Si")
 
-    base_structure = data.structure_from_ucell("Si")
-
-    ngkpt = [6,6,6]
+    ngkpt = [6, 6, 6]
 
     etas = [-.001, 0, +.001]
     ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
@@ -51,7 +27,7 @@ def build_flow(options):
     ph_displ[1,:] = [-1, 0, 0]
 
     # Build new structures by displacing atoms according to the phonon displacement
-    # ph_displ (in cartesian coordinates). The Displacement is normalized so that 
+    # ph_displ (in cartesian coordinates). The Displacement is normalized so that
     # the maximum atomic diplacement is 1 Angstrom and then multiplied by eta.
     modifier = abilab.StructureModifier(base_structure)
 
@@ -60,7 +36,7 @@ def build_flow(options):
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
     #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
 
     manager = options.manager
@@ -84,7 +60,18 @@ def build_flow(options):
 
 
 def raman_work(structure, pseudos, ngkpt, shiftk):
-    # Generate 3 different input files for computing optical properties with BSE.
+    # Generate 3 different input files for computing optical properties with Optic.
+
+    global_vars = dict(
+        istwfk="*1",
+        paral_kgb=0,
+        ecut=8,
+        nstep=200,
+        diemac=12,
+        ixc=7,
+        chksymbreak=0,
+        #accesswff=3
+    )
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
     multi.set_vars(global_vars)
@@ -97,31 +84,35 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
         nbdbuf=2,
     )
 
+    # Note kptopt 2 in NSCF and DDK
+    # In principle kptopt 2 is needed only in DDK.
+    # one could do a first NSCF run with kptopt 1, reread with kptopt 2 and enter DDK...
+
     # NSCF run
     multi[1].set_vars(
        iscf=-2,
        nband=40,
        nbdbuf=5,
-       kptopt=1,
+       kptopt=2,
        tolwfr=1.e-12,
     )
-    
+
     # DDK along 3 directions
     # Third dataset : ddk response function along axis 1
     # Fourth dataset : ddk response function along axis 2
     # Fifth dataset : ddk response function along axis 3
-    for dir in range(3):
+    for idir in range(3):
         rfdir = 3 * [0]
-        rfdir[dir] = 1
+        rfdir[idir] = 1
 
-        multi[2+dir].set_vars(
+        multi[2 + idir].set_vars(
            iscf=-3,
-	       nband=40,
+	   nband=40,
            nbdbuf=5,
            nstep=1,
            nline=0,
            prtwf=3,
-           kptopt=1,
+           kptopt=2,
            nqpt=1,
            qpt=[0.0, 0.0, 0.0],
            rfdir=rfdir,
@@ -141,6 +132,19 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
         ddk_t = work.register_ddk_task(inp, deps={nscf_t: "WFK"})
         ddk_nodes.append(ddk_t)
 
+
+    optic_input = abilab.OpticInput(
+        broadening=0.002,     # Value of the smearing factor, in Hartree
+        domega=0.0003,        # Frequency mesh.
+        maxomega=0.3,
+        scissor=0.000,        # Scissor shift if needed, in Hartree
+        tolerance=0.002,      # Tolerance on closeness of singularities (in Hartree)
+        num_lin_comp=6,       # Number of components of linear optic tensor to be computed
+        lin_comp=(11, 12, 13, 22, 23, 33), # Linear coefficients to be computed (x=1, y=2, z=3)
+        num_nonlin_comp=0     # Number of components of nonlinear optic tensor to be computed
+        #nonlin_comp=(123, 222),
+    )
+
     optic_t = flowtk.OpticTask(optic_input, nscf_node=nscf_t, ddk_nodes=ddk_nodes)
     work.register(optic_t)
 
@@ -149,7 +153,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
 
 @abilab.flow_main
 def main(options):
-    # Define the flow, build files and dirs 
+    # Define the flow, build files and dirs
     # and save the object in cpickle format.
     flow = build_flow(options)
     flow.build_and_pickle_dump()

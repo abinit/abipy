@@ -75,19 +75,20 @@ class GSRFileTestCase(AbipyTest):
             assert gsr.filetype
             assert gsr.filestat()
             assert len(gsr.ncdump())
-            repr(gsr)
-            str(gsr)
+            repr(gsr); str(gsr)
+            assert gsr.to_string(verbose=2)
             str(gsr.ebands)
             assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
             assert gsr.nsppol == 1
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
+            assert gsr.mband == gsr.hdr.mband
+            assert "nelect" in gsr.hdr and gsr.nelect == gsr.hdr.nelect
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
             # Test energy_terms
             eterms = gsr.energy_terms
-            repr(eterms)
-            str(eterms)
+            repr(eterms); str(eterms)
             assert eterms.to_string(with_doc=True)
             self.assert_almost_equal(eterms.e_xc.to("Ha"), -3.51815936301812)
             self.assert_almost_equal(eterms.e_nonlocalpsp.to("Ha"), 1.91660690901782)

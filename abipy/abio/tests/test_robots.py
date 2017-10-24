@@ -88,6 +88,13 @@ class RobotTest(AbipyTest):
 
             assert robot.EXT == "SIGRES"
             repr(robot); str(robot)
+            assert robot._repr_html_()
+
+            label_ncfile_param = robot.sortby("nband")
+            assert [t[2] for t in label_ncfile_param] == [10, 20, 30]
+            label_ncfile_param = robot.sortby(lambda ncfile: ncfile.ebands.nband, reverse=True)
+            assert [t[2] for t in label_ncfile_param] == [30, 20, 10]
+
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe(with_geo=True)
 

@@ -991,7 +991,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("")
         app(self.ebands.to_string(title="Kohn-Sham bands"))
 
-        # TODO: Finalize the implementation: add GW quantities.
+        # TODO:
+        # Finalize the implementation: add GW quantities.
+        # Fix header.
+
+        #if verbose > 1:
+        #    app("")
+        #    app(marquee("Abinit Header", mark="="))
+        #    app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -1004,6 +1011,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def ebands(self):
         """`ElectronBands with the KS energies."""
         return self._ebands
+
+    #@lazy_property
+    #def hdr(self):
+    #    """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+    #    return self.reader.read_abinit_hdr()
 
     @lazy_property
     def qplist_spin(self):

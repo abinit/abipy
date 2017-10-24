@@ -113,6 +113,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
             app("Unfolded k-points:")
             app(self.uf_kpoints.to_string(func=func, verbose=verbose))
 
+        if verbose > 2:
+            app(marquee("Abinit Header", mark="="))
+            app(self.hdr.to_string(verbose=verbose))
+
         return "\n".join(lines)
 
     @property
@@ -124,6 +128,11 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     def structure(self):
         """:class:`Structure` object defining the supercell."""
         return self.ebands.structure
+
+    @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
 
     def close(self):
         self.reader.close()

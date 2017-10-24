@@ -4,7 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -13,13 +13,13 @@ def build_flow(options, paral_kgb=0):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    multi = abilab.MultiDataset(structure=data.structure_from_ucell("GaAs"),
-                                pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
+    multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("GaAs"),
+                                pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
-    kmesh = dict(ngkpt=[4, 4, 4], 
+    kmesh = dict(ngkpt=[4, 4, 4],
                  nshiftk=4,
                  shiftk=[[0.5, 0.5, 0.5],
                          [0.5, 0.0, 0.0],
@@ -41,7 +41,7 @@ def build_flow(options, paral_kgb=0):
     # NSCF run with large number of bands, and points in the the full BZ
     multi[1].set_vars(
         iscf=-2,
-        nband=20, 
+        nband=20,
         nstep=25,
         kptopt=1,
         tolwfr=1.e-9,
@@ -51,18 +51,18 @@ def build_flow(options, paral_kgb=0):
     # Fourth dataset : ddk response function along axis 1
     # Fifth dataset : ddk response function along axis 2
     # Sixth dataset : ddk response function along axis 3
-    for dir in range(3):
+    for idir in range(3):
         rfdir = 3 * [0]
-        rfdir[dir] = 1
+        rfdir[idir] = 1
 
-        multi[2+dir].set_vars(
+        multi[2+idir].set_vars(
             iscf=-3,
-            nband=20,  
+            nband=20,
             nstep=1,
-            nline=0,  
+            nline=0,
             prtwf=3,
             kptopt=3,
-            nqpt=1, 
+            nqpt=1,
             qpt=[0.0, 0.0, 0.0],
             rfdir=rfdir,
             rfelfd=2,
@@ -97,7 +97,7 @@ def build_flow(options, paral_kgb=0):
     )
 
     # TODO
-    # Check is the order of the 1WF files is relevant. Can we use DDK files ordered 
+    # Check is the order of the 1WF files is relevant. Can we use DDK files ordered
     # in an arbitrary way or do we have to pass (x,y,z)?
     optic_task = flowtk.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work)
     flow.register_task(optic_task)
@@ -111,7 +111,7 @@ def optic_flow_from_files():
     manager.set_mpi_procs(1)
 
     flow = flowtk.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
-    
+
     ddk_nodes = [
         "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",
         "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_1/outdata/out_1WF",

@@ -19,6 +19,8 @@ from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flo
 from pymatgen.io.abinit.abitimer import AbinitTimerParser, AbinitTimerSection
 from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 
+from abipy.flowtk.works import *
+
 
 def flow_main(main):
     """

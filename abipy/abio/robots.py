@@ -415,12 +415,31 @@ class Robot(object):
 
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
-        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label in self))
+        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, ncfile in self))
 
     @property
     def ncfiles(self):
         """List of netcdf files."""
         return list(self._ncfiles.values())
+
+    def sortby(self, func_or_string, reverse=False):
+        """
+        Sort files in the robot by `func_or_string`
+        Return list of (label, ncfile, param) tuples where param is obtained via `func_or_string`.
+
+        Args:
+            func_or_string: Either string or callable defining the quantity to be used for sorting.
+                If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(ncfile) is used.
+            reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
+        """
+        if callable(func_or_string):
+            items = [(label, ncfile, func_or_string(ncfile)) for (label, ncfile) in self]
+        else:
+            # Assume string and attribute with the same name.
+            items = [(label, ncfile, getattr(ncfile, func_or_string)) for (label, ncfile) in self]
+
+        return sorted(items, key=lambda t: t[2], reverse=reverse)
 
     def close(self):
         """
@@ -540,7 +559,7 @@ class Robot(object):
     #    return fig
 
 
-class _RobotWithEbands(object):
+class RobotWithEbands(object):
     """Mixin class for robots associated to files with `ElectronBands`."""
 
     def get_ebands_plotter(self, filter_abifile=None, cls=None):
@@ -591,7 +610,7 @@ class _RobotWithEbands(object):
 
 
 
-class GsrRobot(Robot, _RobotWithEbands, NotebookWriter):
+class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple GSR files.
     """
@@ -703,11 +722,11 @@ class GsrRobot(Robot, _RobotWithEbands, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
             nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
             nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("#anim = ebands_plotter.animate()"),
+            nbv.new_code_cell("#anim = ebands_plotter.animate();"),
             nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
             nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
         ])
@@ -758,7 +777,7 @@ def my_fit_plot(self, ax=None, **kwargs):
     return fig
 
 
-class SigresRobot(Robot, _RobotWithEbands, NotebookWriter):
+class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple SIGRES files.
     """
@@ -845,7 +864,7 @@ class SigresRobot(Robot, _RobotWithEbands, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             #nbv.new_code_cell("df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
             #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
         ])
@@ -853,7 +872,7 @@ class SigresRobot(Robot, _RobotWithEbands, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class MdfRobot(Robot, _RobotWithEbands, NotebookWriter):
+class MdfRobot(Robot, RobotWithEbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple MDF files.
     """
@@ -937,11 +956,11 @@ class MdfRobot(Robot, _RobotWithEbands, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
             nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
-            nbv.new_code_cell('fig = plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None)'),
-            #nbv.new_code_cell("fig = plotter.combiboxplot()"),
+            nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
+            #nbv.new_code_cell(plotter.combiboxplot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1095,7 +1114,7 @@ class DdbRobot(Robot, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
             nbv.new_code_cell("r = robot.get_phonon_plotters(%s)" % get_phonon_plotters_kwargs),
             nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
