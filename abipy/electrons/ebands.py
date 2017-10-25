@@ -3469,11 +3469,11 @@ class Bands3D(object):
     @add_fig_kwargs
     def plot_isosurfaces(self, e0="fermie", verbose=1, **kwargs):
         """
-        Plot isosurface with matplotlib (rendering could be slow).
+        Plot isosurface with matplotlib (warning: requires skimage package, rendering could be slow).
 
         Args:
-            e0:
-            view:
+            e0: Isolevel in eV. Default: Fermi energy.
+            verbose: verbosity level.
 
         Return:
             `matplotlib` figure

@@ -104,7 +104,6 @@ class DdksAnalyzer(object):
                     for band in range(self.nband):
                         e = self.eigens[spin, k, band]
                         values[spin] += wk * vmod[spin, k, band] * gaussian(mesh, width, center=e)
-
         else:
             raise NotImplementedError("Method %s is not supported" % method)
 
@@ -114,15 +113,56 @@ class DdksAnalyzer(object):
         return dict2namedtuple(edos=edos, vdos=vdos, vdos_spin=vdos_spin)
 
     @add_fig_kwargs
-    def plot_vdos(self, method="gaussian", step=0.1, width=0.2, ax=None, **kwargs):
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+    def plot_vdos(self, method="gaussian", step=0.1, width=0.2, **kwargs):
+        import matplotlib.pyplot as plt
+        fig, axmat = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=False, squeeze=True)
         r = self.get_doses(method=method, step=step, width=width)
         #r.edos
         #r.vdos
         return fig
 
-    #@add_fig_kwargs
-    #def plot_bands_with_doses(self, ebands_kpath, doses, ax=None, **kwargs):
+    @add_fig_kwargs
+    def plot_ebands_with_doses(self, ebands_kpath, doses, ylims=None, **kwargs):
+        """
+        Plot band structure and doses
+
+        Args:
+            ebands_kpath:
+            doses:
+            ylims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
+                or scalar e.g. `left`. If left (right) is None, default values are used
+
+        Returns:
+            `matplotlib` figure
+        """
+        # Build grid plot.
+        import matplotlib.pyplot as plt
+        from matplotlib.gridspec import GridSpec
+        fig = plt.figure()
+        ncols = 3
+        width_ratios = [2, 0.2, 0.2]
+        gspec = GridSpec(1, ncols, width_ratios=width_ratios)
+        gspec.update(wspace=0.05)
+
+        ax_ebands = plt.subplot(gspec[0])
+        ax_doses = []
+        for i in range(2):
+            ax = plt.subplot(gspec[i + 1], sharey=ax_ebands)
+            ax_doses.append(ax)
+            ax.grid(True)
+            set_axlims(ax, ylims, "x")
+
+        # Plot electron bands.
+        ebands_kpath.plot(ax=ax_ebands, ylims=ylims, show=False)
+
+        # Plot DOSes.
+        #doses.edos.plot
+        #vdos.edos.plot
+        #ax.set_ylabel("")
+
+        return fig
+
+    # TODO
     #def plot_vfield(self, **kwargs):
     #def plot_v_on_isosurface(self, **kwargs):
 

@@ -151,7 +151,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 or scalar e.g. `left`. If left (right) is None, default values are used
             dos_names: List of strings defining the DOSes to plot. Use `all` to plot all DOSes available.
             with_idos: True to display integrated doses
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             matplotlib figure.
@@ -220,10 +219,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             with_doses: "all" to plot all DOSes available, `None` to disable DOS plotting,
                 else list of strings with the name of the DOSes to plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            ylims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
+            ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used
             match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns:
             matplotlib figure.

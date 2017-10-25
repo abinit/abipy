@@ -12,6 +12,7 @@ from abipy.core.structure import Structure
 from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
 
+
 __all__ = [
     "cif_file",
     "pseudo",
@@ -105,7 +106,6 @@ def find_ncfiles(top, verbose=0):
     """
     ncfiles = {}
     for dirpath, dirnames, filenames in os.walk(top):
-
         if "tmp_" in dirpath:
             continue
 

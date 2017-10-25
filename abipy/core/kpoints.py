@@ -1412,7 +1412,6 @@ class KSamplingInfo(AttrDict):
                 # We have a sampling
                 if np.all(self.kptrlatt_orig == self.kptrlatt) and is_diagonal(self.kptrlatt):
                     self["mpdivs"] = np.diag(self.kptrlatt)
-
                 else:
                     import warnings
                     warnings.warn("""

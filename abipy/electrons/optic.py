@@ -54,6 +54,7 @@ def reflectivity(eps):
     """Reflectivity(w) from vacuum, at normal incidence"""
     return np.sqrt(0.5 * (np.abs(eps) + eps.real))
 
+
 #def abs_coeff(eps):
 #    """absorption coeff (in m-1) = omega Im(eps) / c n(eps)"""
 #    if (abs(eps(iw)) + dble(eps(iw)) > zero) then
@@ -147,7 +148,7 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
         app("Number of temperatures: %d" % self.ntemp)
 
         # Show available quantities and computed components.
-        for key, info in self.reader.CHIS.items():
+        for key, info in self.reader.ALL_CHIS.items():
             if not self.reader.computed_components[key]: continue
             app("%s components computed: %s" % (
                 info["fullname"], ", ".join(self.reader.computed_components[key])))
@@ -188,11 +189,12 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
         Build latex label for linear-optic quantities. Used in plots.
         """
         return dict(
-            n="$n_{%s}$" % comp,
-            reflectivity="$r_{%s}$" % comp,
-            kappa="$\kappa_{%s}$" % comp,
+            n=r"$n_{%s}$" % comp,
+            reflectivity=r"$R_{%s}$" % comp,
+            kappa=r"$\kappa_{%s}$" % comp,
             re=r"$\Re(\epsilon_{%s})$" % comp,
             im=r"$\Im(\epsilon_{%s})$" % comp,
+            #abs=r"$|\epsilon_{%s}|$" % comp,
             #abs_coeff=abs_coeff
         )[what]
 
@@ -307,6 +309,10 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
     def plot_shg(self, **kwargs):
         return self.plot_chi2(key="shg", **kwargs)
 
+    @add_fig_kwargs
+    def plot_leo(self, **kwargs):
+        return self.plot_chi2(key="leo", **kwargs)
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -321,7 +327,7 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
         ])
 
         # Add plot calls if quantities have been computed.
-        for key, info in self.reader.CHIS.items():
+        for key, info in self.reader.ALL_CHIS.items():
             if not self.reader.computed_components[key]: continue
             pycall = "optic.plot_%s();" % key
             nb.cells.extend([
@@ -337,22 +343,28 @@ class OpticReader(ElectronsReader):
     It provides helper function to access the most important quantities.
     """
 
-    CHIS = OrderedDict([
+    ALL_CHIS = OrderedDict([
         ("linopt", {
             "fullname": "Dielectric function",
+            "rank": 2,
             #"terms":
+            #"latex": r"\chi(\omega)"
             }
         ),
         ("shg", {
             "fullname": "Second Harmonic Generation",
+            "rank": 3,
             "terms": ["shg_inter2w", "shg_inter1w", "shg_intra2w",
                       "shg_intra1w", "shg_intra1wS", "shg_chi2tot"],
             }
+            #"latex": r"\chi(-2\omega, \omega, \omega)"
         ),
         ("leo", {
             "fullname": "Linear Electro-optic",
+            "rank": 3,
             "terms": ["leo_chi", "leo_eta", "leo_sigma", "leo_chi2tot"],
             }
+            #"latex": r"\chi(-\omega, \omega, 0)"
         )
     ])
 
@@ -369,11 +381,23 @@ class OpticReader(ElectronsReader):
         super(OpticReader, self).__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
-        self.masks, self.computed_components = OrderedDict(), OrderedDict()
-        for vname in self.CHIS:
-            mask_name = vname + "_mask"
-            self.masks[vname] = mask = self.read_value(mask_name).transpose().copy()
-            self.computed_components[vname] = [itup2s(itpl) for itpl, m in np.ndenumerate(mask) if m == 1]
+        self.computed_components = OrderedDict()
+        self.computed_ids = OrderedDict()
+        for vname, info in self.ALL_CHIS.items():
+            comp_name = vname + "_components"
+            if comp_name not in self.rootgrp.variables:
+                fi_comps, ids = [], []
+            else:
+                fi_comps = [str(i) for i in self.read_value(comp_name)]
+                if info["rank"] == 2:
+                    ids = [(int(i[0])-1, int(i[1])-1) for i in fi_comps]
+                elif info["rank"] == 3:
+                    ids = [(int(i[0])-1, int(i[1])-1, int(i[2])-1) for i in fi_comps]
+                else:
+                    raise NotImplementedError("rank %s" % info["rank"])
+
+            self.computed_ids[vname] = ids
+            self.computed_components[vname] = [itup2s(it) for it in ids]
 
     @lazy_property
     def wmesh(self):
@@ -388,7 +412,7 @@ class OpticReader(ElectronsReader):
         Args:
             itemp: Temperature index.
         """
-        # linopt_epsilon has *Fortran* shape [two, nomega, 3, 3, ntemp]
+        # linopt_epsilon has *Fortran* shape [two, nomega, num_comp, ntemp]
         key = "linopt"
         if components == "all": components = self.computed_components[key]
         if not (self.ntemp > itemp >= 0):
@@ -397,11 +421,12 @@ class OpticReader(ElectronsReader):
         var = self.read_variable("linopt_epsilon")
         od = OrderedDict()
         for comp in list_strings(components):
-            i, j = s2itup(comp)
-            if self.masks[key][i, j] != 1:
-                raise RuntimeError("epsilon_component %s was not computed" % comp)
-            # Note exchange F --> C
-            values = var[itemp, j, i]
+            try:
+                ijp = self.computed_components[key].index(comp)
+            except ValueError:
+                raise ValueError("epsilon_component %s was not computed" % comp)
+
+            values = var[itemp, ijp]
             od[comp] = values[:, 0] + 1j * values[:, 1]
         return od
 
@@ -410,25 +435,22 @@ class OpticReader(ElectronsReader):
         Args:
             itemp: Temperature index.
         """
-        # arrays have Fortran shape
-        #  [two, nomega, 3, 3, 3, ntemp]
-        mask3 = self.masks[key]
-        assert mask3.shape == (3, 3, 3)
+        # arrays have Fortran shape [two, nomega, num_comp, ntemp]
         if components == "all": components = self.computed_components[key]
         components = list_strings(components)
         if not (self.ntemp > itemp >= 0):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
         od = OrderedDict([(comp, OrderedDict()) for comp in components])
-        for vname in self.CHIS[key]["terms"]:
+        for vname in self.ALL_CHIS[key]["terms"]:
             #print("About to read:", vname)
             var = self.read_variable(vname)
             for comp in components:
-                i, j, k = s2itup(comp)
-                if mask3[i, j, k] != 1:
-                    raise RuntimeError("%s component %s was not computed" % (key, comp))
-                # Note transpose needed to read F --> C
-                values = var[itemp, k, j, i]
+                try:
+                    ijkp = self.computed_components[key].index(comp)
+                except ValueError:
+                    raise ValueError("%s component %s was not computed" % (key, comp))
+                values = var[itemp, ijkp]
                 od[comp][vname] = values[:, 0] + 1j * values[:, 1]
         return od
 
@@ -455,7 +477,7 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
         """
         od = OrderedDict()
         for ncfile in self.ncfiles:
-            for vname in ncfile.reader.CHIS:
+            for vname in ncfile.reader.ALL_CHIS:
                 comps = ncfile.reader.computed_components[vname]
                 if vname not in od:
                     od[vname] = comps
@@ -507,8 +529,18 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_shg_convergence(self, components="all", itemp=0, what_list=("abs",), sortby="nkpt",
-                             decompose=False, xlims=None, **kwargs):
+    def plot_shg_convergence(self, **kwargs):
+        if "what_list" not in kwargs: kwargs["what_list"] = ["abs"]
+        return self.plot_convergence_rank3(key="shg", **kwargs)
+
+    @add_fig_kwargs
+    def plot_leo_convergence(self, **kwargs):
+        if "what_list" not in kwargs: kwargs["what_list"] = ["abs"]
+        return self.plot_convergence_rank3(key="leo", **kwargs)
+
+    @add_fig_kwargs
+    def plot_convergence_rank3(self, key, components="all", itemp=0, what_list=("abs",),
+                               sortby="nkpt", decompose=False, xlims=None, **kwargs):
         """
         Plot convergence of chi2(-2w, w, w)
 
@@ -523,7 +555,6 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
             `matplotlib` figure
         """
         # Build grid plot: computed tensors along the rows, what_list along columns.
-        key = "shg"
         components = self.computed_components_intersection[key]
         import matplotlib.pyplot as plt
         fig, axmat = plt.subplots(nrows=len(components), ncols=len(what_list),
@@ -538,7 +569,7 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
                     ncfile.plot_chi2(key=key, components=comp, what=what, itemp=itemp, decompose=decompose,
                         ax=ax, xlims=xlims, with_xlabel=(i == len(components) - 1),
                         label="%s %s" % (sortby, param) if not callable(sortby) else str(param),
-                        show=False)
+                        show=False, **kwargs)
 
                     if ifile == 0:
                         ax.set_title(ncfile.get_chi2_latex_label(key, what, comp))
@@ -558,7 +589,7 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.OpticRobot(*%s)\nrobot.trim_paths()\nprint(robot)" % str(args)),
+            nbv.new_code_cell("robot = abilab.OpticRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
         ])
 
         for key, comps in self.computed_components_intersection.items():

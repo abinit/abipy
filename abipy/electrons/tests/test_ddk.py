@@ -14,27 +14,28 @@ class DdkTest(AbipyTest):
 
     def test_ddk_api(self):
         """Testing DDK API"""
-        path = "/Users/gmatteo/git_repos/abinit_quick_prs/build_gcc/tests/Test_suite/tutorespfn_toptic_3-toptic_4/toptic_3o_DS4_DDK.nc"
+        path = "/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t1/outdata/out_DDK.nc"
 
         with abilab.abiopen(path) as ddk:
             repr(ddk); str(ddk)
             assert ddk.to_string(verbose=2)
 
+            assert ddk.structure.formula == "Ga1 As1"
             assert ddk.ebands.nsppol == 1 and ddk.ebands.nspden == 1 and ddk.ebands.nspinor == 1
-            assert ddk.ebands.nband == 9
+            assert ddk.ebands.nband == 20
             assert ddk.idir == 1 and ddk.ipert == len(ddk.structure) + 1
             assert ddk.kptopt == 2
+            ksamp = ddk.kpoints.ksampling
+            self.assert_equal(ksamp.kptrlatt_orig.ravel(), [4, 0, 0, 0, 4, 0, 0, 0, 4])
+            self.assert_equal(ksamp.shifts_orig.ravel(),
+                    [0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5])
             assert ddk.kpoints.is_ibz
             ddk.kpoints.check_weights()
             assert np.all(ddk.hdr["qptn"] == 0)
             #assert ddk.xc == "LDA"
 
-            #if self.has_matplotlib():
-            #    assert f.plot_freq(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
-            #    assert f.plot_freq(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)
-
-            #if self.has_nbformat():
-            #    assert ddk.write_notebook(nbpath=self.get_tmpname(text=True))
+            if self.has_nbformat():
+                assert ddk.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class DdkAnalyzerTest(AbipyTest):
@@ -43,9 +44,10 @@ class DdkAnalyzerTest(AbipyTest):
         """Testing DDK analyzer."""
 
         ddk_paths = [
-"/Users/gmatteo/git_repos/abinit_quick_prs/build_gcc/tests/Test_suite/tutorespfn_toptic_3-toptic_4/toptic_3o_DS4_DDK.nc",
-"/Users/gmatteo/git_repos/abinit_quick_prs/build_gcc/tests/Test_suite/tutorespfn_toptic_3-toptic_4/toptic_3o_DS5_DDK.nc",
-"/Users/gmatteo/git_repos/abinit_quick_prs/build_gcc/tests/Test_suite/tutorespfn_toptic_3-toptic_4/toptic_3o_DS6_DDK.nc"]
+"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t1/outdata/out_DDK.nc",
+"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t2/outdata/out_DDK.nc",
+"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t3/outdata/out_DDK.nc",
+]
 
         with DdksAnalyzer(ddk_paths) as dka:
             repr(dka); str(dka)
