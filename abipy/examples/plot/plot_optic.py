@@ -25,7 +25,6 @@ ncfile.plot_shg(title="Second Harmonic Generation")
 # Remember to close the file.
 ncfile.close()
 
-
 # Use OpticRobot to analyze multiple file e.g convergence studies.
 from abipy.electrons.optic import OpticRobot
 

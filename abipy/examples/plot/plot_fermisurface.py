@@ -13,7 +13,7 @@ eb3d = ebands.get_ebands3d()
 
 # Use matplotlib to plot isosurfaces corresponding to the Fermi level (default)
 # Warning: requires skimage package, rendering could be slow.
-#eb3d.plot_isosurfaces()
+eb3d.plot_isosurfaces()
 
 # Alternatively, it's possible to export the data in xcrysden format
 # and then use `xcrysden --bxsf mgb2.bxsf`

@@ -14,9 +14,7 @@ class DdkTest(AbipyTest):
 
     def test_ddk_api(self):
         """Testing DDK API"""
-        path = "/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t1/outdata/out_DDK.nc"
-
-        with abilab.abiopen(path) as ddk:
+        with abilab.abiopen(abidata("gaas_444_dir1_DDK.nc")) as ddk:
             repr(ddk); str(ddk)
             assert ddk.to_string(verbose=2)
 
@@ -43,11 +41,11 @@ class DdkAnalyzerTest(AbipyTest):
     def test_ddk_analyzer(self):
         """Testing DDK analyzer."""
 
-        ddk_paths = [
-"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t1/outdata/out_DDK.nc",
-"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t2/outdata/out_DDK.nc",
-"/Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic/_runflow/w1/t3/outdata/out_DDK.nc",
-]
+        ddk_paths = abidata.ref_files(
+            "gaas_444_dir1_DDK.nc",
+            "gaas_444_dir2_DDK.nc",
+            "gaas_444_dir3_DDK.nc",
+        )
 
         with DdksAnalyzer(ddk_paths) as dka:
             repr(dka); str(dka)

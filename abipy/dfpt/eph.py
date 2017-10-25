@@ -68,7 +68,6 @@ class EphReader(ETSF_Reader):
 
     #def __init__(self, file):
     #    super(EphReader, self).__init__(file)
-
     #    self.eph_lambda = self.read_value("eph_coupling")
     #    raise NotImplementedError("")
 
@@ -79,7 +78,6 @@ class EphReader(ETSF_Reader):
     #def read_lambda(self, spin, qpoint=None):
     #    """
     #    Reads the EPH couping matrix elements
-
     #    spin: Spin index.
     #    qpoint: Qpoint or int. If None all the matrix elements for this spin are read.
     #    """

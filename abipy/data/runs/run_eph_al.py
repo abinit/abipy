@@ -5,7 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import sys
 import numpy as np
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -14,18 +14,18 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Preparatory run for E-PH calculations.
     # The sequence of datasets makes the ground states and
-    # all of the independent perturbations of the single Al atom 
+    # all of the independent perturbations of the single Al atom
     # for the irreducible qpoints in a 4x4x4 grid.
     # Note that the q-point grid must be a sub-grid of the k-point grid (here 8x8x8)
     pseudos = abidata.pseudos("Al.oncvpsp")
 
     structure = abilab.Structure.from_abivars(
         acell=3*[7.5],
-        rprim=[0.0, 0.5, 0.5, 
+        rprim=[0.0, 0.5, 0.5,
                0.5, 0.0, 0.5,
                0.5, 0.5, 0.0],
         typat=1,
@@ -49,14 +49,14 @@ def build_flow(options):
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
     gs_inp.set_kmesh(
-        ngkpt=[8, 8, 8], 
+        ngkpt=[8, 8, 8],
         kptopt=3,
         shiftk=[0.0, 0.0, 0.0],
     )
 
     # Phonon calculation with 4x4x4
     qpoints = np.reshape([
-         0.00000000e+00,  0.00000000e+00,  0.00000000e+00, 
+         0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
          2.50000000e-01,  0.00000000e+00,  0.00000000e+00,
          5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
          2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
@@ -83,7 +83,7 @@ def build_flow(options):
         ph_ndivsm=20,          # q-path for phonons and phonon linewidths.
         ph_nqpath=3,
         ph_qpath= [
-          0  , 0  , 0, 
+          0  , 0  , 0,
           0.5, 0  , 0,
           0.5, 0.5, 0,],
         # phonon DOS obtained via Fourier interpolation
@@ -99,10 +99,10 @@ def build_flow(options):
     eph_task = eph_work.register_eph_task(eph_inp, deps={work0[0]: "WFK", ph_work: ["DDB", "DVDB"]})
     flow.register_work(eph_work)
 
-    # EPH does not support autoparal
+    # EPH does not support autoparal (yet)
     flow.allocate()
     eph_task.with_fixed_mpi_omp(1, 1)
-                                                               
+
     return flow
 
 
@@ -114,5 +114,4 @@ def main(options):
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

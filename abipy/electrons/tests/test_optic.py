@@ -24,7 +24,7 @@ class OpticTest(AbipyTest):
             self.assert_almost_equal(optic.maxomega, 0.3)
             self.assert_almost_equal(optic.scissor, 0.000)
             self.assert_almost_equal(optic.tolerance, 0.002)
-            assert optic.ntemp == 1
+            assert optic.reader.ntemp == 1
 
             assert optic.reader.computed_components["linopt"] == ["xx", "zz"]
             assert optic.reader.computed_components["shg"] == ["xyz", "yyy"]
@@ -33,6 +33,7 @@ class OpticTest(AbipyTest):
 
             # Test plot methods
             if self.has_matplotlib():
+                assert optic.plot_linear_epsilon(show=False)
                 assert optic.plot_linopt(show=False)
                 assert optic.plot_shg(show=False)
                 assert optic.plot_leo(show=False)
