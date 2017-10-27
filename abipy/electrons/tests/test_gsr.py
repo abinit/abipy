@@ -64,6 +64,7 @@ class GSRReaderTestCase(AbipyTest):
             assert isinstance(structure, abipy.core.Structure)
 
 
+
 class GSRFileTestCase(AbipyTest):
 
     def test_gsr_silicon(self):
@@ -77,6 +78,7 @@ class GSRFileTestCase(AbipyTest):
             assert len(gsr.ncdump())
             repr(gsr); str(gsr)
             assert gsr.to_string(verbose=2)
+            assert gsr.abinit_version == "8.0.6"
             str(gsr.ebands)
             assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
             assert gsr.nsppol == 1

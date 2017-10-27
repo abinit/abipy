@@ -16,7 +16,7 @@ from monty.bisect import index as bs_index
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import ArrayPlotter, plot_array, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
@@ -37,7 +37,7 @@ def _latex_symbol_cplxmode(symbol, cplx_mode):
             "angle": r"$Phase(" + symbol + ")$"}[cplx_mode]
 
 
-class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
+class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the `SCR.nc` file produced by the GW code.
 
@@ -92,11 +92,6 @@ class ScrFile(AbinitNcFile, Has_Structure, NotebookWriter):
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     @property
     def structure(self):

@@ -8,7 +8,7 @@ import numpy as np
 from monty.functools import lazy_property
 from monty.string import marquee # is_string, list_strings,
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader, Visualizer
 from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
@@ -19,7 +19,7 @@ __all__ = [
 ]
 
 
-class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -119,11 +119,6 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     def kindex(self, kpoint):
         """The index of the k-point in the file. Accepts :class:`Kpoint` object or int."""

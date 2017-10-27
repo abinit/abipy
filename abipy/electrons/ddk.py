@@ -9,7 +9,7 @@ from monty.string import marquee # is_string, list_strings,
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from abipy.core.func1d import Function1D
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools import gaussian, duck
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, set_axlims
@@ -167,7 +167,7 @@ class DdksAnalyzer(object):
     #def plot_v_on_isosurface(self, **kwargs):
 
 
-class DdkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     File containing the DDK matrix elements for a single `idir` direction
 
@@ -222,11 +222,6 @@ class DdkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     @lazy_property
     def ebands(self):

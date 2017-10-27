@@ -12,7 +12,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from prettytable import PrettyTable
 from abipy.electrons.ebands import ElectronsReader
 
@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     File containing the results of a ground-state calculation.
 
@@ -81,11 +81,6 @@ class GsrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     @property
     def ebands(self):

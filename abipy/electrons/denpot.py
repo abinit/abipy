@@ -9,7 +9,7 @@ import numpy as np
 from monty.string import marquee
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from abipy.core.mixins import (AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter,
+from abipy.core.mixins import (AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
 from abipy.flowtk import Cut3D
 from abipy.core.fields import FieldReader
@@ -51,7 +51,7 @@ class _DenPotNcReader(ElectronsReader, FieldReader):
     """Object used to read data from density/potential files in netcdf format."""
 
 
-class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Base class providing commong methods for netcdf files with density/potential
     """
@@ -80,11 +80,6 @@ class _NcFileWithField(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     def xc(self):
         """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     @lazy_property
     def field(self):

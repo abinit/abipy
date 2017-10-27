@@ -26,7 +26,6 @@ __all__ = [
     "Has_PhononBands",
     "NotebookWriter",
     #"Has_Header",
-    #"AbinitHeader",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
@@ -156,10 +155,16 @@ class AbinitNcFile(_File):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
+    A AbinitNcFile has a netcdf reader to read data from file and build objects.
     """
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+
+    @lazy_property
+    def abinit_version(self):
+        """String with abinit version: three digits separated by comma."""
+        return self.reader.rootgrp.getncattr("abinit_version")
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -507,7 +512,13 @@ from abipy import abilab""")
             pickle.dump(self, fh)
             return filepath
 
-#class Has_AbinitHeader(object)
-#    @lazy_property
-#    def hdr(self)
-#        return self.reader.read_hdr()
+
+class Has_Header(object):
+    """Mixin class for netcdf files with the Abinit header."""
+
+    @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
+
+    #def compare_hdr(self, other):

@@ -10,7 +10,7 @@ import pymatgen.core.units as units
 from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, data_from_cplx_mode
 
@@ -126,7 +126,7 @@ LINEPS_WHAT2EFUNC = dict(
 )
 
 
-class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the results produced by optic. Provides methods to plot optical
     properties and susceptibilty tensors. Used by OpticRobot to analyze multiple files.
@@ -203,11 +203,6 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     @lazy_property
     def ebands(self):

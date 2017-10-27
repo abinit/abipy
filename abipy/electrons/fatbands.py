@@ -12,7 +12,7 @@ from monty.functools import lazy_property
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools import gaussian
 from abipy.tools.plotting import set_axlims
@@ -25,7 +25,7 @@ def gaussians_dos(dos, mesh, width, values, energies, weights):
     return dos
 
 
-class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Provides methods to analyze the data stored in the FATBANDS.nc file.
 
@@ -323,11 +323,6 @@ class FatBandsFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrite
             app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     def get_wl_atom(self, iatom, spin=None, band=None):
         """

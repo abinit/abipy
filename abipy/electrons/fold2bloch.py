@@ -11,14 +11,14 @@ from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 import pymatgen.core.units as units
 from pymatgen.core.lattice import Lattice
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.numtools import gaussian
 
 
-class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     Netcdf file with output data produced by Fold2Bloch.
 
@@ -128,11 +128,6 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookW
     def structure(self):
         """:class:`Structure` object defining the supercell."""
         return self.ebands.structure
-
-    @lazy_property
-    def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
 
     def close(self):
         self.reader.close()

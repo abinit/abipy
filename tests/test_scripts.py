@@ -36,8 +36,9 @@ class ScriptTest(AbipyTest):
     verbose = "-vv"
 
     # Don’t raise an exception if anything is printed to stderr
-    # else tests fail due to deprecation warnings issued by pymatgen if oy2.7
-    expect_stderr = sys.version_info[0] <= 2
+    # else tests fail due to deprecation warnings
+    #expect_stderr = sys.version_info[0] <= 2
+    expect_stderr = True
 
     def get_env(self, check_help_version=True):
         #import tempfile
@@ -61,7 +62,7 @@ class ScriptTest(AbipyTest):
             print("stdout", r.stdout)
             verstr = r.stderr.strip()
             if not verstr: verstr = r.stdout.strip()  # py3k
-            assert verstr == abilab.__version__
+            assert str(verstr) == str(abilab.__version__)
 
         return env
 
