@@ -168,11 +168,6 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    #@lazy_property
-    #def hdr(self):
-    #    """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-    #    return self.reader.read_abinit_hdr()
-
     @lazy_property
     def ebands(self):
         """:class:`ElectronBands` object."""

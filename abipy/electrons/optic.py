@@ -13,6 +13,7 @@ from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, data_from_cplx_mode
+from abipy.abio.robots import Robot, RobotWithEbands
 
 
 def s2itup(comp):
@@ -475,7 +476,7 @@ class OpticReader(ElectronsReader):
         return od
 
 
-from abipy.abio.robots import Robot, RobotWithEbands
+
 
 def ordered_intersection(list_1, list_2):
     """Return ordered intersection of two lists. items must be hashable."""

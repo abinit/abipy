@@ -41,14 +41,15 @@ class OpticTest(AbipyTest):
                 optic.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-from abipy.electrons.optic import OpticRobot
+
 
 class OpticRobotTest(AbipyTest):
 
     def test_optic_robot(self):
         """Test OpticRobot."""
         files = abidata.ref_files("gaas_444_OPTIC.nc", "gaas_888_OPTIC.nc", "gaas_121212_OPTIC.nc")
-        with OpticRobot.from_files(files) as robot:
+        with abilab.OpticRobot.from_files(files) as robot:
+            repr(robot); str(robot)
             robot.to_string(verbose=2)
             assert robot.computed_components_intersection["linopt"] == ["xx", "zz"]
             assert robot.computed_components_intersection["shg"] == ["xyz", "yyy"]

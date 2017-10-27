@@ -9,14 +9,15 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 
-from collections import OrderedDict
+#from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpath
+#from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader
-from abipy.dfpt.phonons import PhononBands, factor_ev2units, unit_tag, dos_label_from_units
+#from abipy.dfpt.phonons import PhononBands, factor_ev2units, unit_tag, dos_label_from_units
+#from abipy.abio.robots import Robot, RobotWithEbands
 
 
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -124,7 +125,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
          #    s = self.reader.read_phgamma_qpath()[0]
          #    scale = 1
          #else:
-         #    raise ValueError("Invalid value fo what: `%s`" % what)
+         #    raise ValueError("Invalid value for what: `%s`" % what)
 
          #color = "blue"
          #for nu in self.phbands.branches:
@@ -155,27 +156,54 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
 
 class SigmaPhReader(ElectronsReader):
-     """
-     Reads data from file and constructs objects.
-     """
-     def read_phbands_qpath(self):
-         """Read and return PhononBands."""
-         structure = self.read_structure()
+    """
+    Reads data from file and constructs objects.
+    """
+    #def read_params(self):
+    #    """Read sigeph input parameters. Return OrderedDict"""
+    #    od = OrderedDict()
+    #    return od
 
-         # Build the list of q-points
-         qpoints = Kpath(structure.reciprocal_lattice,
-                         frac_coords=self.read_value("qpath"),
-                         weights=None, names=None, ksampling=None)
+    #def read_phbands_qpath(self):
+    #    """Read and return PhononBands."""
+    #    structure = self.read_structure()
 
-         #nctkarr_t('phfreq_qpath', "dp", "natom3, nqpath, number_of_spins"),&
-         phfreqs = self.read_value("phfreq_qpath")[0] * units.Ha_to_eV
-         # TODO
-         phdispl_cart = np.zeros((len(qpoints), 3*len(structure), 3*len(structure)))
+    #    # Build the list of q-points
+    #    qpoints = Kpath(structure.reciprocal_lattice,
+    #                    frac_coords=self.read_value("qpath"),
+    #                    weights=None, names=None, ksampling=None)
 
-         return PhononBands(structure=structure,
-                            qpoints=qpoints,
-                            phfreqs=phfreqs,
-                            phdispl_cart=phdispl_cart,
-                            non_anal_ph=None,
-                            amu=self.read_value("atomic_mass_units"),
-                            )
+    #    #nctkarr_t('phfreq_qpath', "dp", "natom3, nqpath, number_of_spins"),&
+    #    phfreqs = self.read_value("phfreq_qpath")[0] * units.Ha_to_eV
+    #    # TODO
+    #    phdispl_cart = np.zeros((len(qpoints), 3*len(structure), 3*len(structure)))
+
+    #    return PhononBands(structure=structure,
+    #                       qpoints=qpoints,
+    #                       phfreqs=phfreqs,
+    #                       phdispl_cart=phdispl_cart,
+    #                       non_anal_ph=None,
+    #                       amu=self.read_value("atomic_mass_units"),
+    #                       )
+
+
+class SigEphRobot(Robot, RobotWithEbands, NotebookWriter):
+    """
+    This robot analyzes the results contained in multiple SIGEPH.nc files.
+    """
+    EXT = "SIGEPH"
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

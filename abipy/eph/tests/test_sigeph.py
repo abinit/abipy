@@ -10,7 +10,7 @@ from abipy.core.testing import AbipyTest
 
 class SigEPhFileTest(AbipyTest):
 
-    def test_sigmadph_file(self):
+    def test_sigeph_file(self):
         """Tests for SigEPhFile."""
         return
         ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc"))
@@ -33,3 +33,20 @@ class SigEPhFileTest(AbipyTest):
 
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+    def test_sigeph_robot(self):
+        """Tests for SigEPhRobot."""
+        return
+
+        with abilab.SigEPhRobot(filepaths) as robot:
+            robot.to_string(verbose=2)
+
+            # Test plot methods
+            if self.has_matplotlib():
+                assert robot.plot_linopt_convergence(show=False)
+                assert robot.plot_shg_convergence(show=False)
+                assert robot.plot_leo_convergence(show=False)
+
+            if self.has_nbformat():
+                robot.write_notebook(nbpath=self.get_tmpname(text=True))

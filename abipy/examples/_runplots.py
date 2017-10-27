@@ -14,7 +14,7 @@ import time
 import argparse
 
 from subprocess import call, Popen
-from abipy.core.testing import change_matplotlib_backend, revert_matplotlib_backend
+#from abipy.core.testing import change_matplotlib_backend, revert_matplotlib_backend
 
 
 def str_examples():
@@ -37,7 +37,7 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 def main():
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-b', '--backend', type=str, default="",
+    parser.add_argument('-b', '--backend', type=str, default="Agg",
                         help="matplotlib backend e.g. Agg for non-graphical display.")
 
     parser.add_argument('-m', '--mode', type=str, default="automatic",
@@ -48,12 +48,11 @@ def main():
 
     options = parser.parse_args()
 
-    #import matplotlib
-    #if options.backend:
-    #    print("Using ", matplotlib.backend, "matplotlib backend")
-    #    matplotlib.use(matplotlib.backend)
-
-    change_matplotlib_backend(new_backend=options.backend)
+    import matplotlib
+    if options.backend:
+        print("Using ", options.backend, "matplotlib backend")
+        matplotlib.use(options.backend)
+    #change_matplotlib_backend(new_backend=options.backend)
 
     # Find scripts.
     root = os.path.join(os.path.dirname(__file__), "plot")
@@ -89,7 +88,6 @@ def main():
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
 
-    revert_matplotlib_backend()
     return retcode
 
 

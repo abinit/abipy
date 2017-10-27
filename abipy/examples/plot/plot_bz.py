@@ -13,7 +13,7 @@ wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
 structure = wfk_file.structure
 
 # Visualize the BZ.
-structure.show_bz()
+structure.plot_bz()
 
 # Close the wfk file
 wfk_file.close()

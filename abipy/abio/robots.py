@@ -1,5 +1,8 @@
 # coding: utf-8
-"""Robots."""
+"""
+This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
+functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
@@ -13,7 +16,6 @@ from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.analysis.eos import EOS
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.flowtk import Flow
 from abipy.core.mixins import NotebookWriter
 
 
@@ -55,8 +57,7 @@ def abirobot(obj, ext, nids=None):
 
 class Robot(object):
     """
-    The main function of a `Robot` is facilitating the extraction of the output data produced by
-    multiple tasks in a :class:`Flow`. This is the base class from which all Robot subclasses should derive.
+    This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
 
     Usage example:
@@ -465,6 +466,7 @@ class Robot(object):
         has_dirpath = False
         if is_string(obj):
             try:
+                from abipy.flowtk import Flow
                 obj = Flow.pickle_load(obj)
             except:
                 has_dirpath = True
@@ -529,41 +531,11 @@ class Robot(object):
         ncfiles = self.ncfiles if filter_abifile is not None else list(filter(filter_abifile, self.ncfiles))
         return frames_from_structures(struct_objects=ncfiles, **kwargs)
 
-    #def ncread_and_plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):
-    #    """
-    #    Ex:
-    #        plot_variables("ecut", "etotal")
-    #    """
-    #    title = kwargs.pop("title", None)
-    #    show = kwargs.pop("show", True)
-    #    savefig = kwargs.pop("savefig", None)
-
-    #    # Read the value of varname from the files.
-    #    xx, yy = [], []
-    #    for filepath in self.filepaths:
-    #        with GsrReader(filepath) as r:
-    #            xx.append(r.read_value(varname_x))
-    #            yy.append(r.read_value(varname_y))
-
-    #    import matplotlib.pyplot as plt
-    #    fig = plt.figure()
-    #    ax = fig.add_subplot(1,1,1)
-
-    #    ax.plot(xx, yy, "o-", **kwargs)
-
-    #    if hspan is not None:
-    #        last = yy[-1]
-    #        ax.axhspan(last - hspan, last + hspan, facecolor='0.5', alpha=0.5)
-
-    #    if title is not None: fig.suptitle(title)
-    #    if show: plt.show()
-    #    if savefig is not None: fig.savefig(savefig)
-
-    #    return fig
-
 
 class RobotWithEbands(object):
-    """Mixin class for robots associated to files with `ElectronBands`."""
+    """
+    Mixin class for robots associated to files with `ElectronBands`.
+    """
 
     def get_ebands_plotter(self, filter_abifile=None, cls=None):
         """

@@ -60,8 +60,8 @@ class ScriptTest(AbipyTest):
             assert r.returncode == 0
             print("stderr", r.stderr)
             print("stdout", r.stdout)
-            verstr = r.stderr.strip()
-            if not verstr: verstr = r.stdout.strip()  # py3k
+            verstr = r.stdout.strip()
+            #if not verstr: verstr = r.stdout.strip()  # py3k
             assert str(verstr) == str(abilab.__version__)
 
         return env
