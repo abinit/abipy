@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-This module contains objects for the postprocessing of EPH calculations.
+This module contains objects for the postprocessing of Sigma_eph calculations.
 
 Warning:
     Work in progress, DO NOT USE THIS CODE
@@ -19,7 +19,7 @@ from abipy.electrons.ebands import ElectronsReader
 from abipy.dfpt.phonons import PhononBands, factor_ev2units, unit_tag, dos_label_from_units
 
 
-class SigmaPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
      """
      This file contains the Fan-Migdal self-energy, the ElectronBands on the k-mesh.
      Provides methods to analyze and plot results.
@@ -28,7 +28,7 @@ class SigmaPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 
      .. code-block:: python
 
-         with SigmaPhFile("out_SIGMAPH.nc") as ncfile:
+         with SigEPhFile("out_SIGMAPH.nc") as ncfile:
              print(ncfile)
              ncfile.ebands.plot()
      """
@@ -38,7 +38,7 @@ class SigmaPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
          return cls(filepath)
 
      def __init__(self, filepath):
-         super(SigmaPhFile, self).__init__(filepath)
+         super(SigEPhFile, self).__init__(filepath)
          self.reader = SigmaPhReader(filepath)
 
      def __str__(self):

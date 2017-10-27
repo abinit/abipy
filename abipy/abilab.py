@@ -66,7 +66,7 @@ from abipy.waves import WfkFile
 
 # TODO Change name.
 from abipy.eph.eph import EphFile
-#from abipy.eph.sigmaph import SigmaPhFile
+#from abipy.eph.sigeph import SigEPhFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -114,7 +114,6 @@ abiext2ncfile = collections.OrderedDict([
     ("PHDOS.nc", PhdosFile),
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
-    #("SIGMAPH.nc", SigmaPhFile),
     ("GRUNS.nc", GrunsNcFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
@@ -122,6 +121,7 @@ abiext2ncfile = collections.OrderedDict([
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
     ("OPTIC.nc", OpticNcFile),
     ("EPH.nc", EphFile),
+    #("SIGEPH.nc", SigEPhFile),
 ])
 
 
@@ -204,7 +204,6 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
-    #print(filepath)
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 

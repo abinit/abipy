@@ -116,7 +116,6 @@ def has_phonopy(version=None, op=">="):
     """
     try:
         import phonopy
-
     except ImportError:
         print("Skipping phonopy test")
         return False
@@ -139,15 +138,6 @@ def get_mock_module():
             raise
 
     return mock
-
-
-#def has_fireworks():
-#    """True if fireworks is installed."""
-#    try:
-#        import fireworks
-#        return True
-#    except ImportError:
-#        return False
 
 
 #def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None, password=None):
@@ -273,18 +263,6 @@ class AbipyTest(PymatgenTest):
 
     SkipTest = unittest.SkipTest
 
-    #def setUp(self):
-    #    import matplotlib
-    #    matplotlib.use("Agg")
-    #    backend = matplotlib.get_backend()
-    #    #if backend.lower() != "agg": raise RuntimeError("matplotlib backend now is %s" % backend)
-
-    #def tearDown(self):
-    #    import matplotlib
-    #    #backend = matplotlib.get_backend()
-    #    #if backend.lower() != "agg": raise RuntimeError("matplotlib backend now is %s" % backend)
-    #    matplotlib.use("Agg")
-
     @staticmethod
     def which(program):
         """Returns full path to a executable. None if not found or not executable."""
@@ -319,7 +297,7 @@ class AbipyTest(PymatgenTest):
         True if Mayavi is available. Set also offscreen to True
         """
         # Disable mayavi for the time being.
-        return False
+        #return False
         # This to run mayavi tests only on Travis
         if not os.environ.get("TRAVIS"): return False
         try:
@@ -375,7 +353,7 @@ class AbipyTest(PymatgenTest):
     def has_ipywidgets():
         """Return True if ipywidgets is available."""
         # Disable widget tests on TRAVIS
-        if os.environ.get("TRAVIS"): return False
+        #if os.environ.get("TRAVIS"): return False
         try:
             import ipywidgets as ipw
             return True
@@ -568,41 +546,3 @@ class AbipyFileTest(AbipyTest):
         last = ref.split(expression1)[-1]
 
         return self.assertRegexpMatches(last, expression2)
-
-
-#CONF_FILE = None
-#BKP_FILE = None
-
-
-#def change_matplotlib_backend(new_backend=""):
-#    """Change the backend by modifying the matplotlib configuration file."""
-#    global CONF_FILE, BKP_FILE
-#
-#    if not new_backend:
-#        return
-#
-#    home = os.environ["HOME"]
-#    CONF_FILE = conf_file = os.path.join(home, ".matplotlib", "matplotlibrc")
-#
-#    BKP_FILE = conf_file + ".bkp"
-#
-#    if os.path.exists(conf_file):
-#        shutil.copy(conf_file, BKP_FILE)
-#
-#        with open(conf_file, "rt") as f:
-#            lines = f.readlines()
-#
-#        for i, line in enumerate(lines):
-#            if line.strip().startswith("backend"):
-#                lines[i] = "backend : " + new_backend + "\n"
-#
-#        with open(conf_file, "w") as f:
-#            f.writelines(lines)
-
-
-#def revert_matplotlib_backend():
-#    """Revert matplotlib backend to the previous value."""
-#    global CONF_FILE, BKP_FILE
-#    # print("reverting: BKP_FILE %s --> CONF %s" % (BKP_FILE, CONF_FILE))
-#    if BKP_FILE is not None:
-#        shutil.move(BKP_FILE, CONF_FILE)

@@ -8,10 +8,10 @@ import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 
 
-class SigmaPhFileTest(AbipyTest):
+class SigEPhFileTest(AbipyTest):
 
-    def test_sigmaph_file(self):
-        """Tests for SigmaPhFile."""
+    def test_sigmadph_file(self):
+        """Tests for SigEPhFile."""
         return
         ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc"))
         repr(ncfile); str(ncfile)
