@@ -696,9 +696,37 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
                              nshiftk=len(shiftk), shiftk=shiftk)
 
+    def set_phdos_qmesh(self, nqsmall, method="tetra", ph_qshift=(0, 0, 0)):
+        """
+        Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.
+        Remember that the Phdos is computed via Fourier interpolation so there's no costraint
+        of the q-mesh.
+
+        Args:
+            nqsmall: Number of k-points used to sample the smallest lattice vector.
+            method: gaussian or tetra.
+            ph_qshift:
+        """
+        # q-mesh for Fourier interpolatation of IFC and a2F(w)
+        ph_ngqpt = self.structure.calc_ngkpt(nqsmall)
+        ph_qshift = np.reshape(ph_qshift, (-1, 3))
+
+        # TODO: Define wstep and smear
+        ph_intmeth = {"gaussian": 1, "tetra": 2}[method]
+        ph_smear = "0.001 eV" if method == "gaussian" else None
+
+        return self.set_vars(
+            ph_intmeth=ph_intmeth,
+            ph_smear=ph_smear,
+            ph_wstep="0.0001 eV",
+            ph_ngqpt=ph_ngqpt,
+            ph_qshift=ph_qshift,
+            ph_nqshift=len(ph_qshift),
+        )
+
     def set_kpath(self, ndivsm, kptbounds=None, iscf=-2):
         """
-        Set the variables for the computation of the band structure.
+        Set the variables for the computation of the electronic band structure.
 
         Args:
             ndivsm: Number of divisions for the smallest segment.
@@ -709,6 +737,21 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         kptbounds = np.reshape(kptbounds, (-1,3))
 
         return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
+
+    def set_qpath(self, ndivsm, qptbounds=None):
+        """
+        Set the variables for the computation of the phonon band structure
+        and phonon linewidths.
+
+        Args:
+            ndivsm: Number of divisions for the smallest segment.
+            qptbounds: q-points defining the path in q-space.
+                If None, we use the default high-symmetry q-path defined in the pymatgen database.
+        """
+        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
+        qptbounds = np.reshape(qptbounds, (-1, 3))
+
+        return self.set_vars(ph_ndivsm=ndivsm, ph_nqpath=len(qptbounds), ph_qpath=qptbounds)
 
     def set_kptgw(self, kptgw, bdgw):
         """

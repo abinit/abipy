@@ -177,7 +177,13 @@ class TestAbinitInput(AbipyTest):
         assert inp["kptopt"] == 1 and np.all(inp["ngkpt"] == [2, 2, 2]) and inp["nshiftk"] == 4
 
         inp.set_kpath(ndivsm=3, kptbounds=None)
-        assert inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
+        assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
+
+        inp.set_qpath(ndivsm=3, qptbounds=None)
+        assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3
+
+        inp.set_phdos_qmesh(nqsmall=16, method="tetra")
+        assert inp["ph_intmeth"] == 2 and np.all(inp["ph_ngqpt"] == 16) and np.all(inp["ph_qshift"] == 0)
 
         inp.set_kptgw(kptgw=(1, 2, 3, 4, 5, 6), bdgw=(1, 2))
         assert inp["nkptgw"] == 2 and np.all(inp["bdgw"].ravel() == np.array(len(inp["kptgw"]) * [1,2]).ravel())

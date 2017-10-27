@@ -6,12 +6,11 @@ import numpy as np
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.dfpt.eph import EphReader, EliashbergFunction
 
 
-class EliashbergFunctionTest(AbipyTest):
-    """Tests for EliashbergFunction."""
+#class EliashbergFunctionTest(AbipyTest):
+#    """Tests for EliashbergFunction."""
 
 
-class EphReaderTest(AbipyTest):
-    """Tests for EphReader."""
+#class EphReaderTest(AbipyTest):
+#    """Tests for EphReader."""

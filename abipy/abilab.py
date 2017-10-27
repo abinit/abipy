@@ -54,7 +54,7 @@ from abipy.electrons.scr import ScrFile
 from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile,
     Cut3dDenPotNcFile)
 from abipy.electrons.fatbands import FatBandsFile
-from abipy.electrons.optic import OpticNcFile
+from abipy.electrons.optic import OpticNcFile, OpticRobot
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
@@ -63,7 +63,10 @@ from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
-#from abipy.electrons.sigmaph import SigmaPhFile
+
+# TODO Change name.
+from abipy.eph.eph import EphFile
+#from abipy.eph.sigmaph import SigmaPhFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -118,6 +121,7 @@ abiext2ncfile = collections.OrderedDict([
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
     ("OPTIC.nc", OpticNcFile),
+    ("EPH.nc", EphFile),
 ])
 
 

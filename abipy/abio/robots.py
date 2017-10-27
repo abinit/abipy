@@ -609,6 +609,12 @@ class RobotWithEbands(object):
     #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
 
 
+# TODO: Reorganize, rename methods see DDB robot.
+class RobotWithPhbands(object):
+    """Mixin class for robots associated to files with `PhononBands`."""
+
+
+
 
 class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
     """
@@ -1047,6 +1053,7 @@ class DdbRobot(Robot, NotebookWriter):
         row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
+    # TODO: Is this really needed?
     def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
         """
         Plot the convergence of the phonon frequencies.

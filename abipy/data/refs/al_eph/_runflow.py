@@ -108,6 +108,16 @@ def main(options):
     flow.build_and_pickle_dump()
     return flow
 
-
 if __name__ == "__main__":
-    sys.exit(main())
+    #retcode = main()
+    #if retcode != 0: sys.exit(retcode)
+
+    rename_table = [
+        #  src, dest
+        ("_runflow/w2/t0/outdata/out_EPH.nc", "al_888k_161616q_EPH.nc"),
+    ]
+    import shutil
+    for old, new in rename_table:
+        shutil.copyfile(old, new)
+    #shutil.rmtree("_runflow")
+    sys.exit(0)

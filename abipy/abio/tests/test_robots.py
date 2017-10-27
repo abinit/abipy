@@ -18,10 +18,12 @@ class RobotTest(AbipyTest):
         # With context.
         with Robot() as robot:
             repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
             assert robot._repr_html_()
             assert len(robot) == 0 and not robot.exceptions
 
-        assert Robot.class_for_ext("DDB") is DdbRobot
+        assert Robot.class_for_ext("DDB") is abilab.DdbRobot
+        assert Robot.class_for_ext("OPTIC") is abilab.OpticRobot
         with self.assertRaises(ValueError):
             Robot.for_ext("foo")
 
@@ -39,7 +41,6 @@ class RobotTest(AbipyTest):
             robot.add_file("gsr0", gsr_path)
 
         assert len(robot) == 1 and not robot.exceptions
-
         robot.add_file("gsr1", abilab.abiopen(gsr_path))
         assert len(robot) == 2
         robot.show_files()
@@ -88,6 +89,7 @@ class RobotTest(AbipyTest):
 
             assert robot.EXT == "SIGRES"
             repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
             assert robot._repr_html_()
 
             label_ncfile_param = robot.sortby("nband")
@@ -134,29 +136,29 @@ class RobotTest(AbipyTest):
 
         robot.close()
 
-    #def test_ddb_robot(self):
-    #    """Testing DDB robots."""
-    #    filepaths = abidata.ref_files(
-    #    )
-    #assert not DdbRobot.class_handles_filename(filepaths[0])
-    #    assert len(filepaths) == 3
-    #    repr(robot); str(robot)
-    #     df = robot.get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True, **kwargs):
+    def test_ddb_robot(self):
+        """Testing DDB robots."""
+        assert not abilab.DdbRobot.class_handles_filename("foo_DDB.nc")
+        assert abilab.DdbRobot.class_handles_filename("foo_DDB")
 
-    #     phbands_plotter = robot.get_phbands_plotter()
-    #     phdos_plotter = robot.get_phbands_plotter()
-    #     if self.has_matplotlib():
-    #       phbands_plotter.gridplot(show=False)
-    #       phdos_plotter.gridplot(show=False)
+        path = abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB")
+        robot = abilab.DdbRobot.from_files(path)
+        robot.add_file("same_ddb", path)
+        repr(robot); str(robot)
+        assert robot.to_string(verbose=2)
+        assert len(robot) == 2
+        assert robot.EXT == "DDB"
 
-    #     with DdbRobot.from_files(filepaths) as robot:
-    #         assert robot.EXT == "DDB"
-    #         robot.get_qpoints_union()
-    #         df = robot.get_dataframe_at_qpoint(qpoint=None, asr=2, chneut=1, dipdip=1)
-    #         if self.has_seaborn():
-    #             robot.plot_conv_qpgap(x_vars="sigma_nband", show=False)
+        data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
+                dipdip=0, with_geo=True, abspath=True, verbose=2)
+        assert "mode1" in data and "angle1" in data
 
-    #if self.has_nbformat():
-    #    robot.write_notebook(nbpath=self.get_tmpname(text=True))
+        r = robot.get_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
+        if self.has_matplotlib():
+           assert r.phbands_plotter.gridplot(show=False)
+           assert r.phdos_plotter.gridplot(show=False)
 
-    #robot.close()
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

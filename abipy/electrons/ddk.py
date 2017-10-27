@@ -150,7 +150,7 @@ class DdksAnalyzer(object):
             ax = plt.subplot(gspec[i + 1], sharey=ax_ebands)
             ax_doses.append(ax)
             ax.grid(True)
-            set_axlims(ax, ylims, "x")
+            set_axlims(ax, ylims, "y")
 
         # Plot electron bands.
         ebands_kpath.plot(ax=ax_ebands, ylims=ylims, show=False)

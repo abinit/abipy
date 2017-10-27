@@ -51,6 +51,10 @@
 
     Optical spectra with Optic.
 
+``run_optic_new``:
+
+    Optical spectra with Optic.
+
 ``run_phfrozen_ebands``:
 
     Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
@@ -74,12 +78,12 @@
 
 ``run_raman``:
 
-    This script shows how to perform a RAMAN calculation with 
+    This script shows how to perform a RAMAN calculation with
     excitonic effects included with the BSE formalism.
 
 ``run_raman_optic``:
 
-    This script shows how to perform a RAMAN calculation with excitonic effects 
+    This script shows how to perform a RAMAN calculation with excitonic effects
     included with the BSE formalism.
 
 ``run_relax``:

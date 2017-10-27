@@ -14,20 +14,25 @@ matrix:
 #      language: generic
 #      env: PYTHON_VERSION=2.7
 
-sudo: false
 #dist: precise
+sudo: false
 install:
   #- sudo apt-get update
   - env
+
+  # pip-based installation.
+  #- pip install numpy
+  #- travis_wait pip install -q -r requirements.txt
+  #- travis_wait pip install -q -r requirements-optional.txt
 
   # Install conda https://conda.io/docs/travis.html
   - source dev_scripts/conda_installer.sh
 
   # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
-  - conda install gcc 
-  - conda install libgcc
-  - conda install scipy sympy
+  #- conda install gcc 
+  #- conda install libgcc
+  #- conda install scipy sympy
   - conda install pandas
   - conda install netcdf4 
   # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
@@ -52,7 +57,7 @@ install:
 
   # Get pymatgen from matsci
   - conda config --add channels matsci
-  - conda install pymatgen #=4.7.2
+  - conda install pymatgen
 
   # Use my pymatgen fork
   #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../

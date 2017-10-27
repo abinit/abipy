@@ -105,9 +105,9 @@ def find_ncfiles(top, verbose=0):
         dictionary with mapping: basename --> absolute path.
     """
     ncfiles = {}
-    for dirpath, dirnames, filenames in os.walk(top):
-        if "tmp_" in dirpath:
-            continue
+    for dirpath, dirnames, filenames in os.walk(top, topdown=True):
+        #if "tmp_" in dirpath: continue
+        dirnames[:] = [d for d in dirnames if not (d.startswith("tmp_") or d.startswith("_"))]
 
         for basename in filenames:
             apath = os.path.join(dirpath, basename)
@@ -116,12 +116,10 @@ def find_ncfiles(top, verbose=0):
                 if basename in ncfiles:
                     err_msg =  "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
-
                     if not verbose:
                         import warnings
                         warnings.warn(err_msg)
                         #raise ValueError(err_msg)
-
                 else:
                     ncfiles[basename] = apath
 

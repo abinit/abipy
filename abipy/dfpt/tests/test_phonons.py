@@ -10,7 +10,7 @@ import abipy.data as abidata
 from abipy import abilab
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
         PhononBandsPlotter, PhononDosPlotter, frame_from_phbands)
-from abipy.dfpt.phonons import _factor_ev2units, _unit_tag, _dos_label_from_units
+from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
 
@@ -21,11 +21,11 @@ class TestUnitTools(AbipyTest):
 
     def test_units_api(self):
         for units in ["ev", "meV" ,"ha", "cm-1", "cm^-1", "Thz"]:
-            _factor_ev2units(units)
-            _unit_tag(units)
-            _dos_label_from_units(units)
+            factor_ev2units(units)
+            unit_tag(units)
+            dos_label_from_units(units)
 
-        for func in [_factor_ev2units, _unit_tag, _dos_label_from_units]:
+        for func in [factor_ev2units, unit_tag, dos_label_from_units]:
             with self.assertRaises(KeyError):
                 func("foo")
 
@@ -67,7 +67,7 @@ class PhononBandsTest(AbipyTest):
 
         assert phbands.minfreq == 0.0
         #self.assertEqual(phbands.maxfreq, 30)
-        assert phbands.factor_ev2units("eV") == _factor_ev2units("eV")
+        assert phbands.factor_ev2units("eV") == factor_ev2units("eV")
 
         # Test XYZ vib
         phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])

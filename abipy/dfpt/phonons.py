@@ -38,7 +38,7 @@ __all__ = [
     "PhdosFile",
 ]
 
-def _factor_ev2units(units):
+def factor_ev2units(units):
     """
     Return conversion factor eV --> units (case-insensitive)
     """
@@ -52,7 +52,7 @@ def _factor_ev2units(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def _unit_tag(units):
+def unit_tag(units):
     d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
          "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
          }
@@ -62,7 +62,7 @@ def _unit_tag(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def _dos_label_from_units(units):
+def dos_label_from_units(units):
     d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
          "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
          "thz": '[states/Thz]',
@@ -205,7 +205,7 @@ class PhononBands(object):
         """
         Return conversion factor eV --> units (case-insensitive)
         """
-        return _factor_ev2units(units)
+        return factor_ev2units(units)
 
     def read_non_anal_from_file(self, filepath):
         """
@@ -426,7 +426,7 @@ class PhononBands(object):
             f.write(s)
             f.write("\n")
 
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
         wqnu_units = self.phfreqs * factor
 
         import datetime
@@ -465,7 +465,7 @@ class PhononBands(object):
 
         w('@xaxis  ticklabel char size 1.500000')
         w('@yaxis  tick major 10')
-        w('@yaxis  label "Phonon %s"' % _unit_tag(units))
+        w('@yaxis  label "Phonon %s"' % unit_tag(units))
         w('@yaxis  label char size 1.500000')
         w('@yaxis  ticklabel char size 1.500000')
         for nu in self.branches:
@@ -844,6 +844,10 @@ class PhononBands(object):
             json.dump(data, json_file, indent=indent)
 
     def decorate_ax(self, ax, units='eV', **kwargs):
+        """
+        Add k-labels, title and unit name to axis ax.
+        Use units = "" to add k-labels without adding unit name.
+        """
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
         ax.grid(True)
@@ -862,7 +866,8 @@ class PhononBands(object):
         elif units == 'thz':
             ax.set_ylabel(r'Frequency [Thz]')
         else:
-            raise ValueError('Value for units `{}` unknown'.format(units))
+            if units:
+                raise ValueError('Value for units `{}` unknown'.format(units))
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
@@ -877,7 +882,8 @@ class PhononBands(object):
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
@@ -926,7 +932,7 @@ class PhononBands(object):
         first_xx = 0
         lines = []
 
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
 
         for i, pf in enumerate(self.split_phfreqs):
             if match_bands:
@@ -974,7 +980,7 @@ class PhononBands(object):
 
         first_xx = 0
         lines = []
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
 
         if max_colors is None:
             max_colors = len(branch_range)
@@ -1208,7 +1214,7 @@ class PhononBands(object):
             `matplotlib` figure.
         """
         lw = kwargs.pop("lw", 2)
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
         ntypat = self.structure.ntypesp
 
         # Prepare PJDOS.
@@ -1350,7 +1356,7 @@ class PhononBands(object):
         self.plot_ax(ax1, branch=None, units=units, **kwargs)
         self.decorate_ax(ax1, units=units, qlabels=qlabels)
 
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
         emin = np.min(self.minfreq)
         emin -= 0.05 * abs(emin)
         emin *= factor
@@ -1418,8 +1424,8 @@ class PhononBands(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        factor = _factor_ev2units(units)
-        yname = "freq %s" % _unit_tag(units)
+        factor = factor_ev2units(units)
+        yname = "freq %s" % unit_tag(units)
         frame[yname] = factor * frame["freq"]
 
         import seaborn.apionly as sns
@@ -1749,7 +1755,7 @@ class PhononDos(Function1D):
 
         for c in opts:
             f = {"d": self, "i": self.idos}[c]
-            xfactor = _factor_ev2units(units)
+            xfactor = factor_ev2units(units)
             # Don't rescale IDOS
             yfactor = 1 / xfactor if c == "d" else 1
 
@@ -1781,9 +1787,9 @@ class PhononDos(Function1D):
         for ax in (ax1, ax2):
             ax.grid(True)
 
-        ax2.set_xlabel('Energy %s' % _unit_tag(units))
+        ax2.set_xlabel('Energy %s' % unit_tag(units))
         ax1.set_ylabel("IDOS [states]")
-        ax2.set_ylabel("DOS %s" % _dos_label_from_units(units))
+        ax2.set_ylabel("DOS %s" % dos_label_from_units(units))
 
         self.plot_dos_idos(ax1, what="i", units=units, **kwargs)
         self.plot_dos_idos(ax2, what="d", units=units, **kwargs)
@@ -2077,7 +2083,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             matplotlib figure.
         """
         lw = kwargs.pop("lw", 2)
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
 
         ax, fig, plt = get_ax_fig_plt(ax)
         cmap = plt.get_cmap(colormap)
@@ -2085,8 +2091,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
-        ax.set_xlabel('Frequency %s' % _unit_tag(units))
-        ax.set_ylabel('PJDOS %s' % _dos_label_from_units(units))
+        ax.set_xlabel('Frequency %s' % unit_tag(units))
+        ax.set_ylabel('PJDOS %s' % dos_label_from_units(units))
 
         # Type projected DOSes.
         num_plots = len(self.pjdos_symbol)
@@ -2133,7 +2139,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         lw = kwargs.pop("lw", 2)
         ntypat = self.structure.ntypesp
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
 
         # Three rows for each reduced direction.
         # Each row shows the contribution of each atomic type + Total PH DOS.
@@ -2158,7 +2164,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if idir in (0, 2):
                 ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
                 if idir == 2:
-                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+                    ax.set_xlabel('Frequency %s' % unit_tag(units))
 
             # Plot Type projected DOSes along reduced direction idir
             cumulative = np.zeros(len(self.wmesh))
@@ -2201,7 +2207,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             `matplotlib` figure
         """
         # Define num_plots and ax2atom depending on view.
-        factor = _factor_ev2units(units)
+        factor = factor_ev2units(units)
         natom, ntypat = len(self.structure), self.structure.ntypesp
         lw = kwargs.pop("lw", 2)
 
@@ -2238,7 +2244,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if idir in (0, 2):
                 ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
                 if idir == 2:
-                    ax.set_xlabel('Frequency %s' % _unit_tag(units))
+                    ax.set_xlabel('Frequency %s' % unit_tag(units))
 
             # Plot Type projected DOSes along reduced direction idir
             cumulative = np.zeros(len(self.wmesh))
@@ -2688,8 +2694,8 @@ class PhononBandsPlotter(NotebookWriter):
         ax.grid(True)
 
         # Create column with frequencies in `units`.
-        factor = _factor_ev2units(units)
-        yname = "freq %s" % _unit_tag(units)
+        factor = factor_ev2units(units)
+        yname = "freq %s" % unit_tag(units)
         data[yname] = factor * data["freq"]
 
         sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
@@ -2866,8 +2872,8 @@ class PhononDosPlotter(NotebookWriter):
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
-        ax.set_xlabel('Energy %s' % _unit_tag(units))
-        ax.set_ylabel('DOS %s' % _dos_label_from_units(units))
+        ax.set_xlabel('Energy %s' % unit_tag(units))
+        ax.set_ylabel('DOS %s' % dos_label_from_units(units))
 
         lines, legends = [], []
         for label, dos in self._phdoses_dict.items():
@@ -2917,8 +2923,8 @@ class PhononDosPlotter(NotebookWriter):
             ax = axes[i]
             phdos.plot_dos_idos(ax, units=units)
 
-            ax.set_xlabel('Energy %s' % _unit_tag(units))
-            ax.set_ylabel("DOS %s" % _dos_label_from_units(units))
+            ax.set_xlabel('Energy %s' % unit_tag(units))
+            ax.set_ylabel("DOS %s" % dos_label_from_units(units))
             ax.set_title(label)
             ax.grid(True)
             set_axlims(ax, xlims, "x")

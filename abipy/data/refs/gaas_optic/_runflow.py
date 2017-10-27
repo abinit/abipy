@@ -104,8 +104,9 @@ if __name__ == "__main__":
         ("_runflow/w1/t2/outdata/out_DDK.nc", "gaas_444_dir2_DDK.nc"),
         ("_runflow/w1/t3/outdata/out_DDK.nc", "gaas_444_dir3_DDK.nc"),
     ]
-    for old, new in rename_table:
-        os.rename(old, new)
     import shutil
+    for old, new in rename_table:
+        shutil.copyfile(old, new)
+
     #shutil.rmtree("_runflow")
     sys.exit(0)

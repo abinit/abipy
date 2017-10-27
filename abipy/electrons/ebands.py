@@ -2912,7 +2912,7 @@ class ElectronDos(object):
                   "d" for DOS, "i" for IDOS. chars can be concatenated
                   hence what="id" plots both IDOS and DOS. (default "d").
             fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
-            exchange_xy: True to exchange x-y axes.
+            exchange_xy: True to exchange x-y axis.
             kwargs:
                 Options passes to matplotlib.
 

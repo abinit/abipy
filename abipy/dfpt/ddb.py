@@ -396,7 +396,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         try:
             self.qindex(qpoint)
         except:
-            raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
+            raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                qpoint, self.filepath, self.qpoints))
 
         #if lo_to_splitting and not self.has_lo_to_data:
         #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
@@ -739,7 +740,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             string = "%10s%s"%(variable,string.replace('e','D'))
             header_lines += string.split('\n')
-        
+
         #skip all the variables
         n = 0
         while True:

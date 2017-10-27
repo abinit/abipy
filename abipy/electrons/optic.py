@@ -20,7 +20,7 @@ def s2itup(comp):
     Convert string in the form `xx`, `xyz` into tuple of two (three) indices
     that can be used to slice susceptibility tensors (numpy array).
 
-    >>> assert s2itup("yy") == (0, 1)
+    >>> assert s2itup("yy") == (1, 1)
     >>> assert s2itup("xyz") == (0, 1, 2)
     """
     d = {"x": 0, "y": 1, "z": 2}
@@ -38,7 +38,7 @@ def itup2s(t):
     Convert tuple of 2 (3) integers into string in the form `xx` (`xyz`).
     Assume C-indexing e.g. 0 --> x
 
-    >>> assert itup2s((0, 1)) == "yy"
+    >>> assert itup2s((0, 1)) == "xy"
     >>> assert itup2s((0, 1, 2)) == "xyz"
     """
     if not isinstance(t, tuple) and len(t) not in (2, 3):
@@ -270,7 +270,7 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used.
             with_xlabel: True if x-label should be added.
-            label: True to add legen label for each curve.
+            label: True to add legend label to each curve.
 
         Returns:
             `matplotlib` figure
@@ -338,7 +338,7 @@ class OpticNcFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used.
             with_xlabel: True to add x-label.
-            label: True to add legend label for each curve.
+            label: True to add legend label to each curve.
 
         Returns:
             `matplotlib` figure

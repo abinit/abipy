@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from pymatgen.io.abinit.works import Work
@@ -5,10 +6,10 @@ from pymatgen.io.abinit.works import Work
 
 class NscfDdksWork(Work):
     """
-    This work requires a DEN file and computes KS energies with a non self-consistent task
+    This work requires a DEN file and computes the KS energies with a non self-consistent task
     with a dense k-mesh and empty states.
-    This task is then followed by the computation of DDK matrix elements with nstep = 1
-    (the first order change of the wavefunctions is not converged but we only need the DDKs)
+    This task is then followed by the computation of the DDK matrix elements with nstep = 1
+    (the first order change of the wavefunctions is not converged but we only need the matrix elements)
     Mainly used to prepare optic calculations or other post-processing steps requiring the DDKs.
     """
 
@@ -16,11 +17,11 @@ class NscfDdksWork(Work):
     def from_scf_task(cls, scf_task, ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None):
         """
         Args:
-            scf_task: Must produce the DEN file.
-            ddk_ngkpt:
-            ddk_shiftk:
-            ddk_nband:
-            manager:
+            scf_task: GS task. Must produce the DEN file required for the NSCF run.
+            ddk_ngkpt: k-mesh used for the NSCF run and the non self-consistent DDK tasks.
+            ddk_shiftk: k-mesh shifts
+            ddk_nband: Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.
+            manager: TaskManager instance. Use default if None.
         """
         new = cls(manager=manager)
 

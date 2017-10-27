@@ -397,6 +397,13 @@ def abicomp_optic(options):
     return _invoke_robot(options)
 
 
+def abicomp_eph(options):
+    """
+    Compare results stored in EPH.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def dataframe_from_pseudos(pseudos, index=None):
     """
     Build pandas dataframe with the most important info associated to
@@ -610,6 +617,12 @@ Usage example:
   abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
 
+#########
+# E-PH
+#########
+
+  abicomp.py eph *_EPH.nc -nb                     => Compare EPH results in the jupyter notebook.
+
 ########
 # GW/BSE
 ########
@@ -752,6 +765,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
+    p_eph = subparsers.add_parser('eph', parents=robot_parents, help=abicomp_eph.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)

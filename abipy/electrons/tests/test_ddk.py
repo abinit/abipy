@@ -14,7 +14,7 @@ class DdkTest(AbipyTest):
 
     def test_ddk_api(self):
         """Testing DDK API"""
-        with abilab.abiopen(abidata("gaas_444_dir1_DDK.nc")) as ddk:
+        with abilab.abiopen(abidata.ref_file("gaas_444_dir1_DDK.nc")) as ddk:
             repr(ddk); str(ddk)
             assert ddk.to_string(verbose=2)
 
