@@ -523,7 +523,8 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
                 "all" if all components available on file should be plotted on the same ax.
             what_list: List of quantities to plot. "re" for real part, "im" for imaginary.
                 Accepts also "abs", "angle".
-            sortby: Define the convergence parameter, sort files and produce plot labels. Can be string or function.
+            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
+                If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.
             itemp: Temperature index.
@@ -584,7 +585,8 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
             itemp: Temperature index.
             what_list: List of quantities to plot. "re" for real part, "im" for imaginary.
                 Accepts also "abs", "angle".
-            sortby: Define the convergence parameter, sort files and produce plot labels. Can be string or function.
+            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
+                If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.
             decompose: True to plot individual contributions.

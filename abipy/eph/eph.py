@@ -63,7 +63,7 @@ class A2F(object):
     #    """Computes the momenta of a2F(w)"""
     #    raise NotImplementedError()
 
-    #def get_mcmillan_Tc(self, mustar):
+    #def get_mcmillan_tc(self, mustar):
     #    """
     #    Computes the critical temperature with the McMillan equation and the input mustar.
     #    """
@@ -203,15 +203,16 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.reader.close()
 
     @add_fig_kwargs
-    def plot_eph_strength(self, what="lambda", ylims=None, ax=None, **kwargs):
+    def plot_eph_strength(self, what="lambda", ylims=None, ax=None, label=None, **kwargs):
         """
         Plot phonon bands with eph coupling strenght lambda(q, nu)
 
         Args:
-            what: `lambda` for eph strength, gamma for ph linewidth.
+            what: `lambda` for eph strength, gamma for phonon linewidths.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            label: String used to label the plot in the legend.
 
         Returns:
             `matplotlib` figure
@@ -242,15 +243,15 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         xvals = np.arange(len(self.phbands.qpoints))
         for nu in self.phbands.branches:
-            ax.plot(xvals, yvals[:, nu])
+            ax.plot(xvals, yvals[:, nu],
+                    label=label if (nu == 0 and label) else None)
 
-        #if "color" not in kwargs and not match_bands:
-        #    kwargs["color"] = "black"
-        #if "linewidth" not in kwargs:
-        #    kwargs["linewidth"] = 2.0
+        #if "color" not in kwargs and not match_bands: kwargs["color"] = "black"
+        #if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
         #ax.plot(xvals, yvals.T)
 
-        #set_axlims(ax, ylims, "y")
+        set_axlims(ax, ylims, "y")
+        if label: ax.legend(loc="best")
         return fig
 
     @add_fig_kwargs
@@ -426,12 +427,38 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
     EXT = "EPH"
 
     @add_fig_kwargs
+    def plot_lambda_convergence(self, what="lambda", sortby="nkpt", ylims=None, ax=None, **kwargs):
+        """
+        Plot the convergence of the lambda(q, nu) parameters wrt to `sortby` parameter.
+
+        Args:
+            what: `lambda` for eph strength, gamma for phonon linewidths.
+            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
+                If None, no sorting is performed.
+                If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(ncfile) is used.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for label, ncfile, param in self.sortby(sortby):
+            ncfile.plot_eph_strength(what=what, ax=ax, ylims=ylims,
+                                     label="%s %s" % (sortby, param) if not callable(sortby) else str(param),
+                                     show=False)
+        return fig
+
+    @add_fig_kwargs
     def plot_a2f_convergence(self, sortby="nkpt", ax=None, xlims=None, **kwargs):
         """
         Plot the convergence of the Eliashberg function wrt to `sortby` parameter.
 
         Args:
-            sortby: Define the convergence parameter, sort files and produce plot labels. Can be string or function.
+            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
+                If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -462,7 +489,9 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.EphRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.plot_lambda_convergence();"),
             nbv.new_code_cell("robot.plot_a2f_convergence();"),
+            #nbv.new_code_cell("robot.plot_a2ftr_convergence();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

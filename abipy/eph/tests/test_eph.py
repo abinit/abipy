@@ -62,8 +62,9 @@ class EphRobotTest(AbipyTest):
             #assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
 
             # Test plot methods
-            #if self.has_matplotlib():
-            #    assert robot.plot_a2f_convergence(show=False)
+            if self.has_matplotlib():
+                assert robot.plot_lambda_convergence(show=False)
+                #assert robot.plot_a2f_convergence(show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -36,8 +36,8 @@ class ScriptTest(AbipyTest):
     verbose = "-vv"
 
     # Don’t raise an exception if anything is printed to stderr
-    #if sys.version_info[0] <= 2 else str(s)
-    expect_stderr = True   # else tests fail due to warnings and deprecation messages
+    # else tests fail due to deprecation warnings issued by pymatgen if oy2.7
+    expect_stderr = sys.version_info[0] <= 2
 
     def get_env(self, check_help_version=True):
         #import tempfile
@@ -51,7 +51,7 @@ class ScriptTest(AbipyTest):
 
         if check_help_version:
             # Start with --help. If this does not work...
-            r = env.run(self.script, "--help")
+            r = env.run(self.script, "--help", expect_stderr=self.expect_stderr)
             assert r.returncode == 0
 
             # Script must provide a version option
@@ -297,9 +297,11 @@ class TestAbicomp(ScriptTest):
 
         #args = abidata.ref_files()
         #r = env.run(self.script, "dfpt2_scf", *args, self.loglevel, self.verbose,
+        #             expect_stderr=self.expect_stderr)
 
         #args = abidata.ref_files()
         #r = env.run(self.script, "time", *args, self.loglevel, self.verbose,
+        #             expect_stderr=self.expect_stderr)
 
 
 class TestAbirun(ScriptTest):
@@ -312,10 +314,10 @@ class TestAbirun(ScriptTest):
 
         # Test doc_manager
         r = env.run(self.script, "doc_manager", self.loglevel, self.verbose, *no_logo_colors,
-                expect_stderr=self.expect_stderr)
+                    expect_stderr=self.expect_stderr)
         for qtype in QueueAdapter.all_qtypes():
-            r= env.run(self.script, ".", "doc_manager", qtype, self.loglevel, self.verbose, *no_logo_colors,
-                       expect_stderr=self.expect_stderr)
+            r = env.run(self.script, ".", "doc_manager", qtype, self.loglevel, self.verbose, *no_logo_colors,
+                        expect_stderr=self.expect_stderr)
 
         # Test doc_sheduler
         r = env.run(self.script, "doc_scheduler", self.loglevel, self.verbose, *no_logo_colors,

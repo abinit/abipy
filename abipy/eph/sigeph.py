@@ -28,7 +28,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
      .. code-block:: python
 
-         with SigEPhFile("out_SIGMAPH.nc") as ncfile:
+         with SigEPhFile("out_SIGEPH.nc") as ncfile:
              print(ncfile)
              ncfile.ebands.plot()
      """
@@ -154,11 +154,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
          return self._write_nb_nbpath(nb, nbpath)
 
 
- class SigmaPhReader(ElectronsReader):
+class SigmaPhReader(ElectronsReader):
      """
      Reads data from file and constructs objects.
      """
-
      def read_phbands_qpath(self):
          """Read and return PhononBands."""
          structure = self.read_structure()

@@ -428,12 +428,15 @@ class Robot(object):
         Return list of (label, ncfile, param) tuples where param is obtained via `func_or_string`.
 
         Args:
-            func_or_string: Either string or callable defining the quantity to be used for sorting.
+            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.
+                If None, no sorting is performed.
             reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
         """
-        if callable(func_or_string):
+        if func_or_string is None:
+            return [(label, ncfile, label) for (label, ncfile) in self]
+        elif callable(func_or_string):
             items = [(label, ncfile, func_or_string(ncfile)) for (label, ncfile) in self]
         else:
             # Assume string and attribute with the same name.
