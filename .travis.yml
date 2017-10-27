@@ -42,6 +42,7 @@ install:
   - pip install pep8 python-coveralls
   #- conda install matplotlib seaborn
   - pip install matplotlib seaborn
+  - pip install scikit-image
   #- conda install ipython jupyter nbformat
   - pip install ipython jupyter nbformat
   #- conda install -c conda-forge ipywidgets
@@ -56,11 +57,11 @@ install:
   #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then conda install vtk && pip install mayavi; fi
 
   # Get pymatgen from matsci
-  - conda config --add channels matsci
-  - conda install pymatgen
+  #- conda config --add channels matsci
+  #- conda install pymatgen
 
-  # Use my pymatgen fork
-  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+   Use my pymatgen fork
+  - git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
   #
   # Use pymatgen master
   #- git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../

@@ -123,8 +123,7 @@ class TestAbistruct(ScriptTest):
         """Testing abistruct spglib"""
         ncfile = abidata.ref_file("tgw1_9o_DS4_SIGRES.nc")
         env = self.get_env()
-        r = env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose,
-                    expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "spglib", ncfile, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
     def test_abispg(self):
         """Testing abistruct abispg"""
@@ -240,8 +239,8 @@ class TestAbicomp(ScriptTest):
         cif_paths = abidata.cif_files("al.cif", "gan.cif", "gan2.cif")
         r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
-        r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose, "--group",
-                    expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "structure", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
+                    "--group", expect_stderr=self.expect_stderr)
 
         r = env.run(self.script, "mp_structure", cif_paths[0], cif_paths[1], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
