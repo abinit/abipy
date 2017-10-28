@@ -36,6 +36,7 @@ __all__ = [
     "cod_search",
     "Structure",
     "frames_from_structures",
+    "dataframes_from_structures",
 ]
 
 
@@ -1709,7 +1710,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
+def dataframes_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
     Build two pandas dataframes with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
@@ -1731,7 +1732,7 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
 
     Example::
 
-        dfs = frames_from_structures(files)
+        dfs = dataframes_from_structures(files)
         dfs.lattice
         dfs.coords
         for structure in dfs.structures:
@@ -1760,6 +1761,10 @@ def frames_from_structures(struct_objects, index=None, with_spglib=True, cart_co
                                 columns=list(range(max_numsite)) if odict_list else None)
 
     return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)
+
+
+# To maintain compatibility
+frames_from_structures = dataframes_from_structures
 
 
 class StructureModifier(object):

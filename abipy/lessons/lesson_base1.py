@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-import abipy.abilab as abilab 
+import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 import abipy.data as abidata
 import numpy as np
@@ -10,9 +10,9 @@ import numpy as np
 def gs_input(x=0.7, acell=(10, 10, 10)):
     """H2 molecule in a big box"""
     structure = abilab.Structure.from_abivars(
-        ntypat=1,  
+        ntypat=1,
         znucl=1,
-        natom=2,        
+        natom=2,
         typat=(1, 1),
         xcart=[-x, 0.0, 0.0,
                +x, 0.0, 0.0],
@@ -23,7 +23,7 @@ def gs_input(x=0.7, acell=(10, 10, 10)):
     inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("01h.pspgth"))
 
     inp.set_vars(
-        ecut=10, 
+        ecut=10,
         nband=1,
         diemac=2.0,
         nstep=10,
@@ -41,7 +41,7 @@ def analyze_flow(flow):
         l = np.sqrt(np.dot(cart_coords[1] - cart_coords[0]))
         return "hh_dist", l
 
-    with abilab.abirobot(flow, "GSR") as robot:
+    with abilab.GsrRobot.from_flow(flow) as robot:
         table = robot.get_dataframe(funcs=hh_dist)
         print(table)
         #robot.ebands_plotter().plot()

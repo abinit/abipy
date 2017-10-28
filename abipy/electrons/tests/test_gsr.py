@@ -64,7 +64,6 @@ class GSRReaderTestCase(AbipyTest):
             assert isinstance(structure, abipy.core.Structure)
 
 
-
 class GSRFileTestCase(AbipyTest):
 
     def test_gsr_silicon(self):
@@ -133,3 +132,50 @@ class GSRFileTestCase(AbipyTest):
 
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+class GstRobotTest(AbipyTest):
+
+    def test_gsr_robot(self):
+        """Testing GSR robot"""
+        from abipy import abilab
+        gsr_path = abidata.ref_file("si_scf_GSR.nc")
+        robot = abilab.GsrRobot()
+        robot.add_file("gsr0", gsr_path)
+        assert len(robot.ncfiles) == 1
+        assert robot.EXT == "GSR"
+        repr(robot); str(robot)
+
+	# Cannot have same label
+        with self.assertRaises(ValueError):
+            robot.add_file("gsr0", gsr_path)
+
+        assert len(robot) == 1 and not robot.exceptions
+        robot.add_file("gsr1", abilab.abiopen(gsr_path))
+        assert len(robot) == 2
+        robot.show_files()
+
+        dfs = robot.get_structure_dataframes()
+        assert dfs.lattice is not None
+        assert dfs.coords is not None
+        assert len(dfs.structures) == len(robot)
+
+        ebands_plotter = robot.get_ebands_plotter()
+        edos_plotter = robot.get_edos_plotter()
+
+        if self.has_matplotlib():
+            assert ebands_plotter.gridplot(show=False)
+            assert edos_plotter.gridplot(show=False)
+
+	# Get pandas dataframe.
+        df = robot.get_dataframe()
+        assert "energy" in df
+        self.assert_equal(df["ecut"].values, 6.0)
+        self.assert_almost_equal(df["energy"].values, -241.2364683)
+
+        # FIXME
+        #eos = robot.eos_fit()
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

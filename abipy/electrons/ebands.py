@@ -42,6 +42,7 @@ __all__ = [
     "ElectronBands",
     "ElectronDos",
     "frame_from_ebands",
+    "dataframe_from_ebands",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
 ]
@@ -2110,7 +2111,7 @@ class EffectiveMassAlongLine(object):
         return "\n".join(lines)
 
 
-def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
+def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     """
     Build a pandas dataframe with the most important results available in a list of band structures.
 
@@ -2131,6 +2132,10 @@ def frame_from_ebands(ebands_objects, index=None, with_spglib=True):
     import pandas as pd
     return pd.DataFrame(odict_list, index=index)
                         #columns=list(odict_list[0].keys()) if odict_list else None)
+
+
+# To maintain backward compatibility
+frame_from_ebands = dataframe_from_ebands
 
 
 class ElectronBandsPlotter(NotebookWriter):
@@ -2200,8 +2205,8 @@ class ElectronBandsPlotter(NotebookWriter):
         Build a pandas dataframe with the most important results available in the band structures.
         Useful to analyze band-gaps.
         """
-        return frame_from_ebands(list(self.ebands_dict.values()),
-                                 index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
+        return dataframe_from_ebands(list(self.ebands_dict.values()),
+                                     index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
 
     @property
     def ebands_list(self):

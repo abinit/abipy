@@ -29,26 +29,26 @@ from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Task
 
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core import restapi
-from abipy.core.structure import (Lattice, Structure, StructureModifier, frames_from_structures,
-  mp_match_structure, mp_search, cod_search)
+from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
+  frames_from_structures, mp_match_structure, mp_search, cod_search)   # frame is Deprecated
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
-from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
+from abipy.abio.robots import Robot #abirobot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
 from abipy.tools.plotting import DirTreePlotter
-from abipy.tools.pandas import print_frame
+from abipy.tools.pandas import print_frame, print_dataframe   # frame is Deprecated
 from abipy.tools.notebooks import print_source
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    frame_from_ebands)
-from abipy.electrons.gsr import GsrFile
+    dataframe_from_ebands, frame_from_ebands) # frame is Deprecated
+from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.ddk import DdkFile
-from abipy.electrons.gw import SigresFile, SigresPlotter
-from abipy.electrons.bse import MdfFile
+from abipy.electrons.gw import SigresFile, SigresPlotter, SigresRobot
+from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
 from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile, DensityFortranFile,
@@ -58,7 +58,7 @@ from abipy.electrons.optic import OpticNcFile, OpticRobot
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
-from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile

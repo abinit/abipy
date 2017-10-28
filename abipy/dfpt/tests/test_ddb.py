@@ -3,12 +3,14 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import numpy as np
+import abipy.data as abidata
 
-from abipy.core.testing import *
+from abipy import abilab
+from abipy.core.testing import AbipyTest
 from abipy.dfpt.ddb import DdbFile, DielectricTensorGenerator
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.phonons import PhononBands
-import abipy.data as abidata
+
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 
@@ -198,3 +200,33 @@ class DielectricTensorGeneratorTest(AbipyTest):
 
         if self.has_matplotlib():
             assert d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)
+
+
+class DdbRobotTest(AbipyTest):
+
+    def test_ddb_robot(self):
+        """Testing DDB robots."""
+        assert not abilab.DdbRobot.class_handles_filename("foo_DDB.nc")
+        assert abilab.DdbRobot.class_handles_filename("foo_DDB")
+
+        path = abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB")
+        robot = abilab.DdbRobot.from_files(path)
+        robot.add_file("same_ddb", path)
+        repr(robot); str(robot)
+        assert robot.to_string(verbose=2)
+        assert len(robot) == 2
+        assert robot.EXT == "DDB"
+
+        data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
+                dipdip=0, with_geo=True, abspath=True, verbose=2)
+        assert "mode1" in data and "angle1" in data
+
+        r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
+        if self.has_matplotlib():
+           assert r.phbands_plotter.gridplot(show=False)
+           assert r.phdos_plotter.gridplot(show=False)
+
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

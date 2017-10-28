@@ -5,7 +5,7 @@ import sys
 import pandas as pd
 
 
-def print_frame(frame, title=None, precision=6, sortby=None, file=sys.stdout):
+def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout):
     """
     Print entire pandas DataFrame.
 
@@ -29,3 +29,6 @@ def print_frame(frame, title=None, precision=6, sortby=None, file=sys.stdout):
     #with pd.option_context('display.large_repr', 'truncate', 'display.max_columns', 0):
         print(frame, file=file)
         print(" ", file=file)
+
+# To maintain backward compatibility
+print_frame = print_dataframe

@@ -29,6 +29,7 @@ from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
+from abipy.abio.robots import Robot
 
 
 import logging
@@ -1200,3 +1201,164 @@ class DielectricTensorGenerator(Has_Structure):
         ax.legend(loc="best")
 
         return fig
+
+
+class DdbRobot(Robot, NotebookWriter):
+    """
+    This robot analyzes the results contained in multiple DDB files.
+    """
+    EXT = "DDB"
+
+    @classmethod
+    def class_handles_filename(cls, filename):
+        """Exclude DDB.nc files. Override base class."""
+        return filename.endswith("_" + cls.EXT)
+
+    #def get_qpoints_union(self):
+    #    """
+    #    Return numpy array with the q-points in reduced coordinates found in the DDB files.
+    #    """
+    #    qpoints = []
+    #    for label, ddb in enumerate(self):
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
+
+    #    return np.array(qpoints)
+
+    #def get_qpoints_intersection(self):
+    #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+    #    qpoints = []
+    #    for label, ddb in enumerate(self):
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
+    #
+    #    return np.array(qpoints)
+
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
+            abspath=False, **kwargs):
+        """
+	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
+	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+
+        Return:
+            pandas DataFrame
+        """
+        # If qpoint is None, all the DDB must contain have the same q-point .
+        if qpoint is None:
+            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
+                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+
+            qpoint = self[0].qpoints[0]
+            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
+                raise ValueError("All the q-points in the DDB files must be equal")
+
+        rows, row_names = [], []
+        for i, (label, ddb) in enumerate(self):
+            row_names.append(label)
+            d = OrderedDict()
+            #d = {aname: getattr(ddb, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Call anaddb to get the phonon frequencies.
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
+            freqs = phbands.phfreqs[0, :]  # [nq, nmodes]
+
+            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
+
+            # Add convergence parameters
+            d.update(ddb.params)
+
+            # Add info on structure.
+            if with_geo:
+                d.update(phbands.structure.get_dict4frame(with_spglib=True))
+
+            # Execute functions.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
+
+            rows.append(d)
+
+        import pandas as pd
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    # TODO: Is this really needed?
+    #def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
+    #    """
+    #    Plot the convergence of the phonon frequencies.
+    #    kwargs are passed to :class:`seaborn.PairGrid`.
+    #    """
+    #    import matplotlib.pyplot as plt
+    #    import seaborn.apionly as sns
+
+    #    # Get the dataframe for this q-point.
+    #    data = self.get_dataframe_at_qpoint(qpoint=qpoint)
+
+    #    y_vars = sorted([k for k in data if k.startswith("mode")])
+    #    #print(y_vars)
+
+    #    # Call seaborn.
+    #    grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
+    #    grid.map(plt.plot, marker="o")
+    #    grid.add_legend()
+    #    plt.show()
+
+    def anaget_phonon_plotters(self, **kwargs):
+        """
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+        Collect results and return `namedtuple` with the following attributes:
+
+            phbands_plotter: `PhononBandsPlotter` object.
+            phdos_plotter: `PhononDosPlotter` object.
+        """
+        if "workdir" in kwargs:
+            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+
+        from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
+        phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
+
+        for label, ddb in self:
+            # Invoke anaddb to get phonon bands and DOS.
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+
+            # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
+            # Those results should be fetched from there and added to the phonon bands.
+            if kwargs.get("lo_to_splitting", False):
+                anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
+                phbst_file.phbands.read_non_anal_from_file(anaddb_path)
+
+            phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
+            phbst_file.close()
+            phdos_file.close()
+
+        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        anaget_phonon_plotters_kwargs = ( "\n"
+            '\tnqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",\n'
+            '\tlo_to_splitting=False, ngqpt=None, qptbounds=None,\n'
+            '\tanaddb_kwargs=None, verbose=0')
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
+            nbv.new_code_cell("r = robot.anaget_phonon_plotters(%s)" % anaget_phonon_plotters_kwargs),
+            nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
+            nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),
+            nbv.new_code_cell("r.phdos_plotter.ipw_select_plot()"),
+            nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

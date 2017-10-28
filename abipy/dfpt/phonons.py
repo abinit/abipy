@@ -3461,3 +3461,7 @@ def match_eigenvectors(v1, v2):
                 break
 
     return indices
+
+
+class RobotWithPhbands(object):
+    """Mixin class for robots associated to files with `PhononBands`."""

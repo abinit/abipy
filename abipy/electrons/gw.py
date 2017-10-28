@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import copy
 import numpy as np
+import pandas as pd
 
 from collections import namedtuple, OrderedDict, Iterable, defaultdict
 from monty.string import list_strings, is_string, marquee
@@ -23,6 +24,7 @@ from abipy.electrons.ebands import ElectronBands
 from abipy.electrons.scissors import Scissors
 from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, Marker
 from abipy.tools import duck
+from abipy.abio.robots import Robot, RobotWithEbands
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1853,3 +1855,98 @@ class SigresReader(ETSF_Reader):
 
     #def read_qprhor(self):
     #    """Returns the QPState density in real space."""
+
+
+class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
+    """
+    This robot analyzes the results contained in multiple SIGRES files.
+    """
+    EXT = "SIGRES"
+
+    def merge_dataframes_sk(self, spin, kpoint, **kwargs):
+        for i, (label, sigr) in enumerate(self):
+            frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
+            if i == 0:
+                table = frame
+            else:
+                table = table.append(frame)
+
+        return table
+
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, **kwargs):
+        """
+        Return a pandas DataFrame with the most important results for the given (spin, kpoint).
+
+        Args:
+            spin: Spin index.
+            kpoint
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+        """
+        # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
+        # TODO: In principle the SIGRES might have different k-points
+        if spin is None: spin = 0
+        if kpoint is None: kpoint = 0
+
+        attrs = [
+            "nsppol",
+            #"nspinor", "nspden", #"ecut", "pawecutdg",
+            #"tsmear", "nkibz",
+        ] + kwargs.pop("attrs", [])
+
+        rows, row_names = [], []
+        for label, sigres in self:
+            row_names.append(label)
+            d = OrderedDict()
+            for aname in attrs:
+                d[aname] = getattr(sigres, aname, None)
+
+            qpgap = sigres.get_qpgap(spin, kpoint)
+            d.update({"qpgap": qpgap})
+
+            # Add convergence parameters
+            d.update(sigres.params)
+
+            # Add info on structure.
+            if with_geo:
+                d.update(sigres.structure.get_dict4frame(with_spglib=True))
+
+            # Execute functions.
+            d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
+            rows.append(d)
+
+        row_names = row_names if not abspath else _to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    def plot_conv_qpgap(self, x_vars, show=True, **kwargs):
+        """
+        Plot the convergence of the Quasi-particle gap.
+        kwargs are passed to :class:`seaborn.PairGrid`.
+        """
+        import matplotlib.pyplot as plt
+        import seaborn.apionly as sns
+
+        data = self.get_qpgaps_dataframe()
+        #print(list(data.keys()))
+        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
+        grid.map(plt.plot, marker="o")
+        grid.add_legend()
+        if show:
+            plt.show()
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            #nbv.new_code_cell("df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
+            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

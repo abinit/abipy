@@ -7,53 +7,37 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import numpy as np
-import pandas as pd
 
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
-from monty.collections import dict2namedtuple
-from pymatgen.analysis.eos import EOS
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.core.mixins import NotebookWriter
-
-
-#__all__ = [
-#    "abirobot",
-#]
 
 # TODO: Robot for Abinit output files?
 
-def _to_relpaths(paths):
-    root = os.getcwd()
-    return [os.path.relpath(p, root) for p in paths]
-
-
-def abirobot(obj, ext, nids=None):
-    """
-    Factory function that builds and return the :class:`Robot` subclass from the file
-    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.
-    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
-
-    Usage example:
-
-    .. code-block:: python
-
-        with abirobot(flow, "GSR") as robot:
-            # do something with robot and close the GSR files when done.
-
-        with abirobot("dirpath", "SIGRES") as robot:
-            # do something with robot and close the SIGRES files when done.
-    """
-    for cls in Robot.__subclasses__():
-        if cls.EXT in (ext, ext.upper()):
-            return cls.open(obj, nids=nids)
-
-    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
-                     "The list of supported extensions is:\n%s" %
-                     [cls.EXT for cls in Robot.__subclasses__()])
-
+#def abirobot(obj, ext, nids=None):
+#    """
+#    Factory function that builds and return the :class:`Robot` subclass from the file
+#    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.
+#    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
+#
+#    Usage example:
+#
+#    .. code-block:: python
+#
+#        with abirobot(flow, "GSR") as robot:
+#            # do something with robot and close the GSR files when done.
+#
+#        with abirobot("dirpath", "SIGRES") as robot:
+#            # do something with robot and close the SIGRES files when done.
+#    """
+#    for cls in Robot.__subclasses__():
+#        if cls.EXT in (ext, ext.upper()):
+#            return cls.open(obj, nids=nids)
+#
+#    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
+#                     "The list of supported extensions is:\n%s" %
+#                     [cls.EXT for cls in Robot.__subclasses__()])
+#
 
 class Robot(object):
     """
@@ -318,6 +302,12 @@ class Robot(object):
     #                print(exc)
     #                #raise
 
+    @staticmethod
+    def _to_relpaths(paths):
+        """Convert a list of absolute paths to relative paths."""
+        root = os.getcwd()
+        return [os.path.relpath(p, root) for p in paths]
+
     def pop_label(self, label):
         """
         Remove file with the given `label` and close it.
@@ -515,21 +505,21 @@ class Robot(object):
 
     def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
         """
-        Wrap frames_from_structures function.
+        Wrap dataframes_from_structures function.
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             filter_abifile: Function that receives an `abifile` object and returns
                 True if the file should be added to the plotter.
         """
-        from abipy.core.structure import frames_from_structures
+        from abipy.core.structure import dataframes_from_structures
         if "index" not in kwargs:
             index = list(self._ncfiles.keys())
-            if not abspath: index = _to_relpaths(index)
+            if not abspath: index = self._to_relpaths(index)
             kwargs["index"] = index
 
         ncfiles = self.ncfiles if filter_abifile is not None else list(filter(filter_abifile, self.ncfiles))
-        return frames_from_structures(struct_objects=ncfiles, **kwargs)
+        return dataframes_from_structures(struct_objects=ncfiles, **kwargs)
 
 
 class RobotWithEbands(object):
@@ -577,533 +567,6 @@ class RobotWithEbands(object):
 
         return plotter
 
-    #def get_ebands_dataframe(self):
-    #    from abipy.electrons.ebands import frames_from_ebands
-    #    for abifile in self.ncfiles:
-    #    index = list(self.keys())
-    #    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)
-
-
-# TODO: Reorganize, rename methods see DDB robot.
-class RobotWithPhbands(object):
-    """Mixin class for robots associated to files with `PhononBands`."""
-
-
-
-
-class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
-    """
-    This robot analyzes the results contained in multiple GSR files.
-    """
-    EXT = "GSR"
-
-    def get_dataframe(self, with_geo=True, abspath=False, **kwargs):
-        """
-        Return a pandas DataFrame with the most important GS results.
-        and the filenames as index.
-
-        Args:
-            with_geo: True if structure info should be added to the dataframe
-            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-
-        kwargs:
-            attrs:
-                List of additional attributes of the :class:`GsrFile` to add to
-                the pandas :class:`DataFrame`
-            funcs:
-                Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
-                where key is a string with the name of column and value is the value to be inserted.
-        """
-        # Add attributes specified by the users
-        # TODO add more columns
-        attrs = [
-            "energy", "pressure", "max_force",
-            "ecut", "pawecutdg",
-            "tsmear", "nkpt",
-            "nsppol", "nspinor", "nspden",
-        ] + kwargs.pop("attrs", [])
-
-        rows, row_names = [], []
-        for label, gsr in self:
-            row_names.append(label)
-            d = OrderedDict()
-            for aname in attrs:
-                if aname == "nkpt":
-                    value = len(gsr.ebands.kpoints)
-                else:
-                    value = getattr(gsr, aname, None)
-                    if value is None: value = getattr(gsr.ebands, aname, None)
-                d[aname] = value
-
-            # Add info on structure.
-            if with_geo:
-                d.update(gsr.structure.get_dict4frame(with_spglib=True))
-
-            # Execute functions
-            d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
-            rows.append(d)
-
-        row_names = row_names if not abspath else _to_relpaths(row_names)
-        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    # FIXME: EOS has been changed in pymatgen.
-    def eos_fit(self, eos_name="murnaghan"):
-        """
-        Fit energy as function of volume to get the equation of state, equilibrium volume,
-        bulk modulus and its derivative wrt to pressure.
-
-        Args:
-            eos_name:
-                For the list of available models, see pymatgen.analysis.eos.
-
-        Return
-        """
-        # Read volumes and energies from the GSR files.
-        energies, volumes = [], []
-        for label, gsr in self:
-            energies.append(gsr.energy)
-            volumes.append(gsr.structure.volume)
-
-        # Note that eos.fit expects lengths in Angstrom, and energies in eV.
-        # I'm also monkey-patching the plot method.
-        if eos_name != "all":
-            fit = EOS(eos_name=eos_name).fit(volumes, energies)
-            fit.plot = my_fit_plot
-            return fit
-        else:
-            # Use all the available models.
-            fits, rows = [], []
-            models = list(EOS.MODELS.keys())
-            for eos_name in models:
-                fit = EOS(eos_name=eos_name).fit(volumes, energies)
-                fit.plot = my_fit_plot
-                fits.append(fit)
-                rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in
-                    ("v0", "e0", "b0_GPa", "b1")]))
-
-            frame = pd.DataFrame(rows, index=models, columns=list(rows[0].keys()))
-            return fits, frame
-            #return dict2namedtuple(fits=fits, frame=frame)
-
-    #def get_phasediagram_results(self):
-    #    from abipy.core.restapi import PhaseDiagramResults
-    #    entries = []
-    #    for label, gsr in self:
-    #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
-    #    return PhaseDiagramResults(entries)
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-            nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
-            nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("#anim = ebands_plotter.animate();"),
-            nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
-            nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
-
-
-@add_fig_kwargs
-def my_fit_plot(self, ax=None, **kwargs):
-    """
-    Plot the equation of state.
-
-    Args:
-
-    Returns:
-        Matplotlib figure object.
-    """
-    ax, fig, plt = get_ax_fig_plt(ax=ax)
-
-    color = kwargs.get("color", "r")
-    label = kwargs.get("label", "{} fit".format(self.__class__.__name__))
-    lines = ["Equation of State: %s" % self.__class__.__name__,
-             "Minimum energy = %1.2f eV" % self.e0,
-             "Minimum or reference volume = %1.2f Ang^3" % self.v0,
-             "Bulk modulus = %1.2f eV/Ang^3 = %1.2f GPa" %
-             (self.b0, self.b0_GPa),
-             "Derivative of bulk modulus wrt pressure = %1.2f" % self.b1]
-    text = "\n".join(lines)
-    text = kwargs.get("text", text)
-
-    # Plot input data.
-    ax.plot(self.volumes, self.energies, linestyle="None", marker="o", color=color)
-
-    # Plot eos fit.
-    vmin, vmax = min(self.volumes), max(self.volumes)
-    vmin, vmax = (vmin - 0.01 * abs(vmin), vmax + 0.01 * abs(vmax))
-    vfit = np.linspace(vmin, vmax, 100)
-
-    ax.plot(vfit, self.func(vfit), linestyle="dashed", color=color, label=label)
-
-    ax.grid(True)
-    ax.xlabel("Volume $\\AA^3$")
-    ax.ylabel("Energy (eV)")
-    ax.legend(loc="best", shadow=True)
-    # Add text with fit parameters.
-    ax.text(0.4, 0.5, text, transform=ax.transAxes)
-
-    return fig
-
-
-class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
-    """
-    This robot analyzes the results contained in multiple SIGRES files.
-    """
-    EXT = "SIGRES"
-
-    def merge_dataframes_sk(self, spin, kpoint, **kwargs):
-        for i, (label, sigr) in enumerate(self):
-            frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
-            if i == 0:
-                table = frame
-            else:
-                table = table.append(frame)
-
-        return table
-
-    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, **kwargs):
-        """
-        Return a pandas DataFrame with the most important results for the given (spin, kpoint).
-
-        Args:
-            spin: Spin index.
-            kpoint
-            with_geo: True if structure info should be added to the dataframe
-            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-        """
-        # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
-        # TODO: In principle the SIGRES might have different k-points
-        if spin is None: spin = 0
-        if kpoint is None: kpoint = 0
-
-        attrs = [
-            "nsppol",
-            #"nspinor", "nspden", #"ecut", "pawecutdg",
-            #"tsmear", "nkibz",
-        ] + kwargs.pop("attrs", [])
-
-        rows, row_names = [], []
-        for label, sigres in self:
-            row_names.append(label)
-            d = OrderedDict()
-            for aname in attrs:
-                d[aname] = getattr(sigres, aname, None)
-
-            qpgap = sigres.get_qpgap(spin, kpoint)
-            d.update({"qpgap": qpgap})
-
-            # Add convergence parameters
-            d.update(sigres.params)
-
-            # Add info on structure.
-            if with_geo:
-                d.update(sigres.structure.get_dict4frame(with_spglib=True))
-
-            # Execute functions.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
-            rows.append(d)
-
-        row_names = row_names if not abspath else _to_relpaths(row_names)
-        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    def plot_conv_qpgap(self, x_vars, show=True, **kwargs):
-        """
-        Plot the convergence of the Quasi-particle gap.
-        kwargs are passed to :class:`seaborn.PairGrid`.
-        """
-        import matplotlib.pyplot as plt
-        import seaborn.apionly as sns
-
-        data = self.get_qpgaps_dataframe()
-        #print(list(data.keys()))
-        grid = sns.PairGrid(data, x_vars=x_vars, y_vars="qpgap", **kwargs)
-        grid.map(plt.plot, marker="o")
-        grid.add_legend()
-        if show:
-            plt.show()
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
-            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
-
-
-class MdfRobot(Robot, RobotWithEbands, NotebookWriter):
-    """
-    This robot analyzes the results contained in multiple MDF files.
-    """
-    EXT = "MDF"
-
-    def get_multimdf_plotter(self, cls=None):
-        """
-        Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.
-        """
-        from abipy.electrons.bse import MultipleMdfPlotter
-        plotter = MultipleMdfPlotter() if cls is None else cls()
-
-        for label, mdf in self:
-            plotter.add_mdf_file(label, mdf)
-
-        return plotter
-
-    def get_dataframe(self, with_geo=False, abspath=False, **kwargs):
-        """
-        Build and return Pandas dataframe with the most import BSE results.
-        and the filenames as index.
-
-        Args:
-            with_geo: True if structure info should be added to the dataframe
-            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-            funcs:
-
-        Return:
-            pandas DataFrame
-        """
-        rows, row_names = [], []
-        for i, (label, mdf) in enumerate(self):
-            row_names.append(label)
-            d = OrderedDict([
-                ("exc_mdf", mdf.exc_mdf),
-                ("rpa_mdf", mdf.rpanlf_mdf),
-                ("gwrpa_mdf", mdf.gwnlf_mdf),
-            ])
-            #d = {aname: getattr(mdf, aname) for aname in attrs}
-            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
-
-            # Add convergence parameters
-            d.update(mdf.params)
-
-            # Add info on structure.
-            if with_geo:
-                d.update(mdf.structure.get_dict4frame(with_spglib=True))
-
-            # Execute functions.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), mdf))
-            rows.append(d)
-
-        row_names = row_names if not abspath else _to_relpaths(row_names)
-        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    #@add_fig_kwargs
-    #def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
-    #    import matplotlib.pyplot as plt
-    #    frame = self.get_dataframe()
-    #    grouped = frame.groupby(hue)
-
-    #    fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
-
-    #    for i, (hue_val, group) in enumerate(grouped):
-    #        #print(group)
-    #        mdfs = group[mdf_type]
-    #        ax = ax_list[i]
-    #        ax.set_title("%s = %s" % (hue, hue_val))
-    #        for mdf in mdfs:
-    #            mdf.plot_ax(ax)
-
-    #    return fig
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
-            nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
-            nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
-            #nbv.new_code_cell(plotter.combiboxplot();"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
-
-
-class DdbRobot(Robot, NotebookWriter):
-    """
-    This robot analyzes the results contained in multiple DDB files.
-    """
-    EXT = "DDB"
-
-    @classmethod
-    def class_handles_filename(cls, filename):
-        """Exclude DDB.nc files."""
-        return filename.endswith("_" + cls.EXT)
-
-    #def get_qpoints_union(self):
-    #    """
-    #    Return numpy array with the q-points in reduced coordinates found in the DDB files.
-    #    """
-    #    qpoints = []
-    #    for label, ddb in enumerate(self):
-    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
-
-    #    return np.array(qpoints)
-
-    #def get_qpoints_intersection(self):
-    #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
-    #    qpoints = []
-    #    for label, ddb in enumerate(self):
-    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
-    #
-    #    return np.array(qpoints)
-
-    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
-            abspath=False, **kwargs):
-        """
-	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
-	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results
-
-        Args:
-            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
-            with_geo: True if structure info should be added to the dataframe
-            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-
-        Return:
-            pandas DataFrame
-        """
-        # If qpoint is None, all the DDB must contain have the same q-point .
-        if qpoint is None:
-            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
-                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
-
-            qpoint = self[0].qpoints[0]
-            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
-                raise ValueError("All the q-points in the DDB files must be equal")
-
-        rows, row_names = [], []
-        for i, (label, ddb) in enumerate(self):
-            row_names.append(label)
-            d = OrderedDict()
-            #d = {aname: getattr(ddb, aname) for aname in attrs}
-            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
-
-            # Call anaddb to get the phonon frequencies.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
-            freqs = phbands.phfreqs[0, :]  # [nq, nmodes]
-
-            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
-
-            # Add convergence parameters
-            d.update(ddb.params)
-
-            # Add info on structure.
-            if with_geo:
-                d.update(phbands.structure.get_dict4frame(with_spglib=True))
-
-            # Execute functions.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
-
-            rows.append(d)
-
-        row_names = row_names if not abspath else _to_relpaths(row_names)
-        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    # TODO: Is this really needed?
-    def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
-        """
-        Plot the convergence of the phonon frequencies.
-        kwargs are passed to :class:`seaborn.PairGrid`.
-        """
-        import matplotlib.pyplot as plt
-        import seaborn.apionly as sns
-
-        # Get the dataframe for this q-point.
-        data = self.get_dataframe_at_qpoint(qpoint=qpoint)
-
-        y_vars = sorted([k for k in data if k.startswith("mode")])
-        #print(y_vars)
-
-        # Call seaborn.
-        grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
-        grid.map(plt.plot, marker="o")
-        grid.add_legend()
-        plt.show()
-
-    # TODO Test
-    def get_phonon_plotters(self, **kwargs):
-        """
-        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
-        Collect results and return `namedtuple` with the following attributes:
-
-            phbands_plotter: `PhononBandsPlotter` object.
-            phdos_plotter: `PhononDosPlotter` object.
-        """
-        if "workdir" in kwargs:
-            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
-
-        from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
-        phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
-
-        for label, ddb in self:
-            # Invoke anaddb to get phonon bands and DOS.
-            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
-
-            # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
-            # Those results should be fetched from there and added to the phonon bands.
-            if kwargs.get("lo_to_splitting", False):
-                anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
-                phbst_file.phbands.read_non_anal_from_file(anaddb_path)
-
-            phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
-            phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
-            phbst_file.close()
-            phdos_file.close()
-
-        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        get_phonon_plotters_kwargs = ( "\n"
-            '\tnqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",\n'
-            '\tlo_to_splitting=False, ngqpt=None, qptbounds=None,\n'
-            '\tanaddb_kwargs=None, verbose=0')
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
-            nbv.new_code_cell("r = robot.get_phonon_plotters(%s)" % get_phonon_plotters_kwargs),
-            nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("r.phdos_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)
+    #def get_ebands_dataframe(self, with_spglib=True):
+    #    from abipy.electrons.ebands import dataframes_from_ebands
+    #    return dataframe_from_ebands(self.ncfiles, index=list(self.keys()), with_spglib=with_spglib)

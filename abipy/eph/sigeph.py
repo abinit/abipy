@@ -16,8 +16,8 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 #from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader
-#from abipy.dfpt.phonons import PhononBands, factor_ev2units, unit_tag, dos_label_from_units
-#from abipy.abio.robots import Robot, RobotWithEbands
+#from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
+from abipy.abio.robots import Robot, RobotWithEbands
 
 
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):

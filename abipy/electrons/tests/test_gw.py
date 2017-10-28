@@ -1,20 +1,21 @@
 """Tests for electrons.gw module"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 
+import os
 import collections
 import numpy as np
 import abipy.data as abidata
 
-from abipy.abilab import abiopen
+from abipy import abilab
 from abipy.electrons.gw import *
-from abipy.electrons.gw import SigresReader, SigresPlotter
+from abipy.electrons.gw import SigresPlotter
 from abipy.core.testing import AbipyTest
 
 
 class TestQPList(AbipyTest):
 
     def setUp(self):
-        self.sigres = sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+        self.sigres = sigres = abilab.abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         repr(self.sigres); str(self.sigres)
         assert self.sigres.to_string(verbose=2)
         self.qplist = sigres.get_qplist(spin=0, kpoint=sigres.gwkpoints[0])
@@ -73,13 +74,13 @@ class TestSigresFile(AbipyTest):
 
     def test_readall(self):
         for path in abidata.SIGRES_NCFILES:
-            with abiopen(path) as sigres:
+            with abilab.abiopen(path) as sigres:
                 repr(sigres); str(sigres)
                 assert len(sigres.structure)
 
     def test_base(self):
         """Test SIGRES File."""
-        sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
+        sigres = abilab.abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         assert sigres.nsppol == 1
 
         # In this run IBZ = kptgw
@@ -131,9 +132,8 @@ class TestSigresFile(AbipyTest):
 
     def test_interpolator(self):
         """Test QP interpolation."""
-        from abipy.abilab import abiopen, ElectronBandsPlotter
         # Get quasiparticle results from the SIGRES.nc database.
-        sigres = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
+        sigres = abilab.abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
 
         # Interpolate QP corrections and apply them on top of the KS band structures.
         # QP band energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
@@ -172,7 +172,7 @@ class TestSigresFile(AbipyTest):
         r.qp_ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
         # Plot the LDA and the QPState band structure with matplotlib.
-        plotter = ElectronBandsPlotter()
+        plotter = abilab.ElectronBandsPlotter()
         plotter.add_ebands("LDA", r.ks_ebands_kpath, dos=ks_edos)
         plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
@@ -204,3 +204,49 @@ class TestSigresPlotter(AbipyTest):
                 assert plotter.plot_qps_vs_e0(show=False)
 
             plotter.close()
+
+
+
+class SigresRobotTest(AbipyTest):
+    def test_sigres_robot(self):
+        """Testing SIGRES robot."""
+        filepaths = abidata.ref_files(
+            "si_g0w0ppm_nband10_SIGRES.nc",
+            "si_g0w0ppm_nband20_SIGRES.nc",
+            "si_g0w0ppm_nband30_SIGRES.nc",
+        )
+        assert abilab.SigresRobot.class_handles_filename(filepaths[0])
+        assert len(filepaths) == 3
+
+        with abilab.SigresRobot.from_files(filepaths) as robot:
+            assert robot.start is None
+            start = robot.trim_paths(start=None)
+            assert robot.start == start
+            for p, _ in robot:
+                assert p == os.path.relpath(p, start=start)
+
+            assert robot.EXT == "SIGRES"
+            repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
+            assert robot._repr_html_()
+
+            label_ncfile_param = robot.sortby("nband")
+            assert [t[2] for t in label_ncfile_param] == [10, 20, 30]
+            label_ncfile_param = robot.sortby(lambda ncfile: ncfile.ebands.nband, reverse=True)
+            assert [t[2] for t in label_ncfile_param] == [30, 20, 10]
+
+            df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
+            qpdata = robot.get_qpgaps_dataframe(with_geo=True)
+
+            # This cannot be tested because it changes the matplotlib backend
+            if self.has_seaborn():
+                robot.plot_conv_qpgap(x_vars="sigma_nband", show=False)
+
+            if self.has_nbformat():
+                robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+            robot.pop_label(os.path.relpath(filepaths[0], start=start))
+            assert len(robot) == 2
+            robot.pop_label("foobar")
+            new2old = robot.change_labels(["hello", "world"], dryrun=True)
+            assert len(new2old) == 2 and "hello" in new2old
