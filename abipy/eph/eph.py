@@ -413,6 +413,7 @@ class EphReader(ElectronsReader):
     #    if ...: return None
     #    return A2ftr()
 
+
 class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
     """
     This robot analyzes the results contained in multiple EPH.nc files.

@@ -23,21 +23,9 @@ class TestPlots(AbipyTest):
 
     def test_plots_with_exec(self):
         """Running plot script with exec."""
-        if os.environ.get("TRAVIS"):
-            raise unittest.SkipTest("Skipping plot examples on TRAVIS")
+        #if os.environ.get("TRAVIS"):
+        #    raise unittest.SkipTest("Skipping plot examples on TRAVIS")
         # Travis issue
-        """
-ERROR: Failure: SyntaxError (unqualified exec is not allowed in function 'test_plots_with_exec' because it contains a nested function with free variables (test_plots.py, line 51))
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/travis/miniconda/envs/test-environment/lib/python2.7/site-packages/nose/loader.py", line 418, in loadTestsFromName
-    addr.filename, addr.module)
-  File "/home/travis/miniconda/envs/test-environment/lib/python2.7/site-packages/nose/importer.py", line 47, in importFromPath
-    return self.importFromDir(dir_path, fqname)
-  File "/home/travis/miniconda/envs/test-environment/lib/python2.7/site-packages/nose/importer.py", line 94, in importFromDir
-    mod = load_module(part_fqname, fh, filename, desc)
-SyntaxError: unqualified exec is not allowed in function 'test_plots_with_exec' because it contains a nested function with free variables (test_plots.py, line 51)
-"""
 
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib is not installed")
@@ -61,8 +49,9 @@ SyntaxError: unqualified exec is not allowed in function 'test_plots_with_exec' 
             count += 1
             path = os.path.join(plot_dir, fname)
             try:
+                #execfile(path)
                 with open(path, "rt") as fh:
-                    exec(fh.read())
+                    exec(fh.read(), {}, {})
             except Exception:
                 errors.append("file %s\n %s" % (path, self.straceback()))
             plt.close("all")
