@@ -20,11 +20,11 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
-from abipy.electrons.ebands import ElectronBands
-from abipy.electrons.scissors import Scissors
 from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, Marker
 from abipy.tools import duck
-from abipy.abio.robots import Robot, RobotWithEbands
+from abipy.abio.robots import Robot
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+from abipy.electrons.scissors import Scissors
 
 import logging
 logger = logging.getLogger(__name__)

@@ -56,8 +56,8 @@ class TestPlots(AbipyTest):
         print("Tested ", count, "plot scripts")
         assert count > 0
         if errors:
-            for i, e in enumerate(errors):
-                print(80 * "*")
-                print(i, e)
-                print(80 * "*")
-        assert not errors
+            #for i, e in enumerate(errors):
+            #    print(80 * "*")
+            #    print(i, e)
+            #    print(80 * "*")
+            raise RuntimeError("\n\n".join(str(e) for e in errors))

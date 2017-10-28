@@ -11,9 +11,9 @@ from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, data_from_cplx_mode
-from abipy.abio.robots import Robot, RobotWithEbands
+from abipy.abio.robots import Robot
+from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
 
 def s2itup(comp):

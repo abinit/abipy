@@ -20,7 +20,8 @@ from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import set_axlims
 from abipy.tools import duck
-from abipy.abio.robots import Robot, RobotWithEbands
+from abipy.abio.robots import Robot
+from abipy.electrons.ebands import RobotWithEbands
 
 
 __all__ = [

@@ -16,8 +16,8 @@ from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEn
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from prettytable import PrettyTable
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.electrons.ebands import ElectronsReader
-from abipy.abio.robots import Robot, RobotWithEbands
+from abipy.abio.robots import Robot
+from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
 import logging
 logger = logging.getLogger(__name__)
