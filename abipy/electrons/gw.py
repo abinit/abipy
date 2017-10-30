@@ -1402,11 +1402,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         nb.cells.extend([
             nbv.new_code_cell("sigres = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(sigres)"),
-            nbv.new_code_cell("fig = sigres.plot_qps_vs_e0()"),
-            nbv.new_code_cell("fig = sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0)"),
-            nbv.new_code_cell("#fig = sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=100)"),
+            nbv.new_code_cell("sigres.plot_qps_vs_e0();"),
+            nbv.new_code_cell("sigres.plot_spectral_functions(spin=0, kpoint=[0, 0, 0], bands=0);"),
+            nbv.new_code_cell("#sigres.plot_ksbands_with_qpmarkers(qpattr='qpeme0', fact=100);"),
             nbv.new_code_cell("r = sigres.interpolate(ks_ebands_kpath=None, ks_ebands_kmesh=None); print(r.interpolator)"),
-            nbv.new_code_cell("fig = r.qp_ebands_kpath.plot()"),
+            nbv.new_code_cell("r.qp_ebands_kpath.plot();"),
             nbv.new_code_cell("""
 if r.ks_ebands_kpath is not None:
     plotter = abilab.ElectronBandsPlotter()

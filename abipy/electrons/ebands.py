@@ -1169,10 +1169,10 @@ class ElectronBands(Has_Structure):
         """
         tos = str if verbose else repr
         lines = []; app = lines.append
-        if title is not None:
-            app(marquee(title, mark="="))
+        if title is not None: app(marquee(title, mark="="))
 
         if with_structure:
+            app(marquee("Structure", mark="="))
             app(tos(self.structure))
             app("")
 
@@ -1782,8 +1782,7 @@ class ElectronBands(Has_Structure):
         if axlist is None:
             # Build axes and align bands and DOS.
             fig = plt.figure()
-            gspec = GridSpec(1, 2, width_ratios=width_ratios)
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
@@ -2303,8 +2302,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         if self.edoses_dict:
             # Build grid with two axes.
-            gspec = GridSpec(1, 2, width_ratios=width_ratios)
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             # bands and DOS will share the y-axis
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2583,8 +2581,7 @@ class ElectronBandsPlotter(NotebookWriter):
         else:
             # Animation with band structures + DOS.
             from matplotlib.gridspec import GridSpec
-            gspec = GridSpec(1, 2, width_ratios=width_ratios)
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             ebands_list[0].decorate_ax(ax1)
@@ -2647,10 +2644,10 @@ class ElectronBandsPlotter(NotebookWriter):
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("frame = plotter.get_ebands_frame()\ndisplay(frame)"),
             nbv.new_code_cell("ylims = (None, None)"),
-            nbv.new_code_cell("fig = plotter.gridplot(ylims=ylims)"),
-            nbv.new_code_cell("fig = plotter.combiplot(ylims=ylims)"),
-            nbv.new_code_cell("fig = plotter.boxplot()"),
-            nbv.new_code_cell("fig = plotter.combiboxplot()"),
+            nbv.new_code_cell("plotter.gridplot(ylims=ylims);"),
+            nbv.new_code_cell("plotter.combiplot(ylims=ylims);"),
+            nbv.new_code_cell("plotter.boxplot();"),
+            nbv.new_code_cell("plotter.combiboxplot();"),
             nbv.new_code_cell("if False: anim = plotter.animate()"),
         ])
 
@@ -2995,8 +2992,7 @@ class ElectronDos(object):
         from matplotlib.gridspec import GridSpec
 
         fig = plt.figure()
-        gspec = GridSpec(2, 1, height_ratios=height_ratios)
-        gspec.update(wspace=0.05)
+        gspec = GridSpec(2, 1, height_ratios=height_ratios, wspace=0.05)
         ax1 = plt.subplot(gspec[0])
         ax2 = plt.subplot(gspec[1], sharex=ax1)
 
@@ -3228,8 +3224,8 @@ class ElectronDosPlotter(NotebookWriter):
             nbv.new_code_cell("plotter = abilab.ElectronDosPlotter.pickle_load('%s')" % tmpfile),
             nbv.new_code_cell("print(plotter)"),
             nbv.new_code_cell("xlims = (None, None)"),
-            nbv.new_code_cell("fig = plotter.combiplot(xlims=xlims)"),
-            nbv.new_code_cell("fig = plotter.gridplot(xlims=xlims)"),
+            nbv.new_code_cell("plotter.combiplot(xlims=xlims);"),
+            nbv.new_code_cell("plotter.gridplot(xlims=xlims);"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

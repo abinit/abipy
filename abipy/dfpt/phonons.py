@@ -273,7 +273,7 @@ class PhononBands(object):
             app(func(self.structure))
             app("")
 
-        app(marquee("Phonon Bands", mark="="))
+        #app(marquee("Phonon Bands", mark="="))
         app("Number of q-points: %d" % self.num_qpoints)
         app("Atomic mass units: %s" % str(self.amu))
         has_dipdip = self.non_anal_ph is not None
@@ -728,9 +728,7 @@ class PhononBands(object):
     def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
                                   highsym_qpts_mode="split", indent=2):
         """
-        Writes a json file that can be parsed from the phononwebsite. See:
-
-                https://github.com/henriquemiranda/phononwebsite
+        Writes a json file that can be parsed from the phononwebsite. See <https://github.com/henriquemiranda/phononwebsite>
 
         Args:
             filename: name of the json file that will be created
@@ -741,10 +739,10 @@ class PhononBands(object):
             match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.
             highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.
                 Accepts the following values:
-                    'split' will split the path based on points where the path changes direction in the Brillouin zone.
-                        Similar to the what is done in phononwebsite. Only Gamma will be labeled.
-                    'std' uses the standard generation procedure for points and labels used in PhononBands.
-                    None does not set any point.
+                'split' will split the path based on points where the path changes direction in the Brillouin zone.
+                Similar to the what is done in phononwebsite. Only Gamma will be labeled.
+                'std' uses the standard generation procedure for points and labels used in PhononBands.
+                None does not set any point.
             indent: Indentation level, passed to json.dump
         """
 
@@ -772,7 +770,7 @@ class PhononBands(object):
 
             return h
 
-        data = dict()
+        data = {}
         data["name"] = name or self.structure.composition.reduced_formula
         data["natoms"] = self.num_atoms
         data["lattice"] = self.structure.lattice.matrix.tolist()
@@ -1258,7 +1256,7 @@ class PhononBands(object):
             ax = plt.subplot(gspec[ax_row, 0], sharex=ax00, sharey=ax00)
             if ax_row == 0: ax00 = ax
             self.decorate_ax(ax, units=units, qlabels=qlabels)
-            color = cmap(float(ax_row) / (ntypat - 1))
+            color = cmap(float(ax_row) / max(1, ntypat - 1))
 
             # dir_indices lists the coordinate indices for the atoms of the same type.
             atom_indices = self.structure.indices_from_symbol(symbol)
@@ -1296,7 +1294,7 @@ class PhononBands(object):
         if phdos_file is not None:
             ax01 = None
             for ax_row, symbol in enumerate(self.structure.symbol_set):
-                color = cmap(float(ax_row) / (ntypat - 1))
+                color = cmap(float(ax_row) / max(1, ntypat - 1))
                 ax = plt.subplot(gspec[ax_row, 1], sharex=ax01, sharey=ax00)
                 if ax_row == 0: ax01 = ax
 
@@ -1340,8 +1338,7 @@ class PhononBands(object):
         if axlist is None:
             # Build axes and align bands and DOS.
             fig = plt.figure()
-            gspec = GridSpec(1, 2, width_ratios=[2, 1])
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=[2, 1], wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
@@ -1637,9 +1634,9 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("fig = ncfile.phbands.plot()"),
-            nbv.new_code_cell("fig = ncfile.phbands.qpoints.plot()"),
-            #nbv.new_code_cell("fig = ncfile.phbands.get_phdos().plot()"),
+            nbv.new_code_cell("ncfile.phbands.plot();"),
+            nbv.new_code_cell("ncfile.phbands.qpoints.plot();"),
+            #nbv.new_code_cell("ncfile.phbands.get_phdos().plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1764,6 +1761,7 @@ class PhononDos(Function1D):
 
         return lines
 
+    # TODO: This should be called plot_dos_idos!
     @add_fig_kwargs
     def plot(self, units="eV", **kwargs):
         """
@@ -1860,7 +1858,8 @@ class PhononDos(Function1D):
 
     def get_cv(self, tstart=5, tstop=300, num=50):
         """
-        Returns the constant-volume specific heat, in eV/K, in the harmonic approximation for different temperatures
+        Returns the constant-volume specific heat, in eV/K, in the harmonic approximation
+        for different temperatures
 
         tstart: The starting value (in Kelvin) of the temperature mesh.
         tstop: The end value (in Kelvin) of the mesh.
@@ -2169,7 +2168,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             # Plot Type projected DOSes along reduced direction idir
             cumulative = np.zeros(len(self.wmesh))
             for itype, symbol in enumerate(self.reader.chemical_symbols):
-                color = cmap(float(itype) / (ntypat - 1))
+                color = cmap(float(itype) / max(1, ntypat - 1))
                 yy = pjdos_symbol_rc[symbol][idir] / factor
 
                 if not stacked:
@@ -2277,10 +2276,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("fig = ncfile.phdos.plot()"),
-            nbv.new_code_cell("fig = ncfile.plot_pjdos_type()"),
-            nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_type()"),
-            #nbv.new_code_cell("fig = ncfile.plot_pjdos_redirs_site()"),
+            nbv.new_code_cell("ncfile.phdos.plot();"),
+            nbv.new_code_cell("ncfile.plot_pjdos_type();"),
+            nbv.new_code_cell("ncfile.plot_pjdos_redirs_type();"),
+            #nbv.new_code_cell("ncfile.plot_pjdos_redirs_site();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -2362,7 +2361,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     return fig
 
 
-def frame_from_phbands(phbands_objects, index=None, with_spglib=True):
+def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     """
     Build a pandas dataframe with the most important results available in a list of band structures.
 
@@ -2383,6 +2382,10 @@ def frame_from_phbands(phbands_objects, index=None, with_spglib=True):
     import pandas as pd
     return pd.DataFrame(odict_list, index=index,
                         columns=list(odict_list[0].keys()) if odict_list else None)
+
+
+# To maintain old interface
+frame_from_phbands = dataframe_from_phbands
 
 
 class PhononBandsPlotter(NotebookWriter):
@@ -2449,8 +2452,8 @@ class PhononBandsPlotter(NotebookWriter):
         """
         Build a pandas dataframe with the most important results available in the band structures.
         """
-        return frame_from_phbands(list(self.phbands_dict.values()),
-                                 index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
+        return dataframe_from_phbands(list(self.phbands_dict.values()),
+                                      index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
 
     @property
     def phbands_dict(self):
@@ -2559,8 +2562,7 @@ class PhononBandsPlotter(NotebookWriter):
         # Build grid of plots.
         fig = plt.figure()
         if self.phdoses_dict:
-            gspec = GridSpec(1, 2, width_ratios=[2, 1])
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=[2, 1], wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2749,8 +2751,7 @@ class PhononBandsPlotter(NotebookWriter):
         else:
             # Animation with band structures + DOS.
             from matplotlib.gridspec import GridSpec
-            gspec = GridSpec(1, 2, width_ratios=width_ratios)
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
             phbands_list[0].decorate_ax(ax1)
@@ -3049,7 +3050,7 @@ class NonAnalyticalPh(Has_Structure):
             structure: :class:`Structure` object.
             directions: Cartesian directions along which the non analytical frequencies have been calculated
             phfreqs: Phonon frequencies with non analytical contribution in eV along directions
-            phdispl_cart: Displacement in Angstromg in Cartesian coordinates with non analytical contribution
+            phdispl_cart: Displacement in Angstrom in Cartesian coordinates with non analytical contribution
                 along directions
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation
@@ -3079,6 +3080,7 @@ class NonAnalyticalPh(Has_Structure):
 
             amu_list = r.read_value("atomic_mass_units", default=None)
             if amu_list is not None:
+                # ntypat arrays
                 atom_species = r.read_value("atomic_numbers")
                 amu = {at: a for at, a in zip(atom_species, amu_list)}
             else:
@@ -3421,7 +3423,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
             size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension
             should match the q points.
         structure: :class:`Structure` object.
-        amu: dictionary that associates the atomic species present in the structure to the values of the atomic
+        amu: dictionary that associates the atomic numbers present in the structure to the values of the atomic
             mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
             almost always lead to inaccuracies in the conversion.
 

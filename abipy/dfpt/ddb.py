@@ -329,7 +329,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return np.array(ngqpt, dtype=np.int)
 
-    @property
+    @lazy_property
     def params(self):
         """Dictionary with the parameters that are usually tested for convergence."""
         return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
@@ -491,8 +491,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                          num_cpus=1, stream=sys.stdout):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
-        reported in the DDB file will be Fourier-interpolated on the list of qmeshes specified
-        by `nqsmalls. Useful to perform covergence studies.
+        reported in the DDB file will be Fourier-interpolated on the list of q-meshes specified
+        by `nqsmalls`. Useful to perform covergence studies.
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
@@ -1053,7 +1053,7 @@ class DielectricTensorGenerator(Has_Structure):
     def __init__(self, phfreqs, oscillator_strength, emacro, structure):
         """
         Args:
-             phfreqs: a numpy array containing the 3*(num atoms) phonon frequencies at gamma
+             phfreqs: a numpy array containing the 3 * num_atoms phonon frequencies at gamma
              oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
              emacro: a numpy array containing the dielectric tensor without frequency dependence
                 (at infinite frequency)
@@ -1121,11 +1121,11 @@ class DielectricTensorGenerator(Has_Structure):
         """
         Returns a DielectricTensor object representing
         the dielectric tensor in atomic units at the specified frequency w.
+
         Args:
             w: frequency
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
         """
-
         if units == 'eV':
             pass
         elif units == 'Ha':
@@ -1236,7 +1236,8 @@ class DdbRobot(Robot, NotebookWriter):
             abspath=False, **kwargs):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
-	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results
+	by the robot and the given anaddb input arguments.
+        Build and return a pandas dataframe with results
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
@@ -1308,7 +1309,7 @@ class DdbRobot(Robot, NotebookWriter):
 
     def anaget_phonon_plotters(self, **kwargs):
         """
-        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via \*\*kwargs.
         Collect results and return `namedtuple` with the following attributes:
 
             phbands_plotter: `PhononBandsPlotter` object.

@@ -131,9 +131,9 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         nb.cells.extend([
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("fig = ncfile.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = ncfile.ebands.plot()"),
-            nbv.new_code_cell("fig = ncfile.ebands.get_edos().plot()"),
+            nbv.new_code_cell("ncfile.ebands.kpoints.plot();"),
+            nbv.new_code_cell("ncfile.ebands.plot();"),
+            nbv.new_code_cell("ncfile.ebands.get_edos().plot();"),
             nbv.new_code_cell("#cube = ncfile.write_cube(filename=None)"),
             nbv.new_code_cell("#xsf_path = ncfile.write_xsf(filename=None"),
             nbv.new_code_cell("#chgcar = ncfile.write_chgcar(filename=None"),

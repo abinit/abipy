@@ -38,7 +38,7 @@ def build_flow(options):
 
     gs_inp.set_vars(
         istwfk="*1",
-        ecut=8.0,
+        ecut=12.0,
         nband=5,
         occopt=7,    # include metallic occupation function with a small smearing
         tsmear=0.04,
@@ -48,29 +48,21 @@ def build_flow(options):
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
     gs_inp.set_kmesh(
-        ngkpt=[8, 8, 8],
+        ngkpt=[12, 12, 12],
         shiftk=[0.0, 0.0, 0.0],
         #kptopt=3,
     )
 
     # Phonon calculation with 4x4x4
-    #qpoints = np.reshape([
-    #     0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
-    #     2.50000000e-01,  0.00000000e+00,  0.00000000e+00,
-    #     5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
-    #     2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #     5.00000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #    -2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #     5.00000000e-01,  5.00000000e-01,  0.00000000e+00,
-    #    -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
-    #    ], (-1,3))
-
     ddb_ngqpt = [4, 4, 4]
     qpoints = gs_inp.abiget_ibz(ngkpt=ddb_ngqpt, shiftk=[0, 0, 0], kptopt=1).points
 
     flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+
+    # GS run to get the WFK
     work0 = flow.register_task(gs_inp, task_class=flowtk.ScfTask)
 
+    # Phonon work with 4x4x4 q-mesh
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)
 
@@ -84,20 +76,28 @@ def build_flow(options):
     )
 
     # Set q-path for phonons and phonon linewidths.
-    eph_inp.set_qpath(20)
+    eph_inp.set_qpath(10)
 
     # TODO: Define wstep and smear
     # Set q-mesh for phonons DOS and a2F(w)
     eph_inp.set_phdos_qmesh(nqsmall=16, method="tetra")
 
+    # EPH part requires the GS WFK, the DDB file with all perturnations
+    # and the database of DFPT potentials (already merged by PhononWork)
     eph_work = flow.register_work(flowtk.Work())
-    eph_deps = {work0[0]: "WFK", ph_work: ["DDB", "DVDB"]}
-    eph_task = eph_work.register_eph_task(eph_inp, deps=eph_deps)
+    deps = {work0[0]: "WFK", ph_work: ["DDB", "DVDB"]}
+
+    eph_work.register_eph_task(eph_inp, deps=deps)
+
+    # Activate Fourier interpolation of DFPT potentials.
+    eph_work.register_eph_task(eph_inp.new_with_vars(eph_ngqpt_fine=[6, 6, 6]), deps=deps)
+    eph_work.register_eph_task(eph_inp.new_with_vars(eph_ngqpt_fine=[12, 12, 12]), deps=deps)
 
     flow.allocate()
 
     # EPH does not support autoparal (yet)
-    eph_task.with_fixed_mpi_omp(1, 1)
+    for eph_task in eph_work:
+        eph_task.with_fixed_mpi_omp(1, 1)
 
     return flow
 
@@ -109,12 +109,14 @@ def main(options):
     return flow
 
 if __name__ == "__main__":
-    #retcode = main()
-    #if retcode != 0: sys.exit(retcode)
+    retcode = main()
+    if retcode != 0: sys.exit(retcode)
 
     rename_table = [
         #  src, dest
         ("_runflow/w2/t0/outdata/out_EPH.nc", "al_888k_161616q_EPH.nc"),
+        ("_runflow/w2/t1/outdata/out_EPH.nc", "al_888k_161616q_vinterp_EPH.nc"),
+	("_runflow/w2/t2/outdata/out_PHDOS.nc", "al_161616q_PHDOS.nc"),
     ]
     import shutil
     for old, new in rename_table:

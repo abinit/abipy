@@ -471,8 +471,8 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(mdf_file)"),
-            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Re')"),
-            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Im')"),
+            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Re');"),
+            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Im');"),
             # TODO:
             #nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
             #tensor_exc.symmetrize(mdf_file.structure)

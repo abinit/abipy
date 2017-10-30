@@ -240,8 +240,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ncols = 1 + len(dos_names)
             fig = plt.figure()
             width_ratios = [2] + len(dos_names) * [0.2]
-            gspec = GridSpec(1, ncols, width_ratios=width_ratios)
-            gspec.update(wspace=0.05)
+            gspec = GridSpec(1, ncols, width_ratios=width_ratios, wspace=0.05)
             ax_bands = plt.subplot(gspec[0])
             ax_doses = []
             for i in range(len(dos_names)):

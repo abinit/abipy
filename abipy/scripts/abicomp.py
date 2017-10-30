@@ -186,7 +186,7 @@ def abicomp_ebands(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+        IPython.embed(header=str(plotter) + "\n\nType `plotter` in the terminal and use <TAB> to list its methods",
                       plotter=plotter)
 
     elif options.notebook:
@@ -223,7 +223,7 @@ def abicomp_edos(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+        IPython.embed(header=str(plotter) + "\n\nType `plotter` in the terminal and use <TAB> to list its methods",
                       plotter=plotter)
 
     elif options.notebook:
@@ -256,7 +256,7 @@ def abicomp_phbands(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+        IPython.embed(header=str(plotter) + "\n\nType `plotter` in the terminal and use <TAB> to list its methods",
                       plotter=plotter)
 
     elif options.notebook:
@@ -293,7 +293,7 @@ def abicomp_phdos(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=str(plotter) + "\nType `plotter` in the terminal and use <TAB> to list its methods",
+        IPython.embed(header=str(plotter) + "\n\nType `plotter` in the terminal and use <TAB> to list its methods",
                       plotter=plotter)
 
     elif options.notebook:
@@ -490,7 +490,7 @@ def _invoke_robot(options):
 
     if options.ipython:
         import IPython
-        IPython.embed(header=repr(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
+        IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
                       robot=robot)
 
     elif options.notebook:

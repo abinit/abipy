@@ -3,6 +3,7 @@
 This module contains objects for the postprocessing of Sigma_eph calculations.
 
 Warning:
+
     Work in progress, DO NOT USE THIS CODE
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
@@ -20,139 +21,130 @@ from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 from abipy.abio.robots import Robot
 
 
+# TODO QPState and QPList from electrons.gw (Define base abstract class).
+
+
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
-     """
-     This file contains the Fan-Migdal self-energy, the ElectronBands on the k-mesh.
-     Provides methods to analyze and plot results.
+    """
+    This file contains the Fan-Migdal self-energy, the ElectronBands on the k-mesh.
+    Provides methods to analyze and plot results.
 
-     Usage example:
+    Usage example:
 
-     .. code-block:: python
+    .. code-block:: python
 
-         with SigEPhFile("out_SIGEPH.nc") as ncfile:
-             print(ncfile)
-             ncfile.ebands.plot()
-     """
-     @classmethod
-     def from_file(cls, filepath):
-         """Initialize the object from a Netcdf file."""
-         return cls(filepath)
+        with SigEPhFile("out_SIGEPH.nc") as ncfile:
+            print(ncfile)
+            ncfile.ebands.plot()
+    """
+    @classmethod
+    def from_file(cls, filepath):
+        """Initialize the object from a Netcdf file."""
+        return cls(filepath)
 
-     def __init__(self, filepath):
-         super(SigEPhFile, self).__init__(filepath)
-         self.reader = SigmaPhReader(filepath)
+    def __init__(self, filepath):
+        super(SigEPhFile, self).__init__(filepath)
+        self.reader = SigmaPhReader(filepath)
 
-     def __str__(self):
-         """String representation."""
-         return self.to_string()
+    def __str__(self):
+        """String representation."""
+        return self.to_string()
 
-     def to_string(self, verbose=0):
-         """String representation."""
-         lines = []; app = lines.append
+    def to_string(self, verbose=0):
+        """String representation."""
+        lines = []; app = lines.append
 
-         app(marquee("File Info", mark="="))
-         app(self.filestat(as_string=True))
-         app("")
-         app(marquee("Structure", mark="="))
-         app(str(self.structure))
-         app("")
-         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
-         app("")
-         app(marquee("SigmaPh calculation", mark="="))
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(marquee("Structure", mark="="))
+        app(str(self.structure))
+        app("")
+        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+        app("")
+        # SigmaPh section
+        app(marquee("SigmaPh calculation", mark="="))
 
-         #if verbose > 1:
-         #    app(marquee("Abinit Header", mark="="))
-         #    app(self.hdr.to_string(verbose=verbose))
+        return "\n".join(lines)
 
-         return "\n".join(lines)
+    @lazy_property
+    def ebands(self):
+        """:class:`ElectronBands` object."""
+        return self.reader.read_ebands()
 
-     #@lazy_property
-     #def hdr(self):
-     #    """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-     #    return self.reader.read_abinit_hdr()
+    @property
+    def structure(self):
+        """:class:`Structure` object."""
+        return self.ebands.structure
 
-     @lazy_property
-     def ebands(self):
-         """:class:`ElectronBands` object."""
-         return self.reader.read_ebands()
+    #@property
+    #def phbands(self):
+    #    """:class:`PhononBands` object with frequencies along the q-path."""
+    #    return self.reader.read_phbands_qpath()
 
-     @property
-     def structure(self):
-         """:class:`Structure` object."""
-         return self.ebands.structure
-
-     #@property
-     #def phbands(self):
-     #    """:class:`PhononBands` object with frequencies along the q-path."""
-     #    return self.reader.read_phbands_qpath()
-
-     def close(self):
+    def close(self):
          """Close the file."""
          self.reader.close()
 
-     @add_fig_kwargs
-     def plot(self, what="lambda", units="eV", ylims=None, ax=None, **kwargs):
-         """
-         Plot phonon bands with eph coupling strenght lambda(q, nu) or gamma(q, nu)
+    #@lazy_property
+    #def params(self):
+    #    """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
+    #    return self.reader.read_params()
 
-         Args:
-             what: `lambda` for eph strength, gamma for ph linewidth.
-             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
-                 Case-insensitive.
-             scale: float used to scale the marker size.
-             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                    or scalar e.g. `left`. If left (right) is None, default values are used
-             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+    #@lazy_property
+    #def qplist_spin(self):
+    #    """Tuple of :class:`QPList` objects indexed by spin."""
+    #    return self.reader.read_allqps()
 
-         Returns:
-             `matplotlib` figure
-         """
-         ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #def get_sigmaw(self, spin, kpoint, band):
+    #    """"
+    #    Read self-energy(w) for (spin, kpoint, band)
+    #    Return :class:`Function1D` object
+    #    """
+    #    wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
+    #    wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
 
-         # Plot phonon bands
-         #self.phbands.plot(ax=ax, units=units, show=False)
+    #    return Sigmaw(spin, kpoint, band, wmesh, sigxc_values, spf_values)
 
-         # Add eph coupling.
-         #xvals = np.arange(len(self.phbands.qpoints))
-         #yvals = self.phbands.phfreqs * factor_ev2units(units)
+    #def get_dataframe(self):
+    #def get_dataframe_kpoint(self):
 
-         # [0] is for the number_of_spins
-         # TODO units
-         #if what == "lambda":
-         #    s = self.reader.read_phlambda_qpath()[0]
-         #    scale = 100
-         #elif what == "gamma":
-         #    s = self.reader.read_phgamma_qpath()[0]
-         #    scale = 1
-         #else:
-         #    raise ValueError("Invalid value for what: `%s`" % what)
+    def write_notebook(self, nbpath=None):
+        """
+        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-         #color = "blue"
-         #for nu in self.phbands.branches:
-         #    ax.scatter(xvals, yvals[:, nu], s=scale * np.abs(s[:, nu]),
-         #            c=color, marker="o", #label=term if ib == 0 else None
-         #    )
+        nb.cells.extend([
+            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(ncfile)"),
+            nbv.new_code_cell("ncfile.ebands.plot();"),
+        ])
 
-         #xvals = np.tile(xvals, 3 * len(self.structure)).T
-         #ax.scatter(xvals.T, yvals.T, s=scale * np.abs(s).T)
+        return self._write_nb_nbpath(nb, nbpath)
 
-         #set_axlims(ax, ylims, "y")
-         #return fig
 
-     def write_notebook(self, nbpath=None):
-         """
-         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
-         working directory is created. Return path to the notebook.
-         """
-         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+class SigEphRobot(Robot, RobotWithEbands, NotebookWriter):
+    """
+    This robot analyzes the results contained in multiple SIGEPH.nc files.
+    """
+    EXT = "SIGEPH"
 
-         nb.cells.extend([
-             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-             nbv.new_code_cell("print(ncfile)"),
-             nbv.new_code_cell("ncfile.ebands.plot();"),
-         ])
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-         return self._write_nb_nbpath(nb, nbpath)
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class SigmaPhReader(ElectronsReader):
@@ -185,25 +177,3 @@ class SigmaPhReader(ElectronsReader):
     #                       non_anal_ph=None,
     #                       amu=self.read_value("atomic_mass_units"),
     #                       )
-
-
-class SigEphRobot(Robot, RobotWithEbands, NotebookWriter):
-    """
-    This robot analyzes the results contained in multiple SIGEPH.nc files.
-    """
-    EXT = "SIGEPH"
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-        ])
-
-        return self._write_nb_nbpath(nb, nbpath)

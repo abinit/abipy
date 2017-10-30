@@ -283,7 +283,7 @@ class Robot(object):
             self._do_close[ncfile.filepath] = True
 
         if label in self._ncfiles:
-            raise ValueError("label %s is already present!")
+            raise ValueError("label %s is already present!" % label)
 
         self._ncfiles[label] = ncfile
 
@@ -396,11 +396,11 @@ class Robot(object):
 
     def to_string(self, func=str, verbose=0):
         """String representation."""
-        lines = ["%s with %d files in memory" % (self.__class__.__name__, len(self.ncfiles))]
+        lines = ["%s with %d files in memory:\n" % (self.__class__.__name__, len(self.ncfiles))]
         app = lines.append
         for i, f in enumerate(self.ncfiles):
             app(func(f))
-            app(" ")
+            if func is str: app("\n")
 
         return "\n".join(lines)
 
@@ -425,7 +425,7 @@ class Robot(object):
                 If None, no sorting is performed.
             reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
         """
-        if func_or_string is None:
+        if not func_or_string:
             return [(label, ncfile, label) for (label, ncfile) in self]
         elif callable(func_or_string):
             items = [(label, ncfile, func_or_string(ncfile)) for (label, ncfile) in self]
@@ -502,6 +502,21 @@ class Robot(object):
                 cprint("Exception: %s" % str(exc), "red")
                 self._exceptions.append(str(exc))
         return d
+
+    #def color_label(self, label):
+    #    import matplotlib.pyplot as plt
+    #    cm = plt.get_cmap('jet')
+    #    return cm(self._ncfiles.keys().index(label) / len(self))
+
+    #def color_index(self, i):
+    #    import matplotlib.pyplot as plt
+    #    cm = plt.get_cmap('jet')
+    #    return cm(i / len(self))
+
+    @staticmethod
+    def sortby_label(sortby, param):
+        """Return the label to be used when files are sorted with `sortby`."""
+        return "%s %s" % (sortby, param) if not callable(sortby) else str(param)
 
     def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
         """

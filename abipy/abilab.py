@@ -63,10 +63,9 @@ from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
-
-# TODO Change name.
-from abipy.eph.eph import EphFile
-#from abipy.eph.sigeph import SigEPhFile
+# TODO Change name. A2f?
+from abipy.eph.eph import EphFile, EphRobot
+from abipy.eph.sigeph import SigEPhFile, SigEphRobot
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -121,7 +120,7 @@ abiext2ncfile = collections.OrderedDict([
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
     ("OPTIC.nc", OpticNcFile),
     ("EPH.nc", EphFile),
-    #("SIGEPH.nc", SigEPhFile),
+    ("SIGEPH.nc", SigEPhFile),
 ])
 
 

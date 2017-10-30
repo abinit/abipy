@@ -241,12 +241,12 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         nb.cells.extend([
             nbv.new_code_cell("f2b = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(f2b)"),
-            nbv.new_code_cell("fig = f2b.ebands.plot()"),
-            nbv.new_code_cell("# fig = f2b.unfolded_kpoints.plot()"),
+            nbv.new_code_cell("f2b.ebands.plot();"),
+            nbv.new_code_cell("#f2b.unfolded_kpoints.plot();"),
             nbv.new_code_cell(r"""\
 # kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
 # klabels = ["Y", "$Gamma$", "X"]
-# fig = f2b.plot_unfolded(kbounds, klabels)"""),
+# f2b.plot_unfolded(kbounds, klabels);"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -35,7 +35,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. attribute:: ifc
 
         :class:`InteratomicForceConstants` object with the interatomic force constants calculated by anaddb.
-        None, if the netcdf file does not contain the IFCs,
+        None, if the netcdf file does not contain the IFCs.
     """
 
     @classmethod
@@ -143,7 +143,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         First-order change in the linear dielectric susceptibility.
         Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).
         The [i][j] element of the list contains the Tensor representing the change due to the
-         displacement of the ith atom in the jth direction.
+        displacement of the ith atom in the jth direction.
         None if the file does not contain this information.
         """
         try:
