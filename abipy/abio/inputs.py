@@ -711,7 +711,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         ph_ngqpt = self.structure.calc_ngkpt(nqsmall)
         ph_qshift = np.reshape(ph_qshift, (-1, 3))
 
-        # TODO: Define wstep and smear
+        # TODO: Test default values of wstep and smear
         ph_intmeth = {"gaussian": 1, "tetra": 2}[method]
         ph_smear = "0.001 eV" if method == "gaussian" else None
 
@@ -735,6 +735,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
         kptbounds = np.reshape(kptbounds, (-1,3))
+        #self.pop_vars(["ngkpt", "shiftk"]) ??
 
         return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds)-1), ndivsm=ndivsm, iscf=iscf)
 

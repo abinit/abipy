@@ -101,11 +101,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure.to_string(verbose=verbose)))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(marquee("Q-points", mark="="))
-        app(str(self.qpoints))
+        app(self.qpoints.to_string(verbose=verbose, title="Q-points"))
         app("")
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
 

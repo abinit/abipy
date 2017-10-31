@@ -209,8 +209,7 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
         app(marquee("DDK perturbation", mark="="))
@@ -218,8 +217,7 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         if verbose > 1:
             app("")
-            app(marquee("Abinit Header", mark="="))
-            app(self.hdr.to_string(verbose=verbose))
+            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 
@@ -242,12 +240,12 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """Close the file."""
         self.reader.close()
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None, title=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
 
         nb.cells.extend([
             nbv.new_code_cell("ddk = abilab.abiopen('%s')" % self.filepath),

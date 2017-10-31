@@ -1167,13 +1167,11 @@ class ElectronBands(Has_Structure):
             with_kpoints: False if k-point info shoud not be displayed.
             verbose: Verbosity level.
         """
-        tos = str if verbose else repr
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
 
         if with_structure:
-            app(marquee("Structure", mark="="))
-            app(tos(self.structure))
+            app(self.structure.to_string(verbose=verbose, title="Structure"))
             app("")
 
         app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
@@ -1204,8 +1202,7 @@ class ElectronBands(Has_Structure):
                 app("")
 
         if with_kpoints:
-            app(marquee("K-points", mark="="))
-            app(tos(self.kpoints))
+            app(self.kpoints.to_string(verbose=verbose, title="K-points"))
             app("")
 
         return "\n".join(lines)

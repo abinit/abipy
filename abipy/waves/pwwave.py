@@ -195,8 +195,7 @@ class WaveFunction(object):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
         app("%s: nspinor: %d, spin: %d, band: %d " % (
             self.__class__.__name__, self.nspinor, self.spin, self.band))
 

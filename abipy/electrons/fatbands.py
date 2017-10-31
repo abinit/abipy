@@ -290,10 +290,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return self.to_string()
 
     def to_string(self, verbose=0):
+        """String representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
+        app("")
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
@@ -319,8 +322,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if verbose > 1:
             app("")
-            app(marquee("Abinit Header", mark="="))
-            app(self.hdr.to_string(verbose=verbose))
+            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 

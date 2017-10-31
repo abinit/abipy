@@ -65,7 +65,7 @@ from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
 # TODO Change name. A2f?
 from abipy.eph.eph import EphFile, EphRobot
-from abipy.eph.sigeph import SigEPhFile, SigEphRobot
+from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar

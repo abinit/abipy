@@ -63,8 +63,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         if self.phbands_qpath_vol:
             app(self.phbands_qpath_vol[self.iv0].to_string(with_structure=False, title="Phonon Bands at V0"))

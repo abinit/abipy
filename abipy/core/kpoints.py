@@ -14,6 +14,7 @@ from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from monty.string import marquee
 from pymatgen.core.lattice import Lattice
 try:
     from pymatgen.util.serialization import pmg_serialize
@@ -784,7 +785,8 @@ class KpointList(collections.Sequence):
     def __str__(self):
         return self.to_string(func=str)
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, func=str, title=None, verbose=0):
+        """String representation."""
         return "\n".join("%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self))
 
     # Sequence protocol.
@@ -1096,16 +1098,15 @@ class Kpath(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs):
         """
         String representation.
 
         Args:
             verbose: Verbosity level. Default: 0
         """
-        verbose = kwargs.get("verbose", 0)
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
             len(self.lines), [len(l) for l in self.lines]))
         #for i, line in enumerate(self.lines):
@@ -1256,9 +1257,10 @@ class IrredZone(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, func=str, verbose=0, title=None):
         """String representation."""
         lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
 
         if self.is_mpmesh:
             mpdivs, shifts = self.mpdivs_shifts
@@ -1424,10 +1426,10 @@ If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0, title=None, **kwargs):
         """String representation."""
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
         app("kptopt:\n  %s" % str(self.kptopt))
         app("mpdivs: %s" % str(self.mpdivs))
         app("kptrlatt:\n %s" % str(self.kptrlatt))
@@ -1600,10 +1602,11 @@ class Ktables(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs):
         """String representation"""
-        lines = collections.deque()
-        app = lines.append
+        lines = collections.deque(); app = lines.append
+        if title is not None: app(marquee(title, mark="="))
+
         app("mesh %s, shift %s, time-reversal: %s, Irred points: %d" % (
             self.mesh, self.kshift, self.has_timrev, self.nibz))
 

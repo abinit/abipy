@@ -72,13 +72,11 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         # TODO: Fix problem with efermi
         #app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
-        app(marquee("K-points for screening function", mark="="))
-        app(str(self.kpoints))
+        app(self.kpoints.to_string(verbose=verbose, title="K-points for screening function"))
         app("")
         app("Number of G-vectors in screening matrices: %d" % self.ng)
         app("Number of frequencies: %d (real: %d, imaginary: %d)" % (self.nw, self.nrew, self.nimw))
@@ -88,8 +86,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
         if verbose > 1:
             app("")
-            app(marquee("Abinit Header", mark="="))
-            app(self.hdr.to_string(verbose=verbose))
+            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 

@@ -160,14 +160,15 @@ class _Field(Has_Structure):
         """Structure object."""
         return self._structure
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0, title=None):
         """String representation"""
-        lines = ["%s: nspinor: %i, nsppol: %i, nspden: %i" %
-                 (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)]
-        app = lines.append
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title), mark="=")
+        app("%s: nspinor: %i, nsppol: %i, nspden: %i" %
+            (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden))
         app(self.mesh.to_string(verbose=verbose))
         if verbose > 0:
-            app(str(self.structure))
+            app(self.structure.to_string(verbose=verbose))
 
         return "\n".join(lines)
 

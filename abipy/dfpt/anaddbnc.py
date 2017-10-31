@@ -66,8 +66,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         return "\n".join(lines)
 

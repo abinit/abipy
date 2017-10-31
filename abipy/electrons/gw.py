@@ -71,7 +71,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
     def copy(self):
         """Shallow copy."""
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-        return QPState(**d)
+        return self.__class__(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -198,7 +198,7 @@ class QPList(list):
         """String representation."""
         return self.to_string()
 
-    def to_string(self, **kwargs):
+    def to_string(self, verbose=0):
         """String representation."""
         table = self.to_table()
         strio = cStringIO()
@@ -214,7 +214,7 @@ class QPList(list):
 
     def sort_by_e0(self):
         """Return a new object with the E0 energies sorted in ascending order."""
-        return QPList(sorted(self, key=lambda qp: qp.e0), is_e0sorted=True)
+        return self.__class__(sorted(self, key=lambda qp: qp.e0), is_e0sorted=True)
 
     def get_e0mesh(self):
         """Return the E0 energies."""
@@ -254,7 +254,8 @@ class QPList(list):
         return table
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermi=None,
+                       axlist=None, label=None, **kwargs):
         """
         Plot the QP results as function of the initial KS energy.
 
@@ -263,23 +264,15 @@ class QPList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields
-            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            axlist: List of matplotlib axes for plot. If None, new figure is produced.
             label: Label for plot.
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        fermi           True to plot the Fermi level.
-        ==============  ==============================================================
+            fermi: Value of the Fermi level used in plot. None if disable plot
 
         Returns:
             `matplotlib` figure.
         """
-        fermi = kwargs.pop("fermi", None)
-
         fields = _get_fields_for_plot(with_fields, exclude_fields)
-        if not fields:
-            return None
+        if not fields: return None
 
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
@@ -332,7 +325,8 @@ class QPList(list):
         Args:
             domains: list in the form [ [start1, stop1], [start2, stop2]
                      Domains should not overlap, cover e0mesh, and given in increasing order.
-                     Holes are permitted but the interpolation will raise an exception if the point is not in domains.
+                     Holes are permitted but the interpolation will raise an exception if
+                     the point is not in domains.
             bounds: Specify how to handle out-of-boundary conditions, i.e. how to treat
                     energies that do not fall inside one of the domains (not used at present)
 
@@ -435,11 +429,7 @@ class QPList(list):
             if qp.skb in skb0_list:
                 raise ValueError("Found duplicated (s,b,k) indexes: %s" % str(qp.skb))
 
-        if copy:
-            qps = self.copy() + other.copy()
-        else:
-            qps = self + other
-
+        qps = self.copy() + other.copy() if copy else self + other
         return self.__class__(qps)
 
 
@@ -457,8 +447,7 @@ class Sigmaw(object):
 
     def plot_ax(self, ax, w="a", **kwargs):
         """Helper function to plot data on the axis ax."""
-        #if not kwargs:
-        #    kwargs = {"color": "black", "linewidth": 2.0}
+        #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         lines = []
         extend = lines.extend
@@ -506,18 +495,14 @@ class Sigmaw(object):
         fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
         axlist = axlist.ravel()
 
-        title = 'spin %s, k-point %s, band %s' % (self.spin, self.kpoint, self.band)
+        title = 'spin %s, k-point %s, band %s' % (self.spin, repr(self.kpoint), self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
             ax = axlist[i]
             ax.grid(True)
-
-            if i == len(what):
-                ax.set_xlabel('Frequency [eV]')
-
-            if not kwargs:
-                kwargs = {"color": "black", "linewidth": 2.0}
+            if i == len(what): ax.set_xlabel('Frequency [eV]')
+            if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
             self.plot_ax(ax, w=w, **kwargs)
 
@@ -888,8 +873,7 @@ class SigresPlotter(Iterable):
             `matplotlib` figure.
         """
         fields = _get_fields_for_plot(with_fields, exclude_fields)
-        if not fields:
-            return None
+        if not fields: return None
 
         # Build plot grid
         import matplotlib.pyplot as plt
@@ -1014,11 +998,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """`ElectronBands with the KS energies."""
         return self._ebands
 
-    #@lazy_property
-    #def hdr(self):
-    #    """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
-    #    return self.reader.read_abinit_hdr()
-
     @lazy_property
     def qplist_spin(self):
         """Tuple of :class:`QPList` objects indexed by spin."""
@@ -1034,7 +1013,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def qpgaps(self):
-        """ndarray with shape [nsppol, nkibz] in eV"""
+        """array of shape [nsppol, nkibz] with the QP direct gaps in eV."""
         return self.reader.read_qpgaps()
 
     def get_qpgap(self, spin, kpoint):
@@ -1171,7 +1150,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    def to_dataframe(self, ignore_imag=False):
+    def get_dataframe(self, ignore_imag=False):
         """
         Returns pandas DataFrame with QP results for all k-points included in the GW calculation
 
@@ -1186,6 +1165,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 df_list.append(df_sk)
 
         return pd.concat(df_list)
+
+    # FIXME: To maintain previous interface.
+    to_dataframe = get_dataframe
 
     def get_dataframe_sk(self, spin, kpoint, index=None, ignore_imag=False):
         """

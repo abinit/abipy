@@ -256,7 +256,7 @@ class PhononBands(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, title=None, with_structure=True, with_qpoints=False, func=str, verbose=0):
+    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0):
         """
         Human-readable string with useful information such as structure, q-points, ...
 
@@ -269,8 +269,7 @@ class PhononBands(object):
         if title is not None: app(marquee(title, mark="="))
 
         if with_structure:
-            app(marquee("Structure", mark="="))
-            app(func(self.structure))
+            app(self.structure.to_string(verbose=verbose, title="Structure"))
             app("")
 
         #app(marquee("Phonon Bands", mark="="))
@@ -282,8 +281,7 @@ class PhononBands(object):
             app(str(self.non_anal_ph))
 
         if with_qpoints:
-            app(marquee("Q-points", mark="="))
-            app(func(self.qpoints))
+            app(self.qpoints.to_string(verbose=verbose, title="Q-points"))
             app("")
 
         return "\n".join(lines)
@@ -2021,9 +2019,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __str__(self):
         """Invoked by str"""
-        return self.to_string(func=str)
+        return self.to_string()
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, verbose=0):
         """
         Human-readable string with useful information such as structure...
 
@@ -2035,8 +2033,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(self.filestat(as_string=True))
         app("")
 
-        app(marquee("Structure", mark="="))
-        app(func(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
 
         return "\n".join(lines)

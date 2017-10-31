@@ -28,7 +28,7 @@ class A2f(object):
     Eliashberg function a2F(w). Energies are in eV.
     """
 
-    # Markers used for up/down bands (collinear spin)
+    # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
 
     def __init__(self, mesh, values_spin, values_spin_nu):
@@ -405,12 +405,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         app("")
-        app(self.phbands.to_string(with_structure=False, title="Phonon Bands"))
+        app(self.phbands.to_string(with_structure=False, verbose=verbose, title="Phonon Bands"))
         app("")
         # E-PH section
         app(marquee("E-PH calculation", mark="="))

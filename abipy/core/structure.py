@@ -16,7 +16,7 @@ from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
 from monty.dev import deprecated
 from monty.functools import lazy_property
-from monty.string import is_string
+from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.core.sites import PeriodicSite
@@ -479,18 +479,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return structure_from_abivars(cls, *args, **kwargs)
 
-    #def __str__(self):
-    #    return self.to_string()
+    def __str__(self):
+        return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, title=None, verbose=0):
         """String representation."""
-        #if verbose == 0: s = super(Structure, self).__str__()
-        s = self.spget_summary(verbose=verbose)
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
+        if verbose:
+            app(self.spget_summary(verbose=verbose))
+        else:
+            app(super(Structure, self).__str__())
 
         if self.abi_spacegroup is not None:
-            s += "\n\nAbinit Spacegroup: %s" % self.abi_spacegroup.to_string(verbose=verbose)
+            app("\nAbinit Spacegroup: %s" % self.abi_spacegroup.to_string(verbose=verbose))
 
-        return s
+        return "\n".join(lines)
 
     def to(self, fmt=None, filename=None, **kwargs):
         __doc__ = pymatgen.Structure.to.__doc__ + \
