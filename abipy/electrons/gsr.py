@@ -369,7 +369,7 @@ class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
     """
     EXT = "GSR"
 
-    def get_dataframe(self, with_geo=True, abspath=False, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
         """
         Return a pandas DataFrame with the most important GS results.
         and the filenames as index.
@@ -382,8 +382,7 @@ class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
             attrs:
                 List of additional attributes of the :class:`GsrFile` to add to
                 the pandas :class:`DataFrame`
-            funcs:
-                Function or list of functions to execute to add more data to the DataFrame.
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
@@ -413,9 +412,8 @@ class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
                 d.update(gsr.structure.get_dict4frame(with_spglib=True))
 
             # Execute functions
-            d.update(self._exec_funcs(kwargs.get("funcs", []), gsr))
+            if funcs is not None: d.update(self._exec_funcs(funcs, gsr))
             rows.append(d)
-
 
         row_names = row_names if not abspath else _to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))

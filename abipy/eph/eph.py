@@ -726,13 +726,16 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
 
     all_qsamps = ["qcoarse", "qintp"]
 
-    def get_dataframe(self, abspath=False, with_geo=False):
+    def get_dataframe(self, abspath=False, with_geo=False, funcs=None):
         """
         Build and return a pandas dataframe with results
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             with_geo: True if structure info should be added to the dataframe
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`EphFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
 
         Return:
             pandas DataFrame
@@ -761,9 +764,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
                 d.update(ncfile.structure.get_dict4frame(with_spglib=True))
 
             # Execute functions.
-            # TODO: Remove kwargs
-            #d.update(self._exec_funcs(kwargs.get("funcs", []), ncfile))
-
+            if funcs is not None: d.update(self._exec_funcs(funcs, ncfile))
             rows.append(d)
 
         import pandas as pd

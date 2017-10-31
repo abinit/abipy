@@ -31,7 +31,6 @@ from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axl
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1231,7 +1230,7 @@ class DdbRobot(Robot, NotebookWriter):
     #    return np.array(qpoints)
 
     def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
-            abspath=False, **kwargs):
+            abspath=False, funcs=None, **kwargs):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 	by the robot and the given anaddb input arguments.
@@ -1242,6 +1241,9 @@ class DdbRobot(Robot, NotebookWriter):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`DDBFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
 
         Return:
             pandas DataFrame
@@ -1276,8 +1278,7 @@ class DdbRobot(Robot, NotebookWriter):
                 d.update(phbands.structure.get_dict4frame(with_spglib=True))
 
             # Execute functions.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), ddb))
-
+            if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
             rows.append(d)
 
         import pandas as pd

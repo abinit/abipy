@@ -1864,6 +1864,9 @@ class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
             kpoint
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`SigresFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
         """
         # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin
         # TODO: In principle the SIGRES might have different k-points
@@ -1894,7 +1897,7 @@ class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
                 d.update(sigres.structure.get_dict4frame(with_spglib=True))
 
             # Execute functions.
-            d.update(self._exec_funcs(kwargs.get("funcs", []), sigres))
+            if funcs is not None: d.update(self._exec_funcs(funcs, sigres))
             rows.append(d)
 
         row_names = row_names if not abspath else _to_relpaths(row_names)
