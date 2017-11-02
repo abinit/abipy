@@ -126,7 +126,7 @@ class JobFile(object):
     def __str__(self):
         lines = []
         def app(line):
-            if '__iter__' in dir(line):
+            if '__iter__' in dir(line) and not isinstance(line, str):
                 lines.extend(line)
             else:
                 lines.append(line)

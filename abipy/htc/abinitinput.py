@@ -5,7 +5,7 @@ import subprocess
 from os import makedirs, readlink, symlink
 from os.path import basename, dirname, exists, join, realpath
 
-from abipy.profile import abipy_env
+# from abipy.profile import abipy_env
 from .filesfile import FilesFile
 from .abinitfiles import AbinitFiles
 from .inputfile import InputFile 
@@ -127,7 +127,7 @@ class AbinitInput(AbinitFiles):
                        input=self.files_name,
                        log=self.log_name) 
 
-        #jobtype = abipy_env.get_uservar("jobtype", kwargs)
+        # jobtype = abipy_env.get_uservar("jobtype", kwargs)
         if jobtype is None: jobtype = ''
 
         if jobtype.lower() == 'pbs':
@@ -151,10 +151,10 @@ class AbinitInput(AbinitFiles):
         self._setattr(_to_link = list())
 
         # Other arguments
-        for key in self.properties():
-            val = abipy_env.get_default(key, kwargs)
-            if val is not None:
-                getattr(self, 'set_' + key)(val)
+        # for key in self.properties():
+        #     val = abipy_env.get_default(key, kwargs)
+        #     if val is not None:
+        #         getattr(self, 'set_' + key)(val)
 
     def _setattr(self, **kwargs):
         self.__dict__.update(kwargs)
