@@ -106,7 +106,7 @@ class A2f(object):
 
     @lazy_property
     def omega_log(self):
-        """
+        r"""
         Get log moment of alpha^2F.
         exp((2/\lambda) \int dw a2F(w) ln(w)/w)
         """
@@ -116,7 +116,7 @@ class A2f(object):
         return np.exp(2.0 * integral / self.lambda_iso) * units.Ha_to_eV
 
     def get_moment(self, n, spin=None, cumulative=False):
-        """
+        r"""
         Computes the moment of a2F(w) i.e. $\int dw [a2F(w)/w] w^n$
         From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)
         """
@@ -133,7 +133,7 @@ class A2f(object):
         return vals if cumulative else vals[-1].copy()
 
     def get_moment_nu(self, n, nu, spin=None, cumulative=False):
-        """
+        r"""
         Computes the moment of a2F(w) i.e. $\int dw [a2F(w)/w] w^n$
         From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)
         """

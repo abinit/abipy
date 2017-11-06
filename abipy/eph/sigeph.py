@@ -346,7 +346,7 @@ class QpTempList(list):
 
 
 class EphSelfEnergy(object):
-    """
+    r"""
     Electron self-energy due to phonon interaction $\Sigma_{nk}(\omega,T)$
     Actually diagonal matrix elements in the KS basis set.
     """

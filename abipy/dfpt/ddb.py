@@ -1307,7 +1307,7 @@ class DdbRobot(Robot):
     #    plt.show()
 
     def anaget_phonon_plotters(self, **kwargs):
-        """
+        r"""
         Invoke anaddb to compute phonon bands and DOS using the arguments passed via \*\*kwargs.
         Collect results and return `namedtuple` with the following attributes:
 
