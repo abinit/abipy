@@ -17,6 +17,7 @@ def build_flow(options):
     a WFK file on a k-mesh with empty states used for the self-energy.
     Then all of the independent perturbations for the irreducible qpoints in a 4x4x4 grid are obtained.
     Note that the q-point grid must be a sub-grid of the k-point grid (here 8x8x8)
+    Finally, we enter the EPH driver to compute the Fan-Migdal self-energy.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
@@ -50,7 +51,7 @@ def build_flow(options):
         shiftk=[0.0, 0.0, 0.0],
         #kptopt=3,
     )
-#
+
     # NSCF run with k-path (just for plotting purpose)
     nscf_kpath_inp = gs_inp.new_with_vars(
         nband=8,
@@ -80,15 +81,15 @@ def build_flow(options):
 
     # Build input file for E-PH run. See v8/Input/t44.in
     eph_inp = gs_inp.new_with_vars(
-        optdriver=7,               # e-ph driver.
-        eph_task=4,                # Electronic self-energy due to phonon
+        optdriver=7,               # EPH driver.
+        eph_task=4,                # For electronic self-energy due to phonon
         nband=54,
         ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
         symsigma=0,
-        #eph_intmeth=2,             # Tetra method
         nkptgw=2,
         kptgw=[0, 0, 0, 0.5, 0, 0],
         bdgw=[1, 8, 1, 8],
+        #eph_intmeth=2,            # Tetra method
         #gw_qprange -2
     )
 

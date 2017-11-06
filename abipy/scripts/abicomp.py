@@ -40,10 +40,9 @@ import os
 
 %matplotlib notebook
 from IPython.display import display
-#import seaborn as sns
 
 from abipy import abilab"""),
-            nbv.new_code_cell("dfs = abilab.frames_from_structures(%s, index=%s)" % (paths, index)),
+            nbv.new_code_cell("dfs = abilab.dataframes_from_structures(%s, index=%s)" % (paths, index)),
             # Analyze dataframes.
             nbv.new_code_cell("dfs.lattice"),
             nbv.new_code_cell("dfs.coords"),
@@ -61,7 +60,7 @@ from abipy import abilab"""),
         cmd = "jupyter notebook %s" % nbpath
         return os.system(cmd)
 
-    dfs = abilab.frames_from_structures(paths, index=index)
+    dfs = abilab.dataframes_from_structures(paths, index=index)
 
     if options.ipython:
         import IPython
@@ -140,7 +139,7 @@ def _compare_with_database(options):
     for this_structure, r in zip(structures, mpres):
         if r.structures:
             print()
-            dfs = abilab.frames_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
+            dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
             abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
             if options.verbose:
                 abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
@@ -163,7 +162,7 @@ def abicomp_xrd(options):
 
     structures = [abilab.Structure.from_file(p) for p in options.paths]
 
-    dfs = abilab.frames_from_structures(structures, index=[os.path.relpath(p) for p in options.paths])
+    dfs = abilab.dataframes_from_structures(structures, index=[os.path.relpath(p) for p in options.paths])
     abilab.print_frame(dfs.lattice, title="Lattice parameters:")
     if options.verbose:
         abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
@@ -173,7 +172,6 @@ def abicomp_xrd(options):
     xrd = XRDCalculator(wavelength=options.wavelength, symprec=options.symprec)
     xrd.plot_structures(structures, two_theta_range=two_theta_range, fontsize=6,
                         annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
-
     return 0
 
 
@@ -657,6 +655,13 @@ Usage example:
   abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
                                                      parse timing data and plot results.
 
+TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
+For instance:
+
+    abicomp.py structure `find . -name "*_GSR.nc"`
+
+will compare the structurs extracted from all GSR.nc files found within the current working directory (note backticks).
+
 NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
 In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
 
@@ -746,8 +751,6 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
                         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
-
-
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
@@ -812,8 +815,10 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
+        sns.set(context='article', style='darkgrid', palette='deep',
+                font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.verbose > 1:
+    if options.verbose > 2:
         print(options)
 
     # Dispatch

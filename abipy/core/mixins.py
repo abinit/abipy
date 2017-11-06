@@ -416,11 +416,18 @@ class NotebookWriter(object):
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
 
-    def get_nbformat_nbv_nb(self, title=None):
-        """
-        """
+    def get_nbformat_nbv(self):
+        """Return nbformat module, notebook version module"""
         import nbformat
         nbv = nbformat.v4
+        return nbformat, nbv
+
+    def get_nbformat_nbv_nb(self, title=None):
+        """
+        Return nbformat module, notebook version module
+        and new notebook with title and import section
+        """
+        nbformat, nbv = self.get_nbformat_nbv()
         nb = nbv.new_notebook()
 
         if title is not None:
@@ -436,8 +443,10 @@ import numpy as np
 %matplotlib notebook
 from IPython.display import display
 
-# Uncomment this line to activate seaborn settings.
+# Use seaborn settings for plots. See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
 #import seaborn as sns
+#sns.set(context='notebook', style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
 # This to render pandas DataFrames with https://github.com/quantopian/qgrid
 #import qgrid
@@ -446,7 +455,11 @@ from IPython.display import display
 # This to view Mayavi visualizations. See http://docs.enthought.com/mayavi/mayavi/tips.html
 #from mayavi import mlab; mlab.init_notebook(backend='x3d', width=None, height=None, local=True)
 
-from abipy import abilab""")
+from abipy import abilab
+
+# AbiPy widgets for pandas and seaborn plot APIs
+#import abipy.display.seabornw import snw
+#import abipy.display.pandasw import pdw""")
         ])
 
         return nbformat, nbv, nb

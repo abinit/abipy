@@ -26,7 +26,6 @@ from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 
 
-
 __all__ = [
     "frame_from_phbands",
     "PhononBands",
@@ -2363,9 +2362,9 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     Build a pandas dataframe with the most important results available in a list of band structures.
 
     Args:
-        phbands_objects: List of objects that can be converted to structure.
+        phbands_objects: List of objects that can be converted to phonon bands objects..
             Support netcdf filenames or :class:`PhononBands` objects
-            See `PhononBands.as_ebands` for the complete list.
+            See `PhononBands.as_phbands` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
@@ -3463,4 +3462,40 @@ def match_eigenvectors(v1, v2):
 
 
 class RobotWithPhbands(object):
-    """Mixin class for robots associated to files with `PhononBands`."""
+    """
+    Mixin class for robots associated to files with `PhononBands`.
+    """
+
+    def get_phbands_plotter(self, filter_abifile=None, cls=None):
+        """
+        Build and return an instance of `PhononBandsPlotter` or a subclass is cls is not None.
+
+        Args:
+            filter_abifile: Function that receives an `abifile` object and returns
+                True if the file should be added to the plotter.
+            cls: subclass of `PhononBandsPlotter`
+        """
+        plotter = PhononBandsPlotter() if cls is None else cls()
+
+        for label, abifile in self:
+            if filter_abifile is not None and not filter_abifile(abifile): continue
+            plotter.add_phbands(label, abifile.phbands)
+
+        return plotter
+
+    def get_phbands_dataframe(self, with_spglib=True):
+        """
+        Build a pandas dataframe with the most important results available in the band structures.
+        """
+        return dataframe_from_phbands([nc.phbands for nc in self.ncfiles],
+                                      index=self.labels, with_spglib=with_spglib)
+
+    def get_phbands_code_cells(self, title=None):
+        """Return list of notebook cells."""
+        # Try not pollute namespace with lots of variables.
+        nbformat, nbv = self.get_nbformat_nbv()
+        title = "## Code to compare multiple PhononBands objects" if title is None else str(title)
+        return [
+            nbv.new_markdown_cell(title),
+            nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
+        ]

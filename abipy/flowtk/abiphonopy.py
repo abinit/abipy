@@ -11,7 +11,7 @@ try:
     from phonopy.interface.abinit import parse_set_of_forces
 except ImportError:
     import warnings
-    warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip")
+    warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip install phonopy")
 
 from pymatgen.io.abinit.works import Work
 from abipy.core.structure import Structure

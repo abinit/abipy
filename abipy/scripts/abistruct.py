@@ -424,7 +424,8 @@ ehull < show_unstable will be shown.""")
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.verbose > 1: print(options)
+    if options.verbose > 2:
+        print(options)
 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)

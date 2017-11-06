@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This example shows how to plot the L-projected fatbands of Ni
-using the results stored in the FATBANDS.nc files produced by abinit with prtdos 3.
+using the results stored in the FATBANDS.nc files produced with prtdos 3.
 """
 import abipy.abilab as abilab
 import abipy.data as abidata

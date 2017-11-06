@@ -392,7 +392,8 @@ class DensityFortranFile(AbinitFortranFile):
         output_filepath = os.path.join(workdir, "field_CUT3DDENPOT.nc")
         # FIXME Converters with nspden > 1 won't work since cut3d asks for the ispden index.
         cut3d_input = Cut3DInput(infile_path=self.filepath, output_filepath=output_filepath,
-                                 options=["17", "0", "0"])
+                                 options=[15, output_filepath, 0, 0])
+
         outfile, _ = Cut3D().cut3d(cut3d_input, workdir)
         with Cut3dDenPotNcFile(output_filepath) as nc:
             assert nc.field.is_density_like and nc.field.netcdf_name == "density"

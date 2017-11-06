@@ -764,7 +764,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         for i, site in enumerate(self):
             table.append([
                 i,
-                site.specie.symbol,
+                site.species_string,
                 "%+.5f %+.5f %+.5f" % tuple(site.frac_coords),
                 "%s" % wickoffs[i],
                 "%d" % equivalent_atoms[i],
@@ -952,6 +952,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
 
+    # TODO Use get_dict4pandas
     def get_dict4frame(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important structural parameters:
@@ -1705,8 +1706,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
             nbv.new_code_cell("print(structure.spglib_summary())"),
             nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
             nbv.new_code_cell("print(structure.hsym_kpoints)"),
-            nbv.new_code_cell("fig = structure.plot_bz()"),
-            nbv.new_code_cell("fig = structure.plot_xrd()"),
+            nbv.new_code_cell("structure.plot_bz();"),
+            nbv.new_code_cell("structure.plot_xrd();"),
             nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
             nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
         ])
@@ -1830,7 +1831,7 @@ class StructureModifier(object):
                     E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
                     a' = 2a + b, b' = 3b, c' = c
                     where a, b, and c are the lattice vectors of the original structure.
-                b. A sequence of three scaling factors. E.g., [2, 1, 1]
+                b. A sequence of three scaling factors. e.g., [2, 1, 1]
                    specifies that the supercell should have dimensions 2a x b x c.
                 c. A number, which simply scales all lattice vectors by the same factor.
 

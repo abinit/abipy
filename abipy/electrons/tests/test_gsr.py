@@ -154,6 +154,10 @@ class GstRobotTest(AbipyTest):
         robot.add_file("gsr1", abilab.abiopen(gsr_path))
         assert len(robot) == 2
         robot.show_files()
+        with self.assertRaises(AttributeError):
+            robot.is_sortable("foobar", raise_exc=True)
+        assert not robot.is_sortable("foobar")
+        assert robot.is_sortable("nkpt")
 
         dfs = robot.get_structure_dataframes()
         assert dfs.lattice is not None

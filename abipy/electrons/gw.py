@@ -92,16 +92,13 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         for k, v in d.items():
             if duck.is_intlike(v):
                 d[k] = "%d" % int(v)
-
             elif isinstance(v, Kpoint):
                 d[k] = "%s" % v
-
             elif np.iscomplexobj(v):
                 if abs(v.imag) < 1.e-3:
                     d[k] = "%.2f" % v.real
                 else:
                     d[k] = "%.2f%+.2fj" % (v.real, v.imag)
-
             else:
                 try:
                     d[k] = "%.2f" % v
@@ -160,7 +157,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
 def _get_fields_for_plot(with_fields, exclude_fields):
     """
-    Return list of fields to plot from input arguments.
+    Return list of QPState fields to plot from input arguments.
     """
     all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
 
@@ -245,6 +242,7 @@ class QPList(list):
     def to_table(self):
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
+        # TODO: Use tabulate or pd
         table = PrettyTable(header)
 
         for qp in self:
@@ -252,6 +250,21 @@ class QPList(list):
             table.add_row([d[k] for k in header])
 
         return table
+
+    def merge(self, other, copy=False):
+        """
+        Merge self with other. Return new :class:`QPList` object
+
+        Raise:
+            ValueError if merge cannot be done.
+        """
+        skb0_list = [qp.skb for qp in self]
+        for qp in other:
+            if qp.skb in skb0_list:
+                raise ValueError("Found duplicated (s,b,k) indexes: %s" % str(qp.skb))
+
+        qps = self.copy() + other.copy() if copy else self + other
+        return self.__class__(qps)
 
     @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermi=None,
@@ -263,10 +276,10 @@ class QPList(list):
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Similar to `with_field` but excludes fields
+            exclude_fields: Similar to `with_field` but excludes fields.
             axlist: List of matplotlib axes for plot. If None, new figure is produced.
             label: Label for plot.
-            fermi: Value of the Fermi level used in plot. None if disable plot
+            fermi: Value of the Fermi level used in plot. None to disable plot
 
         Returns:
             `matplotlib` figure.
@@ -301,8 +314,8 @@ class QPList(list):
             yy = qps.get_field(field)
             lbl = label if ii == 0 and label is not None else None
 
+            # TODO real and imag?
             ax.plot(e0mesh, yy.real, linestyle, label=lbl, **kwargs)
-            #ax.plot(e0mesh, e0mesh)
 
             if fermi is not None:
                 ax.plot(2*[fermi], [min(yy), max(yy)])
@@ -317,7 +330,7 @@ class QPList(list):
 
         return fig
 
-    def build_scissors(self, domains, bounds=None, k=3, **kwargs):
+    def build_scissors(self, domains, bounds=None, k=3, plot=False, **kwargs):
         """
         Construct a scissors operator by interpolating the QPState corrections
         as function of the initial energies E0.
@@ -329,12 +342,7 @@ class QPList(list):
                      the point is not in domains.
             bounds: Specify how to handle out-of-boundary conditions, i.e. how to treat
                     energies that do not fall inside one of the domains (not used at present)
-
-        ==============  ==============================================================
-        kwargs          Meaning
-        ==============  ==============================================================
-        plot             If true, use `matplolib` to compare input data  and fit.
-        ==============  ==============================================================
+            plot:   If true, use `matplolib` to compare input data  and fit.
 
         Return:
             instance of :class:`Scissors`operator
@@ -401,7 +409,7 @@ class QPList(list):
         sciss = Scissors(func_list, domains, residues, bounds)
 
         # Compare fit with input data.
-        if kwargs.pop("plot", False):
+        if plot:
             title = kwargs.pop("title", None)
             import matplotlib.pyplot as plt
             plt.plot(e0mesh, qpcorrs, 'o', label="input data")
@@ -416,21 +424,6 @@ class QPList(list):
 
         # Return the object.
         return sciss
-
-    def merge(self, other, copy=False):
-        """
-        Merge self with other. Return new :class:`QPList` object
-
-        Raise:
-            ValueError if merge cannot be done.
-        """
-        skb0_list = [qp.skb for qp in self]
-        for qp in other:
-            if qp.skb in skb0_list:
-                raise ValueError("Found duplicated (s,b,k) indexes: %s" % str(qp.skb))
-
-        qps = self.copy() + other.copy() if copy else self + other
-        return self.__class__(qps)
 
 
 class Sigmaw(object):
@@ -507,33 +500,6 @@ class Sigmaw(object):
             self.plot_ax(ax, w=w, **kwargs)
 
         return fig
-
-
-def torange(obj):
-    """
-    Convert obj into a range. Accepts integer, slice object  or any object
-    with an __iter__ method. Note that an integer is converted into range(int, int+1)
-
-    >>> list(torange(1))
-    [1]
-    >>> list(torange(slice(0, 4, 2)))
-    [0, 2]
-    >>> list(torange([1, 4, 2]))
-    [1, 4, 2]
-    """
-    if duck.is_intlike(obj):
-        return range(obj, obj + 1)
-
-    elif isinstance(obj, slice):
-        start = obj.start if obj.start is not None else 0
-        step = obj.step if obj.step is not None else 1
-        return range(start, obj.stop, step)
-
-    else:
-        try:
-            return obj.__iter__()
-        except:
-            raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
 class SigresPlotter(Iterable):
@@ -778,7 +744,7 @@ class SigresPlotter(Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else torange(spin)
+        spin_range = range(self.nsppol) if spin is None else duck.torange(spin)
 
         if kpoint is None:
             kpoints_for_plot = self.computed_gwkpoints  #if kpoint is None else KpointList.as_kpoints(kpoint)
@@ -818,8 +784,8 @@ class SigresPlotter(Iterable):
         Returns:
             `matplotlib` figure
         """
-        spin_range = range(self.nsppol) if spin is None else torange(spin)
-        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else torange(band)
+        spin_range = range(self.nsppol) if spin is None else duck.torange(spin)
+        band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else duck.torange(band)
         if kpoint is None:
             kpoints_for_plot = self.computed_gwkpoints
         else:
@@ -1676,7 +1642,7 @@ class SigresReader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint, ignore_imag=False):
         """
-        Read and Return `QPList` object for the given spin, kpoint.
+        Read and return `QPList` object for the given spin, kpoint.
 
         Args:
             ignore_imag: Only real part is returned if `ignore_imag`.
@@ -1684,7 +1650,8 @@ class SigresReader(ETSF_Reader):
         ik = self.gwkpt2seqindex(kpoint)
         bstart, bstop = self.gwbstart_sk[spin, ik], self.gwbstop_sk[spin, ik]
 
-        return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag) for band in range(bstart, bstop)])
+        return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
+                      for band in range(bstart, bstop)])
 
     #def read_qpene(self, spin, kpoint, band)
 
@@ -1726,7 +1693,7 @@ class SigresReader(ETSF_Reader):
     def read_sigmaw(self, spin, kpoint, band):
         """Returns the real and the imaginary part of the self energy."""
         if not self.has_spfunc:
-            raise ValueError("%s does not contain spectral function data" % self.path)
+            raise ValueError("%s does not contain spectral function data." % self.path)
 
         ik = self.kpt2fileindex(kpoint)
         return self._omega_r, self._sigxcme[spin,:,ik,band]
@@ -1805,6 +1772,7 @@ class SigresReader(ETSF_Reader):
 
         for spin in spins:
             for kpoint in kpoints:
+                # TODO: Use tabulate or pd
                 table_sk = PrettyTable(header)
                 if bands is None:
                     ik = self.gwkpt2seqindex(kpoint)
@@ -1839,7 +1807,7 @@ class SigresReader(ETSF_Reader):
     #    """Returns the QPState density in real space."""
 
 
-class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
+class SigresRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple SIGRES files.
     """
@@ -1855,7 +1823,7 @@ class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
 
         return table
 
-    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, **kwargs):
+    def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, funcs=None, **kwargs):
         """
         Return a pandas DataFrame with the most important results for the given (spin, kpoint).
 
@@ -1933,5 +1901,9 @@ class SigresRobot(Robot, RobotWithEbands, NotebookWriter):
             #nbv.new_code_cell("df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
             #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
         ])
+
+        # Mixins
+        #nb.cells.extend(self.get_baserobot_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -716,7 +716,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
+class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     """
     This robot analyzes the results contained in multiple EPH.nc files.
     """
@@ -881,6 +881,11 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands, NotebookWriter):
             nb.cells.extend([
                 nbv.new_code_cell("robot.plot_a2ftr_convergence();"),
             ])
+
+        # Mixins.
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_ebands_code_cells())
+        nb.cells.extend(self.get_phbands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
 

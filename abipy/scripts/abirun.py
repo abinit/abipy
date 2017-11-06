@@ -759,6 +759,9 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser],
                                     help="Use a robot to analyze the results of multiple tasks (requires ipython).")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file.")
+    p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook")
+    p_robot.add_argument('--foreground', action='store_true', default=False,
+                         help="Run jupyter notebook in the foreground.")
 
     # Subparser for plot.
     p_plot = subparsers.add_parser('plot', parents=[copts_parser, flow_selector_parser],
@@ -892,7 +895,7 @@ Specify the files to open. Possible choices:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.verbose > 1:
+    if options.verbose > 2:
         print(options)
 
     # Documentation options that do not need a flow.
@@ -1202,7 +1205,8 @@ Specify the files to open. Possible choices:
         if not paths:
             cprint("No job is running. Exiting!", "magenta")
         else:
-            cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths), color="magenta", end="", flush=True)
+            cprint("Press <CTRL+C> to interrupt. Number of output files %d\n" % len(paths),
+                    color="magenta", end="", flush=True)
             try:
                 os.system("tail -f %s" % " ".join(paths))
             except KeyboardInterrupt:
@@ -1222,11 +1226,20 @@ Specify the files to open. Possible choices:
         flow.show_dependencies()
 
     elif options.command == "robot":
-        import IPython
-        with abilab.abirobot(flow, options.robot_ext, nids=selected_nids(flow, options)) as robot:
-            IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",  robot=robot)
-            #IPython.start_ipython(argv=[], user_ns={"robot": robot})
-            #robot.make_and_open_notebook(nbpath=None, foreground=True)
+        # Build robot from flow and file extension.
+        robot = abilab.Robot.from_flow(flow, outdirs="all", nids=selected_nids(flow, options),
+                                       ext=options.robot_ext)
+        if len(robot) == 0:
+            cprint("Empty robot. No notebook will be produced", "yellow")
+            return 1
+
+        if options.notebook:
+            print(robot)
+            return robot.make_and_open_notebook(foreground=options.foreground)
+        else:
+            import IPython
+            IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
+                          robot=robot)
 
     elif options.command == "plot":
         fext = dict(ebands="gsr")[options.what]
@@ -1255,7 +1268,6 @@ Specify the files to open. Possible choices:
                         task.inspect()
                     except Exception as exc:
                         cprint("%s: inspect method raised %s " % (task, exc), color="blue")
-
                 else:
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
@@ -1367,7 +1379,7 @@ Specify the files to open. Possible choices:
         print("Warning this option is still under development")
         timer = flow.parse_timing()
         if timer is None:
-            cprint("Cannot parse time data!", color="magenta", end="", flush=True)
+            cprint("Cannot parse timer data!", color="magenta", end="", flush=True)
             return 1
 
         import IPython

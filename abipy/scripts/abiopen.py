@@ -39,6 +39,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 %matplotlib notebook
 import numpy as np
 #import seaborn as sns
+#sns.set(context='notebook', style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 from abipy import abilab\
 """),
 
@@ -75,8 +77,8 @@ def main():
 Usage example:
 
     abiopen.py FILE        => Open file in ipython shell.
-    abiopen.py FILE -nb       => Generate jupyter notebook.
-    abiopen.py FILE -p    => Print info on object to terminal.
+    abiopen.py FILE -nb    => Generate jupyter notebook.
+    abiopen.py FILE -p     => Print info on object to terminal.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -121,7 +123,7 @@ File extensions supported:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    if options.verbose > 1:
+    if options.verbose > 2:
         print(options)
 
     if not os.path.exists(options.filepath):

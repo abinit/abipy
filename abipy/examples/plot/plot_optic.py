@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-This example shows how to plot the optical properties computed by optic within
-the independent-particle approximation, no local-field effects and no excitonic effects.
+This example shows how to plot the optical properties
+computed by optic within the independent-particle approximation,
+no local-field effects and no excitonic effects.
 """
 from abipy import abilab
 import abipy.data as abidata
@@ -36,7 +37,7 @@ robot = abilab.OpticRobot.from_files(filenames)
 
 robot.plot_linopt_convergence(title="Convergence of $\epsilon$ wrt nkpt")
 
-robot.plot_shg_convergence(title="Convergence of $\chi^2(-2\omega, \omega, \omega)$ wrt nkpt")
+robot.plot_shg_convergence(title="Convergence of $\chi^2(-2\omega,\omega,\omega)$ wrt nkpt")
 
 # Remember to close the file or use the `with` context manager.
 robot.close()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This example shows how to plot the band structure of Nickel
-using the eigenvalues stored in the GSR file produced by abinit at the end of the GS run.
+using the eigenvalues stored in the GSR file produced at the end of the GS run.
 """
 from abipy import abilab
 import abipy.data as abidata

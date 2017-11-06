@@ -181,6 +181,7 @@ class DatabaseStructures(object):
     def print_results(self, fmt="abivars", verbose=0, file=sys.stdout):
         """
         Print pandas dataframe, structures using format `fmt`, and data to file `file`.
+        `fmt` is automaticall set to `cif` if structure is disordered.
         """
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
@@ -193,7 +194,10 @@ class DatabaseStructures(object):
             print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
             #print("\n# " + str(structure).replace("\n", "\n# ") + "\n", file=file)
             print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
-            print(structure.convert(fmt=fmt), file=file)
+            if not structure.is_ordered:
+                print(structure.convert(fmt="cif"), file=file)
+            else:
+                print(structure.convert(fmt=fmt), file=file)
             print(2 * "\n", file=file)
 
 

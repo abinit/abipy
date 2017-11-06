@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-This example shows how to analyze the results of a structure relaxation
-using the HIST.nc file.
+This example shows how to analyze the results of a 
+structure relaxation run using the HIST.nc file.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata

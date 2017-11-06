@@ -34,7 +34,7 @@ from abipy.core.structure import (Lattice, Structure, StructureModifier, datafra
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
-from abipy.abio.robots import Robot #abirobot
+from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile

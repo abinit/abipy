@@ -82,7 +82,6 @@ def itest_flow_with_deadlocks(fwp):
     g = flow.find_deadlocks()
     assert g.deadlocked and not g.runnables and not g.running
     assert work1[1] in g.deadlocked
-    #assert 0
 
 
 def itest_flow_without_runnable_tasks(fwp):

@@ -11,35 +11,11 @@ import os
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
+from abipy.core.mixins import NotebookWriter
 
-# TODO: Robot for Abinit output files?
+# TODO: Robot for Abinit output files. HIST files
 
-#def abirobot(obj, ext, nids=None):
-#    """
-#    Factory function that builds and return the :class:`Robot` subclass from the file
-#    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.
-#    `nids` is an optional list of node identifiers used to filter the tasks in the flow.
-#
-#    Usage example:
-#
-#    .. code-block:: python
-#
-#        with abirobot(flow, "GSR") as robot:
-#            # do something with robot and close the GSR files when done.
-#
-#        with abirobot("dirpath", "SIGRES") as robot:
-#            # do something with robot and close the SIGRES files when done.
-#    """
-#    for cls in Robot.__subclasses__():
-#        if cls.EXT in (ext, ext.upper()):
-#            return cls.open(obj, nids=nids)
-#
-#    raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
-#                     "The list of supported extensions is:\n%s" %
-#                     [cls.EXT for cls in Robot.__subclasses__()])
-#
-
-class Robot(object):
+class Robot(NotebookWriter):
     """
     This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
@@ -180,9 +156,9 @@ class Robot(object):
         return cls(*items)
 
     @classmethod
-    def from_flow(cls, flow, outdirs="all", nids=None):
+    def from_flow(cls, flow, outdirs="all", nids=None, ext=None):
         """
-        Build a robot from a Flow.
+        Build a robot from a Flow object.
 
         Args:
             flow: :class:`Flow` object
@@ -193,11 +169,24 @@ class Robot(object):
                 Cannot use `+` and `-` flags in the same string.
                 Default: `all` that is equivalent to "flow+work+task"
             nids: List of node identifiers used to select particular nodes. Not used if None
+            ext: File extension associated to the robot. Mainly used if method is invoked with the BaseClass
+
+        Usage example:
+
+        .. code-block:: python
+
+            with GsrRobot.from_flow(flow) as robot:
+                print(robot)
+
+            # That is equivalent to:
+
+            with Robot.from_flow(flow, ext="GSR") as robot:
+                print(robot)
 
         Returns:
             `Robot` subclass.
         """
-        robot = cls()
+        robot = cls() if ext is None else cls.class_for_ext(ext)()
         all_opts = ("flow", "work", "task")
 
         if outdirs == "all":
@@ -223,7 +212,6 @@ class Robot(object):
 
         if "task" in tokens:
             for task in flow.iflat_tasks():
-                #print("task %s, nids %s" %  (task, nids))
                 robot.add_extfile_of_node(task, nids=nids)
 
         return robot
@@ -301,6 +289,20 @@ class Robot(object):
     #                print("Exception while closing: ", ncfile.filepath)
     #                print(exc)
     #                #raise
+
+    @staticmethod
+    def ordered_intersection(list_1, list_2):
+        """Return ordered intersection of two lists. Items must be hashable."""
+        set_2 = frozenset(list_2)
+        return [x for x in list_1 if x in set_2]
+
+    #def _get_ointersection_i(self, iattrname):
+    #    if len(self.ncfiles) == 0: return []
+    #    values = list(range(getattr(self.ncfiles[0], iattrname)))
+    #    if len(self.ncfiles) == 1: return values
+    #    for ncfile in self.ncfiles[1:]:
+    #        values = self.ordered_intersection(values, range(getattr(ncfile, iattrname)))
+    #    return values
 
     @staticmethod
     def _to_relpaths(paths):
@@ -382,6 +384,10 @@ class Robot(object):
     def items(self):
         return self._ncfiles.items()
 
+    @property
+    def labels(self):
+        return list(self._ncfiles.keys())
+
     def show_files(self, stream=sys.stdout):
         s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
         stream.write(s)
@@ -413,6 +419,32 @@ class Robot(object):
         """List of netcdf files."""
         return list(self._ncfiles.values())
 
+    def is_sortable(self, aname, raise_exc=False):
+        """
+        Return True if `aname` is an attribute of the netcdf file
+        If raise_exc is True, AttributeError with an explicit message is raised.
+        """
+        try:
+            obj = getattr(self.ncfiles[0], aname)
+            #return not (callable(obj) or hasattr(obj, "__len__"))
+            return True
+        except AttributeError:
+            if not raise_exc: return False
+            import inspect
+            attrs = []
+            for key, obj in inspect.getmembers(self.ncfiles[0]):
+                # Ignores anything starting with underscore
+                if key.startswith('_') or callable(obj) or hasattr(obj, "__len__"): continue
+                attrs.append(key)
+
+            raise AttributeError("""\
+`%s` object has no attribute `%s`. Choose among:
+
+    %s
+
+Note that this list is automatically generated.
+Not all entries are sortable (Please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
+
     def sortby(self, func_or_string, reverse=False):
         """
         Sort files in the robot by `func_or_string`
@@ -431,13 +463,14 @@ class Robot(object):
             items = [(label, ncfile, func_or_string(ncfile)) for (label, ncfile) in self]
         else:
             # Assume string and attribute with the same name.
+            self.is_sortable(func_or_string, raise_exc=True)
             items = [(label, ncfile, getattr(ncfile, func_or_string)) for (label, ncfile) in self]
 
         return sorted(items, key=lambda t: t[2], reverse=reverse)
 
     def close(self):
         """
-        Close all files that have been opened by the Robot
+        Close all files that have been opened by the Robot.
         """
         for ncfile in self.ncfiles:
             if self._do_close.pop(ncfile.filepath, False):
@@ -482,7 +515,6 @@ class Robot(object):
     #    for label, ncfile in self:
     #        obj = ncfile if obj is None else getattr(ncfile, obj)
     #        od[label] = getattr(obj, attr_name)
-
     #    if retdict:
     #        return od
     #    else:
@@ -502,16 +534,6 @@ class Robot(object):
                 cprint("Exception: %s" % str(exc), "red")
                 self._exceptions.append(str(exc))
         return d
-
-    #def color_label(self, label):
-    #    import matplotlib.pyplot as plt
-    #    cm = plt.get_cmap('jet')
-    #    return cm(self._ncfiles.keys().index(label) / len(self))
-
-    #def color_index(self, i):
-    #    import matplotlib.pyplot as plt
-    #    cm = plt.get_cmap('jet')
-    #    return cm(i / len(self))
 
     @staticmethod
     def sortby_label(sortby, param):
@@ -535,3 +557,26 @@ class Robot(object):
 
         ncfiles = self.ncfiles if filter_abifile is not None else list(filter(filter_abifile, self.ncfiles))
         return dataframes_from_structures(struct_objects=ncfiles, **kwargs)
+
+    def get_lattice_dataframe(self, **kwargs):
+        """Return pandas DataFrame with lattice parameters."""
+        dfs = self.get_structure_dataframes(**kwargs)
+        return dfs.lattice
+
+    def get_coords_dataframe(self, **kwargs):
+        """Return pandas DataFrame with atomic positions."""
+        dfs = self.get_structure_dataframes(**kwargs)
+        return dfs.coords
+
+    def get_baserobot_code_cells(self, title=None):
+        """
+        Return list of notebook cells with calls common to the different robot subclasses.
+        """
+        # Try not pollute namespace with lots of variables.
+        nbformat, nbv = self.get_nbformat_nbv()
+        title = "## Code to compare multiple Structure objects" if title is None else str(title)
+        return [
+            nbv.new_markdown_cell(title),
+            nbv.new_code_cell("robot.get_lattice_dataframe()"),
+            nbv.new_code_cell("#robot.get_coords_dataframe()"),
+        ]

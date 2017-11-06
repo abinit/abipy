@@ -1,7 +1,7 @@
 """Tests for eph module."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-#import numpy as np
+import numpy as np
 import abipy.data as abidata
 
 from abipy import abilab
@@ -67,8 +67,6 @@ class EphFileTest(AbipyTest):
         ncfile.close()
 
 
-from abipy.eph.eph import EphRobot
-
 class EphRobotTest(AbipyTest):
 
     def test_eph_robot(self):
@@ -87,8 +85,15 @@ class EphRobotTest(AbipyTest):
             data = robot.get_dataframe(with_geo=True)
             assert "lambda_qcoarse" in data and "omegalog_qintp" in data
 
+            # Mixin
+            phbands_plotter = robot.get_phbands_plotter()
+            data = robot.get_phbands_dataframe()
+            assert "min_freq" in data
+            assert np.all(data["nmodes"].values == 3)
+
             # Test plot methods
             if self.has_matplotlib():
+                assert phbands_plotter.boxplot(show=False)
                 assert robot.plot_lambda_convergence(show=False)
                 assert robot.plot_a2f_convergence(show=False)
                 #assert robot.plot_a2ftr_convergence(show=False)

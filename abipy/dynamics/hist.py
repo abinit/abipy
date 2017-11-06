@@ -47,19 +47,18 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0, title=None):
         """Return string representation."""
         lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Initial structure", mark="="))
-        app(str(self.initial_structure))
+        app(self.initial_structure.to_string(verbose=verbose, title="Initial Structure"))
         app("")
-        app(marquee("Final structure", mark="="))
         app("Number of relaxation steps performed: %d" % self.num_steps)
-        app(str(self.final_structure))
+        app(self.final_structure.to_string(verbose=verbose, title="Final structure"))
         app("")
 
         an = self.get_relaxation_analyzer()

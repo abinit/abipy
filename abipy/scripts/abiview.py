@@ -252,8 +252,10 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
+        sns.set(context='article', style='darkgrid', palette='deep',
+                font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.verbose > 1:
+    if options.verbose > 2:
         print(options)
 
     # Dispatch

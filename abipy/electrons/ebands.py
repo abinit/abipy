@@ -184,8 +184,7 @@ class ElectronTransition(object):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []
-        app = lines.append
+        lines = []; app = lines.append
         app("Energy: %.3f [eV]" % self.energy)
         app("Initial state: %s" % str(self.in_state))
         app("Final state:   %s" % str(self.out_state))
@@ -3675,7 +3674,6 @@ class RobotWithEbands(object):
                 True if the file should be added to the plotter.
             cls: subclass of `ElectronBandsPlotter`
         """
-        from abipy.electrons.ebands import ElectronBandsPlotter
         plotter = ElectronBandsPlotter() if cls is None else cls()
 
         for label, abifile in self:
@@ -3694,7 +3692,6 @@ class RobotWithEbands(object):
             cls: subclass of `ElectronDosPlotter`
             kwargs: Arguments passed to ebands.get_edos
         """
-        from abipy.electrons.ebands import ElectronDosPlotter
         plotter = ElectronDosPlotter() if cls is None else cls()
 
         for label, abifile in self:
@@ -3707,5 +3704,15 @@ class RobotWithEbands(object):
         return plotter
 
     #def get_ebands_dataframe(self, with_spglib=True):
-    #    from abipy.electrons.ebands import dataframes_from_ebands
     #    return dataframe_from_ebands(self.ncfiles, index=list(self.keys()), with_spglib=with_spglib)
+
+    def get_ebands_code_cells(self, title=None):
+        """Return list of notebook cells. """
+        nbformat, nbv = self.get_nbformat_nbv()
+        title = "## Code to compare multiple ElectronBands objects" if title is None else str(title)
+        # Try not pollute namespace with lots of variables.
+        return [
+            nbv.new_markdown_cell(title),
+            nbv.new_code_cell("robot.get_ebands_plotter().ipw_select_plot();"),
+            nbv.new_code_cell("robot.get_edos_plotter().ipw_select_plot();"),
+        ]

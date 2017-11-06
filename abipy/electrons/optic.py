@@ -475,15 +475,7 @@ class OpticReader(ElectronsReader):
         return od
 
 
-
-
-def ordered_intersection(list_1, list_2):
-    """Return ordered intersection of two lists. items must be hashable."""
-    set_2 = frozenset(list_2)
-    return [x for x in list_1 if x in set_2]
-
-
-class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
+class OpticRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple optic.nc files.
     """
@@ -503,7 +495,7 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
                     od[chiname] = comps
                 else:
                     # Build intersection while preserving order.
-                    od[chiname] = ordered_intersection(od[chiname], comps)
+                    od[chiname] = self.ordered_intersection(od[chiname], comps)
         return od
 
     @add_fig_kwargs
@@ -635,5 +627,9 @@ class OpticRobot(Robot, RobotWithEbands, NotebookWriter):
             nb.cells.extend([
                 nbv.new_code_cell(pycall),
             ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)

@@ -46,28 +46,27 @@ class TestQPList(AbipyTest):
 
         with self.assertRaises(ValueError):
             qplist.get_e0mesh()
-
         with self.assertRaises(ValueError):
             qplist.merge(qpl_e0sort)
+        with self.assertRaises(ValueError):
+            qplist.merge(qplist)
 
         other_qplist = self.sigres.get_qplist(spin=0, kpoint=self.sigres.gwkpoints[1])
         qpl_merge = qplist.merge(other_qplist)
 
-        for qp in qplist:
-            assert qp in qpl_merge
-
-        for qp in other_qplist:
-            assert qp in qpl_merge
+        assert all(qp in qpl_merge for qp in qplist)
+        assert all(qp in qpl_merge for qp in other_qplist)
 
         # Test QPState object.
         qp = qplist[0]
         repr(qp); str(qp)
+        #qp.to_string(verbose=verbose, title="QP State")
         print(qp.tips)
 
-        self.assertAlmostEqual(qp.e0, -5.04619941555265, places=5)
-        self.assertAlmostEqual(qp.qpe.real, -4.76022137474714)
-        self.assertAlmostEqual(qp.qpe.imag, -0.011501666037697)
-        self.assertAlmostEqual(qp.sigxme, -16.549383605401)
+        self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)
+        self.assert_almost_equal(qp.qpe.real, -4.76022137474714)
+        self.assert_almost_equal(qp.qpe.imag, -0.011501666037697)
+        self.assert_almost_equal(qp.sigxme, -16.549383605401)
 
 
 class TestSigresFile(AbipyTest):
@@ -204,7 +203,6 @@ class TestSigresPlotter(AbipyTest):
                 assert plotter.plot_qps_vs_e0(show=False)
 
             plotter.close()
-
 
 
 class SigresRobotTest(AbipyTest):

@@ -363,7 +363,7 @@ class GsrReader(ElectronsReader):
         return EnergyTerms(**d)
 
 
-class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
+class GsrRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GSR files.
     """
@@ -482,6 +482,10 @@ class GsrRobot(Robot, RobotWithEbands, NotebookWriter):
             nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
             nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
         ])
+
+        # Mixins
+        #nb.cells.extend(self.get_baserobot_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
 

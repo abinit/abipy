@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This example shows how to analyze multiple MDF files
+This example shows how to analyze multiple MDF files.
 """
 import abipy.data as abidata
 from abipy import abilab

@@ -1200,7 +1200,7 @@ class DielectricTensorGenerator(Has_Structure):
         return fig
 
 
-class DdbRobot(Robot, NotebookWriter):
+class DdbRobot(Robot):
     """
     This robot analyzes the results contained in multiple DDB files.
     """

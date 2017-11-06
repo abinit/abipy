@@ -83,7 +83,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`optic` Module
------------------
+-------------------
 
 .. automodule:: abipy.electrons.optic
    :members:

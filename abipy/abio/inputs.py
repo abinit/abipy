@@ -2961,7 +2961,7 @@ class Cut3DInput(MSONable, object):
         """
         self.infile_path = infile_path
         self.output_filepath = output_filepath
-        self.options = options
+        self.options = [str(o) for o in options]
 
     def __str__(self):
         return self.to_string()

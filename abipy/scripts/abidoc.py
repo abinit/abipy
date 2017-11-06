@@ -7,6 +7,7 @@ from __future__ import unicode_literals, division, print_function, absolute_impo
 import sys
 import os
 import argparse
+import abipy.flowtk as flowtk
 
 from pprint import pprint
 from monty.functools import prof_main
@@ -38,6 +39,8 @@ Usage example:
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
     abidoc.py list            --> Print full list of variables.
     abidoc.py withdim natom   --> Print arrays depending on natom.
+    abidoc.py scheduler       --> Document scheduler options.
+    abidoc.py manager         --> Document manager options.
 
 Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -75,11 +78,9 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for apropos.
     p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser],
                                       help="Find variables related to varname.")
-
     # Subparser for find.
     p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],
                                     help="Find all variables whose name contains varname.")
-
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
 
@@ -91,7 +92,16 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for list.
     p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
     p_list.add_argument('--mode', default="a",
-                        help="Sorte mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
+                        help="Sort mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
+
+    # Subparser for manager.
+    p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options.")
+    p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else "
+        "document the qparams for the given QueueAdapter qtype e.g. slurm."))
+
+    # Subparser for scheduler
+    p_docsched = subparsers.add_parser('scheduler', parents=[copts_parser],
+        help="Document the options available in scheduler.yml.")
 
     try:
         options = parser.parse_args()
@@ -150,6 +160,31 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
                 cprint(repr(var), "yellow")
                 print("dimensions:", str(var.dimensions), "\n")
 
+    elif options.command == "scheduler":
+        print("Options that can be specified in scheduler.yml:")
+        print(flowtk.PyFlowScheduler.autodoc())
+        return 0
+
+    elif options.command == "manager":
+        # Document TaskManager options and qparams.
+        qtype = options.qtype
+
+        if qtype == "script":
+            manager = flowtk.TaskManager.from_user_config()
+            script = manager.qadapter.get_script_str(
+                job_name="job_name", launch_dir="workdir", executable="executable",
+                qout_path="qout_file.path", qerr_path="qerr_file.path",
+                stdin="stdin", stdout="stdout", stderr="stderr")
+            print(script)
+
+        else:
+            print(flowtk.TaskManager.autodoc())
+            print("qtype supported: %s" % flowtk.all_qtypes())
+            print("Use `abidoc.py manager slurm` to have the list of qparams for slurm.\n")
+
+            if qtype is not None:
+                print("QPARAMS for %s" % qtype)
+                flowtk.show_qparams(qtype)
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)
 

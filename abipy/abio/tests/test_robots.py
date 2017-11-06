@@ -15,8 +15,15 @@ class RobotTest(AbipyTest):
 
     def test_base_robot_class(self):
         """Testing base robot class"""
+
+        # This is for the abstract interface.
+        class MyRobot(Robot):
+            EXT = "FOOBAR.nc"
+            def write_notebook(self, nbpath=None):
+                raise NotImplementedError()
+
         # With context.
-        with Robot() as robot:
+        with MyRobot() as robot:
             repr(robot); str(robot)
             assert robot.to_string(verbose=2)
             assert robot._repr_html_()
@@ -26,3 +33,6 @@ class RobotTest(AbipyTest):
         assert Robot.class_for_ext("OPTIC") is abilab.OpticRobot
         with self.assertRaises(ValueError):
             Robot.for_ext("foo")
+
+        if self.has_nbformat():
+            assert robot.get_baserobot_code_cells()

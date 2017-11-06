@@ -904,7 +904,7 @@ class MultipleMdfPlotter(object):
         return len(set(labels)) == len(labels)
 
 
-class MdfRobot(Robot, RobotWithEbands, NotebookWriter):
+class MdfRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple MDF files.
     """
@@ -922,7 +922,7 @@ class MdfRobot(Robot, RobotWithEbands, NotebookWriter):
 
         return plotter
 
-    def get_dataframe(self, with_geo=False, abspath=False, **kwargs):
+    def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs):
         """
         Build and return Pandas dataframe with the most import BSE results.
         and the filenames as index.
@@ -996,5 +996,9 @@ class MdfRobot(Robot, RobotWithEbands, NotebookWriter):
             nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
             #nbv.new_code_cell(plotter.combiboxplot();"),
         ])
+
+        # Mixins
+        #nb.cells.extend(self.get_baserobot_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
