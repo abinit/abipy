@@ -2,7 +2,6 @@
 """Widgets for Pandas Dataframes."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import ipywidgets as ipw
 import abipy.display.utils as ut
@@ -23,6 +22,7 @@ def plot(data, **kwargs):
                 rot=None, fontsize=None, colormap=colorbar, table=False, yerr=None, xerr=None, secondary_y=False,
                 sort_columns=sort_columns, **kwargs)
                 # There's a typo in the documentation (colorbar/colormap!)
+        #import matplotlib.pyplot as plt
         #return plt.gcf()
 
     allcols = ["None"] + list(data.keys())
